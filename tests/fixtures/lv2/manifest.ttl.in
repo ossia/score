@@ -71,4 +71,9 @@
     a lv2:Plugin ;
     lv2:binary <@LV2_TEST_BINARY_NAME@> ;
     rdfs:seeAlso <score_test_gain.ttl> .
+<urn:score:test:mono-notify>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .
+
 @LV2_TEST_X11UI@

@@ -130,6 +130,55 @@
         rsz:minimumSize 65536
     ] .
 
+# A mono effect whose UI talks to it on a MIDI input and on an atom input that
+# is not MIDI; it answers with a 10000-byte event, and counts what it gets.
+<urn:score:test:mono-notify>
+    a lv2:Plugin, lv2:UtilityPlugin ;
+    doap:name "Score Test Mono Notify" ;
+    lv2:port [
+        a lv2:AudioPort, lv2:InputPort ;
+        lv2:index 0 ;
+        lv2:symbol "in" ;
+        lv2:name "In"
+    ] , [
+        a lv2:AudioPort, lv2:OutputPort ;
+        lv2:index 1 ;
+        lv2:symbol "out" ;
+        lv2:name "Out"
+    ] , [
+        a lv2:InputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        atom:supports midi:MidiEvent ;
+        lv2:index 2 ;
+        lv2:symbol "control" ;
+        lv2:name "Control" ;
+        rsz:minimumSize 65536
+    ] , [
+        a lv2:InputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        lv2:index 3 ;
+        lv2:symbol "atoms" ;
+        lv2:name "Atoms" ;
+        rsz:minimumSize 65536
+    ] , [
+        a lv2:OutputPort, atom:AtomPort ;
+        atom:bufferType atom:Sequence ;
+        lv2:index 4 ;
+        lv2:symbol "notify" ;
+        lv2:name "Notify" ;
+        rsz:minimumSize 65536
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 5 ;
+        lv2:symbol "notes_off" ;
+        lv2:name "Notes off"
+    ] , [
+        a lv2:ControlPort, lv2:OutputPort ;
+        lv2:index 6 ;
+        lv2:symbol "received" ;
+        lv2:name "Received"
+    ] .
+
 # A control read by an X11 UI that resizes itself (score_test_x11ui.c).
 <urn:score:test:x11ui>
     a lv2:Plugin, lv2:UtilityPlugin ;

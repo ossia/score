@@ -656,6 +656,7 @@ void Model::readPlugin()
   ossia::float_vector fParamMin, fParamMax, fParamInit, fOtherControls;
 
   LV2Data data{h, effectContext};
+  uiChannel = std::make_shared<UiChannel>(data);
 
   const std::size_t audio_in_size = data.audio_in_ports.size();
   const std::size_t audio_out_size = data.audio_out_ports.size();
@@ -917,6 +918,13 @@ void Model::readPlugin()
   }
 }
 
+void Model::flushUiMessages() const
+{
+  if(!uiChannel || uiChannel->flush())
+    return;
+  QTimer::singleShot(50, this, [this] { flushUiMessages(); });
+}
+
 void Model::reload()
 {
   // MAIN THREAD ONLY: mutates the shared LilvWorld via ensureBundleLoaded
@@ -1130,10 +1138,10 @@ public:
   void stop() override;
 };
 
+//! What the UI sent reaches the node through its UiChannel
 struct on_start
 {
-  std::weak_ptr<LV2EffectComponent> self;
-  void operator()();
+  void operator()() const noexcept { }
 };
 
 struct on_finish
@@ -1142,21 +1150,6 @@ struct on_finish
   std::weak_ptr<Execution::EditionCommandQueue> q;
   void operator()();
 };
-void on_start::operator()()
-{
-  auto p = self.lock();
-  if(!p)
-    return;
-  auto nn = p->node;
-  if(!nn)
-    return;
-  auto& node = *static_cast<lv2_node_t*>(nn.get());
-  auto& proc = p->process().to_process_events;
-
-  LV2::Message msg;
-  while(proc.try_dequeue(msg))
-    node.queue_ui_message(msg);
-}
 void on_finish::operator()()
 {
   auto p = self.lock();
@@ -1189,15 +1182,6 @@ void on_finish::operator()()
       cport->setValue(val);
     }
   });
-
-  if(!p->process().uiListening.load(std::memory_order_acquire))
-    return;
-  auto nn = p->node;
-  if(!nn)
-    return;
-  auto& node = *static_cast<lv2_node_t*>(nn.get());
-  node.for_each_ui_event(
-      [&](uint32_t port_index, const LV2_Atom& atom) { p->writeAtomToUi(port_index, atom); });
 }
 
 void lv2_node_process::stop()
@@ -1231,8 +1215,7 @@ void LV2EffectComponent::lazy_init()
 
   on_start os;
   on_finish of;
-  os.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());
-  of.self = os.self;
+  of.self = std::dynamic_pointer_cast<LV2EffectComponent>(shared_from_this());
   of.q = ctx.weakEditionQueue();
 
   LV2::LV2Data lv2data{host.lv2_host_context, proc.effectContext};
@@ -1240,6 +1223,8 @@ void LV2EffectComponent::lazy_init()
 
   auto node = ossia::make_node<LV2::lv2_node_t>(
       *ctx.execState, lv2data, ctx.execState->sampleRate, strategy, os, of);
+  node->ui = proc.uiChannel;
+  proc.flushUiMessages();
 
   for(std::size_t i = proc.m_controlInStart; i < proc.inlets().size(); i++)
   {
@@ -1335,44 +1320,5 @@ void LV2EffectComponent::growVoicePoolTick()
     lilv_state_free(state);
 }
 
-void LV2EffectComponent::writeAtomToUi(
-    uint32_t port_index, uint32_t type, uint32_t size, const void* body)
-{
-  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
-  LV2::Message ev;
-  ev.index = port_index;
-  ev.protocol = p.lv2_host_context.atom_eventTransfer;
-  ev.body.resize(sizeof(LV2_Atom) + size);
-
-  {
-    LV2_Atom* atom = reinterpret_cast<LV2_Atom*>(ev.body.data());
-    atom->type = type;
-    atom->size = size;
-  }
-
-  {
-    uint8_t* data = reinterpret_cast<uint8_t*>(ev.body.data() + sizeof(LV2_Atom));
-
-    auto b = (const uint8_t*)body;
-    for(uint32_t i = 0; i < size; i++)
-      data[i] = b[i];
-  }
-
-  process().plugin_events.enqueue(std::move(ev));
-}
-
-void LV2EffectComponent::writeAtomToUi(uint32_t port_index, const LV2_Atom& atom)
-{
-  auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
-
-  LV2::Message ev;
-  ev.index = port_index;
-  ev.protocol = p.lv2_host_context.atom_eventTransfer;
-  int message_bytes = sizeof(LV2_Atom) + atom.size;
-  ev.body.resize(message_bytes);
-  memcpy(ev.body.data(), &atom, message_bytes);
-
-  process().plugin_events.enqueue(std::move(ev));
-}
 }
 W_OBJECT_IMPL(LV2::LV2EffectComponent)

@@ -9,6 +9,7 @@
  *   5  control in  "bypass" toggled default 0        (ignored by run)
  */
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
+#include <lv2/lv2plug.in/ns/ext/midi/midi.h>
 #include <lv2/lv2plug.in/ns/ext/time/time.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #include <lv2/lv2plug.in/ns/ext/worker/worker.h>
@@ -1009,6 +1010,116 @@ static const LV2_Descriptor descriptor_echo
     = {"urn:score:test:worker-echo", instantiate_echo, connect_port_echo, NULL,
        run_echo,                     NULL,             cleanup,           extension_data_echo};
 
+/* urn:score:test:mono-notify: a mono effect, run as one instance per channel,
+ * whose UI talks to it on a MIDI input and on an atom input that is not
+ * MIDI. It answers the first event of each block, on either input, with one
+ * NOTIFY_SIZE-byte event on its output, and counts what it is given.
+ *
+ * Ports:
+ *   0  audio in   "in"
+ *   1  audio out  "out"      a copy of "in"
+ *   2  atom in    "control"  atom:Sequence, supports midi:MidiEvent
+ *   3  atom in    "atoms"    atom:Sequence
+ *   4  atom out   "notify"   atom:Sequence
+ *   5  control out "notes_off"  CC 120 and 123 received on "control", in all
+ *   6  control out "received"   events received on "atoms", in all
+ */
+typedef struct
+{
+  const float* in;
+  float* out;
+  const LV2_Atom_Sequence* control;
+  const LV2_Atom_Sequence* atoms;
+  LV2_Atom_Sequence* notify;
+  float* notes_off;
+  float* received;
+  LV2_URID midi_event;
+  float notes_off_count;
+  float received_count;
+} test_mono_notify;
+
+static LV2_Handle instantiate_mono_notify(
+    const LV2_Descriptor* descriptor, double rate, const char* bundle_path,
+    const LV2_Feature* const* features)
+{
+  (void)descriptor;
+  (void)rate;
+  (void)bundle_path;
+  test_mono_notify* self = (test_mono_notify*)calloc(1, sizeof(test_mono_notify));
+  for(int i = 0; features && features[i]; i++)
+    if(!strcmp(features[i]->URI, LV2_URID__map))
+    {
+      LV2_URID_Map* map = (LV2_URID_Map*)features[i]->data;
+      self->midi_event = map->map(map->handle, LV2_MIDI__MidiEvent);
+    }
+  return self;
+}
+
+static void connect_port_mono_notify(LV2_Handle instance, uint32_t port, void* data)
+{
+  test_mono_notify* self = (test_mono_notify*)instance;
+  switch(port)
+  {
+    case 0: self->in = (const float*)data; break;
+    case 1: self->out = (float*)data; break;
+    case 2: self->control = (const LV2_Atom_Sequence*)data; break;
+    case 3: self->atoms = (const LV2_Atom_Sequence*)data; break;
+    case 4: self->notify = (LV2_Atom_Sequence*)data; break;
+    case 5: self->notes_off = (float*)data; break;
+    case 6: self->received = (float*)data; break;
+    default: break;
+  }
+}
+
+static void run_mono_notify(LV2_Handle instance, uint32_t n_samples)
+{
+  test_mono_notify* self = (test_mono_notify*)instance;
+  if(!self->in || !self->out || !self->control || !self->atoms || !self->notify)
+    return;
+  memcpy(self->out, self->in, n_samples * sizeof(float));
+
+  int answer = 0;
+  LV2_ATOM_SEQUENCE_FOREACH(self->control, ev)
+  {
+    answer = 1;
+    const uint8_t* msg = (const uint8_t*)(ev + 1);
+    if(ev->body.type == self->midi_event && ev->body.size == 3
+       && (msg[0] & 0xF0) == 0xB0 && (msg[1] == 120 || msg[1] == 123))
+      self->notes_off_count += 1.f;
+  }
+  LV2_ATOM_SEQUENCE_FOREACH(self->atoms, ev)
+  {
+    answer = 1;
+    self->received_count += 1.f;
+  }
+  if(self->notes_off)
+    *self->notes_off = self->notes_off_count;
+  if(self->received)
+    *self->received = self->received_count;
+
+  const uint32_t capacity = self->notify->atom.size;
+  self->notify->atom.type = self->atoms->atom.type; /* atom:Sequence */
+  self->notify->atom.size = sizeof(LV2_Atom_Sequence_Body);
+  self->notify->body.unit = 0;
+  self->notify->body.pad = 0;
+  const uint32_t needed = sizeof(LV2_Atom_Sequence_Body) + sizeof(LV2_Atom_Event)
+                          + lv2_atom_pad_size(NOTIFY_SIZE);
+  if(!answer || needed > capacity)
+    return;
+  LV2_Atom_Event* out
+      = lv2_atom_sequence_end(&self->notify->body, self->notify->atom.size);
+  out->time.frames = 0;
+  out->body.type = self->midi_event + 1; /* any type that is not MIDI */
+  out->body.size = NOTIFY_SIZE;
+  memset(out + 1, 0x5a, NOTIFY_SIZE);
+  self->notify->atom.size += sizeof(LV2_Atom_Event) + lv2_atom_pad_size(NOTIFY_SIZE);
+}
+
+static const LV2_Descriptor descriptor_mono_notify
+    = {"urn:score:test:mono-notify", instantiate_mono_notify, connect_port_mono_notify,
+       NULL,                         run_mono_notify,         NULL,
+       cleanup,                      NULL};
+
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
   switch(index)
@@ -1041,6 +1152,8 @@ LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index)
       return &descriptor_x11ui;
     case 13:
       return &descriptor_echo;
+    case 14:
+      return &descriptor_mono_notify;
     default:
       return NULL;
   }

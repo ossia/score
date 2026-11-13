@@ -184,7 +184,8 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
 
   if(!fx.effectContext.ui_instance)
     throw std::runtime_error("UI creation error");
-  fx.uiListening.store(true, std::memory_order_release);
+  SCORE_ASSERT(fx.uiChannel);
+  fx.uiChannel->listening.store(true, std::memory_order_release);
 
   // Setup the widget stuff
   auto widget = (QWidget*)suil.instance_get_widget(fx.effectContext.ui_instance);
@@ -220,15 +221,12 @@ Window::Window(const Model& fx, const score::DocumentContext& ctx, QWidget* pare
     if(!fx_ptr || !fx.effectContext.ui_instance)
       return;
 
-    {
-      Message ev;
-      while(fx.plugin_events.try_dequeue(ev))
-      {
-        suil.instance_port_event(
-            fx.effectContext.ui_instance, ev.index, ev.body.size(), ev.protocol,
-            ev.body.data());
-      }
-    }
+    fx.uiChannel->read_for_ui(
+        [&](uint32_t index, uint32_t protocol, uint32_t size, const void* body) {
+      suil.instance_port_event(fx.effectContext.ui_instance, index, size, protocol, body);
+    });
+    if(auto n = fx.uiChannel->dropped_for_ui.exchange(0, std::memory_order_relaxed))
+      qDebug() << "LV2:" << n << "messages of the plug-in found no room for its UI";
 
     // UI -> score
     drainUiEvents();
@@ -310,6 +308,7 @@ void Window::resizeEvent(QResizeEvent* event)
 void Window::drainUiEvents()
 {
   auto& plug = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
+  m_model.uiChannel->flush();
   Message ev;
   while(m_model.ui_events.try_dequeue(ev))
   {
@@ -326,14 +325,10 @@ void Window::drainUiEvents()
         float f = m_model.fromPlugin(ev.index, *(float*)ev.body.data());
         port->setValue(f);
       }
-      else
-      {
-        m_model.to_process_events.enqueue(std::move(ev));
-      }
     }
     else if(ev.protocol == plug.lv2_host_context.atom_eventTransfer)
     {
-      m_model.to_process_events.enqueue(std::move(ev));
+      m_model.uiChannel->send_to_plugin(std::move(ev));
     }
     else
     {
@@ -349,7 +344,7 @@ void Window::closeEvent(QCloseEvent* event)
 
   auto& p = score::GUIAppContext().applicationPlugin<LV2::ApplicationPlugin>();
 
-  m_model.uiListening.store(false, std::memory_order_release);
+  m_model.uiChannel->listening.store(false, std::memory_order_release);
   p.suil.instance_free(m_model.effectContext.ui_instance);
   m_model.effectContext.ui_instance = nullptr;
 
@@ -357,12 +352,8 @@ void Window::closeEvent(QCloseEvent* event)
   // plug-in now: the timer that would carry it is gone with this window.
   // What the plug-in had for this UI is dropped: the next one asks afresh.
   drainUiEvents();
-  {
-    Message ev;
-    while(m_model.plugin_events.try_dequeue(ev))
-    {
-    }
-  }
+  m_model.flushUiMessages();
+  m_model.uiChannel->clear_for_ui();
   m_model.externalUIVisible(false);
   const_cast<QWidget*&>(m_model.externalUI) = nullptr;
   QDialog::closeEvent(event);
