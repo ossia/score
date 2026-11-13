@@ -34,7 +34,7 @@
 , re2
 , rubberband
 , snappy
-, SDL2
+, SDL3 ? null
 , spdlog
 , suil
 , udev
@@ -89,7 +89,6 @@ clangStdenv.mkDerivation (finalAttrs: {
     re2
     rubberband
     snappy
-    SDL2
     spdlog
     suil
     udev
@@ -97,7 +96,7 @@ clangStdenv.mkDerivation (finalAttrs: {
     xorg.libXext
     xorg.libXcomposite
     xorg.libXrandr
-  ];
+  ] ++ lib.optional (SDL3 != null) SDL3;
 
   cmakeFlags = [
     "-Wno-dev"
