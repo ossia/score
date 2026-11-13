@@ -2,10 +2,6 @@
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 
-namespace Dataflow
-{
-class PortItem;
-}
 namespace Mixer
 {
 class MixerPanel;
@@ -20,6 +16,7 @@ private:
   const score::PanelStatus& defaultPanelStatus() const override;
 
   void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm) override;
+  void setNewSelection(const Selection& s) override;
 
   QWidget* m_widget{};
   MixerPanel* m_cur{};

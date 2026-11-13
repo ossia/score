@@ -8,7 +8,7 @@
 // the parallel graphs run them first too, on the calling thread. Every value is
 // received once, whoever pushed it.
 
-#include <ossia/dataflow/bench_map.hpp>
+#include <ossia/dataflow/bench_state.hpp>
 #include <ossia/dataflow/connection.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
@@ -141,7 +141,7 @@ std::vector<config> configs()
         if(variant & 1)
           opt.log = ossia::logger_ptr();
         if(variant & 2)
-          opt.bench = std::make_shared<ossia::bench_map>();
+          opt.bench = std::make_shared<ossia::bench_state>();
         res.push_back({par ? "parallel" : "static", opt, 0});
       }
     }

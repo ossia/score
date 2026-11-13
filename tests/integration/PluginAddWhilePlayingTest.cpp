@@ -191,7 +191,7 @@ TEST_CASE(
     {
       REQUIRE(p);
       CHECK(p->effectContext.instance);
-      CHECK(p->plugin_events.size_approx() == 0);
+      CHECK(p->plugin_events->queue.size_approx() == 0);
     }
   });
 }
@@ -234,7 +234,7 @@ TEST_CASE(
     auto p = qobject_cast<LV2::Model*>(added[0]);
     REQUIRE(p);
     spin(500);
-    CHECK(p->plugin_events.size_approx() == 0);
+    CHECK(p->plugin_events->queue.size_approx() == 0);
   });
 }
 

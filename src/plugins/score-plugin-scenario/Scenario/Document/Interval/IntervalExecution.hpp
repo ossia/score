@@ -1,4 +1,8 @@
 #pragma once
+#include <Process/Execution/TelemetryInterface.hpp>
+
+#include <QPointer>
+
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/TimeValue.hpp>
 
@@ -170,5 +174,15 @@ public:
   W_SLOT(slot_callback);
   void graph_slot_callback(bool running, ossia::time_value date);
   W_SLOT(graph_slot_callback);
+
+private:
+  // Shared with the execution thread's callback.
+  struct CallbackState;
+  void updatePosition(ossia::time_value date);
+  void releasePlayhead();
+
+  std::shared_ptr<CallbackState> m_callbackState;
+  QPointer<Execution::TelemetryInterface> m_telemetry;
+  Execution::TelemetryInterface::Playhead m_playhead;
 };
 }

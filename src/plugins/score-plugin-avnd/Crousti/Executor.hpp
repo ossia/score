@@ -853,12 +853,10 @@ public:
       followExecutionUpdate(
           [this, weak_node, timer_action, &ctx,
            timer = std::make_shared<QMetaObject::Connection>()](bool enabled) {
-        // The node enqueues its control outputs for the UI every tick; with
-        // no reader, that queue grows without bound and allocates in the
-        // audio callback. Tell it not to bother.
-        if constexpr(control_outputs_type::size > 0)
-          if(auto n = weak_node.lock())
-            n->control.notify_ui.store(enabled, std::memory_order_relaxed);
+        // Without a reader installed below, the node need not copy its control
+        // values for the UI.
+        if(auto n = weak_node.lock())
+          n->control.notify_ui.store(enabled, std::memory_order_relaxed);
 
         QObject::disconnect(*timer);
         if(enabled)
@@ -970,84 +968,98 @@ public:
     // not lost when the queue is full: the node wakes the UI on a later tick.
     if constexpr(avnd::has_processor_to_gui_bus<Node>)
     {
+      // Nothing goes to the interface while the execution does not report back.
+      const bool report = score::AppContext()
+                              .settings<Scenario::Settings::Model>()
+                              .getExecutionUpdate();
       if constexpr(requires { eff.send_message = [](auto&&) { }; })
       {
-        using send_type = std::remove_cvref_t<decltype(eff.send_message)>;
-        using message_type
-            = std::remove_cvref_t<typename function_argument<send_type>::type>;
-        if constexpr(
-            sizeof(QPointer<QObject>) + sizeof(message_type)
-            < Execution::ExecutionCommand::max_storage)
+        if(!report)
         {
-          eff.send_message = [proc = QPointer{&this->process()},
-                              qed_ptr = weak_edit]<typename T>(T&& b) mutable {
-            auto qed = qed_ptr.lock();
-            if(!qed)
-              return;
-            qed->try_enqueue([proc, bb = message_type(std::forward<T>(b))]() mutable {
-              if(proc && proc->to_ui)
-                MessageBusSender{proc->to_ui}(std::move(bb));
-            });
-          };
+          eff.send_message = [](auto&&) { };
         }
         else
         {
-          static_assert(
-              std::is_default_constructible_v<message_type>,
-              "a processor to UI message is stored in a preallocated ring");
-          auto ring = std::make_shared<message_ring<message_type>>();
-          // Sends the wake-up the ring requested; false when the queue is full.
-          auto wake = [proc = QPointer{&this->process()}, qed_ptr = weak_edit, ring] {
-            auto qed = qed_ptr.lock();
-            if(!qed)
-            {
-              ring->cancel();
-              return true;
-            }
-            if(qed->try_enqueue([proc, ring]() mutable {
-              ring->drain([&](message_type&& m) {
+          using send_type = std::remove_cvref_t<decltype(eff.send_message)>;
+          using message_type
+              = std::remove_cvref_t<typename function_argument<send_type>::type>;
+          if constexpr(
+              sizeof(QPointer<QObject>) + sizeof(message_type)
+              < Execution::ExecutionCommand::max_storage)
+          {
+            eff.send_message = [proc = QPointer{&this->process()},
+                                qed_ptr = weak_edit]<typename T>(T&& b) mutable {
+              auto qed = qed_ptr.lock();
+              if(!qed)
+                return;
+              qed->try_enqueue([proc, bb = message_type(std::forward<T>(b))]() mutable {
                 if(proc && proc->to_ui)
-                  MessageBusSender{proc->to_ui}(std::move(m));
+                  MessageBusSender{proc->to_ui}(std::move(bb));
               });
-            }))
-              return true;
-            ring->park();
-            return false;
-          };
-          wakeups.add([ring, wake] {
-            if(!ring->unpark() || !ring->request())
-              return true;
-            return wake();
-          });
+            };
+          }
+          else
+          {
+            static_assert(
+                std::is_default_constructible_v<message_type>,
+                "a processor to UI message is stored in a preallocated ring");
+            auto ring = std::make_shared<message_ring<message_type>>();
+            // Sends the wake-up the ring requested; false when the queue is full.
+            auto wake = [proc = QPointer{&this->process()}, qed_ptr = weak_edit, ring] {
+              auto qed = qed_ptr.lock();
+              if(!qed)
+              {
+                ring->cancel();
+                return true;
+              }
+              if(qed->try_enqueue([proc, ring]() mutable {
+                ring->drain([&](message_type&& m) {
+                  if(proc && proc->to_ui)
+                    MessageBusSender{proc->to_ui}(std::move(m));
+                });
+              }))
+                return true;
+              ring->park();
+              return false;
+            };
+            wakeups.add([ring, wake] {
+              if(!ring->unpark() || !ring->request())
+                return true;
+              return wake();
+            });
 
-          eff.send_message = [qed_ptr = weak_edit, ring, wake,
-                              wakeups = &wakeups]<typename T>(T&& b) mutable {
-            if(qed_ptr.expired())
-              return;
-            if(!ring->push(message_type(std::forward<T>(b))))
-              return;
-            if(!ring->request())
-              return;
-            if(!wake())
-              wakeups->park();
-          };
+            eff.send_message = [qed_ptr = weak_edit, ring, wake,
+                                wakeups = &wakeups]<typename T>(T&& b) mutable {
+              if(qed_ptr.expired())
+                return;
+              if(!ring->push(message_type(std::forward<T>(b))))
+                return;
+              if(!ring->request())
+                return;
+              if(!wake())
+                wakeups->park();
+            };
+          }
         }
       }
       else if constexpr(requires { eff.send_message = []() { }; })
       {
-        eff.send_message
-            = [proc = QPointer{&this->process()}, qed_ptr = weak_edit]() mutable {
-          if(!proc)
-            return;
-          auto qed = qed_ptr.lock();
-          if(!qed)
-            return;
+        if(!report)
+          eff.send_message = [] { };
+        else
+          eff.send_message
+              = [proc = QPointer{&this->process()}, qed_ptr = weak_edit]() mutable {
+            if(!proc)
+              return;
+            auto qed = qed_ptr.lock();
+            if(!qed)
+              return;
 
-          qed->try_enqueue([proc]() mutable {
-            if(proc && proc->to_ui)
-              MessageBusSender{proc->to_ui}();
-          });
-        };
+            qed->try_enqueue([proc]() mutable {
+              if(proc && proc->to_ui)
+                MessageBusSender{proc->to_ui}();
+            });
+          };
       }
 
       // A message sent by a worker, from its thread: it may be sent once the
