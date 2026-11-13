@@ -1,0 +1,27 @@
+# Shared by score-addon-onnx (including tokenizers) and sherpa-plugins.
+# Keep this ABI version aligned with the sherpa prebuilt archives.
+name: onnxruntime
+buildsystem: simple
+build-commands:
+  # Preserve the library's SONAME/development symlinks for both consumers.
+  - install -d "${FLATPAK_DEST}/include/onnxruntime" "${FLATPAK_DEST}/lib"
+  - cp -a onnxruntime/include/. "${FLATPAK_DEST}/include/onnxruntime/"
+  - cp -a onnxruntime/lib/*.so* "${FLATPAK_DEST}/lib/"
+  - install -Dm644 onnxruntime/LICENSE "${FLATPAK_DEST}/share/licenses/onnxruntime/LICENSE"
+  - install -Dm644 onnxruntime/ThirdPartyNotices.txt "${FLATPAK_DEST}/share/licenses/onnxruntime/ThirdPartyNotices.txt"
+sources:
+  # Official archives contain a versioned top-level directory.
+  - type: archive
+    url: https://github.com/microsoft/onnxruntime/releases/download/v1.27.1/onnxruntime-linux-x64-1.27.1.tgz
+    sha256: 25b1ef1fea1acd210d63f8f24dc870ad6e077795ce1f54876252c6d3803c15af
+    dest: onnxruntime
+    strip-components: 1
+    only-arches:
+      - x86_64
+  - type: archive
+    url: https://github.com/microsoft/onnxruntime/releases/download/v1.27.1/onnxruntime-linux-aarch64-1.27.1.tgz
+    sha256: 33c67e33d1e25b816878366ea276589a024f71f000e7ff955c4b33224d639edd
+    dest: onnxruntime
+    strip-components: 1
+    only-arches:
+      - aarch64
