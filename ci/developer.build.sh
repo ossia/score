@@ -31,5 +31,21 @@ ARGS=(
   -DCMAKE_BUILD_TYPE=Debug
 )
 
+# On macOS, pin the SDK: otherwise the compiler picks whichever SDK xcrun defaults to,
+# which can change (Xcode / CommandLineTools updates) while CMakeCache.txt keeps
+# include dirs and frameworks found in the previous SDK, breaking libc++ header lookup.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  SDK_PATH="${SDKROOT:-$(xcrun --sdk macosx --show-sdk-path)}"
+  ARGS+=(-DCMAKE_OSX_SYSROOT="$SDK_PATH")
+
+  if [[ -f "$4/CMakeCache.txt" ]]; then
+    CACHED_SDK_PATH=$(grep '^CMAKE_OSX_SYSROOT:' "$4/CMakeCache.txt" | cut -d= -f2-)
+    if [[ "$CACHED_SDK_PATH" != "$SDK_PATH" ]]; then
+      echo "macOS SDK changed ('$CACHED_SDK_PATH' -> '$SDK_PATH'), reconfiguring from scratch"
+      ARGS+=(--fresh)
+    fi
+  fi
+fi
+
 cmake -S "$2" -B "$4" "${ARGS[@]}"
 cmake --build "$4"
