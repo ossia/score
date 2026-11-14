@@ -77,6 +77,12 @@ Model::Model(
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
 
+  if(init.trimmed().startsWith(QStringLiteral("/*{")))
+  {
+    (void)setProgram(programFromISFFragmentShaderPath({}, init.toUtf8()));
+    return;
+  }
+
   const QString path = locateShaderPath(init, *this);
   if(path.endsWith("fs") || path.endsWith("frag"))
   {
