@@ -2846,6 +2846,18 @@ if(TARGET score_plugin_avnd)
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd")
 endif()
 
+# The Audio recorder's ticks: no allocation, a buffer pool the worker gives
+# back, the file written, and a prepare from the tick that keeps the worker.
+if(TARGET score_plugin_avnd)
+  score_add_test(test_unit_avnd_audio_recorder
+    SOURCES AvndAudioRecorderTest.cpp
+    APP
+    PLUGINS score_plugin_avnd score_plugin_scenario score_lib_process)
+  target_include_directories(test_unit_avnd_audio_recorder PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-avnd"
+    "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/include")
+endif()
+
 # LV2 plug-ins run for part of the audio buffer read and write at the tick's
 # frames: CV and audio, a tick starting mid-buffer, a buffer split in two.
 if(TARGET score_plugin_lv2)
