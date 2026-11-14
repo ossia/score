@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <typeinfo>
 
 #if QT_HAS_VULKAN || (QT_CONFIG(vulkan) && __has_include(<vulkan/vulkan.h>))
@@ -352,6 +353,9 @@ void RenderListProfiler::beginFrame(QRhiCommandBuffer& cb, NodeProfiler& out, in
   s.timing = FrameTiming{};
   s.timing.list = d.list;
   s.timing.frame = frame;
+  s.timing.time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         std::chrono::steady_clock::now().time_since_epoch())
+                         .count();
   s.stamps = 0;
   s.ownerBegin.clear();
   s.owners.clear();

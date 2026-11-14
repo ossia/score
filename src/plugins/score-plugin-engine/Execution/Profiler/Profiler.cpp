@@ -109,6 +109,7 @@ void Profiler::clear()
   m_audioLoad.clear();
   m_frameGpu.clear();
   m_frameCpu.clear();
+  m_frameTimes.clear();
   m_clock.restart();
   m_lastLabels = -1;
   updated();
@@ -193,6 +194,25 @@ void Profiler::pushRender(std::span<const RenderFrameReport> frames)
     return;
   for(const auto& f : frames)
   {
+    if(f.nodesOnly)
+    {
+      for(const auto& n : f.nodes)
+      {
+        auto& e = entry(n.key);
+        e.name = n.name;
+        e.renderCpuNs.push(double(n.cpuNs));
+        if(n.gpuNs >= 0)
+          e.gpuNs.push(double(n.gpuNs));
+      }
+      continue;
+    }
+    if(f.timeNs > 0)
+    {
+      auto& times = m_frameTimes[f.output];
+      times.push_back(f.timeNs);
+      if(times.size() > std::size_t(ProfilerSeries::size))
+        times.pop_front();
+    }
     m_frameCpu.push(double(f.cpuNs));
     pushHistory(m_cpuHistory, f.cpuNs / 1e6);
     if(f.gpuNs >= 0)
@@ -249,6 +269,20 @@ void Profiler::pushRender(std::span<const RenderFrameReport> frames)
   updated();
 }
 
+double Profiler::framesPerSecond() const noexcept
+{
+  double best = 0.;
+  for(const auto& [out, times] : m_frameTimes)
+  {
+    if(times.size() < 2)
+      continue;
+    const double span = double(times.back() - times.front());
+    if(span > 0.)
+      best = std::max(best, 1e9 * double(times.size() - 1) / span);
+  }
+  return best;
+}
+
 double Profiler::audioSpikePercent() const noexcept
 {
   return 100. * m_audioSpikeFraction->load(std::memory_order_relaxed);
@@ -302,6 +336,7 @@ QJsonObject Profiler::toJson() const
     render["frameCpuMs"] = seriesJson(m_frameCpu, 1e-6);
     render["frameGpuMs"] = seriesJson(m_frameGpu, 1e-6);
     render["spikeMs"] = m_renderSpikeMs;
+    render["fps"] = framesPerSecond();
     root["render"] = render;
   }
 
