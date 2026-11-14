@@ -99,8 +99,16 @@ void AudioDevice::removeNode(const State::Address& currentAddr)
 
 void AudioDevice::disconnect()
 {
-  // TODO handle listening ??
   setLogging_impl(Device::get_cur_logging(isLogging()));
+
+  // The listening callbacks live in the parameters of the tree destroyed
+  // below: remove them while it is alive, and forget the parameters, or the
+  // next setListening() (e.g. the explorer restoring its listening on stop)
+  // goes through dangling pointers.
+  if(m_dev)
+    removeListening_impl(m_dev->get_root_node(), State::Address{m_settings.name, {}});
+  m_callbacks.clear();
+
   auto d = std::move(m_dev);
   deviceChanged(d.get(), nullptr);
   m_dev.reset();
@@ -114,15 +122,23 @@ bool AudioDevice::reconnect()
   struct announce_on_exit
   {
     AudioDevice& self;
-    ossia::net::device_base* old_dev;
+    bool rebuilt{};
     ~announce_on_exit()
     {
-      // disconnect() already announced old_dev -> nullptr.
-      if(auto new_dev = self.m_dev.get(); new_dev && new_dev != old_dev)
+      // disconnect() already announced old_dev -> nullptr. Not a comparison
+      // with old_dev: the new device is routinely allocated at the address of
+      // the one disconnect() just freed.
+      if(auto new_dev = self.m_dev.get(); rebuilt && new_dev)
+      {
+        // The new parameters carry no callbacks: listen again to what was
+        // listened to. The engine restarts call reconnect() directly, without
+        // the restoreListening() of the explorer's own reconnection paths.
+        self.restoreListening();
         self.deviceChanged(nullptr, new_dev);
+      }
       self.changed();
     }
-  } announce{*this, old_dev};
+  } announce{*this};
 
   auto& engine
       = score::GUIAppContext().guiApplicationPlugin<Audio::ApplicationPlugin>().audio;
@@ -143,6 +159,7 @@ bool AudioDevice::reconnect()
   }
 
   disconnect();
+  announce.rebuilt = true;
 
   try
   {
