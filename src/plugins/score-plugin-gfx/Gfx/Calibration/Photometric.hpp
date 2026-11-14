@@ -49,6 +49,32 @@ struct CameraResponse
   }
 };
 
+//! Whether g rises over the middle codes, by at least `minSpan` (ln radiance),
+//! without falling back by more than `tolerance` anywhere in between. A bracket
+//! whose frames did not change with the exposure solves to a flat g.
+inline bool plausibleResponse(
+    const CameraResponse& r, double minSpan, double tolerance = 0.1) noexcept
+{
+  if(!r.valid())
+    return false;
+  const int lo = r.levels / 8;
+  const int hi = r.levels - 1 - r.levels / 8;
+  for(int c = 0; c < 3; c++)
+  {
+    const auto& g = r.g[c];
+    if(!(g[hi] - g[lo] >= minSpan))
+      return false;
+    double top = g[lo];
+    for(int z = lo + 1; z <= hi; z++)
+    {
+      top = std::max(top, g[z]);
+      if(g[z] < top - tolerance)
+        return false;
+    }
+  }
+  return true;
+}
+
 //! Debevec & Malik's hat: z - Zmin below the middle, Zmax - z above.
 inline double hatWeight(int z, int levels) noexcept
 {

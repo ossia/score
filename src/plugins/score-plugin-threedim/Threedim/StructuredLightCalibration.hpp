@@ -350,6 +350,8 @@ public:
     int extraStride{4};
     int mixLevels{};
     std::shared_ptr<const score::gfx::photometric::CameraResponse> crf;
+    //! A camera response was recovered but rejected as implausible.
+    bool crfRejected{};
     float compGamut{0.85f}, compStrength{1.f}, compGradient{};
     bool compBlack{};
   };
