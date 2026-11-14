@@ -41,7 +41,7 @@ public:
   const QPen&
   textPen(Process::Style&, const Process::ProcessModel& model) const noexcept;
 
-  void updateBench(double d);
+  void updateBenchLabel(const QString& label);
   void setSize(QSizeF sz) final override;
   void on_zoomRatioChanged(ZoomRatio) final override { updateText(); }
 

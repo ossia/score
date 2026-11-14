@@ -148,8 +148,8 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
       &DefaultHeaderDelegate::updatePorts);
   updatePorts();
 
-  con(m_model, &Process::ProcessModel::benchmark, this,
-      [this](double d) { updateBench(d); });
+  con(m_model, &Process::ProcessModel::benchmarkLabel, this,
+      [this](const QString& label) { updateBenchLabel(label); });
   con(
       m_model.selection, &Selectable::changed, this,
       [this](bool b) {
@@ -172,18 +172,17 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
 
 DefaultHeaderDelegate::~DefaultHeaderDelegate() { }
 
-void DefaultHeaderDelegate::updateBench(double d)
+void DefaultHeaderDelegate::updateBenchLabel(const QString& label)
 {
-  if(d >= 0.)
+  if(label.isEmpty())
   {
-    const auto& style = Process::Style::instance();
-    m_bench = makeGlyphs(
-        QString::number(d, 'g', 3),
-        m_sel ? style.IntervalHeaderTextPen() : style.SlotHeaderTextPen());
+    m_bench = QPixmap{};
   }
   else
   {
-    m_bench = QPixmap{};
+    const auto& style = Process::Style::instance();
+    m_bench = makeGlyphs(
+        label, m_sel ? style.IntervalHeaderTextPen() : style.SlotHeaderTextPen());
   }
   update();
 }
@@ -270,18 +269,22 @@ void DefaultHeaderDelegate::paint(
   const auto w = boundingRect().width();
   if(w > minPortWidth())
   {
-    if(m_inPorts.empty())
-    {
-      painter->drawPixmap(QPointF{start, SCORE_YPOS(2., -1.)}, m_line);
-    }
-    else
-    {
-      double startText = start + m_portEndX;
-      painter->drawPixmap(QPointF{startText, SCORE_YPOS(2., -1.)}, m_line);
-    }
-
+    const double benchX
+        = m_bench.isNull()
+              ? w
+              : w - 8. - std::max(24., m_bench.width() / m_bench.devicePixelRatio());
+    const double startText = m_inPorts.empty() ? start : start + m_portEndX;
     if(!m_bench.isNull())
-      painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(2., -1.)}, m_bench);
+    {
+      painter->save();
+      painter->setClipRect(QRectF{0., 0., std::max(0., benchX - 4.), boundingRect().height()});
+    }
+    painter->drawPixmap(QPointF{startText, SCORE_YPOS(2., -1.)}, m_line);
+    if(!m_bench.isNull())
+    {
+      painter->restore();
+      painter->drawPixmap(QPointF{benchX, SCORE_YPOS(2., -1.)}, m_bench);
+    }
   }
 }
 
