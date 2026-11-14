@@ -568,6 +568,20 @@ if(TARGET score_plugin_clap)
     target_compile_definitions(test_integration_clap_editor_window PRIVATE
       CLAP_SIZED_EDITOR_PATH="$<TARGET_FILE:clap_sized_editor>")
   endif()
+
+  # The fixtures added, edited and removed while the document plays.
+  if(NOT WIN32)
+    score_add_test(test_integration_clap_add_while_playing
+      SOURCES ClapAddWhilePlayingTest.cpp
+      APP
+      PLUGINS score_plugin_clap score_plugin_engine score_plugin_scenario score_lib_process
+        score_plugin_audio score_plugin_dataflow score_plugin_deviceexplorer
+      LIBS ${CMAKE_DL_LIBS})
+    add_dependencies(test_integration_clap_add_while_playing clap_mono_gain clap_sized_editor)
+    target_compile_definitions(test_integration_clap_add_while_playing PRIVATE
+      CLAP_MONO_GAIN_PATH="$<TARGET_FILE:clap_mono_gain>"
+      CLAP_SIZED_EDITOR_PATH="$<TARGET_FILE:clap_sized_editor>")
+  endif()
 endif()
 
 # VST 2 processes with MIDI ports in documents: one saved before they had them
@@ -604,6 +618,21 @@ if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument
   target_compile_definitions(test_integration_vst2_add_while_playing PRIVATE
     SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
     SCORE_VST_CHUNK_INSTRUMENT="$<TARGET_FILE:score_test_vst_chunk_instrument>")
+endif()
+
+# A VST 2 plug-in in a document that plays: what its editor changes, and the
+# parameters it adds.
+if(TARGET score_plugin_vst AND TARGET score_test_vst_edited_effect)
+  score_add_test(test_integration_vst2_playing
+    SOURCES Vst2PlayingTest.cpp
+    APP
+    PLUGINS score_plugin_vst score_plugin_scenario score_plugin_engine score_plugin_audio
+      score_plugin_dataflow score_plugin_deviceexplorer score_lib_process)
+  target_include_directories(test_integration_vst2_playing PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+  add_dependencies(test_integration_vst2_playing score_test_vst_edited_effect)
+  target_compile_definitions(test_integration_vst2_playing PRIVATE
+    SCORE_VST_EDITED_EFFECT="$<TARGET_FILE:score_test_vst_edited_effect>")
 endif()
 
 # A preset of the script a process already runs keeps its ports.
@@ -654,6 +683,14 @@ if(TARGET score_plugin_ysfx)
   target_include_directories(test_integration_ysfx_controls PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
 
+  # A slider the @gfx of a JSFX changes moves its control, from any input.
+  score_add_test(test_integration_ysfx_gfx_edit
+    SOURCES YsfxGfxEditTest.cpp
+    GUI
+    PLUGINS score_plugin_ysfx score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_ysfx_gfx_edit PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-ysfx")
+
   # A buffer cut in several ticks: each computes its part of the buffer and
   # takes the MIDI of its part.
   score_add_test(test_integration_ysfx_ticks
@@ -696,6 +733,18 @@ if(TARGET score_plugin_fx)
     SOURCES InvalidCableTest.cpp
     APP
     PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
+endif()
+
+# A Faust port rebuilt by a program edit keeps its cables, and undo puts them back.
+if(TARGET score_plugin_faust)
+  score_add_test(test_integration_faust_script_cables
+    SOURCES FaustScriptCablesTest.cpp
+    APP
+    PLUGINS score_plugin_faust score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_faust_script_cables PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-faust")
+  target_include_directories(test_integration_faust_script_cables SYSTEM PRIVATE
+    ${FAUST_INCLUDE_DIR})
 endif()
 
 # A node dropped on a cable goes in it only if it has no cable yet.
@@ -2104,6 +2153,23 @@ if(TARGET score_plugin_lv2)
     $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>)
   add_dependencies(test_integration_plugin_add_while_playing score_test_gain_lv2)
   target_compile_definitions(test_integration_plugin_add_while_playing PRIVATE
+    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+endif()
+
+# The window an LV2 X11 UI is embedded in takes the size of the UI.
+if(TARGET score_test_x11ui_lv2)
+  score_add_test(test_integration_lv2_editor_window
+    SOURCES LV2EditorWindowTest.cpp
+    GUI
+    PLUGINS score_plugin_lv2 score_plugin_scenario score_lib_process
+    LIBS Lilv)
+  target_include_directories(test_integration_lv2_editor_window PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
+    "${LV2_PATH}"
+    $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>)
+  add_dependencies(test_integration_lv2_editor_window
+    score_test_gain_lv2 score_test_x11ui_lv2)
+  target_compile_definitions(test_integration_lv2_editor_window PRIVATE
     SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
 endif()
 

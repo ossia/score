@@ -6,6 +6,7 @@
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <LV2/Context.hpp>
+#include <LV2/UiChannel.hpp>
 #include <Process/Preset.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
@@ -82,12 +83,14 @@ public:
   std::size_t m_controlInStart{};
   std::size_t m_controlOutStart{};
   mutable moodycamel::ReaderWriterQueue<Message> ui_events;     // from ui to score
-  mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
-  //! Whether a UI reads plugin_events: without one, the audio thread does not
-  //! queue there what the plug-in says for it
-  mutable std::atomic_bool uiListening{false};
-  mutable moodycamel::ReaderWriterQueue<Message>
-      to_process_events; // from score to process
+  //! What the plug-in and its UI say to each other through the audio thread.
+  //! Its listening flag tells whether a UI reads what the plug-in says for
+  //! it: without one, the audio thread does not queue it.
+  std::shared_ptr<UiChannel> uiChannel;
+
+  //! [main thread] Passes on to the plug-in what its UI said that waits for
+  //! room, until nothing waits
+  void flushUiMessages() const;
 
   ossia::hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
   //! A port value handed to lilv while it saves a state, which copies it
@@ -120,10 +123,6 @@ public:
   LV2EffectComponent(LV2::Model& proc, const Execution::Context& ctx, QObject* parent);
 
   void lazy_init() override;
-
-  void
-  writeAtomToUi(uint32_t port_index, uint32_t type, uint32_t size, const void* body);
-  void writeAtomToUi(uint32_t port_index, const LV2_Atom& atom);
 
 private:
   // per_channel voice-pool grower (main thread). Audio thread pushes high-water mark.

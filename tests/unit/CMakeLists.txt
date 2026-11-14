@@ -1269,6 +1269,13 @@ if(TARGET score_plugin_vst)
       vst-fixtures/UnflaggedInstrument.cpp)
     target_include_directories(score_test_vst_unflagged_instrument PRIVATE
       "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+
+    # A VST 2 effect whose simulated editor sends audioMasterAutomate in the
+    # parameter's own unit, as some DPF builds do.
+    add_library(score_test_vst_edited_effect MODULE
+      vst-fixtures/EditedEffect.cpp)
+    target_include_directories(score_test_vst_edited_effect PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
     score_add_test(test_unit_vst_midi_input
       SOURCES VstMidiInputTest.cpp
       APP
@@ -1608,6 +1615,20 @@ if(TARGET score_plugin_gfx)
   score_add_test(test_unit_window_capture_resolve
     SOURCES WindowCaptureResolveTest.cpp
     PLUGINS score_plugin_gfx)
+endif()
+
+# What the X11 capture backend hands out when a capture fails after a resize.
+# The backend is built into the test: the plug-in does not export it.
+if(TARGET score_plugin_gfx AND "window_capture_x11" IN_LIST SCORE_FEATURES_LIST)
+  find_package(X11 QUIET)
+  if(TARGET X11::X11)
+    score_add_test(test_unit_window_capture_x11
+      SOURCES
+        WindowCaptureX11Test.cpp
+        "${CMAKE_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/WindowCapture/WindowCapture_x11.cpp"
+      PLUGINS score_plugin_gfx
+      LIBS X11::X11)
+  endif()
 endif()
 
 # Video::gstreamerToLibav(): the gst-name -> AVPixelFormat table feeding the
@@ -2775,6 +2796,24 @@ if(TARGET score_plugin_lv2)
     "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 endif()
 
+# LV2 works are done on the instance that asked and answered to it, with two
+# nodes on two threads too, and cost the audio thread no allocation.
+if(TARGET score_plugin_lv2 AND NOT WIN32)
+  score_add_test(test_unit_lv2_worker
+    SOURCES LV2WorkerTest.cpp
+    APP
+    PLUGINS score_plugin_lv2 score_lib_process
+    LIBS Lilv ${CMAKE_DL_LIBS})
+  add_dependencies(test_unit_lv2_worker score_test_gain_lv2)
+  target_compile_definitions(test_unit_lv2_worker PRIVATE
+    SCORE_TEST_LV2_BUNDLE="${SCORE_ROOT_BINARY_DIR}/tests/lv2/score-test-gain.lv2")
+  target_include_directories(test_unit_lv2_worker PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-lv2"
+    "${LV2_PATH}"
+    $<TARGET_PROPERTY:Suil,INTERFACE_INCLUDE_DIRECTORIES>
+    "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
+endif()
+
 # Bytebeat formulas, JIT-compiled, against the sound of a JS engine and of C
 if(TARGET score_plugin_jit)
   score_add_test(test_unit_bytebeat
@@ -3074,6 +3113,22 @@ endforeach()
 score_add_test(test_unit_plugin_window
   SOURCES PluginWindowTest.cpp
   LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::Widgets)
+
+# A parameter a VST 2 editor changes reaches its control, as the plug-in has it.
+if(TARGET score_plugin_vst AND TARGET score_test_vst_unflagged_instrument
+   AND TARGET score_test_vst_edited_effect)
+  score_add_test(test_unit_vst_editor_automate
+    SOURCES VstEditorAutomateTest.cpp
+    APP
+    PLUGINS score_lib_process score_plugin_vst)
+  target_include_directories(test_unit_vst_editor_automate PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-vst")
+  add_dependencies(test_unit_vst_editor_automate
+    score_test_vst_unflagged_instrument score_test_vst_edited_effect)
+  target_compile_definitions(test_unit_vst_editor_automate PRIVATE
+    SCORE_VST_UNFLAGGED_INSTRUMENT="$<TARGET_FILE:score_test_vst_unflagged_instrument>"
+    SCORE_VST_EDITED_EFFECT="$<TARGET_FILE:score_test_vst_edited_effect>")
+endif()
 
 # A VST3 gain made with the SDK's AudioEffect and EditController, and a
 # parameter its editor moves while nothing plays, through a save and a load.

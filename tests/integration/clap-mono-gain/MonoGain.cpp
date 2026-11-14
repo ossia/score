@@ -6,7 +6,8 @@
 // only in the plug-in's state, as a loaded model or sample would be.
 //
 // It counts what the host does that it should not, for clap_mono_gain_report:
-//  - a main-thread function called on another thread, as thread-check says
+//  - a main-thread function called on another thread, or an audio-thread one
+//    on another thread than the audio one, as thread-check says
 //  - a parameter gesture sent to it: gestures go from the plug-in to the host
 //  - a cookie that is not this instance's: the gain's points into it
 //  - an event whose size is not its type's, or a note or MIDI event, since
@@ -16,6 +17,9 @@
 //    from the main thread while active, destroy while active
 //  - a call into the library while it is not initialised
 //  - the entry's init called again before its deinit
+//  - a host function asked by an instance acting on another one: a task of
+//    its thread pool run for an instance not in its process call, a main
+//    thread callback given to an instance that did not ask for one
 // clap_mono_gain_set_from_ui() moves the gain of an instance as its editor
 // would: it sends the new value from its next process call.
 
@@ -70,17 +74,32 @@ struct instance
   //! Where the cookie of the gain points
   double gain{0.5};
   double trim{1.};
-  bool active{};
-  bool processing{};
+  std::atomic<bool> active{};
+  std::atomic<bool> processing{};
+  //! Within its process call, where its thread pool may run its tasks
+  std::atomic<bool> in_process{};
+  //! Main-thread callbacks it asked for and did not get yet
+  std::atomic<int> callbacks{};
+  //! It asked once, from its process call, for a callback and a restart
+  bool asked_callback{};
+  bool asked_restart{};
   //! What its editor set, sent from its next process call
   std::atomic<bool> ui_pending{};
   std::atomic<double> ui_value{};
   uint32_t channels{1};
+  //! Whether its process calls run tasks in the host's thread pool
+  std::atomic<bool> use_pool{};
 };
 
 std::atomic<int> g_instances{};
 std::atomic<int> g_wrong_thread{}, g_gestures{}, g_foreign_cookies{}, g_bad_events{},
-    g_bad_state{}, g_double_init{}, g_most_params{}, g_activations{}, g_late_calls{};
+    g_bad_state{}, g_double_init{}, g_most_params{}, g_activations{}, g_late_calls{},
+    g_wrong_instance{}, g_callbacks_done{};
+//! Every instance asks, from its first process call, for a main-thread
+//! callback, a restart, or runs tasks in the host's thread pool
+std::atomic<bool> g_all_ask_callback{}, g_all_ask_restart{}, g_all_use_pool{};
+//! A reset is answered with a restart, as DPF does without a reset parameter
+std::atomic<bool> g_restart_on_reset{};
 std::atomic<int> g_initialised{};
 std::atomic<int> g_active{};
 std::atomic<double> g_last_rate{};
@@ -99,13 +118,22 @@ void main_thread_only(const clap_plugin_t* p)
     g_wrong_thread++;
 }
 
-uint32_t audio_count(const clap_plugin_t*, bool)
+void audio_thread_only(const clap_plugin_t* p)
 {
+  auto& s = self(p);
+  if(s.thread_check && !s.thread_check->is_audio_thread(s.host))
+    g_wrong_thread++;
+}
+
+uint32_t audio_count(const clap_plugin_t* p, bool)
+{
+  main_thread_only(p);
   return 1;
 }
 bool audio_get(
     const clap_plugin_t* p, uint32_t index, bool is_input, clap_audio_port_info_t* info)
 {
+  main_thread_only(p);
   if(index > 0)
     return false;
   const auto channels = self(p).channels;
@@ -295,6 +323,7 @@ void deactivate(const clap_plugin_t* p)
 }
 bool start_processing(const clap_plugin_t* p)
 {
+  audio_thread_only(p);
   auto& s = self(p);
   if(!s.active || s.processing)
     g_bad_state++;
@@ -303,6 +332,7 @@ bool start_processing(const clap_plugin_t* p)
 }
 void stop_processing(const clap_plugin_t* p)
 {
+  audio_thread_only(p);
   auto& s = self(p);
   if(!s.active || !s.processing)
     g_bad_state++;
@@ -310,15 +340,21 @@ void stop_processing(const clap_plugin_t* p)
 }
 void reset(const clap_plugin_t* p)
 {
-  if(!self(p).active)
+  audio_thread_only(p);
+  auto& s = self(p);
+  if(!s.active)
     g_bad_state++;
+  if(g_restart_on_reset)
+    s.host->request_restart(s.host);
 }
 
 clap_process_status process(const clap_plugin_t* p, const clap_process_t* process)
 {
+  audio_thread_only(p);
   auto& s = self(p);
   if(!s.processing)
     g_bad_state++;
+  s.in_process = true;
   apply(s, process->in_events);
   if(s.ui_pending.exchange(false))
   {
@@ -330,6 +366,25 @@ clap_process_status process(const clap_plugin_t* p, const clap_process_t* proces
     ev.note_id = ev.port_index = ev.channel = ev.key = -1;
     ev.value = s.gain;
     process->out_events->try_push(process->out_events, &ev.header);
+  }
+
+  if(g_all_ask_callback && !s.asked_callback)
+  {
+    s.asked_callback = true;
+    s.callbacks++;
+    s.host->request_callback(s.host);
+  }
+  if(g_all_ask_restart && !s.asked_restart)
+  {
+    s.asked_restart = true;
+    s.host->request_restart(s.host);
+  }
+
+  if(s.use_pool || g_all_use_pool)
+  {
+    if(auto* pool = static_cast<const clap_host_thread_pool_t*>(
+           s.host->get_extension(s.host, CLAP_EXT_THREAD_POOL)))
+      pool->request_exec(s.host, 2);
   }
 
   auto& in = process->audio_inputs[0];
@@ -346,20 +401,45 @@ clap_process_status process(const clap_plugin_t* p, const clap_process_t* proces
         out.data64[c][i] = v * k;
     }
   }
+  s.in_process = false;
   return CLAP_PROCESS_CONTINUE;
 }
 
-const void* get_extension(const clap_plugin_t*, const char* id)
+std::atomic<int> g_pool_tasks{};
+void pool_exec(const clap_plugin_t* p, uint32_t)
 {
+  if(!self(p).in_process)
+    g_wrong_instance++;
+  g_pool_tasks++;
+}
+const clap_plugin_thread_pool_t thread_pool = {pool_exec};
+
+// [thread-safe] in clap/plugin.h, but clap-helpers before 1.2 has it
+// [main-thread] and terminates the host that does otherwise: Odin2 and the
+// plug-ins of clap-juce-extensions of that time
+const void* get_extension(const clap_plugin_t* p, const char* id)
+{
+  main_thread_only(p);
   if(!std::strcmp(id, CLAP_EXT_AUDIO_PORTS))
     return &audio_ports;
   if(!std::strcmp(id, CLAP_EXT_PARAMS))
     return &params;
   if(!std::strcmp(id, CLAP_EXT_STATE))
     return &state;
+  if(!std::strcmp(id, CLAP_EXT_THREAD_POOL))
+    return &thread_pool;
   return nullptr;
 }
-void on_main_thread(const clap_plugin_t*) { }
+void on_main_thread(const clap_plugin_t* p)
+{
+  main_thread_only(p);
+  auto& s = self(p);
+  if(s.callbacks <= 0)
+    g_wrong_instance++;
+  else
+    s.callbacks--;
+  g_callbacks_done++;
+}
 
 uint32_t factory_count(const clap_plugin_factory_t*)
 {
@@ -435,6 +515,28 @@ CLAP_EXPORT void clap_mono_gain_set_from_ui(const clap_plugin_t* p, double v)
   s.ui_pending = true;
 }
 
+//! An instance runs tasks in the host's thread pool from its process calls
+CLAP_EXPORT void clap_mono_gain_use_thread_pool(const clap_plugin_t* p)
+{
+  static_cast<instance*>(p->plugin_data)->use_pool = true;
+}
+//! Every instance, from its first process call on, asks for a main-thread
+//! callback, a restart, or runs tasks in the host's thread pool
+CLAP_EXPORT void clap_mono_gain_all_ask(bool callback, bool restart, bool pool)
+{
+  g_all_ask_callback = callback;
+  g_all_ask_restart = restart;
+  g_all_use_pool = pool;
+}
+CLAP_EXPORT void clap_mono_gain_restart_on_reset(bool on)
+{
+  g_restart_on_reset = on;
+}
+CLAP_EXPORT int clap_mono_gain_pool_tasks()
+{
+  return g_pool_tasks.exchange(0);
+}
+
 //! An instance loads something that only its state keeps
 CLAP_EXPORT void clap_mono_gain_set_trim(const clap_plugin_t* p, double v)
 {
@@ -453,6 +555,14 @@ CLAP_EXPORT void clap_mono_gain_rescan(const clap_plugin_t* p, uint32_t flags)
   if(auto* hp = static_cast<const clap_host_params_t*>(
          s.host->get_extension(s.host, CLAP_EXT_PARAMS)))
     hp->rescan(s.host, flags);
+}
+//! An instance asks its host for a flush, as after loading a preset
+CLAP_EXPORT void clap_mono_gain_request_flush(const clap_plugin_t* p)
+{
+  auto& s = *static_cast<instance*>(p->plugin_data);
+  if(auto* hp = static_cast<const clap_host_params_t*>(
+         s.host->get_extension(s.host, CLAP_EXT_PARAMS)))
+    hp->request_flush(s.host);
 }
 
 //! What the host did wrong since the last call, and where it left the
@@ -474,6 +584,9 @@ struct clap_mono_gain_errors
   int active;
   int initialised;
   double last_rate;
+  int wrong_instance;
+  //! Main-thread callbacks the instances got
+  int callbacks_done;
 };
 CLAP_EXPORT clap_mono_gain_errors clap_mono_gain_report()
 {
@@ -483,6 +596,7 @@ CLAP_EXPORT clap_mono_gain_errors clap_mono_gain_report()
       g_double_init.exchange(0),
       g_most_params.exchange(0),  g_activations.exchange(0), g_instances.load(),
       g_active.load(),
-      g_initialised.load(),       g_last_rate.load()};
+      g_initialised.load(),       g_last_rate.load(),
+      g_wrong_instance.exchange(0), g_callbacks_done.exchange(0)};
 }
 }

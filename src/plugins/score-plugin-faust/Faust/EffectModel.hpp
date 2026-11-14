@@ -15,6 +15,7 @@
 #include <QDialog>
 
 #include <iostream> // needed by poly-llvm-dsp.h...
+#include <score_plugin_faust_export.h>
 #include <verdigris>
 
 #include <faust/dsp/poly-llvm-dsp.h>
@@ -38,7 +39,7 @@ PROCESS_METADATA(
 DESCRIPTION_METADATA(, Faust::FaustEffectModel, "Faust")
 namespace Faust
 {
-class FaustEffectModel : public Process::ProcessModel
+class SCORE_PLUGIN_FAUST_EXPORT FaustEffectModel : public Process::ProcessModel
 {
   friend class FaustUI;
   friend class FaustUpdateUI;

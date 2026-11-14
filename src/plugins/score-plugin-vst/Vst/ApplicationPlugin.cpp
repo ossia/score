@@ -321,10 +321,19 @@ void ApplicationPlugin::timerEvent(QTimerEvent* event)
 {
   for(auto vst : m_runningVSTs)
   {
-    if(vst->needIdle.exchange(false, std::memory_order_acquire))
+    if(!vst->fx || !vst->fx->fx)
+      continue;
+    auto& host = *vst->fx->host;
+    if(host.needIdle.exchange(false, std::memory_order_acquire))
     {
       vst->dispatch(effEditIdle);
     }
+    if(host.displayChanged.exchange(false, std::memory_order_acquire))
+    {
+      vst->reloadControls();
+      vst->reloadPrograms();
+    }
+    vst->updateControlsChangedByPlugin();
   }
 }
 

@@ -13,6 +13,8 @@
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/hash_map.hpp>
 
+#include <atomic>
+
 #include <QSocketNotifier>
 
 #include <clap/all.h>
@@ -39,26 +41,86 @@ namespace Clap
 {
 class Window;
 class Model;
-struct PluginHandle
+struct PluginHandle;
+
+//! One instance of a plug-in, with the host it is given, and where it is in
+//! the life cycle of clap/plugin.h: activate and deactivate are
+//! [main-thread], start_processing and stop_processing [audio-thread]. The
+//! main thread alone moves it between inactive and active, the audio thread
+//! alone between active and processing; each claims it before calling it, so
+//! that neither calls it in a state the other is changing.
+struct PluginInstance : std::enable_shared_from_this<PluginInstance>
+{
+  enum State : uint8_t
+  {
+    Inactive,
+    Active,
+    Processing,
+    //! Claimed by a thread calling it
+    Busy
+  };
+
+  PluginInstance();
+  PluginInstance(const PluginInstance&) = delete;
+  PluginInstance(PluginInstance&&) = delete;
+  PluginInstance& operator=(const PluginInstance&) = delete;
+  PluginInstance& operator=(PluginInstance&&) = delete;
+  ~PluginInstance();
+
+  //! What the plug-in calls back: its host_data is this instance
+  clap_host_t host{};
+  const clap_plugin_t* plugin{};
+  //! The handle of its process, which has its library and its model
+  PluginHandle* owner{};
+
+  //! Queried on the main thread: the audio thread uses them as they are
+  const clap_plugin_params_t* ext_params{};
+  const clap_plugin_thread_pool_t* ext_thread_pool{};
+
+  std::atomic<uint8_t> state{Inactive};
+  //! A restart is to be done: it does not start processing until it is
+  std::atomic_bool restart_pending{};
+  //! It asked to process while it sleeps
+  std::atomic_bool wake{};
+  //! Activated and not processed since: there is nothing to reset
+  bool fresh{};
+
+  //! [main-thread] The nodes that run it, and the rate and block size the
+  //! last of them wants it active with
+  int nodes{};
+  double node_rate{};
+  uint32_t node_block{};
+
+  // [main-thread]
+  bool activate(double rate, uint32_t block);
+  //! Not while it is processing or claimed by the audio thread
+  bool deactivate();
+  //! Active while a node holds it, at that node's rate, once the restarts
+  //! asked for are done; inactive otherwise. What processes it is stopped
+  //! first by its node, which calls this again.
+  void reconcile();
+  //! Deactivated and destroyed: it is not processing any more
+  void destroy();
+
+  // [audio-thread]
+  //! Reset, then started, if active and with no restart to do
+  bool start_processing();
+  void stop_processing();
+};
+
+//! The first instance of a process's plug-in, and the library it comes from
+struct PluginHandle : PluginInstance
 {
   PluginHandle();
-  PluginHandle(const PluginHandle&) = delete;
-  PluginHandle(PluginHandle&&) = delete;
-  PluginHandle& operator=(const PluginHandle&) = delete;
-  PluginHandle& operator=(PluginHandle&&) = delete;
   ~PluginHandle();
 
   void load(Model& context, QByteArray path, QByteArray id);
   void* library{};
   const clap_plugin_entry_t* entry{};
   const clap_plugin_factory_t* factory{};
-  const clap_plugin_t* plugin{};
   const clap_plugin_descriptor_t* desc{};
 
-  clap_host_t host{};
-
   // Common plugin extensions
-  const clap_plugin_params_t* ext_params{};
   const clap_plugin_timer_support_t* ext_timer_support{};
 
   // Metadata we parsed
@@ -72,8 +134,23 @@ struct PluginHandle
   ossia::flat_map<clap_id, std::uint32_t> param_outs_by_id;
 
   QPointer<Model> model;
+};
 
-  bool activated{};
+//! [main-thread] What a plug-in that stops processing on another thread than
+//! the audio one is told by thread-check: clap/ext/thread-check.h, "The host
+//! may mark any OS thread, including the main-thread as the audio-thread, as
+//! long as it can guarantee that only one OS thread is the audio-thread at a
+//! time in a plugin instance."
+struct ActingAsAudioThread
+{
+  ActingAsAudioThread() noexcept;
+  ~ActingAsAudioThread();
+  ActingAsAudioThread(const ActingAsAudioThread&) = delete;
+  ActingAsAudioThread& operator=(const ActingAsAudioThread&) = delete;
+  static bool active() noexcept;
+
+private:
+  bool m_previous{};
 };
 
 class Model final : public Process::ProcessModel
@@ -158,6 +235,8 @@ public:
   std::vector<Process::Preset> builtinPresets() const noexcept override;
 
   void restartPlugin() W_SIGNAL(restartPlugin);
+  //! A preset was loaded in the plug-in, and its values shown on the controls
+  void presetLoaded() W_SIGNAL(presetLoaded);
   Clap::Window* window{};
   std::vector<std::pair<clap_id, QTimer*>> timers;
 
@@ -180,6 +259,8 @@ public:
       W_SIGNAL(stateSnapshotChanged, blob);
 
   void onParamRescan(clap_param_rescan_flags flags);
+  //! The plug-in was deactivated: what waited for it is done
+  void onDeactivated();
 
 private:
   void loadPlugin();

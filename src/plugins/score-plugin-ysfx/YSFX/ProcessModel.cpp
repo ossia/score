@@ -45,6 +45,7 @@
 
 #include <wobjectimpl.h>
 
+#include <array>
 #include <bitset>
 #include <cmath>
 #include <utility>
@@ -884,7 +885,6 @@ static int qt_to_ysfx_key(int k)
 void Window::mousePressEvent(QMouseEvent* event)
 {
   this->m_mouseHeldMenuEvent = 0;
-  this->m_mouseHeld = true;
   if(this->fx)
   {
     auto qt_mods = qApp->keyboardModifiers();
@@ -920,7 +920,6 @@ void Window::mousePressEvent(QMouseEvent* event)
 
 void Window::mouseReleaseEvent(QMouseEvent* event)
 {
-  this->m_mouseHeld = false;
   if(this->fx)
   {
     auto qt_mods = qApp->keyboardModifiers();
@@ -983,13 +982,29 @@ void Window::wheelEvent(QWheelEvent* event)
   event->accept();
 }
 
+// The keys without a code of their own are their character, as gfx_getchar
+// returns it: a letter typed with Ctrl is still that letter
+static int qt_to_ysfx_key(const QKeyEvent& event)
+{
+  if(const int key = qt_to_ysfx_key(event.key()); key != -1)
+    return key;
+
+  const QString text = event.text();
+  if(text.isEmpty())
+    return -1;
+  const char32_t c = text.toUcs4().value(0);
+  if(c >= 1 && c <= 26 && (event.modifiers() & Qt::ControlModifier))
+    return int(c - 1 + 'a');
+  return c > 0 ? int(c) : -1;
+}
+
 void Window::keyPressEvent(QKeyEvent* event)
 {
   if(this->fx)
   {
     const auto mods = qt_to_ysfx_mods();
 
-    const auto key = qt_to_ysfx_key(event->key());
+    const auto key = qt_to_ysfx_key(*event);
     if(key != -1)
       ysfx_gfx_add_key(fx.get(), mods, key, true);
   }
@@ -1002,7 +1017,7 @@ void Window::keyReleaseEvent(QKeyEvent* event)
   {
     const auto mods = qt_to_ysfx_mods();
 
-    const auto key = qt_to_ysfx_key(event->key());
+    const auto key = qt_to_ysfx_key(*event);
     if(key != -1)
       ysfx_gfx_add_key(fx.get(), mods, key, false);
   }
@@ -1084,40 +1099,74 @@ void Window::paintEvent(QPaintEvent* event)
     conf.pixels = m_frame.bits();
     ysfx_gfx_setup(fx.get(), &conf);
 
+#if __has_include(<ysfx-s.h>)
+    // What @slider, @block or @sample flagged since the last frame is shown,
+    // and what @gfx flags while it runs is an edit, as in REAPER where
+    // sliderchange and slider_automate in @gfx are those of the user
+    auto y = this->fx.get();
+    std::array<uint64_t, ysfx_max_slider_groups> shown{};
+    for(uint8_t g = 0; g < ysfx_max_slider_groups; g++)
+    {
+      shown[g] = ysfx_fetch_slider_changes(y, g);
+      (void)ysfx_fetch_slider_automations(y, g);
+    }
+    showSliders(shown);
+#endif
+
     ysfx_gfx_run(fx.get());
+
+#if __has_include(<ysfx-s.h>)
+    std::array<uint64_t, ysfx_max_slider_groups> edited{};
+    for(uint8_t g = 0; g < ysfx_max_slider_groups; g++)
+      edited[g] = ysfx_fetch_slider_changes(y, g) | ysfx_fetch_slider_automations(y, g);
+    editSliders(edited);
+#endif
 
     p.drawImage(QPointF{}, this->m_frame.rgbSwapped());
     event->accept();
-
-#if __has_include(<ysfx-s.h>)
-    auto y = this->fx.get();
-    if(m_mouseHeld)
-    {
-      if(std::bitset<64> res = ysfx_fetch_slider_automations(y, 0); res.any())
-      {
-        for(int i = 0; i < 64; i++)
-        {
-          if(res.test(i))
-          {
-            // See ProcessModel.hpp around the loop:
-            // for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
-            int idx = 4 + i;
-            if(auto inl = static_cast<Process::ControlInlet*>(
-                   m_model->inlet(Id<Process::Port>{idx})))
-            {
-              if(m_model->m_sliderBeingChanged.test(i))
-                return;
-              m_model->m_sliderBeingChanged.set(i, true);
-              inl->setValue(ysfx_slider_get_value(y, i));
-              m_model->m_sliderBeingChanged.set(i, false);
-            }
-          }
-        }
-      }
-    }
-#endif
   }
 }
+
+#if __has_include(<ysfx-s.h>)
+// See ProcessModel::recreatePorts: slider i is the control with id 4 + i
+static Process::ControlInlet* sliderControl(ProcessModel& model, uint32_t i)
+{
+  return qobject_cast<Process::ControlInlet*>(
+      model.inlet(Id<Process::Port>{int(4 + i)}));
+}
+
+void Window::showSliders(const std::array<uint64_t, ysfx_max_slider_groups>& masks)
+{
+  if(!m_model)
+    return;
+  auto y = this->fx.get();
+  for(uint32_t i = 0; i < ysfx_max_sliders; i++)
+  {
+    if(!(masks[i / 64] & (uint64_t(1) << (i % 64))))
+      continue;
+    if(auto inl = sliderControl(*m_model, i))
+      inl->setExecutionValue(ysfx_slider_get_value(y, i));
+  }
+}
+
+void Window::editSliders(const std::array<uint64_t, ysfx_max_slider_groups>& masks)
+{
+  if(!m_model)
+    return;
+  auto y = this->fx.get();
+  for(uint32_t i = 0; i < ysfx_max_sliders; i++)
+  {
+    if(!(masks[i / 64] & (uint64_t(1) << (i % 64))))
+      continue;
+    auto inl = sliderControl(*m_model, i);
+    if(!inl || m_model->m_sliderBeingChanged.test(i))
+      continue;
+    m_model->m_sliderBeingChanged.set(i, true);
+    inl->setValue(ysfx_slider_get_value(y, i));
+    m_model->m_sliderBeingChanged.set(i, false);
+  }
+}
+#endif
 
 void Window::refreshTimer()
 {

@@ -10,7 +10,8 @@
 #include <LV2/Context.hpp>
 
 #include <score/tools/Debug.hpp>
-#include <score/tools/ThreadPool.hpp>
+
+#include <ossia/detail/thread.hpp>
 
 #include <QApplication>
 #include <QDebug>
@@ -18,6 +19,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QThread>
 #include <QTimer>
 
 #include <lilv/lilv.h>
@@ -25,6 +27,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 
 namespace LV2
@@ -96,69 +99,9 @@ static const char* do_unmap(LV2_URID_Unmap_Handle ptr, LV2_URID val)
   }
 }
 
-struct worker
-{
-  LV2::HostContext* host;
-  LV2::EffectContext* fx;
-  LilvInstance* instance;
-  const LV2_Worker_Interface* worker_iface;
-  ossia::mpmc_queue<std::vector<char>>* response_queue;
-  std::vector<char> dat;
-
-  void operator()()
-  {
-    // 3. Process the work
-    worker_iface->work(
-        instance->lv2_handle, &worker::work_done, this, dat.size(), dat.data());
-
-    // Give back the worker buffer
-    host->release_worker_data(std::move(dat));
-  }
-
-  static LV2_Worker_Status
-  work_done(LV2_Worker_Respond_Handle sub_h, uint32_t sub_s, const void* sub_d)
-  {
-    // 4. Send the data back to the audio thread
-    auto& self = *(worker*)sub_h;
-    auto response_data = self.host->acquire_worker_data((const char*)sub_d, sub_s);
-
-    self.response_queue->enqueue(std::move(response_data));
-
-    return LV2_WORKER_SUCCESS;
-  }
-};
-
 static LV2_Worker_Status
-do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
+do_worker(LV2_Worker_Schedule_Handle, uint32_t, const void*)
 {
-  auto& c = *static_cast<LV2::GlobalContext*>(ptr);
-  LV2::EffectContext* cur = c.host.current;
-
-  if(cur && cur->worker)
-  {
-    auto& w = *cur->worker;
-    if(w.work)
-    {
-      // Per-voice queue if the audio node set one; shared effectContext otherwise
-      auto* response_queue
-          = c.host.current_worker_datas ? c.host.current_worker_datas : &cur->worker_datas;
-
-      // 1. Acquire a buffer to copy the data in audio thread
-      std::vector<char> cp = c.host.acquire_worker_data((const char*)data, s);
-
-      // 2. Move that buffer to the thread pool
-      auto& tq = score::TaskPool::instance();
-      tq.post(worker{
-          .host = &c.host,
-          .fx = cur,
-          .instance = cur->instance,
-          .worker_iface = cur->worker,
-          .response_queue = response_queue,
-          .dat = std::move(cp)});
-
-      return LV2_WORKER_SUCCESS;
-    }
-  }
   return LV2_WORKER_ERR_UNKNOWN;
 }
 
@@ -201,6 +144,161 @@ static char* do_make_path(LV2_State_Make_Path_Handle handle, const char* path)
   SCORE_TODO;
   return nullptr;
 }
+}
+
+void InstanceWorker::start(WorkerThread& t, const LV2_Worker_Interface* i)
+{
+  requests = std::make_unique<queue>(queue_size);
+  responses = std::make_unique<queue>(queue_size);
+  request_scratch = std::make_unique<WorkerPacket>();
+  response_scratch = std::make_unique<WorkerPacket>();
+  iface = i;
+  thread = &t;
+}
+
+namespace
+{
+LV2_Worker_Status
+push_packet(InstanceWorker::queue& q, uint32_t size, const void* data) noexcept
+{
+  if(size > WorkerPacket::capacity)
+    return LV2_WORKER_ERR_NO_SPACE;
+  WorkerPacket p;
+  p.size = size;
+  if(size > 0)
+    std::memcpy(p.data, data, size);
+  return q.try_enqueue(std::move(p)) ? LV2_WORKER_SUCCESS : LV2_WORKER_ERR_NO_SPACE;
+}
+}
+
+LV2_Worker_Status InstanceWorker::schedule_work(
+    LV2_Worker_Schedule_Handle h, uint32_t size, const void* data) noexcept
+{
+  auto& self = *static_cast<InstanceWorker*>(h);
+  if(!self.thread || !self.requests)
+    return LV2_WORKER_ERR_UNKNOWN;
+  const auto st = push_packet(*self.requests, size, data);
+  if(st == LV2_WORKER_SUCCESS)
+    self.thread->notify();
+  return st;
+}
+
+LV2_Worker_Status InstanceWorker::respond(
+    LV2_Worker_Respond_Handle h, uint32_t size, const void* data) noexcept
+{
+  auto& self = *static_cast<InstanceWorker*>(h);
+  return push_packet(*self.responses, size, data);
+}
+
+void InstanceWorker::run_works(LV2_Handle handle) noexcept
+{
+  auto& p = *request_scratch;
+  while(requests->try_dequeue(p))
+    iface->work(handle, &InstanceWorker::respond, this, p.size, p.data);
+}
+
+void InstanceWorker::deliver_responses(LV2_Handle handle) noexcept
+{
+  if(!responses || !iface->work_response)
+    return;
+  auto& p = *response_scratch;
+  while(responses->try_dequeue(p))
+    iface->work_response(handle, p.size, p.data);
+}
+
+void InstanceDeleter::operator()(InstanceHandle* h) const noexcept
+{
+  if(auto app = qApp; app && QThread::currentThread() != app->thread())
+    QMetaObject::invokeMethod(app, [h] { delete h; });
+  else
+    delete h;
+}
+
+WorkerThread::WorkerThread()
+    : m_thread{[this] {
+      ossia::set_thread_name("ossia lv2 work");
+      while(m_running.load(std::memory_order_acquire))
+      {
+        m_sem.wait();
+        run_pending();
+      }
+      // A request scheduled with success is passed to work()
+      run_pending();
+    }}
+{
+}
+
+WorkerThread::~WorkerThread()
+{
+  m_running.store(false, std::memory_order_release);
+  m_sem.signal();
+  m_thread.join();
+}
+
+void WorkerThread::add(const SharedInstance& h)
+{
+  std::lock_guard l{m_lock};
+  std::erase_if(m_instances, [](const auto& w) { return w.expired(); });
+  m_instances.push_back(h);
+}
+
+void WorkerThread::run_pending()
+{
+  {
+    std::lock_guard l{m_lock};
+    std::erase_if(m_instances, [this](const auto& w) {
+      auto h = w.lock();
+      if(!h)
+        return true;
+      if(h->worker.requests->size_approx() > 0)
+        m_pending.push_back(std::move(h));
+      return false;
+    });
+  }
+
+  // Not under the lock: the main thread adds instances meanwhile
+  for(auto& h : m_pending)
+  {
+    try
+    {
+      std::lock_guard instantiation{h->instantiation_lock};
+      h->worker.run_works(h->instance->lv2_handle);
+    }
+    catch(...)
+    {
+    }
+  }
+  // The last reference to an instance may be one of these: InstanceDeleter
+  // frees it on the main thread
+  m_pending.clear();
+}
+
+SharedInstance GlobalContext::instantiate(const LilvPlugin* plugin, double rate)
+{
+  SharedInstance h{new InstanceHandle, InstanceDeleter{}};
+  for(auto* f : lv2_features)
+  {
+    if(!f)
+      break;
+    h->features.push_back(f == &worker_feature ? &h->worker.feature : f);
+  }
+  h->features.push_back(nullptr);
+
+  h->instance = lilv_plugin_instantiate(plugin, rate, h->features.data());
+  if(!h->instance)
+    return {};
+
+  if(lilv_plugin_has_extension_data(plugin, host.work_interface.me))
+  {
+    auto iface = static_cast<const LV2_Worker_Interface*>(
+        lilv_instance_get_extension_data(h->instance, LV2_WORKER__interface));
+    if(iface && iface->work)
+    {
+      h->worker.start(works, iface);
+      works.add(h);
+    }
+  }
+  return h;
 }
 
 GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
@@ -355,8 +453,6 @@ void LV2::GlobalContext::mapHostUrids()
   host.atom_Double_id = map.map(map.handle, LV2_ATOM__Double);
   host.atom_Int_id = map.map(map.handle, LV2_ATOM__Int);
   host.atom_Long_id = map.map(map.handle, LV2_ATOM__Long);
-
-  lv2_atom_forge_init(&host.forge, &map);
 }
 
 LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
@@ -438,12 +534,10 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx)
       {
         if(port.is_a(host.input_class))
         {
-          qDebug() << "LV2: Atom input port not MIDI, not supported yet." << i;
           atom_in_ports.push_back(i);
         }
         else if(port.is_a(host.output_class))
         {
-          qDebug() << "LV2: Atom output port not MIDI, not supported yet." << i;
           atom_out_ports.push_back(i);
         }
         else

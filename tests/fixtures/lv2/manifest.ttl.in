@@ -1,5 +1,6 @@
 @prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ui:   <http://lv2plug.in/ns/extensions/ui#> .
 
 <urn:score:test:gain>
     a lv2:Plugin ;
@@ -50,3 +51,29 @@
     a lv2:Plugin ;
     lv2:binary <@LV2_TEST_BINARY_NAME@> ;
     rdfs:seeAlso <score_test_gain.ttl> .
+
+<urn:score:test:worker-echo>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .
+
+<urn:score:test:worker>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .
+
+<urn:score:test:atom-notify>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .
+
+<urn:score:test:x11ui>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .
+<urn:score:test:mono-notify>
+    a lv2:Plugin ;
+    lv2:binary <@LV2_TEST_BINARY_NAME@> ;
+    rdfs:seeAlso <score_test_gain.ttl> .
+
+@LV2_TEST_X11UI@

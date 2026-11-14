@@ -37,6 +37,10 @@
 
 #include <vector>
 
+#if __has_include(<dlfcn.h>)
+#include <dlfcn.h>
+#endif
+
 namespace
 {
 void spin(int ms)
@@ -47,6 +51,21 @@ void spin(int ms)
   {
     QApplication::processEvents(QEventLoop::AllEvents, 5);
   } while(t.elapsed() < ms);
+}
+
+//! Processes events until `cond` holds, for at most `ms`: whether it holds
+template <typename F>
+bool spin_until(F cond, int ms)
+{
+  QElapsedTimer t;
+  t.start();
+  while(!cond())
+  {
+    if(t.elapsed() > ms)
+      return false;
+    QApplication::processEvents(QEventLoop::AllEvents, 5);
+  }
+  return true;
 }
 
 Scenario::IntervalModel& root(score::Document& doc)
@@ -191,10 +210,71 @@ TEST_CASE(
     {
       REQUIRE(p);
       CHECK(p->effectContext.instance);
-      CHECK(p->plugin_events.size_approx() == 0);
+      REQUIRE(p->uiChannel);
+      CHECK(!p->uiChannel->to_ui.try_read(
+          [](const auto&) { return std::optional<uint8_t*>{nullptr}; }));
     }
   });
 }
+
+#if __has_include(<dlfcn.h>)
+// A plug-in that loads a file through its worker, as convolvers and amp
+// simulators do: the work is done on a thread of score's and its answer
+// reaches the plug-in. A work still running when the process is removed keeps
+// the instance it works on until it is done. Works run one at a time: those
+// of zita-convolver plan FFTs, which FFTW cannot do on two threads at once.
+TEST_CASE(
+    "an LV2 plug-in's work is done, and outlives the removal of its process",
+    "[integration][execution][lv2]")
+{
+  qputenv("LV2_PATH", lv2_bundle().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setup_lv2(ctx, {{lv2_bundle(), "urn:score:test:worker"}});
+    playing_document play{ctx};
+
+    const auto lib = (lv2_bundle() + "/score_test_gain.so").toUtf8();
+    void* h = dlopen(lib.constData(), RTLD_NOW);
+    REQUIRE(h);
+    using counter = int (*)();
+    auto done = reinterpret_cast<counter>(dlsym(h, "score_test_worker_done"));
+    auto responses = reinterpret_cast<counter>(dlsym(h, "score_test_worker_responses"));
+    auto after_cleanup
+        = reinterpret_cast<counter>(dlsym(h, "score_test_worker_after_cleanup"));
+    REQUIRE(done);
+    REQUIRE(responses);
+    REQUIRE(after_cleanup);
+    auto concurrent = reinterpret_cast<counter>(dlsym(h, "score_test_worker_concurrent"));
+    REQUIRE(concurrent);
+
+    // One that keeps playing: its work is done and answered
+    REQUIRE(drop_on_interval(
+                *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:worker"))
+                .size()
+            == 1);
+    // Each instance the process runs schedules one; the works take 300 ms
+    // each, one after the other
+    spin(800);
+    CHECK(spin_until([&] { return done() >= 1 && responses() == done(); }, 10000));
+    const int first = done();
+
+    // Two at once, whose works would overlap; the second removed while its
+    // work runs
+    drop_on_interval(
+        *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:worker"));
+    auto added = drop_on_interval(
+        *play.doc, root(*play.doc), process_data(lv2_key, "urn:score:test:worker"));
+    REQUIRE(added.size() == 1);
+    spin(100);
+    CommandDispatcher<>{play.doc->context().commandStack}.submit(
+        new Scenario::Command::RemoveProcessFromInterval{root(*play.doc), added[0]->id()});
+    spin(1600);
+    CHECK(spin_until([&] { return done() > first; }, 10000));
+    CHECK(after_cleanup() == 0);
+    CHECK(concurrent() == 0);
+    dlclose(h);
+  });
+}
+#endif
 
 TEST_CASE(
     "an installed LV2 plug-in dropped while playing runs",
@@ -234,7 +314,54 @@ TEST_CASE(
     auto p = qobject_cast<LV2::Model*>(added[0]);
     REQUIRE(p);
     spin(500);
-    CHECK(p->plugin_events.size_approx() == 0);
+    REQUIRE(p->uiChannel);
+    CHECK(!p->uiChannel->to_ui.try_read(
+        [](const auto&) { return std::optional<uint8_t*>{nullptr}; }));
+  });
+}
+
+// A UI talks to its plug-in on atom ports that need not support MIDI, as
+// B.Choppr's: what it sends reaches the plug-in, the answer comes back.
+TEST_CASE(
+    "an LV2 plug-in and its UI talk on atom ports that are not MIDI",
+    "[integration][execution][lv2]")
+{
+  qputenv("LV2_PATH", lv2_bundle().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    setup_lv2(ctx, {{lv2_bundle(), "urn:score:test:atom-notify"}});
+    playing_document play{ctx};
+    auto added = drop_on_interval(
+        *play.doc, root(*play.doc),
+        process_data(lv2_key, "urn:score:test:atom-notify"));
+    REQUIRE(added.size() == 1);
+    auto p = qobject_cast<LV2::Model*>(added[0]);
+    REQUIRE(p);
+    spin(200);
+
+    // What an open UI does: it listens, and sends a message to port 0
+    auto& lv2 = ctx.applicationPlugin<LV2::ApplicationPlugin>();
+    REQUIRE(p->uiChannel);
+    p->uiChannel->listening.store(true, std::memory_order_release);
+    LV2::Message msg;
+    msg.index = 0;
+    msg.protocol = lv2.lv2_host_context.atom_eventTransfer;
+    msg.body.resize(sizeof(LV2_Atom) + 4);
+    auto* atom = reinterpret_cast<LV2_Atom*>(msg.body.data());
+    atom->type = lv2.lv2_host_context.atom_chunk_id;
+    atom->size = 4;
+    p->uiChannel->send_to_plugin(std::move(msg));
+    spin(500);
+
+    // The fixture answers each message with one 10000-byte event on port 1
+    std::vector<std::pair<uint32_t, uint32_t>> got;
+    p->uiChannel->read_for_ui([&](uint32_t index, uint32_t protocol, uint32_t size, const void*) {
+      CHECK(protocol == lv2.lv2_host_context.atom_eventTransfer);
+      got.emplace_back(index, size);
+    });
+    REQUIRE(got.size() == 1);
+    CHECK(got[0].first == 1u);
+    CHECK(got[0].second == sizeof(LV2_Atom) + 10000);
+    p->uiChannel->listening.store(false, std::memory_order_release);
   });
 }
 

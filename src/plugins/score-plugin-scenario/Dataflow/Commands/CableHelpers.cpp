@@ -3,8 +3,10 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Process.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifierDebug.hpp>
 
 #include <ossia/detail/ptr_set.hpp>
@@ -221,15 +223,20 @@ restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
   return ret;
 }
 
-static bool portHasCable(const Process::Port& port, const Process::Cable& c)
+static bool portListsCable(const Process::Port& port, int32_t id)
 {
   for(auto& cbl : port.cables())
   {
     auto& vec = cbl.unsafePath().vec();
-    if(!vec.empty() && vec.back().id() == c.id().val())
+    if(!vec.empty() && vec.back().id() == id)
       return true;
   }
   return false;
+}
+
+static bool portHasCable(const Process::Port& port, const Process::Cable& c)
+{
+  return portListsCable(port, c.id().val());
 }
 
 void reattachCablesToPorts(
@@ -313,63 +320,49 @@ void unstripCables(const ObjectPath& p, SerializedCables& cables)
   }
 }
 
-static ossia::small_vector<Process::Cable*, 4> restoreCables(
-    Process::Inlet& new_p, Scenario::ScenarioDocumentModel& doc,
-    const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
+SerializedCables retargetCablesToPorts(
+    const SerializedCables& cables, Process::ProcessModel& process,
+    const score::DocumentContext& ctx)
 {
-  ossia::small_vector<Process::Cable*, 4> ret;
+  auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+  const ObjectPath processPath = score::IDocument::path(process).unsafePath();
 
-  const auto current_cables_of_port = new_p.cables();
-  for(auto& cable : current_cables_of_port)
+  const auto holder = [](const auto& ports, int32_t id) -> Process::Port* {
+    for(auto* p : ports)
+      if(portListsCable(*p, id))
+        return p;
+    return nullptr;
+  };
+
+  SerializedCables ret;
+  ret.reserve(cables.size());
+  for(const auto& [id, data] : cables)
   {
-    SCORE_ASSERT(!cable.unsafePath().vec().empty());
-    auto cable_id = cable.unsafePath().vec().back().id();
-    auto it = ossia::find_if(
-        cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
+    Process::Port* src = holder(process.outlets(), id.val());
+    Process::Port* snk = holder(process.inlets(), id.val());
+    if(!src && !snk)
+      continue;
 
-    SCORE_ASSERT(it != cables.end());
-    SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
-    if(!isValidCable(it->second, ctx))
+    // An end that was on this process and that no port of it holds any more
+    // has nothing left to connect to.
+    const bool srcHere = startsWith(data.source.unsafePath(), processPath);
+    const bool snkHere = startsWith(data.sink.unsafePath(), processPath);
+    if((srcHere && !src) || (snkHere && !snk))
     {
-      detachInvalidCable(it->first, it->second, ctx);
+      const auto path = Path<Scenario::ScenarioDocumentModel>{doc}.extend(id);
+      if(src)
+        src->removeCable(path);
+      if(snk)
+        snk->removeCable(path);
       continue;
     }
-    {
-      auto c = new Process::Cable{it->first, it->second, &doc};
-      doc.cables.add_quiet(c);
-      ret.push_back(c);
-      c->source().find(ctx).addCable(*c);
-    }
-  }
-  return ret;
-}
-static ossia::small_vector<Process::Cable*, 4> restoreCables(
-    Process::Outlet& new_p, Scenario::ScenarioDocumentModel& doc,
-    const score::DocumentContext& ctx, const Dataflow::SerializedCables& cables)
-{
-  ossia::small_vector<Process::Cable*, 4> ret;
 
-  auto current_cables_of_port = new_p.cables();
-  for(auto& cable : current_cables_of_port)
-  {
-    SCORE_ASSERT(!cable.unsafePath().vec().empty());
-    auto cable_id = cable.unsafePath().vec().back().id();
-    auto it = ossia::find_if(
-        cables, [cable_id](auto& c) { return c.first.val() == cable_id; });
-
-    SCORE_ASSERT(it != cables.end());
-    SCORE_ASSERT(doc.cables.find(it->first) == doc.cables.end());
-    if(!isValidCable(it->second, ctx))
-    {
-      detachInvalidCable(it->first, it->second, ctx);
-      continue;
-    }
-    {
-      auto c = new Process::Cable{it->first, it->second, &doc};
-      doc.cables.add_quiet(c);
-      ret.push_back(c);
-      c->sink().find(ctx).addCable(*c);
-    }
+    Process::CableData d = data;
+    if(src)
+      d.source = *src;
+    if(snk)
+      d.sink = *snk;
+    ret.emplace_back(id, std::move(d));
   }
   return ret;
 }
@@ -380,9 +373,7 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
     Process::PortLoadDataFlags flags, const score::DocumentContext& ctx,
     std::span<const int> oldInletIds, std::span<const int> oldOutletIds)
 {
-  ossia::small_vector<Process::Cable*, 4> ret;
   // Ordinary ports match position and name; keyed rows match persistent IDs.
-  auto& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
   const auto reload
       = [&](const auto& oldPorts, const auto& newPorts, std::span<const int> oldIds) {
@@ -420,14 +411,17 @@ ossia::small_vector<Process::Cable*, 4> reloadPortsInNewProcess(
       {
         taken[oldIndex] = true;
         new_p->loadData(old_p.data, flags);
-        auto restored = restoreCables(*new_p, doc, ctx, oldCables);
-        ret.insert(ret.end(), restored.begin(), restored.end());
       }
     }
   };
   reload(oldInlets, process.inlets(), oldInletIds);
   reload(oldOutlets, process.outlets(), oldOutletIds);
 
+  // The saved cables name the old ports; a port rebuilt with another id
+  // holds them now.
+  auto ret = restoreCablesWithoutTouchingPorts(
+      retargetCablesToPorts(oldCables, process, ctx), ctx);
+  reattachCablesToPorts(ret, ctx);
   return ret;
 }
 

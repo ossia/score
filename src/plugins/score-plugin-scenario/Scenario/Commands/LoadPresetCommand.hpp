@@ -157,7 +157,8 @@ private:
     }
 
     // Recreate the old cables; the ports at the other end lost them too
-    auto cables = Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
+    auto cables = Dataflow::restoreCablesWithoutTouchingPorts(
+        Dataflow::retargetCablesToPorts(m_oldCables, cmt, ctx), ctx);
     Dataflow::reattachCablesToPorts(cables, ctx);
     cmt.inletsChanged();
     cmt.outletsChanged();

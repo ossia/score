@@ -213,3 +213,107 @@ TEST_CASE(
   CHECK(plugin.calls[3].ppq == 2.);
   wrapper->fx = nullptr;
 }
+
+namespace
+{
+//! Counts its suspends and stops, and sends a note from each process call
+struct resumed_plugin
+{
+  AEffect effect{};
+  int resumes{};
+  int suspends{};
+  int stops{};
+  VstMidiEvent note{};
+
+  static resumed_plugin& self(AEffect* e) { return *static_cast<resumed_plugin*>(e->user); }
+
+  static intptr_t dispatcher(AEffect* e, int32_t op, int32_t, intptr_t v, void*, float)
+  {
+    if(op == effMainsChanged)
+      (v ? self(e).resumes : self(e).suspends)++;
+    else if(op == effStopProcess)
+      self(e).stops++;
+    return 0;
+  }
+  static void process(AEffect* e, float**, float**, int32_t)
+  {
+    auto& s = self(e);
+    VstEvents events{};
+    events.numEvents = 1;
+    events.events[0] = reinterpret_cast<VstEvent*>(&s.note);
+    vst::vst_host_callback(e, audioMasterProcessEvents, 0, 0, &events, 0.f);
+  }
+  static void setParameter(AEffect*, int32_t, float) { }
+  static float getParameter(AEffect*, int32_t) { return 0.f; }
+
+  resumed_plugin()
+  {
+    effect.magic = kEffectMagic;
+    effect.dispatcher = dispatcher;
+    effect.processReplacing = process;
+    effect.setParameter = setParameter;
+    effect.getParameter = getParameter;
+    effect.numInputs = 2;
+    effect.numOutputs = 2;
+    effect.user = this;
+    note.type = kVstMidiType;
+    note.byteSize = sizeof(VstMidiEvent);
+    note.midiData[0] = char(0x90);
+    note.midiData[1] = 60;
+    note.midiData[2] = 100;
+  }
+};
+}
+
+TEST_CASE(
+    "VST 2: a node destroyed after the next one for the same plug-in was made "
+    "neither suspends it nor takes its MIDI output",
+    "[vst][midi]")
+{
+  resumed_plugin plugin;
+  auto wrapper = std::make_shared<vst::AEffectWrapper>(&plugin.effect);
+
+  ossia::execution_state state;
+  state.sampleRate = 48000;
+  state.bufferSize = 512;
+  ossia::token_request tk;
+  tk.prev_date = ossia::time_value{0};
+  tk.date = ossia::time_value{512};
+  tk.start_sample = 0;
+  tk.length_sample = 512;
+  tk.tempo = 120.;
+
+  // The node of the previous play, still held by its execution context when
+  // the next play makes its own
+  auto previous = std::make_unique<vst::vst_node<false, false>>(wrapper, 48000, 512, true);
+  auto next = std::make_unique<vst::vst_node<false, false>>(wrapper, 48000, 512, true);
+  CHECK(plugin.resumes == 2);
+  previous.reset();
+  CHECK(plugin.suspends == 0);
+  CHECK(plugin.stops == 0);
+
+  next->run(tk, ossia::exec_state_facade{&state});
+  CHECK(next->midi_out->data.messages.size() == 1);
+
+  next.reset();
+  CHECK(plugin.suspends == 1);
+  CHECK(plugin.stops == 1);
+
+  wrapper->fx = nullptr;
+}
+
+TEST_CASE("VST 2: a node destroyed while it is the last one made suspends the plug-in", "[vst]")
+{
+  resumed_plugin plugin;
+  auto wrapper = std::make_shared<vst::AEffectWrapper>(&plugin.effect);
+  {
+    vst::vst_node<false, false> first{wrapper, 48000, 512};
+  }
+  CHECK(plugin.suspends == 1);
+  {
+    vst::vst_node<false, false> second{wrapper, 48000, 512};
+  }
+  CHECK(plugin.suspends == 2);
+  CHECK(plugin.stops == 2);
+  wrapper->fx = nullptr;
+}

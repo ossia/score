@@ -219,24 +219,28 @@ void Component::reload(Execution::Transaction& transaction)
       return;
 
 #if __has_include(<ysfx-s.h>)
-    if(std::bitset<64> res = ysfx_fetch_slider_changes(y, 0); res.any())
+    constexpr int groups = ysfx_max_slider_groups;
 #else
-    if(std::bitset<64> res = ysfx_fetch_slider_changes(y); res.any())
+    constexpr int groups = 1;
 #endif
+    for(int g = 0; g < groups; g++)
     {
-      for(int i = 0; i < 64; i++)
+#if __has_include(<ysfx-s.h>)
+      const std::bitset<64> res = ysfx_fetch_slider_changes(y, g);
+#else
+      const std::bitset<64> res = ysfx_fetch_slider_changes(y);
+#endif
+      if(res.none())
+        continue;
+      for(int b = 0; b < 64; b++)
       {
-        if(res.test(i))
-        {
-          // See ProcessModel.hpp around the loop:
-          // for (uint32_t i = 0; i < ysfx_max_sliders; ++i)
-          int idx = 4 + i;
-          if(auto inl
-             = static_cast<Process::ControlInlet*>(p->inlet(Id<Process::Port>{idx})))
-            inl->setExecutionValue(ysfx_slider_get_value(y, i));
-          else
-            qDebug() << "Error while trying to access inlet " << idx;
-        }
+        if(!res.test(b))
+          continue;
+        // See ProcessModel::recreatePorts: slider i is the control with id 4 + i
+        const int i = 64 * g + b;
+        if(auto inl = qobject_cast<Process::ControlInlet*>(
+               p->inlet(Id<Process::Port>{4 + i})))
+          inl->setExecutionValue(ysfx_slider_get_value(y, i));
       }
     }
   });

@@ -46,6 +46,8 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "AllocCounter.hpp"
+
 #include <cstring>
 #if defined(__linux__)
 #include <dlfcn.h>
@@ -694,15 +696,16 @@ TEST_CASE("lv2_node gives atom ports the buffer size they ask for", "[lv2]")
     {
       hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
       REQUIRE(node.voices.size() == 1);
+      node.ui = std::make_shared<LV2::UiChannel>(data);
 
-      // What on_finish forwards to the UI: every event of the output port.
+      // What the node sends to the UI: every event of the output port.
       std::vector<uint32_t> sent;
       node.on_finished.fn = [&] {
         LV2_ATOM_SEQUENCE_FOREACH(&node.voices[0]->midi_atom_outs[0].buf->atoms, ev)
           sent.push_back(ev->body.size);
       };
 
-      // A message from the UI, as on_start queues it
+      // A message from the UI
       LV2::Message msg;
       msg.index = data.midi_in_ports[0];
       msg.protocol = plug.lv2_host_context.atom_eventTransfer;
@@ -712,12 +715,395 @@ TEST_CASE("lv2_node gives atom ports the buffer size they ask for", "[lv2]")
       atom->type = plug.lv2_host_context.midi_event_id;
       atom->size = 3;
       std::memcpy(msg.body.data() + sizeof(LV2_Atom), note_on, 3);
-      node.voices[0]->message_for_midi_atom_ins[0].push_back(msg);
+      node.ui->send_to_plugin(std::move(msg));
 
       ossia::execution_state st;
       run_node(node, st);
       REQUIRE(sent.size() == 1);
       CHECK(sent[0] == 10000u);
+    }
+    QCoreApplication::processEvents();
+  });
+}
+
+// A UI talks to its plug-in on atom ports that need not support MIDI:
+// B.Choppr's UI asks for the monitor data on such an input, and the plug-in
+// answers on such an output. Both directions go through, as on MIDI ports.
+TEST_CASE("lv2_node carries UI messages on atom ports that are not MIDI", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:atom-notify", "Score Test Atom Notify"};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.midi_in_ports.empty());
+    REQUIRE(data.midi_out_ports.empty());
+    REQUIRE(data.atom_in_ports.size() == 1);
+    REQUIRE(data.atom_out_ports.size() == 1);
+
+    {
+      hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      REQUIRE(node.voices.size() == 1);
+      node.ui = std::make_shared<LV2::UiChannel>(data);
+      node.ui->listening = true;
+
+      // A message from the UI
+      LV2::Message msg;
+      msg.index = data.atom_in_ports[0];
+      msg.protocol = plug.lv2_host_context.atom_eventTransfer;
+      msg.body.resize(sizeof(LV2_Atom) + 4);
+      auto* atom = reinterpret_cast<LV2_Atom*>(msg.body.data());
+      atom->type = plug.lv2_host_context.atom_chunk_id;
+      atom->size = 4;
+      node.ui->send_to_plugin(std::move(msg));
+
+      // What the node sends to the UI
+      std::vector<std::pair<uint32_t, uint32_t>> sent;
+      auto read = [&] {
+        node.ui->read_for_ui([&](uint32_t port, uint32_t, uint32_t, const void* body) {
+          sent.emplace_back(port, static_cast<const LV2_Atom*>(body)->size);
+        });
+      };
+
+      ossia::execution_state st;
+      run_node(node, st);
+      read();
+      REQUIRE(sent.size() == 1);
+      CHECK(sent[0].first == uint32_t(data.atom_out_ports[0]));
+      CHECK(sent[0].second == 10000u);
+
+      // Given once: the next run has nothing to answer
+      sent.clear();
+      run_node(node, st);
+      read();
+      CHECK(sent.empty());
+
+      // Without a UI listening, nothing is queued for one
+      node.ui->listening = false;
+      LV2::Message again;
+      again.index = data.atom_in_ports[0];
+      again.protocol = plug.lv2_host_context.atom_eventTransfer;
+      again.body.resize(sizeof(LV2_Atom) + 4);
+      reinterpret_cast<LV2_Atom*>(again.body.data())->type
+          = plug.lv2_host_context.atom_chunk_id;
+      reinterpret_cast<LV2_Atom*>(again.body.data())->size = 4;
+      node.ui->send_to_plugin(std::move(again));
+      run_node(node, st);
+      read();
+      CHECK(sent.empty());
+    }
+    QCoreApplication::processEvents();
+  });
+}
+
+namespace
+{
+//! What an open UI and its plug-in say to each other through a node, as the
+//! UI window carries it
+struct ui_link
+{
+  hooked_node& node;
+
+  explicit ui_link(hooked_node& n)
+      : node{n}
+  {
+    node.ui = std::make_shared<LV2::UiChannel>(node.data);
+    node.ui->listening = true;
+  }
+
+  //! [main thread] What the UI writes to an atom port: an atom of `size` bytes
+  void send(uint32_t port, uint32_t type, uint32_t size)
+  {
+    LV2::Message msg;
+    msg.index = port;
+    msg.protocol = node.data.host.atom_eventTransfer;
+    msg.body.resize(sizeof(LV2_Atom) + size);
+    auto* atom = reinterpret_cast<LV2_Atom*>(msg.body.data());
+    atom->type = type;
+    atom->size = size;
+    std::memset(msg.body.data() + sizeof(LV2_Atom), 0x11, size);
+    node.ui->send_to_plugin(std::move(msg));
+  }
+
+  //! [main thread] What reached the UI: port index and atom body size
+  std::vector<std::pair<uint32_t, uint32_t>> received()
+  {
+    std::vector<std::pair<uint32_t, uint32_t>> res;
+    node.ui->read_for_ui([&](uint32_t port, uint32_t protocol, uint32_t size, const void* body) {
+      CHECK(protocol == node.data.host.atom_eventTransfer);
+      REQUIRE(size >= sizeof(LV2_Atom));
+      const auto* atom = static_cast<const LV2_Atom*>(body);
+      CHECK(size == sizeof(LV2_Atom) + atom->size);
+      res.emplace_back(port, atom->size);
+    });
+    return res;
+  }
+};
+
+//! The allocations and frees of the thread running the node, in runs that
+//! start, as in a graph, with the values and MIDI of the last one taken off
+//! its outputs
+struct rt_counts
+{
+  hooked_node& node;
+  int allocations{};
+  int frees{};
+  template <typename F>
+  void measure(F&& f)
+  {
+    for(auto* out : node.root_outputs())
+    {
+      if(auto* v = out->target<ossia::value_port>())
+        v->clear();
+      else if(auto* m = out->target<ossia::midi_port>())
+        m->messages.clear();
+    }
+    alloc_counter::scope s;
+    f();
+    allocations += s.allocations();
+    frees += s.frees();
+  }
+};
+}
+
+// The audio thread never allocates nor frees for what a UI and its plug-in
+// say to each other: messages from the UI, MIDI or not, given to every voice;
+// the answers sent to the UI, of 10000 bytes; the notes turned off at a stop.
+TEST_CASE("lv2_node carries UI messages without allocating", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    const auto chunk = plug.lv2_host_context.atom_chunk_id;
+    const auto midi = plug.lv2_host_context.midi_event_id;
+
+    SECTION("atom ports that are not MIDI")
+    {
+      fixture_plugin p{plug, "urn:score:test:atom-notify", "Score Test Atom Notify"};
+      LV2::LV2Data data{plug.lv2_host_context, p.effect};
+      REQUIRE(data.atom_in_ports.size() == 1);
+      REQUIRE(data.atom_out_ports.size() == 1);
+      {
+        hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+        ui_link ui{node};
+        ossia::execution_state st;
+        run_node(node, st);
+        ui.received();
+
+        rt_counts rt{node};
+        for(int i = 0; i < 4; i++)
+        {
+          ui.send(data.atom_in_ports[0], chunk, 64);
+          rt.measure([&] { run_node(node, st); });
+          const auto got = ui.received();
+          REQUIRE(got.size() == 1);
+          CHECK(got[0].first == uint32_t(data.atom_out_ports[0]));
+          CHECK(got[0].second == 10000u);
+        }
+        rt.measure([&] {
+          node.all_notes_off();
+          node.mustStop = true;
+          run_node(node, st, false);
+        });
+        UNSCOPED_INFO("atom-notify: " << rt.allocations << " allocations, " << rt.frees << " frees");
+        CHECK(rt.allocations == 0);
+        CHECK(rt.frees == 0);
+      }
+    }
+
+    SECTION("MIDI ports")
+    {
+      fixture_plugin p{plug, "urn:score:test:notify", "Score Test Notify", true};
+      LV2::LV2Data data{plug.lv2_host_context, p.effect};
+      REQUIRE(data.midi_in_ports.size() == 1);
+      REQUIRE(data.midi_out_ports.size() == 1);
+      {
+        hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+        ui_link ui{node};
+        ossia::execution_state st;
+        run_node(node, st);
+        ui.received();
+
+        rt_counts rt{node};
+        for(int i = 0; i < 4; i++)
+        {
+          ui.send(data.midi_in_ports[0], midi, 3);
+          rt.measure([&] { run_node(node, st); });
+          const auto got = ui.received();
+          REQUIRE(got.size() == 1);
+          CHECK(got[0].first == uint32_t(data.midi_out_ports[0]));
+          CHECK(got[0].second == 10000u);
+        }
+        rt.measure([&] {
+          node.all_notes_off();
+          node.mustStop = true;
+          run_node(node, st, false);
+        });
+        UNSCOPED_INFO("notify: " << rt.allocations << " allocations, " << rt.frees << " frees");
+        CHECK(rt.allocations == 0);
+        CHECK(rt.frees == 0);
+      }
+    }
+
+    SECTION("eight voices")
+    {
+      fixture_plugin p{plug, "urn:score:test:mono-notify", "Score Test Mono Notify", true};
+      LV2::LV2Data data{plug.lv2_host_context, p.effect};
+      REQUIRE(data.midi_in_ports.size() == 1);
+      REQUIRE(data.atom_in_ports.size() == 1);
+      REQUIRE(data.atom_out_ports.size() == 1);
+      REQUIRE(data.control_out_ports.size() == 2);
+      const auto strat = LV2::choose_voice_strategy(data);
+      REQUIRE(strat.routing == LV2::voice_routing::per_channel);
+      REQUIRE(strat.voice_count == 8);
+      {
+        hooked_node node{data, 48000, strat, {}, {}};
+        REQUIRE(node.voices.size() == 8);
+        auto& in = node.root_inputs()[0]->cast<ossia::audio_port>();
+        in.set_channels(8);
+        for(int c = 0; c < 8; c++)
+          in.channel(c).assign(64, 0.5);
+        ui_link ui{node};
+        ossia::execution_state st;
+        run_node(node, st);
+        ui.received();
+
+        rt_counts rt{node};
+        for(int i = 0; i < 4; i++)
+        {
+          ui.send(data.midi_in_ports[0], midi, 3);
+          ui.send(data.atom_in_ports[0], chunk, 64);
+          rt.measure([&] { run_node(node, st); });
+          const auto got = ui.received();
+          REQUIRE(got.size() == 1);
+          CHECK(got[0].first == uint32_t(data.atom_out_ports[0]));
+          CHECK(got[0].second == 10000u);
+        }
+        rt.measure([&] {
+          node.all_notes_off();
+          node.mustStop = true;
+          run_node(node, st, false);
+        });
+        UNSCOPED_INFO("mono-notify x8: " << rt.allocations << " allocations, " << rt.frees << " frees");
+        // Every voice got every message, and the 32 notes off
+        for(auto& v : node.voices)
+        {
+          CHECK(v->fOutControls[0] == 32.f);
+          CHECK(v->fOutControls[1] == 4.f);
+        }
+        CHECK(rt.allocations == 0);
+        CHECK(rt.frees == 0);
+      }
+    }
+    QCoreApplication::processEvents();
+  });
+}
+
+// Messages of any size go through the ring whole and in order, around its end
+// as well; one with no room is refused, not cut.
+TEST_CASE("LV2 message ring carries messages whole and in order", "[lv2]")
+{
+  LV2::message_ring ring{1024};
+  const std::size_t room = ring.max_message_size();
+  REQUIRE(room >= 1024 - sizeof(LV2::message_ring::header));
+
+  std::vector<uint8_t> bytes(room + 1);
+  std::vector<uint8_t> out(room + 1);
+  uint32_t written = 0, read = 0;
+  auto body = [&](uint32_t n, uint32_t size) {
+    for(uint32_t i = 0; i < size; i++)
+      bytes[i] = uint8_t(n * 31 + i);
+  };
+  auto read_one = [&]() {
+    LV2::message_ring::header h;
+    const bool got = ring.try_read([&](const LV2::message_ring::header& hd) {
+      h = hd;
+      return std::optional<uint8_t*>{out.data()};
+    });
+    if(!got)
+      return false;
+    CHECK(h.index == read);
+    CHECK(h.protocol == 7u);
+    CHECK(h.size == (read * 37) % 300);
+    bool same = true;
+    for(uint32_t i = 0; i < h.size; i++)
+      same &= out[i] == uint8_t(read * 31 + i);
+    CHECK(same);
+    read++;
+    return true;
+  };
+
+  for(int round = 0; round < 50; round++)
+  {
+    // Fill it up, then take some
+    for(;;)
+    {
+      const uint32_t size = (written * 37) % 300;
+      body(written, size);
+      if(!ring.try_write(written, 7, bytes.data(), size))
+        break;
+      written++;
+    }
+    for(int i = 0; i < 3 && read_one(); i++)
+    {
+    }
+  }
+  while(read_one())
+  {
+  }
+  CHECK(read == written);
+  CHECK(written > 100);
+
+  // Larger than the ring: refused, the ring stays usable
+  body(0, room + 1);
+  CHECK(!ring.try_write(0, 7, bytes.data(), uint32_t(room + 1)));
+  CHECK(ring.try_write(0, 7, bytes.data(), uint32_t(room)));
+  // Left in the ring by the reader, then dropped
+  CHECK(!ring.try_read([](const auto&) { return std::optional<uint8_t*>{}; }));
+  CHECK(ring.try_read([](const auto&) { return std::optional<uint8_t*>{nullptr}; }));
+  CHECK(!ring.try_read([](const auto&) { return std::optional<uint8_t*>{nullptr}; }));
+}
+
+// What a UI sends is never dropped for lack of room: what the inputs of a run
+// cannot hold goes to the next runs, what the ring cannot hold waits on the
+// main thread. Only a message larger than the input's buffer is dropped.
+TEST_CASE("lv2_node gets every message of its UI, in order", "[lv2]")
+{
+  prepare_lv2_test_environment();
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = setupLV2(ctx);
+    fixture_plugin p{plug, "urn:score:test:mono-notify", "Score Test Mono Notify", true};
+    LV2::LV2Data data{plug.lv2_host_context, p.effect};
+    REQUIRE(data.atom_in_ports.size() == 1);
+    REQUIRE(data.atomBufferSize(data.atom_in_ports[0]) == 65536);
+    {
+      hooked_node node{data, 48000, {LV2::voice_routing::single, 1}, {}, {}};
+      ui_link ui{node};
+      ossia::execution_state st;
+      run_node(node, st);
+
+      // 200 messages of 10000 bytes: 2 MB, twice what the ring holds, six
+      // per run
+      constexpr int count = 200;
+      for(int i = 0; i < count; i++)
+        ui.send(data.atom_in_ports[0], plug.lv2_host_context.atom_chunk_id, 10000);
+      // Never deliverable
+      ui.send(data.atom_in_ports[0], plug.lv2_host_context.atom_chunk_id, 70000);
+
+      rt_counts rt{node};
+      int runs = 0;
+      while(node.voices[0]->fOutControls[1] < float(count) && runs < 100)
+      {
+        node.ui->flush();
+        rt.measure([&] { run_node(node, st); });
+        CHECK(node.voices[0]->fOutControls[1] <= 6.f * (runs + 1));
+        runs++;
+      }
+      CHECK(node.voices[0]->fOutControls[1] == float(count));
+      CHECK(runs == (count + 5) / 6);
+      CHECK(node.ui->flush());
+      CHECK(rt.allocations == 0);
+      CHECK(rt.frees == 0);
     }
     QCoreApplication::processEvents();
   });
@@ -1438,7 +1824,9 @@ TEST_CASE("lv2_node tells each run the transport position of its own first sampl
         tk.musical_start_position = double(t.prev) / 24000.;
         tk.musical_end_position = double(t.date) / 24000.;
 
-        // As the graph runs a node: the time it covered is accounted for after
+        // As the graph runs a node: where the tick starts first, the time it
+        // covered after
+        node.begin_request(tk, st);
         static_cast<ossia::graph_node&>(node).run(tk, ossia::exec_state_facade{&st});
         node.process_time(tk, st);
         frames.push_back(node.voices[0]->fOutControls[2]);
