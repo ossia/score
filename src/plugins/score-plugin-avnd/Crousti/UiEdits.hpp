@@ -6,6 +6,11 @@
 
 #include <QObject>
 #include <QPointer>
+#include <QTimer>
+
+class QGraphicsItem;
+class QGraphicsSceneWheelEvent;
+class QWidget;
 
 #include <score_plugin_avnd_export.h>
 
@@ -18,6 +23,36 @@ class CommandStack;
 
 namespace oscr
 {
+//! Opt-in custom-item wheel gestures. Only the active item filters application
+//! events; its values still change synchronously in the item's wheel handler.
+class SCORE_PLUGIN_AVND_EXPORT WheelGesture final : public QObject
+{
+public:
+  WheelGesture(QGraphicsItem& item, void (*finish)(QGraphicsItem&));
+  ~WheelGesture() override;
+
+  //! Ends a previous item/target and handles zero-delta native phase boundaries.
+  //! A nonzero ScrollEnd is dispatched first, then closed with finish().
+  void prepare(QGraphicsSceneWheelEvent& event, int target);
+  void finish();
+
+  //! The gesture under way, if any
+  static WheelGesture* active() noexcept { return s_active; }
+  //! Ends a gesture without scroll phases once no event came for a while
+  QTimer& idleTimer() noexcept { return m_idle; }
+
+private:
+  bool eventFilter(QObject* watched, QEvent* event) override;
+
+  static WheelGesture* s_active;
+  QGraphicsItem& m_item;
+  void (*m_finish)(QGraphicsItem&);
+  QTimer m_idle;
+  QPointer<QWidget> m_viewport;
+  QMetaObject::Connection m_viewportDestroyed;
+  int m_target{-1};
+};
+
 /**
  * @brief The edits a custom ui makes to its process's controls
  *

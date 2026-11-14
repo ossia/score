@@ -8,12 +8,149 @@
 #include <QCoreApplication>
 #include <QEvent>
 #include <QGuiApplication>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
+#include <QGraphicsSceneWheelEvent>
+#include <QGraphicsView>
 #include <QTimer>
+#include <QWheelEvent>
+#include <QWidget>
 
 #include <algorithm>
 
 namespace oscr
 {
+WheelGesture* WheelGesture::s_active{};
+
+WheelGesture::WheelGesture(QGraphicsItem& item, void (*finish)(QGraphicsItem&))
+    : m_item{item}
+    , m_finish{finish}
+{
+  m_idle.setSingleShot(true);
+  m_idle.setInterval(250);
+  connect(&m_idle, &QTimer::timeout, this, &WheelGesture::finish);
+}
+
+WheelGesture::~WheelGesture()
+{
+  finish();
+}
+
+void WheelGesture::prepare(QGraphicsSceneWheelEvent& event, int target)
+{
+  const auto phase = event.phase();
+  if(s_active
+     && (phase == Qt::ScrollBegin
+         || (phase == Qt::ScrollEnd && event.delta() == 0)
+         || s_active != this || m_target != target))
+    s_active->finish();
+
+  if(target < 0 || (phase == Qt::ScrollEnd && event.delta() == 0))
+    return;
+
+  if(s_active != this)
+  {
+    s_active = this;
+    m_target = target;
+    m_viewport = event.widget();
+    if(m_viewport)
+      m_viewportDestroyed = connect(
+          m_viewport, &QObject::destroyed, this, &WheelGesture::finish);
+    QCoreApplication::instance()->installEventFilter(this);
+  }
+
+  if(phase != Qt::NoScrollPhase)
+    m_idle.stop();
+  else
+    m_idle.start();
+}
+
+void WheelGesture::finish()
+{
+  if(s_active != this)
+    return;
+
+  // Drop all host ownership before invoking the transaction callback: pushing
+  // the command can itself send events or destroy the control.
+  s_active = nullptr;
+  m_idle.stop();
+  if(auto app = QCoreApplication::instance())
+    app->removeEventFilter(this);
+  disconnect(m_viewportDestroyed);
+  m_viewport = nullptr;
+  m_target = -1;
+  m_finish(m_item);
+}
+
+bool WheelGesture::eventFilter(QObject* watched, QEvent* event)
+{
+  switch(event->type())
+  {
+    case QEvent::Wheel:
+    {
+      // Native input first reaches a QWindow, then its target QWidget. Only
+      // the latter identifies the viewport that will dispatch to the item.
+      if(!qobject_cast<QWidget*>(watched))
+        break;
+      const auto& wheel = *static_cast<QWheelEvent*>(event);
+      auto view = m_viewport
+                      ? qobject_cast<QGraphicsView*>(m_viewport->parentWidget())
+                      : nullptr;
+      // Catch other controls before their handler can join the pending UiEdits.
+      // The item dispatch subsequently distinguishes targets within this item.
+      if(wheel.phase() == Qt::ScrollBegin
+         || (wheel.phase() == Qt::ScrollEnd && wheel.angleDelta().isNull()
+             && wheel.pixelDelta().isNull())
+         || watched != m_viewport || !view
+         || view->itemAt(wheel.position().toPoint()) != &m_item)
+        finish();
+      break;
+    }
+    case QEvent::GraphicsSceneWheel:
+    {
+      const auto& wheel = *static_cast<QGraphicsSceneWheelEvent*>(event);
+      auto view = m_viewport
+                      ? qobject_cast<QGraphicsView*>(m_viewport->parentWidget())
+                      : nullptr;
+      if(wheel.phase() == Qt::ScrollBegin
+         || (wheel.phase() == Qt::ScrollEnd && wheel.delta() == 0)
+         || wheel.widget() != m_viewport || !m_item.scene()
+         || m_item.scene()->itemAt(
+                wheel.scenePos(), view ? view->viewportTransform() : QTransform{})
+                != &m_item)
+        finish();
+      break;
+    }
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonDblClick:
+    case QEvent::GraphicsSceneMousePress:
+    case QEvent::GraphicsSceneMouseDoubleClick:
+    case QEvent::ContextMenu:
+    case QEvent::GraphicsSceneContextMenu:
+    case QEvent::ShortcutOverride:
+    case QEvent::KeyPress:
+    case QEvent::FocusOut:
+    case QEvent::WindowDeactivate:
+    case QEvent::ApplicationDeactivate:
+    case QEvent::DragEnter:
+    case QEvent::GraphicsSceneDragEnter:
+      // ShortcutOverride precedes shortcut matching, while Undo / Redo may
+      // still be disabled by UiEdits. Commit now so the action can activate.
+      finish();
+      break;
+    case QEvent::Hide:
+    case QEvent::Destroy:
+      if(auto widget = qobject_cast<QWidget*>(watched);
+         widget && m_viewport
+         && (widget == m_viewport || widget->isAncestorOf(m_viewport)))
+        finish();
+      break;
+    default:
+      break;
+  }
+  return false;
+}
+
 UiEdits::UiEdits(const score::DocumentContext& ctx, QObject* parent)
     : QObject{parent}
     , m_ctx{ctx}

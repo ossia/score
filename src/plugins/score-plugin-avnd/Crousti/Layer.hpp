@@ -31,14 +31,20 @@
 
 #include <QFileInfo>
 #include <QMimeData>
+#include <QPointer>
 #include <QRegularExpression>
+#include <QTimer>
 #include <QUrl>
 #include <QFontMetricsF>
 #include <avnd/concepts/file_port.hpp>
+#include <avnd/concepts/folder_items.hpp>
 #include <avnd/concepts/layout.hpp>
 #include <avnd/concepts/midifile.hpp>
 #include <avnd/concepts/soundfile.hpp>
 #include <halp/layout.hpp>
+
+#include <limits>
+#include <optional>
 
 namespace oscr
 {
@@ -66,6 +72,18 @@ struct RootItem
     , MessageBusUi<Info>
 {
   using RootLayout::RootLayout;
+  //! The widgets and their bindings refer to ui, a member destroyed before
+  //! ~QGraphicsItem deletes the child items: they go first, in the order of a
+  //! rebuild, so that a gesture they end still reaches a live ui.
+  ~RootItem()
+  {
+    delete uiConnections;
+    uiConnections = nullptr;
+    const auto children = this->childItems();
+    for(auto* item : children)
+      delete item;
+  }
+
   typename Info::ui ui;
   //! Context object of the connections to the current UI build's widgets;
   //! deleted on rebuild.
@@ -324,6 +342,9 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
   std::map<score::GraphicsTableLayout*, std::shared_ptr<score::LayoutSelection>>
       tableSelections;
 
+  //! One queued geometry refresh per native row, owned by this UI build.
+  std::map<QGraphicsItem*, QTimer*> dependentRelayouts;
+
   std::shared_ptr<score::LayoutSelection> selectionNamed(std::string_view name)
   {
     auto it = selections.find(name);
@@ -536,6 +557,197 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
     return p;
   }
 
+  //! Whether the native widget of Field, as Item presents it, is a QGraphicsCombo
+  template <typename Item, typename Field>
+  static consteval bool shownAsCombo()
+  {
+    halp::control_widget look = halp::control_widget::automatic;
+    if constexpr(requires {
+                   { Item::presentation } -> std::convertible_to<halp::look>;
+                 })
+      look = halp::look{Item::presentation}.widget;
+    if(look == halp::control_widget::none)
+      return false;
+    if constexpr(avnd::folder_items_parameter<Field>)
+      return false;
+    else
+    {
+      constexpr auto widget = avnd::get_widget<Field>().widget;
+      return widget == avnd::widget_type::combobox
+             || (widget == avnd::widget_type::choices
+                 && look == halp::control_widget::combo);
+    }
+  }
+
+  //! Native dependent controls: read model values, never mutate them while
+  //! refreshing. Only a user's categorical edit resolves and records dependent
+  //! values, together in UiEdits, so presets and undo do not create new edits.
+  template <typename Field, typename Item>
+  void setupDependentControl(
+      Process::ControlInlet* port, const Process::ControlLayout& lay, Item& item)
+  {
+    using Models = decltype(Item::dependent_models());
+    constexpr auto count = std::tuple_size_v<Models>;
+    using Values = decltype(std::apply([](auto... member) {
+      return std::tuple{(pmf_member_type_t<decltype(member)>{}.value)...};
+    }, Item::dependent_models()));
+    auto ports = std::make_shared<std::vector<Process::ControlInlet*>>();
+    ports->reserve(count);
+    std::apply([&](auto... member) {
+      (addControlInlet(*ports, member), ...);
+    }, Item::dependent_models());
+    if(ports->size() != count)
+      return;
+    auto readValues = [ports, &doc = this->doc] {
+      Values values{};
+      [&]<std::size_t... I>(std::index_sequence<I...>) {
+        (SetGUIValue<pmf_member_type_t<std::tuple_element_t<I, Models>>>{doc}(
+             (*ports)[I]->value(), std::get<I>(values)), ...);
+      }(std::make_index_sequence<count>{});
+      return values;
+    };
+    auto* combo = dynamic_cast<score::QGraphicsCombo*>(lay.control);
+    //! The value of each entry of the combo, or unlisted for the one showing a
+    //! selection that the current choices do not offer.
+    static constexpr int unlisted = std::numeric_limits<int>::min();
+    std::shared_ptr<std::vector<int>> indices;
+    //! The values when a scrub started: every step of it is a pick from there.
+    std::shared_ptr<std::optional<Values>> gestureStart;
+    if constexpr(Item::dependent_choices())
+    {
+      static_assert(
+          shownAsCombo<Item, Field>(),
+          "dependent_choices() needs a control shown as a combo box");
+      SCORE_ASSERT(combo);
+      indices = std::make_shared<std::vector<int>>();
+      gestureStart = std::make_shared<std::optional<Values>>();
+      // Replace the ordinary index binding, not the ordinary native widget.
+      // The filtered visible index is not the port's global enum index.
+      QObject::disconnect(combo, &score::QGraphicsCombo::sliderMoved, nullptr, nullptr);
+      QObject::disconnect(combo, &score::QGraphicsCombo::sliderReleased, nullptr, nullptr);
+      QObject::disconnect(combo, &score::QGraphicsCombo::valueEdited, nullptr, nullptr);
+      QObject::disconnect(port, nullptr, combo, nullptr);
+      combo->setEditable(false);
+    }
+    QObject* lifetime = connections ? connections : &context;
+    auto& relayoutTimer = dependentRelayouts[layout];
+    if(!relayoutTimer)
+    {
+      relayoutTimer = new QTimer{lifetime};
+      relayoutTimer->setSingleShot(true);
+      QObject::connect(
+          relayoutTimer, &QTimer::timeout, relayoutTimer,
+          [anchor = QPointer<score::ResizeableItem>{
+               dynamic_cast<score::ResizeableItem*>(lay.container)}] {
+        if(anchor)
+          score::GraphicsLayout::relayoutAround(anchor.data());
+      });
+    }
+    auto refresh = [lay, port, combo, indices, readValues, relayoutTimer] {
+      const auto values = readValues();
+      const auto label = Item::control_label(values);
+      if(lay.label)
+        lay.label->setText(QString::fromUtf8(label.data(), qsizetype(label.size())));
+      if constexpr(Item::dependent_choices())
+      {
+        const auto choices = Item::control_choices(values);
+        const int selected = Item::selected(values);
+        QStringList names;
+        indices->clear();
+        int visibleIndex = -1;
+        for(const auto& choice : choices)
+        {
+          if(choice.value == selected)
+            visibleIndex = int(indices->size());
+          indices->push_back(choice.value);
+          names.push_back(QString::fromUtf8(choice.name.data(), qsizetype(choice.name.size())));
+        }
+        // A selection that the choices do not offer, e.g. from a preset or
+        // from execution: shown as it is, after them, rather than as another.
+        if(visibleIndex < 0)
+        {
+          visibleIndex = int(indices->size());
+          indices->push_back(unlisted);
+          // An enumeration's entries are its value's index
+          auto* e = qobject_cast<Process::Enum*>(port);
+          names.push_back(
+              e && selected >= 0 && selected < std::ssize(e->values)
+                  ? e->values[selected]
+                  : displayText(
+                        *port, ossia::value{selected}, QFontMetricsF{combo->font()},
+                        220.));
+        }
+        if(names != combo->array)
+        {
+          combo->array = std::move(names);
+          auto initialRect = combo->boundingRect();
+          initialRect.setWidth(80.);
+          combo->setRect(initialRect);
+          combo->init();
+          auto rect = combo->boundingRect();
+          rect.setWidth(std::clamp(rect.width(), 80., 220.));
+          combo->setRect(rect);
+        }
+        combo->setValue(visibleIndex);
+        combo->update();
+      }
+      if(auto* container = dynamic_cast<score::EmptyRectItem*>(lay.container))
+        container->fitChildrenRect();
+      score::setLayoutExcluded(*lay.container, !Item::visible(values));
+      // Tabs have not registered all their pages while controls are created.
+      // Queue geometry until construction ends; restarting this row's timer
+      // also coalesces the dependent writes of one categorical edit.
+      relayoutTimer->start(0);
+    };
+    for(auto* dependency : *ports)
+      QObject::connect(
+          dependency, &Process::ControlInlet::valueChanged, lifetime,
+          [refresh](const ossia::value&) { refresh(); });
+    if constexpr(Item::dependent_choices())
+    {
+      QObject::connect(
+          combo, &score::QGraphicsCombo::sliderMoved, lifetime,
+          [combo, indices, gestureStart, readValues, ports, edits = uiEdits,
+           &doc = this->doc] {
+        const int index = combo->value();
+        if(!edits || index < 0 || index >= int(indices->size()))
+          return;
+        // UiEdits groups the event or held-button drag automatically, including
+        // a widget destroyed before its release (e.g. a preset rebuilding UI).
+        combo->moving = true;
+        // Each step of a scrub resolves from where it started, not from what
+        // the previous step resolved: passing over an entry loses nothing.
+        if(!*gestureStart)
+          *gestureStart = readValues();
+        const auto& start = **gestureStart;
+        const int value = (*indices)[index];
+        const auto after = value == unlisted ? start : Item::edited(start, value);
+        const auto current = readValues();
+        [&]<std::size_t... I>(std::index_sequence<I...>) {
+          ([&] {
+            if(std::get<I>(current) != std::get<I>(after))
+              edits->set(*(*ports)[I],
+                  GetGUIValue<pmf_member_type_t<std::tuple_element_t<I, Models>>>{doc}(
+                      oscr::to_ossia_value(std::get<I>(after))));
+          }(), ...);
+        }(std::make_index_sequence<count>{});
+      });
+      QObject::connect(
+          combo, &score::QGraphicsCombo::sliderReleased, lifetime,
+          [combo, gestureStart, edits = uiEdits, refresh] {
+        gestureStart->reset();
+        if(combo->moving)
+        {
+          combo->moving = false;
+          if(edits)
+            edits->commit();
+        }
+        refresh();
+      });
+    }
+    refresh();
+  }
+
   template <typename Item>
   void createControl(Item& item, auto... member)
   {
@@ -552,6 +764,10 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
           SCORE_ASSERT(qitem.container);
           setupControl(this->layout, port, qitem, item);
           setupItem(item, *qitem.container);
+          if constexpr(requires { Item::dependent_models(); })
+            setupDependentControl<
+                std::remove_cvref_t<decltype(((inputs_type{}).*....*member))>>(
+                port, qitem, item);
         }
       }
     }
@@ -774,6 +990,19 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
         [&](auto... models) { (addControlInlet(ports, recursive_members..., models), ...); },
         Item::models());
     auto* qitem = new oscr::CustomMultiControl<Item&>{item, std::move(ports), *uiEdits};
+    if constexpr(requires {
+                   Item::selection();
+                   item.select = std::function<void(int)>{};
+                   item.on_selection_changed(0);
+                 })
+    {
+      auto selection = selectionNamed(Item::selection());
+      item.select = [selection](int i) { selection->select(i); };
+      selection->listen([guard = QPointer<QObject>{qitem}, &item](int i) {
+        if(guard)
+          item.on_selection_changed(i);
+      });
+    }
     setupItem(item, *qitem);
   }
 
@@ -926,6 +1155,19 @@ struct LayoutBuilder final : Process::LayoutBuilderBase
       auto* table = static_cast<score::GraphicsTableLayout*>(new_l);
       table->setRowsSelectable(true);
       tableSelections[table] = selectionNamed(Item::selection());
+    }
+
+    if constexpr(avnd::tab_layout<Item> && requires { Item::selection(); })
+    {
+      static_assert(!requires { Item::model; },
+                    "Tabs use either a UI selection or a control model");
+      auto* tabs = static_cast<score::GraphicsTabLayout*>(new_l);
+      auto selection = selectionNamed(Item::selection());
+      selection->listen([guard = QPointer<score::GraphicsTabLayout>{tabs}](int i) {
+        if(guard)
+          guard->setCurrentIndex(i);
+      });
+      tabs->onCurrentIndexChanged = [selection](int i) { selection->select(i); };
     }
 
     if constexpr(avnd::tab_layout<Item> && requires { Item::model; })

@@ -4,6 +4,7 @@
 #include <Crousti/ProcessModel.hpp>
 
 #include <avnd/binding/ossia/node.hpp>
+#include <utility>
 
 namespace oscr
 {
@@ -16,32 +17,21 @@ struct update_control_in_value_in_ui
   typename ExecNode::control_input_values_type& arr;
   QPointer<Model> element;
 
-  template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
-  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
+  template <std::size_t N>
+  void operator()()
   {
-    if(!element)
-      return;
-    for(auto p : element->avnd_input_idx_to_model_ports(NField))
+    using Info = avnd::control_input_introspection<Node>;
+    using Field = typename Info::template nth_element<N>;
+    if constexpr(!avnd::dynamic_ports_port<Field>)
     {
+      if(!element)
+        return;
+      auto p = element->avnd_input_idx_to_model_ports(Info::index_to_field_index(N))[0];
       if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
       {
-        using namespace std;
-        // FIXME handle dynamic ports correctly
-        // inlet->setExecutionValue(oscr::to_ossia_value(field, get<N>(arr)));
+        using std::get;
+        inlet->setExecutionValue(oscr::to_ossia_value(get<N>(arr)));
       }
-    }
-  }
-
-  template <typename Field, std::size_t N, std::size_t NField>
-  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
-  {
-    if(!element)
-      return;
-    auto p = element->avnd_input_idx_to_model_ports(NField)[0];
-    if(auto inlet = qobject_cast<Process::ControlInlet*>(p))
-    {
-      using namespace std;
-      inlet->setExecutionValue(oscr::to_ossia_value(field, get<N>(arr)));
     }
   }
 };
@@ -54,28 +44,21 @@ struct update_control_out_value_in_ui
   typename ExecNode::control_output_values_type& arr;
   QPointer<Model> element;
 
-  template <typename Field, std::size_t N, std::size_t NField>
-  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
+  template <std::size_t N>
+  void operator()()
   {
-    if(!element)
-      return;
-    using namespace std;
-    auto ports = element->avnd_output_idx_to_model_ports(NField);
-    SCORE_ASSERT(!ports.empty());
-    auto outlet = safe_cast<Process::ControlOutlet*>(ports[0]);
-    outlet->setValue(oscr::to_ossia_value(field, get<N>(arr)));
-  }
-
-  template <avnd::dynamic_ports_port Field, std::size_t N, std::size_t NField>
-  void operator()(Field& field, avnd::predicate_index<N>, avnd::field_index<NField>)
-  {
-    if(!element)
-      return;
-    using namespace std;
-    // FIXME handle dynamic ports correctly
-    // auto outlet
-    //     = safe_cast<Process::ControlOutlet*>(modelPort<Node>(element->outlets(), NField));
-    // outlet->setValue(oscr::to_ossia_value(field, get<N>(arr)));
+    using Info = avnd::control_output_introspection<Node>;
+    using Field = typename Info::template nth_element<N>;
+    if constexpr(!avnd::dynamic_ports_port<Field>)
+    {
+      if(!element)
+        return;
+      using std::get;
+      auto ports = element->avnd_output_idx_to_model_ports(Info::index_to_field_index(N));
+      SCORE_ASSERT(!ports.empty());
+      auto outlet = safe_cast<Process::ControlOutlet*>(ports[0]);
+      outlet->setValue(oscr::to_ossia_value(get<N>(arr)));
+    }
   }
 };
 
@@ -101,11 +84,12 @@ struct update_control_value_in_ui
     }
     if(ok)
     {
-      for(auto state : node.impl.full_state())
-      {
-        avnd::control_input_introspection<Node>::for_all_n2(
-            state.inputs, update_control_in_value_in_ui<Node>{arr, element});
-      }
+      // Values already came through the queue. Do not inspect live instances:
+      // audio channel negotiation can resize their storage on another thread.
+      auto publish = update_control_in_value_in_ui<Node>{arr, element};
+      [&]<std::size_t... N>(std::index_sequence<N...>) {
+        (publish.template operator()<N>(), ...);
+      }(std::make_index_sequence<avnd::control_input_introspection<Node>::size>{});
     }
   }
 
@@ -122,10 +106,11 @@ struct update_control_value_in_ui
     }
     if(ok)
     {
-      // FIXME not thread safe?
-      avnd::control_output_introspection<Node>::for_all_n2(
-          avnd::get_outputs<Node>(node.impl),
-          update_control_out_value_in_ui<Node>{arr, element});
+      // The queued tuple contains the first channel's output controls.
+      auto publish = update_control_out_value_in_ui<Node>{arr, element};
+      [&]<std::size_t... N>(std::index_sequence<N...>) {
+        (publish.template operator()<N>(), ...);
+      }(std::make_index_sequence<avnd::control_output_introspection<Node>::size>{});
     }
   }
 
