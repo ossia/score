@@ -21,6 +21,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
+#include <sched.h>
 #include <unistd.h>
 #endif
 
@@ -860,7 +861,11 @@ static const LV2_Descriptor descriptor_x11ui
  *   1  audio  out  "out"
  *
  * The counters are shared by all instances; "misrouted" counts the works and
- * answers that reached an instance other than the one they carry.
+ * answers that reached an instance other than the one they carry;
+ * "overlapped" counts the calls to activate() and deactivate() made while a
+ * work ran, which the LV2 threading rules forbid. score_test_echo_hold(1)
+ * makes each work wait, from its start, until score_test_echo_hold(0);
+ * score_test_echo_running() gives the works running.
  */
 typedef struct
 {
@@ -876,6 +881,9 @@ static int echo_misrouted;
 static int echo_responses;
 static int echo_response_scheduled;
 static int echo_response_schedule_failed;
+static int echo_overlapped;
+static int echo_running;
+static int echo_held;
 
 #define ECHO_COUNTER(name)                                \
   LV2_SYMBOL_EXPORT int score_test_echo_##name(void)      \
@@ -890,13 +898,21 @@ ECHO_COUNTER(misrouted)
 ECHO_COUNTER(responses)
 ECHO_COUNTER(response_scheduled)
 ECHO_COUNTER(response_schedule_failed)
+ECHO_COUNTER(overlapped)
+ECHO_COUNTER(running)
 #undef ECHO_COUNTER
+
+LV2_SYMBOL_EXPORT void score_test_echo_hold(int held)
+{
+  __atomic_store_n(&echo_held, held, __ATOMIC_SEQ_CST);
+}
 
 LV2_SYMBOL_EXPORT void score_test_echo_reset(void)
 {
   int* all[] = {&echo_scheduled, &echo_schedule_unknown, &echo_schedule_no_space,
                 &echo_works,     &echo_misrouted,        &echo_responses,
-                &echo_response_scheduled, &echo_response_schedule_failed};
+                &echo_response_scheduled, &echo_response_schedule_failed,
+                &echo_overlapped};
   for(unsigned i = 0; i < sizeof(all) / sizeof(all[0]); i++)
     __atomic_store_n(all[i], 0, __ATOMIC_SEQ_CST);
 }
@@ -959,17 +975,36 @@ static LV2_Worker_Status work_echo(
     LV2_Handle instance, LV2_Worker_Respond_Function respond,
     LV2_Worker_Respond_Handle handle, uint32_t size, const void* data)
 {
+  __atomic_add_fetch(&echo_running, 1, __ATOMIC_SEQ_CST);
+  while(__atomic_load_n(&echo_held, __ATOMIC_SEQ_CST))
+#ifdef _WIN32
+    Sleep(0);
+#else
+    sched_yield();
+#endif
   __atomic_add_fetch(&echo_works, 1, __ATOMIC_SEQ_CST);
   echo_packet p;
+  LV2_Worker_Status st = LV2_WORKER_ERR_UNKNOWN;
   if(size != sizeof(p))
   {
     __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
-    return LV2_WORKER_ERR_UNKNOWN;
   }
-  memcpy(&p, data, sizeof(p));
-  if(p.self != instance)
-    __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
-  return respond(handle, sizeof(p), &p);
+  else
+  {
+    memcpy(&p, data, sizeof(p));
+    if(p.self != instance)
+      __atomic_add_fetch(&echo_misrouted, 1, __ATOMIC_SEQ_CST);
+    st = respond(handle, sizeof(p), &p);
+  }
+  __atomic_sub_fetch(&echo_running, 1, __ATOMIC_SEQ_CST);
+  return st;
+}
+
+static void instantiation_echo(LV2_Handle instance)
+{
+  (void)instance;
+  if(__atomic_load_n(&echo_running, __ATOMIC_SEQ_CST) > 0)
+    __atomic_add_fetch(&echo_overlapped, 1, __ATOMIC_SEQ_CST);
 }
 
 static LV2_Worker_Status
@@ -1007,8 +1042,9 @@ static const void* extension_data_echo(const char* uri)
 }
 
 static const LV2_Descriptor descriptor_echo
-    = {"urn:score:test:worker-echo", instantiate_echo, connect_port_echo, NULL,
-       run_echo,                     NULL,             cleanup,           extension_data_echo};
+    = {"urn:score:test:worker-echo", instantiate_echo,   connect_port_echo,
+       instantiation_echo,           run_echo,           instantiation_echo,
+       cleanup,                      extension_data_echo};
 
 /* urn:score:test:mono-notify: a mono effect, run as one instance per channel,
  * whose UI talks to it on a MIDI input and on an atom input that is not

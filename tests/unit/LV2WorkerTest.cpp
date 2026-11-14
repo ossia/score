@@ -3,7 +3,8 @@
 // two nodes run at once on two threads (the parallel scheduler); an answer may
 // schedule a work in its turn; and the audio thread allocates and frees
 // nothing for it. Against the hermetic fixture bundle (tests/fixtures/lv2):
-// urn:score:test:worker-echo schedules a work at each run.
+// urn:score:test:worker-echo schedules a work at each run. A voice let go of
+// on the main thread does not deactivate its instance while a work runs on it.
 
 #include "AllocCounter.hpp"
 
@@ -27,6 +28,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <memory>
 #include <thread>
 
 namespace
@@ -63,8 +65,10 @@ struct counters
   void* lib{};
   using counter = int (*)();
   counter scheduled{}, schedule_unknown{}, schedule_no_space{}, works{}, misrouted{},
-      responses{}, response_scheduled{}, response_schedule_failed{};
+      responses{}, response_scheduled{}, response_schedule_failed{}, overlapped{},
+      running{};
   void (*reset)(){};
+  void (*hold)(int){};
 
   counters()
   {
@@ -84,6 +88,10 @@ struct counters
     responses = get("score_test_echo_responses");
     response_scheduled = get("score_test_echo_response_scheduled");
     response_schedule_failed = get("score_test_echo_response_schedule_failed");
+    overlapped = get("score_test_echo_overlapped");
+    running = get("score_test_echo_running");
+    hold = reinterpret_cast<void (*)(int)>(dlsym(lib, "score_test_echo_hold"));
+    REQUIRE(hold);
     reset = reinterpret_cast<void (*)()>(dlsym(lib, "score_test_echo_reset"));
     REQUIRE(reset);
     reset();
@@ -243,6 +251,51 @@ TEST_CASE("LV2 works of two nodes run on two threads at once stay apart", "[lv2]
       CHECK(c.misrouted() == 0);
       CHECK(c.schedule_unknown() == 0);
     }
+    wait_quiet(c);
+    QCoreApplication::processEvents();
+  });
+}
+
+TEST_CASE(
+    "LV2 instance deactivated on the main thread waits for the work running on it",
+    "[lv2]")
+{
+  qputenv("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  qputenv("LV2_PATH", bundlePath().toUtf8());
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto& plug = ctx.applicationPlugin<LV2::ApplicationPlugin>();
+    setup(plug);
+    counters c;
+    {
+      echo_plugin p{plug};
+      LV2::LV2Data data{plug.lv2_host_context, p.effect};
+      auto r = std::make_unique<runner>(data);
+
+      // A run schedules a work; the worker thread is in it until released
+      c.hold(1);
+      r->tick();
+      using namespace std::chrono;
+      const auto start = steady_clock::now();
+      while(c.running() == 0 && steady_clock::now() - start < seconds(5))
+        std::this_thread::yield();
+      REQUIRE(c.running() == 1);
+
+      // Released once the main thread is in deactivate(), or after it waited
+      // for the work long enough to tell
+      std::thread release{[&] {
+        const auto t0 = steady_clock::now();
+        while(c.overlapped() == 0 && steady_clock::now() - t0 < milliseconds(500))
+          std::this_thread::yield();
+        c.hold(0);
+      }};
+
+      // The node goes, as at a stop: its voice deactivates the instance of
+      // the process, on this thread
+      r.reset();
+      release.join();
+      CHECK(c.overlapped() == 0);
+    }
+    c.hold(0);
     wait_quiet(c);
     QCoreApplication::processEvents();
   });

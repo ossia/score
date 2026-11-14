@@ -87,6 +87,7 @@ struct voice
       return;
     if(instance_holder->activated)
     {
+      std::lock_guard l{instance_holder->instantiation_lock};
       lilv_instance_deactivate(instance);
       instance_holder->activated = false;
     }
@@ -560,6 +561,7 @@ struct lv2_node final : public ossia::graph_node
   {
     if(v.instance_holder && v.instance && !v.instance_holder->activated)
     {
+      std::lock_guard l{v.instance_holder->instantiation_lock};
       lilv_instance_activate(v.instance);
       v.instance_holder->activated = true;
     }

@@ -261,6 +261,7 @@ void WorkerThread::run_pending()
   {
     try
     {
+      std::lock_guard instantiation{h->instantiation_lock};
       h->worker.run_works(h->instance->lv2_handle);
     }
     catch(...)

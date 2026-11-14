@@ -571,9 +571,13 @@ void Model::loadPreset(const Process::Preset& preset)
 
   if(state)
   {
-    lilv_state_restore(
-        state, effectContext.instance, lv2_set_port_value, this,
-        LV2_STATE_IS_PORTABLE, hostContext->features);
+    if(effectContext.instance_holder)
+    {
+      std::lock_guard l{effectContext.instance_holder->instantiation_lock};
+      lilv_state_restore(
+          state, effectContext.instance, lv2_set_port_value, this,
+          LV2_STATE_IS_PORTABLE, hostContext->features);
+    }
     lilv_state_free(state);
   }
 }
@@ -891,6 +895,7 @@ void Model::readPlugin()
           lilv_plugin_get_uri(effectContext.plugin.me));
       if(default_state)
       {
+        std::lock_guard l{effectContext.instance_holder->instantiation_lock};
         lilv_state_restore(
             default_state, effectContext.instance, lv2_set_port_value, this,
             LV2_STATE_IS_PORTABLE, app_plug.lv2_host_context.features);
@@ -1002,6 +1007,12 @@ static void restoreLV2State(LV2::Model& eff, const QByteArray& str)
   if(!state)
     return;
 
+  if(!eff.effectContext.instance_holder)
+  {
+    lilv_state_free(state);
+    return;
+  }
+  std::lock_guard l{eff.effectContext.instance_holder->instantiation_lock};
   lilv_state_restore(
       state, eff.effectContext.instance, LV2::lv2_set_port_value, &eff,
       LV2_STATE_IS_PORTABLE, nullptr);

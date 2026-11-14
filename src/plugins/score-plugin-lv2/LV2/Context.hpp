@@ -209,6 +209,11 @@ struct InstanceHandle
   //! worker:schedule of this instance.
   std::vector<const LV2_Feature*> features;
   InstanceWorker worker;
+  //! Held by the worker thread while work() runs for this instance, and by
+  //! the main thread around its Instantiation functions (activate,
+  //! deactivate, state restore), which may not run concurrently with any
+  //! other function of the instance. Never taken by the audio thread.
+  std::mutex instantiation_lock;
 
   InstanceHandle() = default;
   explicit InstanceHandle(LilvInstance* i) noexcept
