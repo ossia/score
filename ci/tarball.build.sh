@@ -37,6 +37,7 @@ printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" >
   rm -rf 3rdparty/libossia/3rdparty/kfr/img
   rm -rf 3rdparty/libossia/3rdparty/rapidjson/thirdparty
   rm -rf 3rdparty/libossia/3rdparty/dr_libs/tests
+  rm -rf 3rdparty/simde/test
   rm -rf 3rdparty/libossia/3rdparty/unordered_dense/data/fuzz
   rm -rf 3rdparty/libossia/3rdparty/exprtk/*test*
   rm -rf 3rdparty/libossia/3rdparty/purr-data
