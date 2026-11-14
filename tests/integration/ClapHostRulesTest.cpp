@@ -187,6 +187,31 @@ struct playing
     return res;
   }
 
+  //! A tick that covers no sample, as one of an interval held at the start of
+  //! its timeline while it plays backwards: the graph runs the node, then
+  //! clears its inputs
+  void empty_block(int channels)
+  {
+    auto& st = *plug.contextData()->execState;
+    auto& in = *node->root_inputs()[0]->target<ossia::audio_port>();
+    in.set_channels(channels);
+    for(auto& c : in)
+      c.assign(st.bufferSize, 1.);
+
+    ossia::token_request tk;
+    tk.prev_date = ossia::time_value{frame * 1000};
+    tk.date = tk.prev_date;
+    tk.start_sample = 0;
+    tk.length_sample = 0;
+    ossia::set_thread_pinned(ossia::thread_type::Audio, 0);
+    plug.runAllCommands();
+    node->run(tk, ossia::exec_state_facade{&st});
+    ossia::set_thread_pinned(ossia::thread_type::Ui, 0);
+    for(auto* i : node->root_inputs())
+      i->visit(ossia::clear_data{});
+    QCoreApplication::processEvents();
+  }
+
   //! What the clock's stop does: the interval stops on the execution thread,
   //! and the main thread may get its turn first
   void stop()
@@ -1104,3 +1129,55 @@ TEST_CASE(
     }
   });
 }
+
+// The graph clears the inputs of a node once it ran, whether or not its
+// plug-in was given the block: a tick that covers no sample, or that reaches
+// only some of the instances of a mono plug-in, leaves a control moved in
+// score with the instances it did not reach. clap/ext/params.h: a knob turned
+// on the host's interface is sent "via a process() or flush()".
+TEST_CASE(
+    "CLAP: a control moved in a block that reaches no instance gets to the plug-in",
+    "[integration][clap][params]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      const bool mono = std::string_view{id}.find("mono") != std::string_view::npos;
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      report();
+      {
+        playing p{*doc, proc};
+        all_at(p.block(2), 2, 0.5);
+
+        gain_control(proc).setValue(0.25);
+        p.empty_block(2);
+        all_at(p.block(2), 2, 0.25);
+
+        if(mono)
+        {
+          all_at(p.block(4), 4, 0.25);
+
+          // Two of the four instances that process are not given a block
+          gain_control(proc).setValue(0.4);
+          all_at(p.block(2), 2, 0.4);
+          all_at(p.block(4), 4, 0.4);
+
+          // None is: there is no input
+          gain_control(proc).setValue(0.6);
+          p.block(0);
+          all_at(p.block(4), 4, 0.6);
+        }
+        p.stop();
+      }
+      const auto e = report();
+      CHECK(e.bad_state == 0);
+      CHECK(e.wrong_thread == 0);
+      CHECK(e.foreign_cookies == 0);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+    }
+  });
+}
+
