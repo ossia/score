@@ -46,6 +46,11 @@ class GenericMiniAudioFactory
   std::shared_ptr<ossia::miniaudio_context> m_context;
   bool m_scanned{};
 
+protected:
+  //! Set when the system's devices changed: the list is scanned again when
+  //! next needed. Shared with whatever notifies it, which may outlive us.
+  std::shared_ptr<std::atomic_bool> m_stale = std::make_shared<std::atomic_bool>(false);
+
 public:
   std::vector<MiniAudioCard> devices;
 
@@ -165,6 +170,15 @@ public:
       }
     }
 
+    // A device chosen by the user that is not there (unplugged, its driver not
+    // running yet) stays chosen: make_engine() then fails rather than play on
+    // another one, and it is used again as soon as it is back.
+    auto explicit_device = [](const QString& name) {
+      return !name.isEmpty() && name != "Default" && !name.startsWith("No device");
+    };
+    const bool keep_in = !user_in && explicit_device(set.getCardIn());
+    const bool keep_out = !user_out && explicit_device(set.getCardOut());
+
     const MiniAudioCard* card_in = user_in;
     if(!card_in)
       card_in = default_in;
@@ -185,6 +199,9 @@ public:
     {
       const MiniAudioCard* ref = default_in ? default_in : first_viable_in;
       set.setDefaultIn(ref ? ref->info.nativeDataFormats[0].channels : 2);
+    }
+    else if(keep_in)
+    {
     }
     else if(card_in)
     {
@@ -223,6 +240,9 @@ public:
         set.setDefaultOut(2);
       }
     }
+    else if(keep_out)
+    {
+    }
     else if(card_out)
     {
       set.setCardOut(deviceIdToString(card_out->id));
@@ -251,7 +271,7 @@ public:
 
   void ensureScanned()
   {
-    if(!m_scanned)
+    if(!m_scanned || m_stale->exchange(false))
       rescan();
   }
 
@@ -371,7 +391,8 @@ public:
       Audio::Settings::Model& m, Audio::Settings::View& v,
       score::SettingsCommandDispatcher& m_disp, QWidget* parent) override
   {
-    ensureScanned();
+    // Devices plugged in since: the settings are where one looks for them
+    rescan();
     /* Not useful: hotplug does not seem to work
     struct UpdateWhenVisible : public QWidget
     {

@@ -3,6 +3,10 @@
 
 #include <score_plugin_audio_export.h>
 
+#include <QPointer>
+
+#include <verdigris>
+
 #include <memory>
 
 class QLabel;
@@ -22,6 +26,7 @@ class SCORE_PLUGIN_AUDIO_EXPORT ApplicationPlugin final
     : public QObject
     , public score::GUIApplicationPlugin
 {
+  W_OBJECT(ApplicationPlugin)
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
   ~ApplicationPlugin() override;
@@ -29,6 +34,14 @@ public:
   score::GUIElements makeGUIElements() override;
 
   std::shared_ptr<ossia::audio_engine> audio;
+
+  //! The document whose execution runs in the engine, null when none plays:
+  //! set by the execution.
+  void setPlayingDocument(score::Document* doc);
+
+  //! The engine is about to be replaced, rebound to another document's audio
+  //! device, or stopped: what plays in it has to stop first.
+  void engineAboutToChange() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, engineAboutToChange)
 
 private:
   void restart_engine();
@@ -67,6 +80,7 @@ private:
   int m_pendingRatePeriods{};
 
   std::vector<std::shared_ptr<ossia::audio_engine>> previous_audio;
+  QPointer<QObject> m_playingDocument;
 };
 
 }

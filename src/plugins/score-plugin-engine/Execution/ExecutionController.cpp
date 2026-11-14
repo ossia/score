@@ -659,6 +659,8 @@ void ExecutionController::play_interval(
   }
 
   m_playing = true;
+  m_playingDocument = &ctx.document;
+  context.guiApplicationPlugin<Audio::ApplicationPlugin>().setPlayingDocument(&ctx.document);
   ctx.execTimer.start();
 
   if(auto transport_plug = ctx.findPlugin<Transport::DocumentPlugin>())
@@ -725,6 +727,9 @@ void ExecutionController::on_record(::TimeVal t)
 
       scenar->context().execTimer.start();
       m_playing = true;
+      m_playingDocument = &scenar->context().document;
+      context.guiApplicationPlugin<Audio::ApplicationPlugin>().setPlayingDocument(
+          &scenar->context().document);
       m_paused = false;
 
       if(auto transport_plug = scenar->context().findPlugin<Transport::DocumentPlugin>())
@@ -755,6 +760,9 @@ void ExecutionController::on_stop()
 
   if(tree)
     tree->endRecall(LocalTree::Recall::Stop);
+
+  m_playingDocument = nullptr;
+  context.guiApplicationPlugin<Audio::ApplicationPlugin>().setPlayingDocument(nullptr);
 
   if(wasplaying)
     playStopped();
@@ -919,6 +927,14 @@ void ExecutionController::init_transport()
   con(audio_settings, &Audio::Settings::Model::changed, this,
       &ExecutionController::on_audioSettingsChanged,
       Qt::ConnectionType(Qt::DirectConnection | Qt::UniqueConnection));
+
+  // Restarting the engine from its action, rebinding it to another
+  // document's audio device, the device failing: synchronous, so that the
+  // execution is stopped before the engine changes.
+  con(context.guiApplicationPlugin<Audio::ApplicationPlugin>(),
+      &Audio::ApplicationPlugin::engineAboutToChange, this,
+      &ExecutionController::on_audioSettingsChanged,
+      Qt::ConnectionType(Qt::DirectConnection | Qt::UniqueConnection));
 }
 
 void ExecutionController::on_audioSettingsChanged()
@@ -951,6 +967,8 @@ Scenario::ScenarioDocumentPresenter* ExecutionController::currentScenarioPresent
 
 score::Document* ExecutionController::currentDocument() const
 {
+  if(m_playingDocument)
+    return m_playingDocument;
   return context.documents.currentDocument();
 }
 

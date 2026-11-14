@@ -32,6 +32,8 @@
 #include <QLabel>
 #include <QToolBar>
 
+W_OBJECT_IMPL(Audio::ApplicationPlugin)
+
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 namespace Audio
 {
@@ -84,6 +86,10 @@ void ApplicationPlugin::on_closeDocument(score::Document& old)
   const bool last = docs.size() <= 1;
   if(audio)
   {
+    // Another document plays: its tick stays. The closing one plays: it stops.
+    if(m_playingDocument && m_playingDocument != &old)
+      return;
+    engineAboutToChange();
     audio->set_tick(Audio::makePauseTick(this->context));
 #if !defined(__EMSCRIPTEN__)
     if(last)
@@ -108,8 +114,16 @@ void ApplicationPlugin::on_documentChanged(
   rebind_engine(*newdoc);
 }
 
+void ApplicationPlugin::setPlayingDocument(score::Document* doc)
+{
+  m_playingDocument = doc;
+}
+
 void ApplicationPlugin::rebind_engine(score::Document& doc)
 {
+  // The playing document's execution refers to the audio device being
+  // rebound, which is another document's.
+  engineAboutToChange();
   auto dev = (Dataflow::AudioDevice*)doc.context()
                  .plugin<Explorer::DeviceDocumentPlugin>()
                  .list()
@@ -148,6 +162,7 @@ void ApplicationPlugin::timerEvent(QTimerEvent*)
     audio->gc();
     if(audio->failed() && !m_updating_audio)
     {
+      engineAboutToChange();
       stop_engine();
       // Its stream died, so no callback will mark it stopped for the
       // reaper; stop() has closed the stream and joined its thread.
@@ -344,6 +359,9 @@ try
 {
   if(m_updating_audio)
     return;
+
+  // The Restart Audio action comes here directly, not through the settings
+  engineAboutToChange();
 
 #if defined(__EMSCRIPTEN__)
   if(!audio)
