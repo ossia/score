@@ -9,6 +9,7 @@
 
 #include <verdigris>
 
+class QLabel;
 class QLineEdit;
 class QSpinBox;
 class QTableWidget;
@@ -29,12 +30,16 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
   std::pair<int, int> universeRange() const noexcept;
+  int channelsPerUniverse() const noexcept;
 
 private:
   void addLEDs(int mode);
   void addFixture(QString manufacturer, QString name);
+  void addNewFixture(Artnet::Fixture fixt, int channels_per_universe);
   void addDimmer();
   void updateHosts(int protocolindex);
+  void updateUniverseCountRange();
+  void updateUniverseWarning();
   void updateTable();
 
   void addressChanged(int row);
@@ -52,6 +57,7 @@ private:
   QRadioButton* m_source{};
   QRadioButton* m_sink{};
   QTableWidget* m_fixturesWidget{};
+  QLabel* m_universeWarning{};
   QPushButton* m_addFixture{};
   QPushButton* m_addGenericDimmer{};
   QPushButton* m_addGenericRGB{};

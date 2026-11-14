@@ -3,6 +3,8 @@
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include "DMXProtocolCreation.hpp"
 
+#include <Protocols/Artnet/DMXFixtureInstantiation.hpp>
+
 #include <ossia/protocols/artnet/artnet_protocol.hpp>
 #include <ossia/protocols/artnet/dmx_led_parameter.hpp>
 #include <ossia/protocols/artnet/dmx_parameter.hpp>
@@ -162,6 +164,15 @@ std::unique_ptr<ossia::net::dmx_protocol_base> instantiateDMXProtocol(
     }
   }
 
+  if(artnet_proto && !set.fixtures.empty())
+  {
+    auto& buffer = artnet_proto->buffer();
+    const auto [first, last] = set.outputUniverses();
+    const int needed = requiredUniverses(
+        set.fixtures, set.start_universe, set.channels_per_universe, last - first + 1);
+    if(buffer.universes() < needed)
+      buffer.set_universe_count(needed);
+  }
   return artnet_proto;
 }
 }

@@ -6,6 +6,7 @@
 #include <Protocols/Artnet/ArtnetProtocolFactory.hpp>
 #include <Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp>
 #include <Protocols/Artnet/ArtnetSpecificSettings.hpp>
+#include <Protocols/Artnet/DMXFixtureInstantiation.hpp>
 #include <Protocols/Artnet/FixtureDialog.hpp>
 #include <Protocols/Artnet/LEDDialog.hpp>
 
@@ -16,6 +17,8 @@
 
 #include <QComboBox>
 #include <QFormLayout>
+#include <QColor>
+#include <QLabel>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSerialPortInfo>
@@ -31,70 +34,27 @@ W_OBJECT_IMPL(Protocols::ArtnetProtocolSettingsWidget)
 
 namespace Protocols
 {
-static int usedChannels(const Artnet::Fixture& fixture)
+using Artnet::usedChannels;
+
+namespace
 {
-  if(!fixture.controls.empty())
+ArtnetSpecificSettings::Transport transportForIndex(int idx) noexcept
+{
+  switch(idx)
   {
-    return fixture.controls.size(); // FIXME does not handle high precision channels?
-  }
-  else if(fixture.led)
-  {
-    return ossia::apply_nonnull([](const auto& led) {
-      if constexpr(requires { led.channels(); })
-      {
-        return led.channels();
-      }
-      else
-        return 0;
-    }, fixture.led);
-  }
-  else
-  {
-    return 0;
+    case 1:
+      return ArtnetSpecificSettings::E131;
+    case 2:
+      return ArtnetSpecificSettings::DMXUSBPRO;
+    case 3:
+      return ArtnetSpecificSettings::DMXUSBPRO_Mk2;
+    case 4:
+      return ArtnetSpecificSettings::OpenDMX_USB;
+    case 0:
+    default:
+      return ArtnetSpecificSettings::ArtNetV2;
   }
 }
-static void updateFixtureAddress(Artnet::Fixture& fixture, int channels_per_universe)
-{
-  while(fixture.address > channels_per_universe)
-  {
-    fixture.universe++;
-    fixture.address -= channels_per_universe;
-  }
-}
-
-static std::pair<int, int> nextAvailableFixtureAddress(
-    std::span<const Artnet::Fixture> fixtures, int channels_per_universe)
-{
-  int max_universe{};
-  int max_address{};
-  const Artnet::Fixture* pfix{};
-  for(const auto& fix : fixtures)
-  {
-    if(fix.universe > max_universe)
-    {
-      max_universe = fix.universe;
-      max_address = fix.address;
-      pfix = &fix;
-    }
-    else if(fix.universe == max_universe && fix.address > max_address)
-    {
-      max_address = fix.address;
-      pfix = &fix;
-    }
-  }
-
-  if(pfix)
-  {
-    max_address += usedChannels(*pfix);
-  }
-
-  while(max_address > channels_per_universe)
-  {
-    max_universe++;
-    max_address -= channels_per_universe;
-  }
-
-  return {max_universe, max_address};
 }
 
 ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
@@ -113,16 +73,18 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   m_rate->setValue(44);
 
   m_universe = new QSpinBox{this};
-  m_universe->setRange(0, 65539);
+  m_universe->setObjectName("universe");
 
   m_universe_count = new QSpinBox{this};
-  m_universe_count->setRange(0, 1024);
+  m_universe_count->setObjectName("universeCount");
+  m_universe_count->setRange(1, 1024);
 
   m_channels_per_universe = new QSpinBox{this};
   m_channels_per_universe->setRange(1, 512);
   m_channels_per_universe->setValue(512);
 
   m_transport = new QComboBox{this};
+  m_transport->setObjectName("transport");
   m_transport->addItems(
       {"ArtNet", "E1.31 / sACN", "DMX USB PRO", "DMX USB PRO Mk2", "OpenDMX USB"});
   checkForChanges(m_transport);
@@ -137,6 +99,9 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   connect(
       m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
       &ArtnetProtocolSettingsWidget::updateHosts);
+  connect(
+      m_universe, &QSpinBox::valueChanged, this,
+      &ArtnetProtocolSettingsWidget::updateUniverseCountRange);
   updateHosts(m_transport->currentIndex());
 
   auto layout = new QFormLayout;
@@ -245,6 +210,20 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   fixtures_layout->addLayout(btns);
   layout->addRow(fixtures_layout);
 
+  m_universeWarning = new QLabel{this};
+  m_universeWarning->setObjectName("universeWarning");
+  m_universeWarning->setWordWrap(true);
+  m_universeWarning->setVisible(false);
+  layout->addRow(m_universeWarning);
+
+  for(auto* spin : {m_universe, m_universe_count, m_channels_per_universe})
+    connect(
+        spin, &QSpinBox::valueChanged, this,
+        &ArtnetProtocolSettingsWidget::updateUniverseWarning);
+  connect(
+      m_transport, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      &ArtnetProtocolSettingsWidget::updateUniverseWarning);
+
   // FIXME a cute widget for displaying used addresses in each universe
   connect(m_addGenericDimmer, &QPushButton::clicked, this, [this] {
     addFixture("Generic", "4-Channel Dimmer Pack");
@@ -287,23 +266,18 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
 
 void ArtnetProtocolSettingsWidget::addFixture(QString manufacturer, QString name)
 {
-  auto [max_universe, max_address]
-      = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
-  auto dial = new AddFixtureDialog{max_universe, max_address, *this};
+  const int channels_per_universe = m_channels_per_universe->value();
+  auto [universe, address] = Artnet::nextAvailableAddress(m_fixtures, channels_per_universe);
+  AddFixtureDialog dial{universe, address, *this};
   if(!manufacturer.isEmpty())
-    dial->setCurrentFixture(manufacturer, name);
-  dial->setName(newFixtureName(dial->name()));
-  if(dial->exec() == QDialog::Accepted)
+    dial.setCurrentFixture(manufacturer, name);
+  dial.setName(newFixtureName(dial.name()));
+  if(dial.exec() == QDialog::Accepted)
   {
-    const int channels_per_universe = this->m_channels_per_universe->value();
-    for(auto fixt : dial->fixtures())
+    for(auto& fixt : dial.fixtures())
     {
       if(!fixt.fixtureName.isEmpty())
-      {
-        fixt.fixtureName = newFixtureName(fixt.fixtureName);
-        m_fixtures.push_back(std::move(fixt));
-        updateFixtureAddress(m_fixtures.back(), channels_per_universe);
-      }
+        addNewFixture(std::move(fixt), channels_per_universe);
     }
     updateTable();
   }
@@ -311,31 +285,32 @@ void ArtnetProtocolSettingsWidget::addFixture(QString manufacturer, QString name
 
 void ArtnetProtocolSettingsWidget::addLEDs(int mode)
 {
-  auto [max_universe, max_address]
-      = nextAvailableFixtureAddress(m_fixtures, m_channels_per_universe->value());
-  auto dial = new AddLEDStripDialog{
-      max_universe, max_address, (AddLEDStripDialog::Mode)mode, *this};
-  dial->setName(newFixtureName(dial->name()));
-  if(dial->exec() == QDialog::Accepted)
+  const int channels_per_universe = m_channels_per_universe->value();
+  auto [universe, address] = Artnet::nextAvailableAddress(m_fixtures, channels_per_universe);
+  AddLEDStripDialog dial{universe, address, (AddLEDStripDialog::Mode)mode, *this};
+  dial.setName(newFixtureName(dial.name()));
+  if(dial.exec() == QDialog::Accepted)
   {
-    const int channels_per_universe = this->m_channels_per_universe->value();
-    for(auto fixt : dial->fixtures())
+    for(auto& fixt : dial.fixtures())
     {
       if(!fixt.fixtureName.isEmpty() && fixt.led)
-      {
-        fixt.fixtureName = newFixtureName(fixt.fixtureName);
-        m_fixtures.push_back(std::move(fixt));
-        updateFixtureAddress(m_fixtures.back(), channels_per_universe);
-      }
+        addNewFixture(std::move(fixt), channels_per_universe);
     }
     updateTable();
   }
 }
 
+void ArtnetProtocolSettingsWidget::addNewFixture(
+    Artnet::Fixture fixt, int channels_per_universe)
+{
+  fixt.fixtureName = newFixtureName(std::move(fixt.fixtureName));
+  Artnet::normalizeAddress(fixt, channels_per_universe);
+  m_fixtures.push_back(std::move(fixt));
+}
+
 QString ArtnetProtocolSettingsWidget::newFixtureName(QString name)
 {
-  static std::vector<QString> brethren;
-  brethren.clear();
+  std::vector<QString> brethren;
   brethren.reserve(m_fixtures.size());
 
   for(auto& strip : this->m_fixtures)
@@ -373,57 +348,43 @@ void ArtnetProtocolSettingsWidget::updateHosts(int idx)
     case 0: {
       auto ips = score::list_ipv4_for_listening();
       ips.removeAll("0.0.0.0");
-      m_host->addItems(ips);      
+      m_host->addItems(ips);
       m_host->setCurrentIndex(0);
-
-      m_universe->setRange(0, 256);
-      m_universe->setValue(0);
-      m_universe->setEnabled(true);
-      m_universe_count->setValue(std::clamp(m_universe_count->value(), 0, 256));
-      m_universe_count->setEnabled(true);
       m_multicast->setEnabled(false);
       break;
     }
     case 1:
       m_host->addItems(score::list_ipv4_for_listening());
       m_host->setCurrentIndex(0);
-
-      m_universe->setRange(1, 65539);
-      m_universe->setValue(1);
-      m_universe->setEnabled(true);
       m_universe_count->setValue(1);
-      m_universe_count->setEnabled(true);
       m_multicast->setEnabled(true);
       break;
     case 2:
+    case 3:
     case 4: {
       for(const auto& port : serialPorts())
         m_host->addItem(port.portName());
-
-      m_universe->setRange(0, 0);
-      m_universe->setValue(0);
-      m_universe->setEnabled(false);
-      m_universe_count->setValue(1);
-      m_universe_count->setEnabled(false);
-      m_multicast->setEnabled(false);
-      break;
-    }
-    case 3: {
-      for(const auto& port : serialPorts())
-        m_host->addItem(port.portName());
-
-      m_universe->setRange(0, 1);
-      m_universe->setValue(0);
-      m_universe->setEnabled(true);
-      m_universe_count->setValue(std::clamp(m_universe_count->value(), 0, 2));
-      m_universe_count->setEnabled(true);
       m_multicast->setEnabled(false);
       break;
     }
   }
 
+  const auto [first, last] = ArtnetSpecificSettings::universeLimits(transportForIndex(idx));
+  m_universe->setRange(first, last);
+  m_universe->setValue(first);
+  m_universe->setEnabled(first != last);
+  updateUniverseCountRange();
+  m_universe_count->setEnabled(m_universe_count->maximum() > 1);
+
   if(m_host->currentText().isEmpty())
     m_host->setCurrentIndex(0);
+}
+
+void ArtnetProtocolSettingsWidget::updateUniverseCountRange()
+{
+  const auto [first, last]
+      = ArtnetSpecificSettings::universeLimits(transportForIndex(m_transport->currentIndex()));
+  m_universe_count->setRange(1, std::clamp(last - m_universe->value() + 1, 1, 1024));
 }
 
 void ArtnetProtocolSettingsWidget::updateTable()
@@ -459,6 +420,44 @@ void ArtnetProtocolSettingsWidget::updateTable()
     m_fixturesWidget->setItem(row, 4, controls);
     row++;
   }
+  updateUniverseWarning();
+}
+
+void ArtnetProtocolSettingsWidget::updateUniverseWarning()
+{
+  if(!m_fixturesWidget || !m_universeWarning)
+    return;
+
+  const auto [first, last]
+      = ArtnetSpecificSettings::universeLimits(transportForIndex(m_transport->currentIndex()));
+  const int start = std::clamp(m_universe->value(), first, last);
+  const int64_t channels_per_universe = std::max(1, m_channels_per_universe->value());
+
+  QStringList outside;
+  for(int row = 0; row < std::ssize(m_fixtures) && row < m_fixturesWidget->rowCount(); row++)
+  {
+    const auto& fixt = m_fixtures[row];
+    const int64_t end = int64_t(fixt.universe) * channels_per_universe + fixt.address
+                        + std::max(usedChannels(fixt), 1) - 1;
+    const bool fits = fixt.universe >= start && end / channels_per_universe <= last;
+    if(auto item = m_fixturesWidget->item(row, 3))
+    {
+      item->setData(Qt::ForegroundRole, fits ? QVariant{} : QVariant{QColor(Qt::red)});
+      item->setToolTip(
+          fits ? QString{}
+               : tr("This device outputs universes %1 to %2 only").arg(start).arg(last));
+    }
+    if(!fits)
+      outside.push_back(fixt.fixtureName);
+  }
+
+  m_universeWarning->setVisible(!outside.isEmpty());
+  if(!outside.isEmpty())
+    m_universeWarning->setText(
+        tr("This device outputs universes %1 to %2 only. Outside of them: %3")
+            .arg(start)
+            .arg(last)
+            .arg(outside.join(", ")));
 }
 
 void ArtnetProtocolSettingsWidget::addressChanged(int row)
@@ -474,9 +473,17 @@ void ArtnetProtocolSettingsWidget::universeChanged(int row)
 
 ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() { }
 
+int ArtnetProtocolSettingsWidget::channelsPerUniverse() const noexcept
+{
+  return m_channels_per_universe->value();
+}
+
 std::pair<int, int> ArtnetProtocolSettingsWidget::universeRange() const noexcept
 {
-  return {m_universe->value(), m_universe->value() + m_universe_count->value() - 1};
+  const auto [first, last]
+      = ArtnetSpecificSettings::universeLimits(transportForIndex(m_transport->currentIndex()));
+  const int start = std::clamp(m_universe->value(), first, last);
+  return {start, std::clamp(start + m_universe_count->value() - 1, start, last)};
 }
 
 Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
@@ -489,24 +496,7 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
   ArtnetSpecificSettings settings{};
   settings.fixtures = this->m_fixtures;
   settings.host = this->m_host->currentText();
-  switch(this->m_transport->currentIndex())
-  {
-    case 0:
-      settings.transport = ArtnetSpecificSettings::ArtNetV2;
-      break;
-    case 1:
-      settings.transport = ArtnetSpecificSettings::E131;
-      break;
-    case 2:
-      settings.transport = ArtnetSpecificSettings::DMXUSBPRO;
-      break;
-    case 3:
-      settings.transport = ArtnetSpecificSettings::DMXUSBPRO_Mk2;
-      break;
-    case 4:
-      settings.transport = ArtnetSpecificSettings::OpenDMX_USB;
-      break;
-  }
+  settings.transport = transportForIndex(this->m_transport->currentIndex());
 
   settings.rate = this->m_rate->value();
   settings.start_universe = this->m_universe->value();

@@ -8,6 +8,9 @@
 
 #include <QString>
 
+#include <algorithm>
+#include <cstdint>
+#include <limits>
 #include <utility>
 #include <vector>
 #include <verdigris>
@@ -27,9 +30,18 @@ struct BaseCapability
 struct SingleCapability : BaseCapability
 {
 };
+enum class MenuClick : int8_t
+{
+  Start,
+  Center,
+  End,
+  Hidden
+};
+
 struct RangeCapability : BaseCapability
 {
   std::pair<int, int> range;
+  MenuClick menuClick{MenuClick::Start};
 };
 
 enum class Diode : int8_t
@@ -46,6 +58,12 @@ enum class Diode : int8_t
   Empty
 };
 
+constexpr int clampedChannels(int64_t diodes, int64_t pixels) noexcept
+{
+  const int64_t n = diodes * std::max<int64_t>(pixels, 0);
+  return n > std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : int(n);
+}
+
 struct LEDStripLayout
 {
   std::vector<Diode> diodes;
@@ -53,7 +71,7 @@ struct LEDStripLayout
   int length{}; // in pixels
   bool reverse{};
 
-  int channels() const noexcept { return diodes.size() * length; }
+  int channels() const noexcept { return clampedChannels(diodes.size(), length); }
 };
 
 struct LEDPaneLayout
@@ -63,7 +81,10 @@ struct LEDPaneLayout
   int width{};
   int height{};
 
-  int channels() const noexcept { return diodes.size() * width * height; }
+  int channels() const noexcept
+  {
+    return clampedChannels(diodes.size(), int64_t(width) * height);
+  }
 };
 
 struct LEDVolumeLayout
@@ -74,7 +95,10 @@ struct LEDVolumeLayout
   int height{};
   int depth{};
 
-  int channels() const noexcept { return diodes.size() * width * height * depth; }
+  int channels() const noexcept
+  {
+    return clampedChannels(diodes.size(), int64_t(width) * height * depth);
+  }
 };
 
 using FixtureCapabilities
@@ -89,6 +113,13 @@ struct Channel
   FixtureCapabilities capabilities;
   std::vector<QString> fineChannels;
   int defaultValue{};
+
+  //! Number of bytes in which defaultValue and the capability ranges are expressed.
+  //! 0 for channels saved before it was recorded.
+  int8_t resolution{};
+  bool constant{};
+
+  int valueResolution() const noexcept;
 };
 
 struct ModeInfo
@@ -119,7 +150,7 @@ struct ArtnetSpecificSettings
   int channels_per_universe{512};
   bool multicast{};
 
-  enum
+  enum Transport
   {
     ArtNet, // Artnet:/Channel-{}
     E131,
@@ -133,6 +164,43 @@ struct ArtnetSpecificSettings
     Source, // score sends DMX
     Sink    // score receives DMX
   } mode{Source};
+
+  //! First and last universe a transport can output, numbered as on the wire:
+  //! an Art-Net Port-Address has 15 bits, E1.31 reserves universe 0 and those
+  //! from 64000, a DMX USB Pro has a single output and a Pro Mk2 two.
+  static constexpr std::pair<int, int> universeLimits(Transport t) noexcept
+  {
+    switch(t)
+    {
+      case ArtNet:
+      case ArtNetV2:
+        return {0, 32767};
+      case E131:
+        return {1, 63999};
+      case DMXUSBPRO_Mk2:
+        return {0, 1};
+      case DMXUSBPRO:
+      case OpenDMX_USB:
+      default:
+        return {0, 0};
+    }
+  }
+
+  //! The universes this device can output: from its start universe to the last
+  //! one its transport allows.
+  constexpr std::pair<int, int> outputUniverses() const noexcept
+  {
+    const auto [first, last] = universeLimits(transport);
+    return {std::clamp(start_universe, first, last), last};
+  }
+
+  //! Brings the start universe and the universe count within the transport's limits.
+  constexpr void clampUniverses() noexcept
+  {
+    const auto [first, last] = outputUniverses();
+    start_universe = first;
+    universe_count = std::clamp(universe_count, 1, last - first + 1);
+  }
 };
 }
 

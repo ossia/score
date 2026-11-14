@@ -1,7 +1,12 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp>
+#include <Protocols/Artnet/DMXFixtureInstantiation.hpp>
 #include <Protocols/Artnet/LEDDialog.hpp>
+
+#include <algorithm>
+#include <cstdint>
+#include <limits>
 
 namespace Protocols
 {
@@ -30,6 +35,7 @@ AddLEDStripDialog::AddLEDStripDialog(
   {
     case Mode::Strip: {
       m_layout.addRow(tr("Pixel count"), &m_pixels);
+      m_layout.addRow(tr("Reverse"), &m_reverse);
       m_pixels.setVisible(true);
       m_width.setVisible(false);
       m_height.setVisible(false);
@@ -57,8 +63,6 @@ AddLEDStripDialog::AddLEDStripDialog(
     }
   }
 
-  m_layout.addRow(tr("Reverse"), &m_reverse);
-
   m_layout.addItem(
       new QSpacerItem{0, 100, QSizePolicy::Expanding, QSizePolicy::Expanding});
 
@@ -74,8 +78,10 @@ AddLEDStripDialog::AddLEDStripDialog(
   m_name.setText("strip.1");
   m_count.setRange(1, 512);
   m_spacing.setRange(0, 512);
-  m_address.setRange(1, 65539 * 512);
-  m_address.setValue(startAddress + 1);
+  m_address.setObjectName("address");
+  m_universe.setObjectName("universe");
+  m_pixels.setObjectName("pixels");
+  m_channelsPerUniverse = std::max(1, parent.channelsPerUniverse());
   auto [umin, umax] = parent.universeRange();
   m_universe.setRange(umin, umax);
   m_universe.setValue(startUniverse);
@@ -94,6 +100,41 @@ AddLEDStripDialog::AddLEDStripDialog(
   m_depth.setRange(1, 1024);
   m_depth.setValue(8);
   m_reverse.setChecked(false);
+
+  updateAddressRange();
+  m_address.setValue(startAddress + 1);
+  for(auto* spin : {&m_universe, &m_channels, &m_pixels, &m_width, &m_height, &m_depth})
+    connect(spin, &QSpinBox::valueChanged, this, &AddLEDStripDialog::updateAddressRange);
+}
+
+int64_t AddLEDStripDialog::channelsUsed() const noexcept
+{
+  int64_t pixels{};
+  switch(m_mode)
+  {
+    case Mode::Strip:
+      pixels = m_pixels.value();
+      break;
+    case Mode::Pane:
+      pixels = int64_t(m_width.value()) * m_height.value();
+      break;
+    case Mode::Volume:
+      pixels = int64_t(m_width.value()) * m_height.value() * m_depth.value();
+      break;
+  }
+  return pixels * m_channels.value();
+}
+
+void AddLEDStripDialog::updateAddressRange()
+{
+  // The address counts on from the chosen universe. A fixture that fits in a
+  // universe is never split across two, so it has to fit before the end of the last one.
+  const int64_t universes = int64_t(m_universe.maximum()) - m_universe.value() + 1;
+  const int64_t size = std::clamp<int64_t>(channelsUsed(), 1, m_channelsPerUniverse);
+  m_address.setRange(
+      1, int(std::clamp<int64_t>(
+             universes * m_channelsPerUniverse - size + 1, 1,
+             std::numeric_limits<int>::max())));
 }
 
 void AddLEDStripDialog::on_channelsChanged(int count)
@@ -131,13 +172,10 @@ void AddLEDStripDialog::on_channelsChanged(int count)
 
 std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
 {
-  std::vector<Artnet::Fixture> res;
   Artnet::Fixture f;
   f.fixtureName = this->m_name.text();
-  f.modeName = "LED Strip";
   f.universe = m_universe.value();
 
-  int channels_used = 0;
   switch(m_mode)
   {
     case Mode::Strip: {
@@ -148,8 +186,7 @@ std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
       capa.length = m_pixels.value();
       capa.reverse = m_reverse.isChecked();
 
-      channels_used = capa.channels();
-
+      f.modeName = QStringLiteral("LED Strip");
       f.led = std::move(capa);
       break;
     }
@@ -161,8 +198,7 @@ std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
       capa.width = m_width.value();
       capa.height = m_height.value();
 
-      channels_used = capa.channels();
-
+      f.modeName = QStringLiteral("LED Pane");
       f.led = std::move(capa);
       break;
     }
@@ -175,19 +211,15 @@ std::vector<Artnet::Fixture> AddLEDStripDialog::fixtures() const noexcept
       capa.height = m_height.value();
       capa.depth = m_depth.value();
 
-      channels_used = capa.channels();
-
+      f.modeName = QStringLiteral("LED Box");
       f.led = std::move(capa);
       break;
     }
   }
 
-  for(int i = 0; i < m_count.value(); i++)
-  {
-    f.address = m_address.value() - 1 + i * channels_used;
-    res.push_back(f);
-  }
-  return res;
+  return Artnet::repeatFixture(
+      std::move(f), m_address.value() - 1, m_count.value(), m_spacing.value(),
+      m_channelsPerUniverse);
 }
 }
 #endif
