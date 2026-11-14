@@ -2,6 +2,7 @@
 #include <Gfx/Graph/CommonUBOs.hpp>
 #include <Gfx/Graph/GpuTiming.hpp>
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/NodeProfiler.hpp>
 #include <Gfx/Graph/Quirks.hpp>
 #include <Gfx/Graph/TextureKind.hpp>
 
@@ -440,6 +441,8 @@ public:
   Gfx::AssetTable* assetTable() const noexcept { return m_assetTable; }
   void setAssetTable(Gfx::AssetTable* t) noexcept { m_assetTable = t; }
 
+  void setNodeProfiler(NodeProfiler* p) noexcept { m_nodeProfiler = p; }
+
   /**
    * @brief A quad mesh correct for this API
    */
@@ -632,6 +635,8 @@ private:
   // Session-wide asset decode cache. Non-owning; GfxContext is the
   // owner. May be null.
   Gfx::AssetTable* m_assetTable{};
+  NodeProfiler* m_nodeProfiler{};
+  std::unique_ptr<RenderListProfiler> m_profiler;
 
   // Material
   QRhiBuffer* m_outputUBO{};

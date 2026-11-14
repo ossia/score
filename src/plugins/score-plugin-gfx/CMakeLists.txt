@@ -237,6 +237,7 @@ set(HDRS
     Gfx/Graph/VertexFallbackPlan.hpp
     Gfx/Graph/VertexFallbackPool.hpp
     Gfx/Graph/GpuTiming.hpp
+    Gfx/Graph/NodeProfiler.hpp
     Gfx/Graph/ScenePreprocessorNode.hpp
     Gfx/Graph/CameraMath.hpp
     Gfx/Graph/SceneFilterNode.hpp
@@ -542,6 +543,7 @@ set(SRCS
     Gfx/Graph/VertexFallbackDefaults.cpp
     Gfx/Graph/VertexFallbackPool.cpp
     Gfx/Graph/GpuTiming.cpp
+    Gfx/Graph/NodeProfiler.cpp
     Gfx/Graph/ScenePreprocessorNode.cpp
     Gfx/Graph/CameraMath.cpp
     Gfx/Graph/SceneFilterNode.cpp

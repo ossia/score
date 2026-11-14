@@ -70,6 +70,7 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   // RenderList it creates can participate in content-hash decode
   // dedup: one decode per asset per session, N uploads.
   m_graph->setAssetTable(&m_assets);
+  m_graph->setNodeProfiler(&m_profiler);
 
   double rate = m_context.app.settings<Gfx::Settings::Model>().getRate();
   rate = qBound(1.0, rate, 1000.);

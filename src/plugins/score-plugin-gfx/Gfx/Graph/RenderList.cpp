@@ -9,6 +9,7 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/PipelineStateHelpers.hpp>
+#include <Gfx/Graph/NodeProfiler.hpp>
 #include <Gfx/Graph/PreviewTap.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
@@ -18,6 +19,8 @@
 #include <Gfx/Settings/Model.hpp>
 
 #include <score/tools/Debug.hpp>
+
+#include <ossia/detail/small_vector.hpp>
 
 #include <QVarLengthArray>
 
@@ -958,6 +961,7 @@ TextureRenderTarget RenderList::renderTargetForInputPort(const Port& p) const no
 
 void RenderList::release()
 {
+  m_profiler.reset();
   releasePreviewTaps();
   for(auto node : renderers)
   {
@@ -2333,6 +2337,71 @@ void RenderList::render(QRhiCommandBuffer& commands, bool force) noexcept
   m_rendering = false;
 }
 
+namespace
+{
+int64_t texelBytes(QRhiTexture::Format f) noexcept
+{
+  switch(f)
+  {
+    case QRhiTexture::R8:
+    case QRhiTexture::RED_OR_ALPHA8:
+    case QRhiTexture::R8UI:
+    case QRhiTexture::R8SI:
+      return 1;
+    case QRhiTexture::RG8:
+    case QRhiTexture::R16:
+    case QRhiTexture::R16F:
+    case QRhiTexture::D16:
+      return 2;
+    case QRhiTexture::RGBA16F:
+      return 8;
+    case QRhiTexture::RGBA32F:
+    case QRhiTexture::RGBA32UI:
+    case QRhiTexture::RGBA32SI:
+      return 16;
+    default:
+      return 4;
+  }
+}
+
+int64_t textureBytes(const QRhiTexture* t) noexcept
+{
+  if(!t)
+    return 0;
+  const QSize sz = t->pixelSize();
+  int64_t layers = std::max(1, t->arraySize());
+  if(t->flags() & QRhiTexture::CubeMap)
+    layers *= 6;
+  if(t->flags() & QRhiTexture::ThreeDimensional)
+    layers = std::max(1, t->depth());
+  int64_t bytes = int64_t(sz.width()) * sz.height() * layers * texelBytes(t->format())
+                  * std::max(1, t->sampleCount());
+  if(t->flags() & QRhiTexture::MipMapped)
+    bytes = bytes * 4 / 3;
+  return bytes;
+}
+
+int64_t renderBufferBytes(const QRhiRenderBuffer* b) noexcept
+{
+  if(!b)
+    return 0;
+  const QSize sz = b->pixelSize();
+  return int64_t(sz.width()) * sz.height() * 4 * std::max(1, b->sampleCount());
+}
+
+int64_t renderTargetBytes(const TextureRenderTarget& rt) noexcept
+{
+  int64_t bytes = textureBytes(rt.texture) + textureBytes(rt.depthTexture)
+                  + textureBytes(rt.msDepthTexture) + renderBufferBytes(rt.colorRenderBuffer)
+                  + renderBufferBytes(rt.depthRenderBuffer);
+  for(auto* t : rt.additionalColorTextures)
+    bytes += textureBytes(t);
+  for(auto* b : rt.additionalColorRenderBuffers)
+    bytes += renderBufferBytes(b);
+  return bytes;
+}
+}
+
 void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 {
   if(!dateFromStepClock)
@@ -2437,6 +2506,44 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
   // flushInitialBatch() calls in onEdgeRemoved() and Graph::relinkGraph().
   if(m_initialBatch)
     commands.resourceUpdate(std::exchange(m_initialBatch, nullptr));
+
+  RenderListProfiler* prof{};
+  const bool profiling
+      = m_nodeProfiler && m_nodeProfiler->enabled() && !output.preview && !output.previewHub;
+  if(!profiling)
+    m_profiler.reset();
+  else
+  {
+    if(!m_profiler)
+      m_profiler = std::make_unique<RenderListProfiler>(*state.rhi, this);
+    prof = m_profiler.get();
+    prof->beginFrame(commands, *m_nodeProfiler, this->frame);
+  }
+  struct ProfileScope
+  {
+    RenderListProfiler* prof;
+    NodeProfiler* out;
+    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+    ~ProfileScope()
+    {
+      if(prof)
+        prof->endFrame(
+            *out, std::chrono::duration_cast<std::chrono::nanoseconds>(
+                      std::chrono::steady_clock::now() - t0)
+                      .count());
+    }
+  } profileScope{prof, m_nodeProfiler};
+  const auto timed = [prof](const Node& n, auto&& f) {
+    if(!prof)
+      return f();
+    const auto t0 = std::chrono::steady_clock::now();
+    f();
+    prof->addCpu(
+        n, std::chrono::duration_cast<std::chrono::nanoseconds>(
+               std::chrono::steady_clock::now() - t0)
+               .count());
+  };
+
 
   QRhiResourceUpdateBatch* updateBatch = state.rhi->nextResourceUpdateBatch();
   if(!updateBatch)
@@ -2678,8 +2785,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
   static thread_local ossia::flat_set<const score::gfx::Node*> updated_nodes;
   updated_nodes.clear();
 
-  const auto prepare_render
-      = [this, &prevRenderers, &commands, &updateBatch](score::gfx::Port* input) {
+  const auto prepare_render = [this, &prevRenderers, &commands, &updateBatch, &timed,
+                                prof](score::gfx::Port* input) {
     prevRenderers.clear();
     prevRenderers.reserve(input->edges.size());
 
@@ -2708,7 +2815,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
 
       prevRenderers.push_back({edge, prev_renderer});
 
-      prev_renderer->update(*this, *updateBatch, edge);
+      timed(prev_renderer->node, [&] { prev_renderer->update(*this, *updateBatch, edge); });
       updated_nodes.insert(&prev_renderer->node);
     }
 
@@ -2730,6 +2837,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       // For nodes that perform multiple rendering passes,
       // pre-computations in compute shaders, etc... run them now.
       // Most nodes don't do anything there.
+      if(prof)
+        prof->stamp(commands);
       for(auto [edge, prev_renderer] : prevRenderers)
       {
         if(updateBatch)
@@ -2743,7 +2852,11 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
           return;
         }
 
-        prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
+        timed(prev_renderer->node, [&] {
+          prev_renderer->runInitialPasses(*this, commands, updateBatch, *edge);
+        });
+        if(prof)
+          prof->stamp(commands, prev_renderer->node);
       }
     }
   };
@@ -2775,6 +2888,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
           if(rt)
           {
             QColor bg = (it + 1 == this->nodes.rend() ? Qt::black : Qt::transparent);
+            if(prof)
+              prof->stamp(commands);
             commands.beginPass(
                 rt.renderTarget, bg,
                 {depthClearForCompare(QRhiGraphicsPipeline::Greater), 0},
@@ -2783,6 +2898,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
             generateInputMips(*state.rhi, rt, updateBatch);
             commands.endPass(updateBatch);
             updateBatch = nullptr;
+            if(prof)
+              prof->stamp(commands, *node);
 
             if(node != &output)
             {
@@ -2902,6 +3019,8 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
                 }
                 passCompare = QRhiGraphicsPipeline::Greater;
               }
+              if(prof)
+                prof->stamp(commands);
               commands.beginPass(
                   rt.renderTarget, bg, {depthClearForCompare(passCompare), 0},
                   updateBatch);
@@ -2910,17 +3029,26 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
               // FIXME z-sort
               for(auto [edge, prev_renderer] : prevRenderers)
               {
-                prev_renderer->runRenderPass(*this, commands, *edge);
+                timed(prev_renderer->node, [&] {
+                  prev_renderer->runRenderPass(*this, commands, *edge);
+                });
               }
 
               // Allow the node to do some actions, for instance if a readback
               // of a node's input is going to be needed.
-              {
+              timed(renderer->node, [&] {
                 renderer->inputAboutToFinish(*this, *input, updateBatch);
-              }
+              });
               generateInputMips(*state.rhi, rt, updateBatch);
               commands.endPass(updateBatch);
               updateBatch = nullptr;
+              if(prof)
+              {
+                ossia::small_vector<const Node*, 4> owners;
+                for(auto [edge, prev_renderer] : prevRenderers)
+                  owners.push_back(&prev_renderer->node);
+                prof->stamp(commands, std::span<const Node* const>{owners.data(), owners.size()});
+              }
             }
             else
             {
@@ -2957,13 +3085,17 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
             updateBatch = nullptr;
           }
 
-          renderer->inputAboutToFinish(*this, *input, updateBatch);
+          timed(renderer->node, [&] {
+            renderer->inputAboutToFinish(*this, *input, updateBatch);
+          });
 
           if(updateBatch)
           {
             commands.resourceUpdate(updateBatch);
             updateBatch = nullptr;
           }
+          if(prof)
+            prof->stamp(commands, renderer->node);
         }
 
         if(node != &output)
@@ -2980,7 +3112,16 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
     }
   }
 
+  if(prof)
+    prof->stamp(commands);
   renderPreviewTaps(commands, updateBatch);
+  if(prof)
+  {
+    prof->stamp(commands);
+    for(auto& [port, rt] : m_inputRenderTargets)
+      if(port && port->node)
+        prof->setTargetBytes(*port->node, renderTargetBytes(rt));
+  }
 
   // Finally the output node may have some rendering to do too
   {
@@ -3014,12 +3155,18 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
       // FIXME remove this hack
       score::gfx::Port p;
       score::gfx::Edge dummy{&p, &p, Process::CableType::ImmediateGlutton};
-      output_renderer->update(*this, *updateBatch, nullptr);
-      output_renderer->runInitialPasses(*this, commands, updateBatch, dummy);
-      output_renderer->runRenderPass(*this, commands, dummy);
+      timed(output_renderer->node, [&] {
+        output_renderer->update(*this, *updateBatch, nullptr);
+        output_renderer->runInitialPasses(*this, commands, updateBatch, dummy);
+        output_renderer->runRenderPass(*this, commands, dummy);
+      });
     }
 
-    output_renderer->finishFrame(*this, commands, updateBatch);
+    timed(output_renderer->node, [&] {
+      output_renderer->finishFrame(*this, commands, updateBatch);
+    });
+    if(prof)
+      prof->stamp(commands, output_renderer->node);
 
     if(updateBatch)
       updateBatch->release();

@@ -3395,3 +3395,7 @@ if(TARGET score_plugin_vst3 AND TARGET base AND TARGET pluginterfaces AND UNIX A
       ENVIRONMENT_MODIFICATION ${SCORE_TEST_ENVIRONMENT} "QT_SCALE_FACTOR=set:${_scale}")
   endforeach()
 endif()
+score_add_test(test_unit_gfx_node_profiler
+  SOURCES GfxNodeProfilerTest.cpp
+  PLUGINS score_plugin_gfx
+  LIBS ${QT_PREFIX}::Gui ${QT_PREFIX}::GuiPrivate)
