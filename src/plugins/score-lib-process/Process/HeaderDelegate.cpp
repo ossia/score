@@ -150,6 +150,8 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
 
   con(m_model, &Process::ProcessModel::benchmark, this,
       [this](double d) { updateBench(d); });
+  con(m_model, &Process::ProcessModel::benchmarkLabel, this,
+      [this](const QString& label) { updateBenchLabel(label); });
   con(
       m_model.selection, &Selectable::changed, this,
       [this](bool b) {
@@ -184,6 +186,21 @@ void DefaultHeaderDelegate::updateBench(double d)
   else
   {
     m_bench = QPixmap{};
+  }
+  update();
+}
+
+void DefaultHeaderDelegate::updateBenchLabel(const QString& label)
+{
+  if(label.isEmpty())
+  {
+    m_bench = QPixmap{};
+  }
+  else
+  {
+    const auto& style = Process::Style::instance();
+    m_bench = makeGlyphs(
+        label, m_sel ? style.IntervalHeaderTextPen() : style.SlotHeaderTextPen());
   }
   update();
 }
@@ -281,7 +298,11 @@ void DefaultHeaderDelegate::paint(
     }
 
     if(!m_bench.isNull())
-      painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(2., -1.)}, m_bench);
+      painter->drawPixmap(
+          QPointF{
+              w - 8. - std::max(24., m_bench.width() / m_bench.devicePixelRatio()),
+              SCORE_YPOS(2., -1.)},
+          m_bench);
   }
 }
 

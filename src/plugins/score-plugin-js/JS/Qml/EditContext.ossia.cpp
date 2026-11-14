@@ -7,6 +7,9 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/Profiler/Profiler.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 #include <JS/Qml/EditContext.hpp>
 
 #include <Transport/DocumentPlugin.hpp>
@@ -46,6 +49,37 @@ QString EditJsContext::valueType(QObject* obj)
     ret = Metadata<Json_k, type>::get();
   }, v);
   return ret;
+}
+
+QVariantMap EditJsContext::benchmark()
+{
+  auto doc = ctx();
+  if(!doc)
+    return {};
+  auto& plug = doc->plugin<Execution::DocumentPlugin>();
+  plug.flushBenchmark();
+  return plug.profiler().toJson().toVariantMap();
+}
+
+void EditJsContext::setBenchmark(bool enabled)
+{
+  score::GUIAppContext().settings<Execution::Settings::Model>().setBench(enabled);
+}
+
+void EditJsContext::clearBenchmark()
+{
+  if(auto doc = ctx())
+    doc->plugin<Execution::DocumentPlugin>().profiler().clear();
+}
+
+void EditJsContext::setBenchmarkSpikes(double audioPercent, double renderMs)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+  auto& p = doc->plugin<Execution::DocumentPlugin>().profiler();
+  p.setAudioSpikePercent(std::isfinite(audioPercent) ? audioPercent : 0.);
+  p.setRenderSpikeMs(std::isfinite(renderMs) ? renderMs : 0.);
 }
 
 void EditJsContext::play()
