@@ -796,12 +796,12 @@ inline double maxWhiteScale(
   const double top = v.maxCoeff();
   if(!(top > 0.))
     return 0.;
-  const double far = inv.D / top;
-  const std::array<double, 3> e{far * v[0], far * v[1], far * v[2]};
+  const double reach = inv.D / top;
+  const std::array<double, 3> e{reach * v[0], reach * v[1], reach * v[2]};
   const auto y = mix.forward(inv(e));
   const double k = (y[0] * e[0] + y[1] * e[1] + y[2] * e[2])
                    / (e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
-  return far * std::clamp(k, 0., 1.);
+  return reach * std::clamp(k, 0., 1.);
 }
 
 //! PSNR in dB of a against b (same size, values in [0, 1]).
