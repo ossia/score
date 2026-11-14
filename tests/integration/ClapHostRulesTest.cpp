@@ -1194,6 +1194,16 @@ double control_value(Clap::Model& proc)
 {
   return ossia::convert<double>(gain_control(proc).value());
 }
+
+//! Through the process, as the preset command does
+Process::Preset save_preset(Process::ProcessModel& proc)
+{
+  return proc.savePreset();
+}
+void load_preset(Process::ProcessModel& proc, const Process::Preset& p)
+{
+  proc.loadPreset(p);
+}
 }
 
 // A preset is loaded in the process's plug-in instance, the first of a mono
@@ -1209,7 +1219,7 @@ TEST_CASE(
     gain_control(proc).setValue(0.3);
     // What only the plug-in's state keeps, as a loaded model
     set_trim(proc, 2.);
-    const auto preset = proc.savePreset();
+    const auto preset = save_preset(proc);
     gain_control(proc).setValue(0.5);
     set_trim(proc, 1.);
     report();
@@ -1217,7 +1227,7 @@ TEST_CASE(
       playing p{*doc, proc};
       all_at(p.block(4), 4, 0.5);
 
-      proc.loadPreset(preset);
+      load_preset(proc, preset);
       CHECK(control_value(proc) == Catch::Approx(0.3));
       all_at(p.block(4), 4, 0.6);
       p.stop();
@@ -1229,3 +1239,44 @@ TEST_CASE(
   });
 }
 
+
+// A control moved while the plug-in waits to process again, here for the
+// restart it asked for: the graph clears the node's inputs, and the main
+// thread, which reads the values of the plug-in for its controls, reads the
+// one it had before. The plug-in starts with the value moved in score.
+TEST_CASE(
+    "CLAP: a control moved while the plug-in waits to process again is the value it "
+    "starts with",
+    "[integration][clap][params][restart]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    for(auto id : both_gains)
+    {
+      INFO(id);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& proc = *add_gain(*doc, QString::fromUtf8(id));
+      report();
+      {
+        playing p{*doc, proc};
+        all_at(p.block(2), 2, 0.5);
+
+        plugin_function<void(const clap_plugin_t*)>("clap_mono_gain_request_restart")(
+            proc.handle()->plugin);
+        gain_control(proc).setValue(0.4);
+        // It stops processing for the restart, which the main thread then does
+        p.block(2);
+        spin(200);
+        all_at(p.block(2), 2, 0.4);
+        // Read from the plug-in again
+        spin(200);
+        CHECK(control_value(proc) == Catch::Approx(0.4));
+        p.stop();
+      }
+      const auto e = report();
+      CHECK(e.bad_state == 0);
+      CHECK(e.wrong_thread == 0);
+      ctx.docManager.forceCloseDocument(ctx, *doc);
+    }
+  });
+}

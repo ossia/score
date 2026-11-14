@@ -332,6 +332,7 @@ public:
       }
     }
 
+    m_unsent.resize(m_param_ins.size());
     SCORE_ASSERT(parameter_ins.size() == m_param_ins.size());
     SCORE_ASSERT(parameter_outs.size() == m_param_outs.size());
     SCORE_ASSERT(audio_ins.size() == proc.audioInputs().size());
@@ -461,6 +462,21 @@ public:
                        const clap_event_header_t*) -> bool { return false; }};
 
     params->flush(plugin, &evs, &o_evs);
+    if(own_cookies)
+    {
+      if(inputs_only)
+        sent_input_values();
+      else
+        std::fill(m_unsent.begin(), m_unsent.end(), 0);
+    }
+  }
+
+  //! The first instance was given the values the parameter inputs carry
+  void sent_input_values() noexcept
+  {
+    for(std::size_t i = 0; i < parameter_ins.size(); ++i)
+      if(carries_value(i))
+        m_unsent[i] = 0;
   }
 
   //! Whether the input of a parameter carries a value for every instance in
@@ -979,6 +995,9 @@ public:
   //! The value each writable parameter last had, from score or from the
   //! plug-in: what it starts processing with
   std::vector<double> m_last_values;
+  //! The parameters whose value from score the first instance was not given
+  //! yet: what the main thread reads from the plug-in for them is older
+  std::vector<uint8_t> m_unsent;
   const std::vector<clap_note_port_info_t>& m_midi_ins;
   const std::vector<clap_note_port_info_t>& m_midi_outs;
   const ossia::flat_map<clap_id, std::uint32_t>& m_param_out_index;
@@ -1121,6 +1140,7 @@ public:
     process.out_events = &o_evs;
 
     m_last_status = m_instance.plugin->process(m_instance.plugin, &process);
+    sent_input_values();
     // Delivered: anything held back from an empty tick has now reached the
     // plug-in and must not be sent again.
     m_deferred_midi.clear();
@@ -2007,7 +2027,10 @@ public:
       do_process(cur.inst->plugin, process, m_voice_input, m_output_events);
       skipped.given = current_channel + 1;
       if(current_channel == 0)
+      {
+        sent_input_values();
         forward_voice0_changes();
+      }
 
       // 4. Copy float back to matching output channel. Resize to the full
       //    block size first — writing samples frames starting at `offset`
@@ -2114,7 +2137,10 @@ public:
       do_process(cur.inst->plugin, process, m_voice_input, m_output_events);
       skipped.given = current_channel + 1;
       if(current_channel == 0)
+      {
+        sent_input_values();
         forward_voice0_changes();
+      }
     }
 
     dispatch_param_outputs();
@@ -2228,11 +2254,12 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
           auto n = weak_node.lock();
           if(!n)
             return;
-          if(!is_vector_value(val))
+          if(!is_vector_value(val) && !(from_plugin && n->m_unsent[idx]))
           {
             const auto& info = n->m_param_ins[idx];
             n->m_last_values[idx] = std::clamp(
                 ossia::convert<double>(val), info.min_value, info.max_value);
+            n->m_unsent[idx] = !from_plugin;
           }
           if(!from_plugin)
             inl->target<ossia::value_port>()->write_value(std::move(val), 0);
