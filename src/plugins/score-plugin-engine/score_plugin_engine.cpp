@@ -14,6 +14,7 @@
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/Clock/ManualClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
+#include <Execution/Profiler/ProfilerPanel.hpp>
 #include <Execution/Settings/ExecutorFactory.hpp>
 #include <Execution/Transport/JackTransport.hpp>
 #include <LocalTree/Device/LocalProtocolFactory.hpp>
@@ -71,6 +72,7 @@ std::vector<score::InterfaceBase*> score_plugin_engine::factories(
       FW<Device::ProtocolFactory, Protocols::LocalProtocolFactory>,
       FW<Explorer::ListeningHandlerFactory, Execution::PlayListeningHandlerFactory>,
       FW<score::SettingsDelegateFactory, Execution::Settings::Factory>,
+      FW<score::PanelDelegateFactory, Execution::ProfilerPanelFactory>,
 #if defined(OSSIA_AUDIO_JACK)
       FW<Execution::TransportInterface, Execution::JackTransport>,
 #endif

@@ -20,6 +20,8 @@
 
 #include <QElapsedTimer>
 
+#include <algorithm>
+
 namespace Execution
 {
 
@@ -273,10 +275,11 @@ Audio::tick_fun makeBenchmarkTick(
     ossia::tick_setup_options opt, Execution::DocumentPlugin& plug,
     const std::shared_ptr<Execution::BaseScenarioElement>& scenar)
 {
-  int i = 0;
   QPointer<Execution::DocumentPlugin> plugPtr = &plug;
   return [helper = std::make_shared<AudioTickHelper>(opt, plug, scenar), plugPtr,
-          i](const ossia::audio_tick_state& t) mutable {
+          spikeFraction = plug.profiler().audioSpikeFraction(),
+          report = std::make_shared<AudioBenchReport>()](
+             const ossia::audio_tick_state& t) mutable {
     Audio::execution_status.store(ossia::transport_status::playing);
     Audio::execution_samples.fetch_add(t.frames, std::memory_order_release);
 
@@ -284,36 +287,58 @@ Audio::tick_fun makeBenchmarkTick(
     helper->dequeueCommands();
 
     auto& bench = *helper->m_context->bench;
-    if(i % 50 == 0)
+    bench.measure = true;
+    const auto t0 = std::chrono::steady_clock::now();
+    helper->main(t);
+    const auto t1 = std::chrono::steady_clock::now();
+    const int64_t total
+        = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+
+    const double rate = helper->m_context->execState->sampleRate;
+    const double budget = rate > 0. ? 1e9 * double(t.frames) / rate : 0.;
+
+    for(auto& [node, ns] : bench)
     {
-      bench.measure = true;
-      auto t0 = std::chrono::steady_clock::now();
+      if(!ns)
+        continue;
+      auto& acc = report->nodes[node];
+      acc.sum += *ns;
+      acc.max = std::max(acc.max, *ns);
+      acc.count++;
+    }
 
-      helper->main(t);
-
-      auto t1 = std::chrono::steady_clock::now();
-      auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-#if !defined(_MSC_VER)
-      //FIXME: MSVC unordered_map isn't move noexcept so it does not work here in Debug
-      helper->m_context->m_editionQueue.enqueue([plugPtr, bench, total]() mutable {
-        if(plugPtr)
-          plugPtr->slot_bench(std::move(bench), total);
+    const double fraction = spikeFraction->load(std::memory_order_relaxed);
+    if(fraction > 0. && t.frames >= 32 && total > fraction * budget
+       && report->spikes.size() < 16)
+    {
+      AudioBenchReport::Spike spike;
+      spike.totalNs = total;
+      for(auto& [node, ns] : bench)
+        if(ns && *ns > 0)
+          spike.nodes.emplace_back(node, *ns);
+      std::sort(spike.nodes.begin(), spike.nodes.end(), [](auto& a, auto& b) {
+        return a.second > b.second;
       });
-#endif
-
-      for(auto& p : bench)
-      {
-        p.second = {};
-      }
+      if(spike.nodes.size() > 8)
+        spike.nodes.resize(8);
+      report->spikes.push_back(std::move(spike));
     }
-    else
+
+    for(auto& p : bench)
+      p.second = {};
+
+    report->tickSum += total;
+    report->tickMax = std::max(report->tickMax, total);
+    report->budgetNs += budget;
+    if(++report->ticks >= 50)
     {
-      bench.measure = false;
-
-      helper->main(t);
+      auto r = std::make_unique<AudioBenchReport>(std::move(*report));
+      *report = AudioBenchReport{};
+      helper->m_context->m_editionQueue.enqueue([plugPtr, r = std::move(r)]() mutable {
+        if(plugPtr)
+          plugPtr->slot_bench(std::move(r));
+      });
     }
-
-    i++;
   };
 }
 }

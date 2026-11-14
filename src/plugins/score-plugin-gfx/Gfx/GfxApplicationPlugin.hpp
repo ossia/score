@@ -17,6 +17,12 @@ public:
 
   GfxContext context;
   GfxExecutionAction exec{context};
+
+private:
+  void timerEvent(QTimerEvent*) override;
+  void updateProfiling();
+  void pullProfile();
+  int m_profileTimer{-1};
 };
 
 class ApplicationPlugin final : public score::GUIApplicationPlugin

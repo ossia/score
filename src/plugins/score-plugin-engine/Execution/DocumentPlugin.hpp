@@ -6,6 +6,8 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 
+#include <Execution/Profiler/Profiler.hpp>
+
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
 
@@ -116,7 +118,12 @@ public:
   void cleared() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, cleared)
   void started() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, started)
 
-  void slot_bench(ossia::bench_map, int64_t ns);
+  void slot_bench(std::unique_ptr<AudioBenchReport> report);
+
+  Profiler& profiler() const noexcept { return *m_profiler; }
+  //! Hands the measures still queued by the audio thread and the render
+  //! outputs to the profiler.
+  void flushBenchmark();
 
 private:
   void on_deviceAdded(Device::DeviceInterface* device);
@@ -133,6 +140,7 @@ private:
   void recreateBase();
   void processEditCommands();
 
+  Profiler* m_profiler{};
   std::shared_ptr<ContextData> m_ctxData;
   std::shared_ptr<BaseScenarioElement> m_base;
   std::vector<ExecutionAction*> m_actions;
