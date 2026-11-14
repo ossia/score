@@ -15,6 +15,9 @@ namespace score
 namespace
 {
 constexpr int layout_stretch_key = 0x5c0e;
+constexpr int layout_excluded_key = 0x5c0f;
+constexpr int layout_saved_scale_key = 0x5c10;
+
 bool isLayoutStretch(const QGraphicsItem* item)
 {
   return item->data(layout_stretch_key).toBool();
@@ -26,6 +29,39 @@ void setLayoutStretch(QGraphicsItem& item)
   item.setData(layout_stretch_key, true);
 }
 
+bool isLayoutExcluded(const QGraphicsItem& item) noexcept
+{
+  return item.data(layout_excluded_key).toBool();
+}
+
+QList<QGraphicsItem*> layoutItems(const QGraphicsItem& parent)
+{
+  auto items = parent.childItems();
+  items.removeIf([](const QGraphicsItem* item) { return isLayoutExcluded(*item); });
+  return items;
+}
+
+void setLayoutExcluded(QGraphicsItem& item, bool excluded)
+{
+  if(item.data(layout_excluded_key).toBool() == excluded)
+    return;
+  item.setData(layout_excluded_key, excluded);
+  if(excluded)
+  {
+    item.setData(layout_saved_scale_key, item.scale());
+    // Collapse descendants too for QGraphicsItem::childrenBoundingRect(),
+    // which includes invisible items when enclosing layouts fit themselves.
+    item.setScale(0.);
+    item.setPos(0., 0.);
+    item.setVisible(false);
+  }
+  else
+  {
+    item.setScale(item.data(layout_saved_scale_key).toDouble());
+    item.setVisible(true);
+  }
+}
+
 GraphicsHBoxLayout::~GraphicsHBoxLayout() { }
 
 void GraphicsHBoxLayout::layout()
@@ -33,7 +69,7 @@ void GraphicsHBoxLayout::layout()
   double x = 0;
   const double y = 0 + m_padding;
 
-  auto items = this->childItems();
+  auto items = layoutItems(*this);
   updateChildrenRects(items);
 
   double max_h = 0.;
@@ -62,7 +98,7 @@ void GraphicsHBoxLayout::layout()
 
 void GraphicsHBoxLayout::centerContent()
 {
-  const auto items = this->childItems();
+  const auto items = layoutItems(*this);
 
   // Center things vertically
   double total_h = boundingRect().height();
@@ -124,7 +160,7 @@ void GraphicsVBoxLayout::layout()
   const double x = 0 + m_padding;
   double y = 0;
 
-  auto items = this->childItems();
+  auto items = layoutItems(*this);
   updateChildrenRects(items);
   shrinkFillingItems(items);
 
@@ -155,7 +191,7 @@ void GraphicsVBoxLayout::layout()
 
 void GraphicsVBoxLayout::centerContent()
 {
-  const auto items = this->childItems();
+  const auto items = layoutItems(*this);
 
   // Items that fill the column: as wide as it, with the margin they have on
   // its left on their right as well
@@ -210,7 +246,7 @@ qreal GraphicsSectionLayout::titleHeight() const
 void GraphicsSectionLayout::layout()
 {
   updateTitleFont();
-  auto items = this->childItems();
+  auto items = layoutItems(*this);
   updateChildrenRects(items);
   shrinkFillingItems(items);
 

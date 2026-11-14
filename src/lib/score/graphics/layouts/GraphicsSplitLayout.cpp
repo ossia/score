@@ -1,5 +1,6 @@
 #include "GraphicsSplitLayout.hpp"
 
+#include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QPainter>
@@ -17,7 +18,7 @@ void GraphicsSplitLayout::paint(
   auto& style = score::Skin::instance();
   GraphicsLayout::paint(painter, option, widget);
 
-  const auto& items = this->childItems();
+  const auto items = layoutItems(*this);
   const int N = int(items.size()) - 1;
 
   for(int i = 0; i < N; i++)
@@ -37,7 +38,7 @@ void GraphicsSplitLayout::layout()
   const double y = 0 + m_padding;
   double max_h = 0.;
 
-  const auto items = this->childItems();
+  const auto items = layoutItems(*this);
   updateChildrenRects(items);
   for(int i = 0, N = items.size(); i < N; i++)
   {

@@ -28,11 +28,16 @@ public:
 
 //! The grid's items, out of the cells of a previous layout, in order:
 //! laying out the cells themselves would grow them by the gap each time.
+//! Excluded items stay children of the grid, in no cell.
 static QList<QGraphicsItem*> takeGridItems(QGraphicsItem& grid)
 {
   const auto children = grid.childItems();
   QList<QGraphicsItem*> items;
   items.reserve(children.size());
+  auto take = [&items](QGraphicsItem* item) {
+    if(!isLayoutExcluded(*item))
+      items.push_back(item);
+  };
   for(auto child : children)
   {
     if(auto cell = dynamic_cast<GraphicsGridCell*>(child))
@@ -40,13 +45,13 @@ static QList<QGraphicsItem*> takeGridItems(QGraphicsItem& grid)
       for(auto item : cell->childItems())
       {
         item->setParentItem(&grid);
-        items.push_back(item);
+        take(item);
       }
       delete cell;
     }
     else
     {
-      items.push_back(child);
+      take(child);
     }
   }
   return items;
@@ -292,14 +297,14 @@ QFont GraphicsTableLayout::titleFont()
 
 void GraphicsTableLayout::layout()
 {
-  const auto rows = this->childItems();
+  const auto rows = layoutItems(*this);
 
   // Measure: each column is as wide as its widest cell
   std::vector<double> col_w;
   std::vector<double> row_h;
   for(auto row : rows)
   {
-    const auto cells = row->childItems();
+    const auto cells = layoutItems(*row);
     updateChildrenRects(cells);
     double h = 0.;
     for(int c = 0; c < cells.size(); c++)
@@ -353,7 +358,7 @@ void GraphicsTableLayout::layout()
   for(int r = 0; r < rows.size(); r++)
   {
     auto row = rows[r];
-    const auto cells = row->childItems();
+    const auto cells = layoutItems(*row);
     for(int c = 0; c < cells.size(); c++)
     {
       const auto cr = cells[c]->boundingRect();

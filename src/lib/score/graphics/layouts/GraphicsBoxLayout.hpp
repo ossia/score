@@ -14,6 +14,13 @@ namespace score
 //! the row's right edge.
 SCORE_LIB_BASE_EXPORT void setLayoutStretch(QGraphicsItem& item);
 
+//! Opt-in collapsed controls: unlike setVisible(false), these reserve no cell.
+//! The item's scale is restored when it becomes part of the layout again.
+SCORE_LIB_BASE_EXPORT void setLayoutExcluded(QGraphicsItem& item, bool excluded);
+SCORE_LIB_BASE_EXPORT bool isLayoutExcluded(const QGraphicsItem& item) noexcept;
+//! The children a layout places: those not excluded, in order.
+SCORE_LIB_BASE_EXPORT QList<QGraphicsItem*> layoutItems(const QGraphicsItem& parent);
+
 class SCORE_LIB_BASE_EXPORT GraphicsHBoxLayout : public GraphicsLayout
 {
 public:

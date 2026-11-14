@@ -133,7 +133,7 @@ qreal GraphicsStripCell::titleHeight() const
 
 void GraphicsStripCell::layout()
 {
-  auto items = this->childItems();
+  auto items = layoutItems(*this);
   items.removeOne(m_hitArea);
   updateChildrenRects(items);
 
@@ -254,7 +254,7 @@ void GraphicsStripDetailLayout::setCurrentIndex(int index)
     return;
   m_currentIndex = index;
   for(int i = 0; i < std::ssize(p); i++)
-    p[i]->setVisible(i == index);
+    p[i]->setVisible(i == index && !isLayoutExcluded(*p[i]));
   for(int i = 0; i < std::ssize(m_cells); i++)
     m_cells[i]->setSelected(i == index);
 }
@@ -279,6 +279,8 @@ void GraphicsStripDetailLayout::layout()
   double h = 0.;
   for(auto page : p)
   {
+    if(isLayoutExcluded(*page))
+      continue;
     page->setPos(m_padding, pages_y);
     const QRectF r = page->boundingRect();
     w = std::max(w, r.width());
