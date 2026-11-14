@@ -180,3 +180,92 @@ TEST_CASE("Audio reports go round between the audio thread and the GUI", "[profi
   CHECK(again->nodes.empty());
 }
 
+
+namespace
+{
+RenderFrameReport frameAt(const void* output, int64_t timeNs)
+{
+  RenderFrameReport f;
+  f.output = output;
+  f.timeNs = timeNs;
+  f.cpuNs = 1'000'000;
+  return f;
+}
+}
+
+TEST_CASE("The frame rate is the fastest output's", "[profiler]")
+{
+  Profiler p{nullptr};
+  REQUIRE(p.framesPerSecond(0) == 0.);
+  const int a = 0, b = 0;
+  const int64_t t0 = 10'000'000'000;
+  std::vector<RenderFrameReport> frames;
+  for(int i = 0; i <= 30; i++)
+  {
+    frames.push_back(frameAt(&a, t0 + int64_t(i) * 1'000'000'000 / 60));
+    if(i % 2 == 0)
+      frames.push_back(frameAt(&b, t0 + int64_t(i) * 1'000'000'000 / 60));
+  }
+  p.pushRender(frames);
+  const int64_t now = t0 + int64_t(30) * 1'000'000'000 / 60;
+  CHECK(p.framesPerSecond(now) == Approx(60.).epsilon(1e-3));
+  CHECK(p.frameCpuNs().avg() == Approx(1'000'000));
+}
+
+TEST_CASE("An output that stopped rendering no longer sets the frame rate", "[profiler]")
+{
+  Profiler p{nullptr};
+  const int fast = 0, slow = 0;
+  const int64_t t0 = 10'000'000'000;
+  std::vector<RenderFrameReport> frames;
+  for(int i = 0; i < 10; i++)
+    frames.push_back(frameAt(&fast, t0 + int64_t(i) * 10'000'000));
+  p.pushRender(frames);
+  CHECK(p.framesPerSecond(t0 + 90'000'000) == Approx(100.).epsilon(1e-3));
+
+  frames.clear();
+  const int64_t t1 = t0 + 2 * Profiler::frameTimeoutNs;
+  for(int i = 0; i < 10; i++)
+    frames.push_back(frameAt(&slow, t1 + int64_t(i) * 50'000'000));
+  p.pushRender(frames);
+  const int64_t now = t1 + 9 * 50'000'000;
+  CHECK(p.framesPerSecond(now) == Approx(20.).epsilon(1e-3));
+  CHECK(p.framesPerSecond(now + 2 * Profiler::frameTimeoutNs) == 0.);
+
+  frames = {frameAt(&fast, now), frameAt(&fast, now + 1'000'000)};
+  p.pushRender(frames);
+  CHECK(p.framesPerSecond(now + 1'000'000) == Approx(1000.).epsilon(1e-3));
+}
+
+TEST_CASE("An output stage report adds its nodes and no frame", "[profiler]")
+{
+  Profiler p{nullptr};
+  const int output = 0;
+  RenderFrameReport stage;
+  stage.output = &output;
+  stage.nodesOnly = true;
+  stage.timeNs = 10'000'000'000;
+  stage.cpuNs = 123;
+  stage.gpuNs = 456;
+  RenderFrameReport::Node n;
+  n.key = (quintptr(7) << 2) | 3;
+  n.name = "Output stage";
+  n.cpuNs = 200'000;
+  n.gpuNs = 1'500'000;
+  stage.nodes = {n};
+  std::vector<RenderFrameReport> frames{stage, stage};
+  frames[1].timeNs += 16'000'000;
+  p.pushRender(frames);
+
+  const auto& e = p.entries();
+  REQUIRE(e.size() == 1);
+  const auto& out = e.at(n.key);
+  CHECK(out.name == "Output stage");
+  CHECK_FALSE(out.isProcess);
+  CHECK(out.renderCpuNs.avg() == Approx(200'000));
+  CHECK(out.gpuNs.avg() == Approx(1'500'000));
+  CHECK(p.frameCpuNs().empty());
+  CHECK(p.frameGpuNs().empty());
+  CHECK(p.renderCpuHistory().empty());
+  CHECK(p.framesPerSecond(frames[1].timeNs) == 0.);
+}

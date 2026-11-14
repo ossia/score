@@ -106,6 +106,8 @@ void DocumentPlugin::pullProfile()
     auto& r = reports.emplace_back();
     r.output = f.list;
     r.frame = f.frame;
+    r.timeNs = f.time_ns;
+    r.nodesOnly = f.nodesOnly;
     r.cpuNs = f.cpu_ns;
     r.gpuNs = f.gpu_ns;
     r.nodes.reserve(f.nodes.size());
@@ -114,7 +116,7 @@ void DocumentPlugin::pullProfile()
       auto& rn = r.nodes.emplace_back();
       if(auto it = procOfNode.find(n.node); it != procOfNode.end())
         rn.process = it->second;
-      rn.key = (quintptr(uint32_t(n.node)) << 1) | 1;
+      rn.key = (quintptr(uint32_t(n.node)) << 2) | (f.nodesOnly ? 3 : 1);
       if(!rn.process)
       {
         auto [it, inserted] = names.try_emplace(n.type);

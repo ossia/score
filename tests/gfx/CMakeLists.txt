@@ -2401,6 +2401,9 @@ score_add_gfx_test(csf_resource_fixes GfxCsfResourceFixes.cpp)
 # dither, Catmull-Rom warp maps, mip / anisotropic canvas sampling.
 score_add_gfx_test(multi_window_quality MultiWindowQuality.cpp)
 
+# The render list's per-frame GPU time, as the profiler shows it, in milliseconds.
+score_add_gfx_test(profiler_gpu_time ProfilerGpuTime.cpp)
+
 # Script values convert to a texture inlet's optional sampler settings.
 score_add_test(test_gfx_texture_port_converters
   SOURCES GfxTexturePortConverters.cpp
