@@ -1224,11 +1224,61 @@ TEST_CASE(
 
 namespace
 {
+void set_trim(Clap::Model& proc, double v)
+{
+  plugin_function<void(const clap_plugin_t*, double)>("clap_mono_gain_set_trim")(
+      proc.handle()->plugin, v);
+}
+
 double control_value(Clap::Model& proc)
 {
   return ossia::convert<double>(gain_control(proc).value());
 }
+
+//! Through the process, as the preset command does
+Process::Preset save_preset(Process::ProcessModel& proc)
+{
+  return proc.savePreset();
 }
+void load_preset(Process::ProcessModel& proc, const Process::Preset& p)
+{
+  proc.loadPreset(p);
+}
+}
+
+// A preset is loaded in the process's plug-in instance, the first of a mono
+// node: the others, which play the other channels, get its state as well.
+TEST_CASE(
+    "CLAP: a preset loaded while a mono plug-in plays reaches each of its instances",
+    "[integration][clap][mono][preset]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& proc = *add_mono_gain(*doc);
+    gain_control(proc).setValue(0.3);
+    // What only the plug-in's state keeps, as a loaded model
+    set_trim(proc, 2.);
+    const auto preset = save_preset(proc);
+    gain_control(proc).setValue(0.5);
+    set_trim(proc, 1.);
+    report();
+    {
+      playing p{*doc, proc};
+      all_at(p.block(4), 4, 0.5);
+
+      load_preset(proc, preset);
+      CHECK(control_value(proc) == Catch::Approx(0.3));
+      all_at(p.block(4), 4, 0.6);
+      p.stop();
+    }
+    const auto e = report();
+    CHECK(e.bad_state == 0);
+    CHECK(e.wrong_thread == 0);
+    ctx.docManager.forceCloseDocument(ctx, *doc);
+  });
+}
+
 
 // A control moved while the plug-in waits to process again, here for the
 // restart it asked for: the graph clears the node's inputs, and the main

@@ -235,6 +235,8 @@ public:
   std::vector<Process::Preset> builtinPresets() const noexcept override;
 
   void restartPlugin() W_SIGNAL(restartPlugin);
+  //! A preset was loaded in the plug-in, and its values shown on the controls
+  void presetLoaded() W_SIGNAL(presetLoaded);
   Clap::Window* window{};
   std::vector<std::pair<clap_id, QTimer*>> timers;
 
