@@ -650,12 +650,7 @@ private:
     if(!x11.ShmGetImage(m_display, target, m_ximage, 0, 0, AllPlanes))
       return m_lastFrame;
 
-    m_lastFrame.type = CapturedFrame::CPU_BGRA;
-    m_lastFrame.data = reinterpret_cast<const uint8_t*>(m_ximage->data);
-    m_lastFrame.stride = m_ximage->bytes_per_line;
-    m_lastFrame.width = m_width;
-    m_lastFrame.height = m_height;
-    return m_lastFrame;
+    return lastFrameFromImage();
   }
 
   // ── Screen/region capture ──
@@ -685,12 +680,7 @@ private:
            AllPlanes))
       return m_lastFrame;
 
-    m_lastFrame.type = CapturedFrame::CPU_BGRA;
-    m_lastFrame.data = reinterpret_cast<const uint8_t*>(m_ximage->data);
-    m_lastFrame.stride = m_ximage->bytes_per_line;
-    m_lastFrame.width = m_width;
-    m_lastFrame.height = m_height;
-    return m_lastFrame;
+    return lastFrameFromImage();
   }
 
   // ── SHM image management ──
@@ -754,8 +744,23 @@ private:
     return true;
   }
 
+  // Size and stride come from the image the data belongs to, which can lag
+  // behind m_width / m_height when a resize could not reallocate it.
+  CapturedFrame lastFrameFromImage()
+  {
+    m_lastFrame.type = CapturedFrame::CPU_BGRA;
+    m_lastFrame.data = reinterpret_cast<const uint8_t*>(m_ximage->data);
+    m_lastFrame.stride = m_ximage->bytes_per_line;
+    m_lastFrame.width = m_ximage->width;
+    m_lastFrame.height = m_ximage->height;
+    return m_lastFrame;
+  }
+
   void freeShmImage()
   {
+    // grab() hands m_lastFrame out again whenever a capture fails: it must
+    // not keep pointing into the segment detached below.
+    m_lastFrame = {};
     auto& x11 = libx11::instance();
     if(m_ximage && m_display)
     {
