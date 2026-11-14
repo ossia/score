@@ -1617,6 +1617,20 @@ if(TARGET score_plugin_gfx)
     PLUGINS score_plugin_gfx)
 endif()
 
+# What the X11 capture backend hands out when a capture fails after a resize.
+# The backend is built into the test: the plug-in does not export it.
+if(TARGET score_plugin_gfx AND "window_capture_x11" IN_LIST SCORE_FEATURES_LIST)
+  find_package(X11 QUIET)
+  if(TARGET X11::X11)
+    score_add_test(test_unit_window_capture_x11
+      SOURCES
+        WindowCaptureX11Test.cpp
+        "${CMAKE_SOURCE_DIR}/src/plugins/score-plugin-gfx/Gfx/WindowCapture/WindowCapture_x11.cpp"
+      PLUGINS score_plugin_gfx
+      LIBS X11::X11)
+  endif()
+endif()
+
 # Video::gstreamerToLibav(): the gst-name -> AVPixelFormat table feeding the
 # GStreamer, Sh4lt and Shmdata inputs. Header-only and self-contained, so the
 # test needs the plug-in only for its libav include paths and SCORE_HAS_LIBAV.
