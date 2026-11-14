@@ -225,7 +225,6 @@ void CameraInput::buffer_thread() noexcept
 {
   while(m_running.load(std::memory_order_acquire))
   {
-    if(m_frames.size() < 4)
     {
       LibavTimeout timeout{m_interrupt, read_timeout};
       if(auto f = read_frame_impl())
@@ -235,6 +234,13 @@ void CameraInput::buffer_thread() noexcept
         {
           notifyFormatChange(
               f->width, f->height, static_cast<AVPixelFormat>(f->format));
+        }
+        while(m_frames.size() >= 4)
+        {
+          if(auto old = m_frames.dequeue_one())
+            m_frames.release(old);
+          else
+            break;
         }
         m_frames.enqueue(f);
       }
