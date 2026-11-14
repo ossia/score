@@ -450,7 +450,8 @@ bool WindowDevice::reconnect()
           m_dev = std::make_unique<multiwindow_device>(
               set.outputs, std::unique_ptr<gfx_protocol_base>(m_protocol),
               m_settings.name.toStdString(), set.flag, set.format,
-              score::pathRoots(m_ctx));
+              score::pathRoots(m_ctx),
+              QSize{std::max(1, set.inputWidth), std::max(1, set.inputHeight)});
           break;
         }
         case WindowMode::Single:
