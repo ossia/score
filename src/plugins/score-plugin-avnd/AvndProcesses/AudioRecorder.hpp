@@ -3,6 +3,7 @@
 #include <score/tools/File.hpp>
 
 #include <ossia/audio/drwav_write_handle.hpp>
+#include <ossia/detail/buffer_pool.hpp>
 #include <ossia/network/value/detail/value_conversion_impl.hpp>
 
 #include <QDateTime>
@@ -46,6 +47,32 @@ struct AudioRecorder
     int channels = 0;
     int rate = 0;
     bool must_record = false;
+
+    //! The buffers the audio thread copies its ticks in: taken there, given
+    //! back here once written.
+    ossia::object_pool<audio_buffer> pool;
+    std::size_t buffer_capacity = 0;
+
+    //! Main thread, before the first tick.
+    void reserve(std::size_t capacity, int count)
+    {
+      buffer_capacity = capacity;
+      for(int i = 0; i < count; i++)
+      {
+        audio_buffer b;
+        b.reserve(capacity);
+        pool.release(std::move(b));
+      }
+    }
+
+    //! Grows a buffer to what the ticks have needed, then puts it back.
+    void give_back(audio_buffer b, std::size_t needed)
+    {
+      buffer_capacity = std::max(buffer_capacity, needed);
+      if(b.capacity() < buffer_capacity)
+        b.reserve(buffer_capacity);
+      pool.release(std::move(b));
+    }
 
     bool reopen()
     {
@@ -114,9 +141,14 @@ struct AudioRecorder
   {
     int frames{};
     audio_buffer data;
+    //! Non-zero when the buffer was too small for the tick, which was not
+    //! recorded: the size it needed.
+    std::size_t needed{};
     bool operator()(recorder_thread& self)
     {
-      self.write(frames, data);
+      if(needed == 0)
+        self.write(frames, data);
+      self.give_back(std::move(data), needed);
       return false;
     }
   };
@@ -175,12 +207,27 @@ struct AudioRecorder
 
   const score::DocumentContext* ossia_document_context{};
   int current_rate = 0;
+  //! Ticks not recorded because no buffer was free or large enough.
+  int dropped_blocks = 0;
+
+  //! The binding prepares again, from the audio thread, when the input's
+  //! channel count or the engine buffer change: the worker follows the
+  //! channel count of what it is given, and only a new rate is told to it.
   void prepare(halp::setup s)
   {
-    current_rate = s.rate;
     SCORE_ASSERT(ossia_document_context);
-    impl = std::make_shared<recorder_thread>(*ossia_document_context);
-    update();
+    if(!impl)
+    {
+      impl = std::make_shared<recorder_thread>(*ossia_document_context);
+      // A quarter of a second of ticks, of up to 16 channels or the input's.
+      const int frames = std::max(1, s.frames);
+      const int rate = std::max(1, int(s.rate));
+      impl->reserve(
+          std::size_t(std::max(16, s.input_channels)) * std::size_t(frames),
+          std::max(4, rate / 4 / frames + 1));
+    }
+    if(std::exchange(current_rate, int(s.rate)) != int(s.rate))
+      update();
   }
 
   void update()
@@ -194,16 +241,31 @@ struct AudioRecorder
     if(!std::exchange(started, true))
       update();
 
-    data.resize(inputs.audio.channels * frames, boost::container::default_init);
-    for(int c = 0; c < inputs.audio.channels; c++)
+    const auto needed = std::size_t(inputs.audio.channels) * std::size_t(frames);
+    audio_buffer data = impl->pool.acquire();
+    if(data.capacity() == 0)
     {
-      double* src = inputs.audio.samples[c];
-      double* ptr = data.data() + c * frames;
-      for(int i = 0; i < frames; i++)
-        ptr[i] = src[i];
+      // The worker has not given the buffers back yet.
+      dropped_blocks++;
     }
+    else if(data.capacity() < needed)
+    {
+      dropped_blocks++;
+      worker.request(impl, process_message{frames, std::move(data), needed});
+    }
+    else
+    {
+      data.resize(needed, boost::container::default_init);
+      for(int c = 0; c < inputs.audio.channels; c++)
+      {
+        double* src = inputs.audio.samples[c];
+        double* ptr = data.data() + c * frames;
+        for(int i = 0; i < frames; i++)
+          ptr[i] = src[i];
+      }
 
-    worker.request(impl, process_message{frames, std::move(data)});
+      worker.request(impl, process_message{frames, std::move(data)});
+    }
 
     if(!filename_to_output.empty())
     {
@@ -216,7 +278,6 @@ struct AudioRecorder
   std::optional<int64_t> first_message_sent_pos;
   std::optional<int64_t> last_message_sent_pos;
 
-  audio_buffer data;
   std::string filename_to_output;
 };
 
