@@ -1,4 +1,7 @@
 #include <Gfx/Graph/MultiWindowNode.hpp>
+#include <Gfx/Graph/NodeProfiler.hpp>
+
+#include <chrono>
 #include <Gfx/Graph/PhotometricMaps.hpp>
 #include <Gfx/Graph/WarpImport.hpp>
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
@@ -1728,6 +1731,13 @@ void MultiWindowNode::render()
   if(!outRenderer)
     return;
 
+  auto* profiler = rl->nodeProfiler();
+  if(profiler && !profiler->enabled())
+    profiler = nullptr;
+  int64_t stageCpuNs = 0;
+  double stageGpuS = 0.;
+  bool stageGpu = false;
+
   for(int i = 0; i < (int)m_windowOutputs.size(); ++i)
   {
     auto& wo = m_windowOutputs[i];
@@ -1760,14 +1770,40 @@ void MultiWindowNode::render()
     }
 
     auto cb = wo.swapChain->currentFrameCommandBuffer();
+    if(profiler)
+    {
+      if(const double sec = cb->lastCompletedGpuTime(); sec > 0.)
+      {
+        stageGpuS += sec;
+        stageGpu = true;
+      }
+    }
     {
       SwapChainFrameGuard guard{*rhi, *wo.swapChain};
+      const auto t0 = std::chrono::steady_clock::now();
       outRenderer->renderToWindow(i, *rl, *cb);
+      stageCpuNs += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        std::chrono::steady_clock::now() - t0)
+                        .count();
       guard.release();
     }
 
     if(checkDeviceLost(rhi->endFrame(wo.swapChain), *rhi, "MultiWindowNode"))
       return;
+  }
+
+  if(profiler)
+  {
+    score::gfx::FrameTiming f;
+    f.list = this;
+    f.nodesOnly = true;
+    score::gfx::NodeTiming t;
+    t.node = this->nodeId;
+    t.type = "Output stage";
+    t.cpu_ns = stageCpuNs;
+    t.gpu_ns = stageGpu ? int64_t(stageGpuS * 1e9) : -1;
+    f.nodes.push_back(t);
+    profiler->submit(std::move(f));
   }
 }
 

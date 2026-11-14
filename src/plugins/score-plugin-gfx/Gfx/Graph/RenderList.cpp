@@ -2434,7 +2434,7 @@ void RenderList::renderImpl(QRhiCommandBuffer& commands, bool force)
   static const bool no_ts = qEnvironmentVariableIsSet("SCORE_NO_GPU_TIMESTAMPS");
   if(state.caps.timestamps && !no_ts)
   {
-    const double last_ms = commands.lastCompletedGpuTime();
+    const double last_ms = commands.lastCompletedGpuTime() * 1000.;
     if(last_ms > 0.0)
       m_gpuTimings.record("frame", last_ms);
   }
