@@ -78,6 +78,15 @@ restoreCablesWithoutTouchingPorts(
 SCORE_PLUGIN_SCENARIO_EXPORT void
 reattachCablesToPorts(std::span<Process::Cable*>, const score::DocumentContext& ctx);
 
+//! The cables of `cbls` that a port of `process` lists, with their ends on
+//! `process` pointed at the port that lists them: a port rebuilt by a script
+//! or preset change can have another id than the one the cable was saved
+//! with. A cable whose end on `process` lost its port is dropped, and taken
+//! off the port of `process` that still lists it.
+[[nodiscard]] SCORE_PLUGIN_SCENARIO_EXPORT SerializedCables retargetCablesToPorts(
+    const SerializedCables& cbls, Process::ProcessModel& process,
+    const score::DocumentContext& ctx);
+
 //! Needed to prevent subtle issues where
 //! cableAdded() signal is emitted and received by the audio thread
 //! before we reached inletsChanged() / programChanged()

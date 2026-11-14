@@ -735,6 +735,18 @@ if(TARGET score_plugin_fx)
     PLUGINS score_plugin_fx score_plugin_scenario score_lib_process)
 endif()
 
+# A Faust port rebuilt by a program edit keeps its cables, and undo puts them back.
+if(TARGET score_plugin_faust)
+  score_add_test(test_integration_faust_script_cables
+    SOURCES FaustScriptCablesTest.cpp
+    APP
+    PLUGINS score_plugin_faust score_plugin_scenario score_lib_process)
+  target_include_directories(test_integration_faust_script_cables PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-faust")
+  target_include_directories(test_integration_faust_script_cables SYSTEM PRIVATE
+    ${FAUST_INCLUDE_DIR})
+endif()
+
 # A node dropped on a cable goes in it only if it has no cable yet.
 if(TARGET score_plugin_fx)
   score_add_test(test_integration_node_drop_on_cable

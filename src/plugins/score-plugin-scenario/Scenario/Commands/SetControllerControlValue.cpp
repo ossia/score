@@ -75,7 +75,8 @@ void SetControllerControlValue::undo(const score::DocumentContext& ctx) const
 
   // Recreate the old cables. This process's ports know them again from their
   // reloaded data; the ports at the other end do not.
-  auto cables = Dataflow::restoreCablesWithoutTouchingPorts(m_oldCables, ctx);
+  auto cables = Dataflow::restoreCablesWithoutTouchingPorts(
+      Dataflow::retargetCablesToPorts(m_oldCables, proc, ctx), ctx);
   Dataflow::reattachCablesToPorts(cables, ctx);
 
   proc.inletsChanged();
