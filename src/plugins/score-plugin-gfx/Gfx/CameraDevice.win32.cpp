@@ -1,7 +1,23 @@
 #include "CameraDevice.hpp"
 
+#include <Gfx/CameraControls.hpp>
 #include <Gfx/CameraDeviceEnumerator.hpp>
 #include <Gfx/CameraFormatName.hpp>
+
+#include <ossia/network/base/node_functions.hpp>
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QDebug>
+
+#include <atomic>
+#include <chrono>
+#include <cmath>
+#include <condition_variable>
+#include <functional>
+#include <future>
+#include <mutex>
+#include <thread>
 
 extern "C" {
 #include <libavcodec/codec_id.h>
@@ -497,5 +513,321 @@ void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func)
 std::shared_ptr<CameraDeviceEnumerator> make_camera_enumerator()
 {
   return std::make_shared<DShowCameraDeviceEnumerator>();
+}
+
+namespace
+{
+struct DShowControlSpec
+{
+  const char* name;
+  const char* auto_name;
+  bool procamp;
+  long property;
+  bool exposure;
+};
+
+static constexpr DShowControlSpec dshow_controls[] = {
+    {"exposure", "auto_exposure", false, CameraControl_Exposure, true},
+    {"focus", "auto_focus", false, CameraControl_Focus, false},
+    {"gain", nullptr, true, VideoProcAmp_Gain, false},
+    {"white_balance", "auto_white_balance", true, VideoProcAmp_WhiteBalance, false},
+    {"backlight_compensation", nullptr, true, VideoProcAmp_BacklightCompensation,
+     false},
+};
+
+// CameraControl_Flags_* and VideoProcAmp_Flags_* have the same values
+static constexpr long dshow_flag_auto = 0x1;
+static constexpr long dshow_flag_manual = 0x2;
+
+static QString monikerName(IMoniker* moniker)
+{
+  IPropertyBag* bag{};
+  if(FAILED(moniker->BindToStorage(0, 0, IID_PPV_ARGS(&bag))))
+    return {};
+
+  VARIANT var;
+  VariantInit(&var);
+  HRESULT hr = bag->Read(L"Description", &var, 0);
+  if(FAILED(hr))
+    hr = bag->Read(L"FriendlyName", &var, 0);
+
+  QString name;
+  if(SUCCEEDED(hr) && var.vt == VT_BSTR && var.bstrVal)
+    name = QString::fromWCharArray(var.bstrVal);
+  VariantClear(&var);
+  bag->Release();
+  return name;
+}
+
+class DShowCameraControls final : public CameraControls
+{
+public:
+  explicit DShowCameraControls(QString name)
+      : m_name{std::move(name)}
+  {
+    std::promise<void> ready;
+    auto opened = ready.get_future();
+    m_thread = std::thread{[this, &ready] { run(ready); }};
+    opened.wait();
+  }
+
+  ~DShowCameraControls() override { stop(); }
+
+  bool empty() const noexcept { return m_controls.empty(); }
+
+  void setup(ossia::net::node_base& root) override
+  {
+    for(auto& c : m_controls)
+    {
+      const std::string base = "/controls/color/";
+      auto& node = ossia::net::create_node(root, base + c.spec->name);
+      c.param = node.create_parameter(
+          c.spec->exposure ? ossia::val_type::FLOAT : ossia::val_type::INT);
+      if(c.param)
+      {
+        c.param->set_domain(ossia::make_domain(toValue(c, c.min), toValue(c, c.max)));
+        c.param->set_value(toValue(c, c.value));
+      }
+
+      if(c.has_auto)
+      {
+        auto& auto_node = ossia::net::create_node(root, base + c.spec->auto_name);
+        c.auto_param = auto_node.create_parameter(ossia::val_type::BOOL);
+        if(c.auto_param)
+          c.auto_param->set_value(bool(c.flags & dshow_flag_auto));
+      }
+    }
+    m_published = true;
+  }
+
+  bool push(const ossia::net::parameter_base& param, const ossia::value& v) override
+  {
+    for(auto& c : m_controls)
+    {
+      if(&param == c.param)
+      {
+        long raw{};
+        if(c.spec->exposure)
+        {
+          const double us = ossia::convert<double>(v);
+          if(!(us > 0.))
+            return false;
+          raw = std::lround(std::log2(us * 1e-6));
+        }
+        else
+        {
+          raw = ossia::convert<int>(v);
+        }
+
+        const long clamped = std::clamp(raw, c.min, c.max);
+        if(clamped != raw)
+          qDebug() << "Camera" << m_name << c.spec->name << ":"
+                   << ossia::convert<double>(v) << "clamped to"
+                   << ossia::convert<double>(toValue(c, clamped));
+        return post([this, &c, clamped] { apply(c, clamped, dshow_flag_manual); });
+      }
+      else if(&param == c.auto_param)
+      {
+        const bool automatic = ossia::convert<bool>(v);
+        return post([this, &c, automatic] {
+          read(c);
+          apply(c, c.value, automatic ? dshow_flag_auto : dshow_flag_manual);
+        });
+      }
+    }
+    return false;
+  }
+
+  void stop() override
+  {
+    {
+      std::lock_guard lock{m_mutex};
+      m_running = false;
+    }
+    m_cv.notify_all();
+    if(m_thread.joinable())
+      m_thread.join();
+  }
+
+private:
+  struct Control
+  {
+    const DShowControlSpec* spec{};
+    long min{}, max{}, value{}, flags{};
+    bool has_auto{};
+    ossia::net::parameter_base* param{};
+    ossia::net::parameter_base* auto_param{};
+  };
+
+  static ossia::value toValue(const Control& c, long raw)
+  {
+    if(c.spec->exposure)
+      return float(std::exp2(double(raw)) * 1e6);
+    return int(raw);
+  }
+
+  bool post(std::function<void()> f)
+  {
+    {
+      std::lock_guard lock{m_mutex};
+      if(!m_running)
+        return false;
+      m_queue.push_back(std::move(f));
+    }
+    m_cv.notify_one();
+    return true;
+  }
+
+  void run(std::promise<void>& ready)
+  {
+    const bool com = SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+    open();
+    ready.set_value();
+
+    for(;;)
+    {
+      std::vector<std::function<void()>> ops;
+      {
+        std::unique_lock lock{m_mutex};
+        m_cv.wait_for(lock, std::chrono::milliseconds(500), [this] {
+          return !m_running || !m_queue.empty();
+        });
+        if(!m_running)
+          break;
+        ops.swap(m_queue);
+      }
+      for(auto& op : ops)
+        op();
+      if(ops.empty() && m_published)
+        refresh();
+    }
+
+    if(m_camera)
+      m_camera->Release();
+    if(m_procamp)
+      m_procamp->Release();
+    m_camera = nullptr;
+    m_procamp = nullptr;
+    if(com)
+      CoUninitialize();
+  }
+
+  void open()
+  {
+    ICreateDevEnum* devices{};
+    if(FAILED(CoCreateInstance(
+           CLSID_SystemDeviceEnum, nullptr, CLSCTX_INPROC_SERVER,
+           IID_PPV_ARGS(&devices))))
+      return;
+
+    IEnumMoniker* monikers{};
+    const HRESULT hr
+        = devices->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &monikers, 0);
+    devices->Release();
+    if(hr != S_OK || !monikers)
+      return;
+
+    IBaseFilter* filter{};
+    IMoniker* moniker{};
+    while(!filter && monikers->Next(1, &moniker, nullptr) == S_OK)
+    {
+      if(monikerName(moniker) == m_name)
+        moniker->BindToObject(nullptr, nullptr, IID_IBaseFilter, (void**)&filter);
+      moniker->Release();
+    }
+    monikers->Release();
+    if(!filter)
+      return;
+
+    filter->QueryInterface(IID_IAMCameraControl, (void**)&m_camera);
+    filter->QueryInterface(IID_IAMVideoProcAmp, (void**)&m_procamp);
+    filter->Release();
+
+    for(auto& spec : dshow_controls)
+    {
+      Control c;
+      c.spec = &spec;
+      long step{}, def{}, caps{};
+      HRESULT ok = E_FAIL;
+      if(spec.procamp && m_procamp)
+        ok = m_procamp->GetRange(spec.property, &c.min, &c.max, &step, &def, &caps);
+      else if(!spec.procamp && m_camera)
+        ok = m_camera->GetRange(spec.property, &c.min, &c.max, &step, &def, &caps);
+      if(FAILED(ok) || c.min > c.max || !read(c))
+        continue;
+
+      c.has_auto = spec.auto_name && (caps & dshow_flag_auto);
+      m_controls.push_back(c);
+    }
+  }
+
+  bool read(Control& c)
+  {
+    long value{}, flags{};
+    const HRESULT hr = c.spec->procamp
+                           ? m_procamp->Get(c.spec->property, &value, &flags)
+                           : m_camera->Get(c.spec->property, &value, &flags);
+    if(FAILED(hr))
+      return false;
+    c.value = value;
+    c.flags = flags;
+    return true;
+  }
+
+  void apply(Control& c, long value, long flags)
+  {
+    const HRESULT hr = c.spec->procamp
+                           ? m_procamp->Set(c.spec->property, value, flags)
+                           : m_camera->Set(c.spec->property, value, flags);
+    if(FAILED(hr))
+      qDebug() << "Camera" << m_name << ": could not set" << c.spec->name
+               << Qt::hex << (unsigned long)hr;
+
+    if(read(c))
+      publish(c);
+  }
+
+  void publish(Control& c)
+  {
+    if(c.param)
+      c.param->set_value(toValue(c, c.value));
+    if(c.auto_param)
+      c.auto_param->set_value(bool(c.flags & dshow_flag_auto));
+  }
+
+  void refresh()
+  {
+    for(auto& c : m_controls)
+    {
+      const long value = c.value, flags = c.flags;
+      if(read(c) && (c.value != value || c.flags != flags))
+        publish(c);
+    }
+  }
+
+  QString m_name;
+  IAMCameraControl* m_camera{};
+  IAMVideoProcAmp* m_procamp{};
+  std::vector<Control> m_controls;
+
+  std::mutex m_mutex;
+  std::condition_variable m_cv;
+  std::vector<std::function<void()>> m_queue;
+  bool m_running{true};
+  std::atomic_bool m_published{};
+  std::thread m_thread;
+};
+}
+
+std::shared_ptr<CameraControls> make_camera_controls(const CameraSettings& set)
+{
+  static const QString prefix = QStringLiteral("video=");
+  if(set.input != "dshow" || !set.device.startsWith(prefix))
+    return {};
+
+  auto controls = std::make_shared<DShowCameraControls>(set.device.mid(prefix.size()));
+  if(controls->empty())
+    return {};
+  return controls;
 }
 }

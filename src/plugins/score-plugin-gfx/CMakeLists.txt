@@ -462,6 +462,7 @@ set(HDRS
     Gfx/SharedOutputSettings.hpp
 
     Gfx/CameraSettings.hpp
+    Gfx/CameraControls.hpp
     Gfx/CameraDevice.hpp
     Gfx/CameraDeviceEnumerator.hpp
     Gfx/WindowDevice.hpp
