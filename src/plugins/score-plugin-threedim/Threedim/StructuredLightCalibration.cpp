@@ -784,6 +784,9 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
   r.status += buf;
   if(job.crf)
     r.status += ", camera response linearised";
+  else if(job.crfRejected)
+    r.status += ", camera response rejected (flat over the mid codes: did the camera "
+                "apply the bracket's exposures?), camera gamma used instead";
   r.status += photoNote;
   r.pixels = std::move(dec);
   return r;
@@ -1135,6 +1138,12 @@ StructuredLightCalibration::computeAll(std::vector<Job> jobs)
     return out;
   std::shared_ptr<const score::gfx::photometric::CameraResponse> crf
       = solveCameraResponse(jobs[0]);
+  bool crfRejected = false;
+  if(crf && !score::gfx::photometric::plausibleResponse(*crf, 0.5 * std::log(7.)))
+  {
+    crf.reset();
+    crfRejected = true;
+  }
   std::vector<float> exposures;
   for(auto& e : jobs[0].extras)
     if(e.kind == CrfFrame
@@ -1145,6 +1154,7 @@ StructuredLightCalibration::computeAll(std::vector<Job> jobs)
     throwIfCancelled(j);
     if(crf)
       j.crf = crf;
+    j.crfRejected = crfRejected;
     for(auto& e : j.extras)
       if(e.kind == CrfFrame)
         e.rgbCapture.clear();

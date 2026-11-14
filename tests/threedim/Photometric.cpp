@@ -66,6 +66,33 @@ TEST_CASE("Debevec & Malik: a non-power camera response is recovered", "[photome
   }
 }
 
+TEST_CASE("A flat or falling camera response is not plausible", "[photometric]")
+{
+  ph::CameraResponse gamma;
+  for(int c = 0; c < 3; c++)
+  {
+    gamma.g[c].resize(256);
+    for(int z = 0; z < 256; z++)
+      gamma.g[c][z] = 2.2 * std::log(std::max(z, 1) / 255.);
+  }
+  CHECK(ph::plausibleResponse(gamma, 0.5 * std::log(7.)));
+
+  // The shape a bracket gives when the camera ignored its exposures: a step at
+  // each end and a plateau between (measured on a C930e, 2026-11-14).
+  ph::CameraResponse flat = gamma;
+  for(int c = 0; c < 3; c++)
+    for(int z = 0; z < 256; z++)
+      flat.g[c][z] = z < 8 ? -2. : z > 240 ? 1.7 : 1.5 + 1e-5 * z;
+  CHECK(!ph::plausibleResponse(flat, 0.5 * std::log(7.)));
+
+  ph::CameraResponse dip = gamma;
+  for(int z = 100; z < 140; z++)
+    dip.g[1][z] -= 0.5;
+  CHECK(!ph::plausibleResponse(dip, 0.5 * std::log(7.)));
+
+  CHECK(!ph::plausibleResponse(ph::CameraResponse{}, 0.));
+}
+
 TEST_CASE("Projector response: per channel monotone fit and inverse", "[photometric]")
 {
   const double gammas[3] = {2.0, 2.4, 2.2};
