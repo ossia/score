@@ -1,5 +1,6 @@
 #include "GraphicsTabLayout.hpp"
 
+#include <score/graphics/layouts/GraphicsBoxLayout.hpp>
 #include <score/graphics/widgets/QGraphicsEnum.hpp>
 #include <score/tools/Debug.hpp>
 namespace score
@@ -20,7 +21,7 @@ void GraphicsTabLayout::setCurrentIndex(int index)
     m_pages[m_currentIndex]->setVisible(false);
   m_currentIndex = index;
   if(index < std::ssize(m_pages))
-    m_pages[index]->setVisible(true);
+    m_pages[index]->setVisible(!isLayoutExcluded(*m_pages[index]));
   if(m_tabBar)
     m_tabBar->setValue(index);
 }
