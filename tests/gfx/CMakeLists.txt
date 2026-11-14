@@ -1307,6 +1307,9 @@ score_add_gfx_process_test(shader_load_error GfxShaderLoadError.cpp)
 score_add_gfx_process_test(long_input_control GfxLongInputControl.cpp)
 # A point4D input is a vec4 control; its value survives save, reload and a re-read.
 score_add_gfx_process_test(point4d_control GfxPoint4dControl.cpp)
+
+# An ISF process created from its source text (Score.createProcess) runs it.
+score_add_gfx_process_test(isf_inline_source GfxIsfInlineSource.cpp)
 score_add_gfx_process_test(images          GfxImagesProcess.cpp)
 score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)
 
