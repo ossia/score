@@ -1,4 +1,7 @@
 #pragma once
+#include <Audio/Settings/Model.hpp>
+
+#include <score/application/ApplicationContext.hpp>
 #include <score/graphics/GraphicsLayout.hpp>
 #include <score/model/Skin.hpp>
 
@@ -16,6 +19,8 @@
 #include <QWidget>
 #include <QPainter>
 #include <QPolygon>
+#include <QTimer>
+#include <QPointer>
 
 #include <avnd/concepts/painter.hpp>
 #include <avnd/wrappers/colors.hpp>
@@ -29,6 +34,7 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace oscr
@@ -419,6 +425,12 @@ class CustomItem
 public:
   // Item may be T::item_type or T&
   using item_type = std::decay_t<Item>;
+  static constexpr bool groups_wheel
+      = requires(const item_type& item, item_type& editable) {
+          { item.wheel_target(0., 0.) } -> std::same_as<int>;
+          { editable.wheel(0., 0., 0.) } -> std::same_as<bool>;
+          { editable.finish_wheel() } -> std::same_as<void>;
+        };
 
   // // Case T::item_type
   // explicit CustomItem() { init(); }
@@ -435,9 +447,48 @@ public:
     {
       this->impl.update = [this] { this->update(); };
     }
+    if constexpr(requires {
+                   this->impl.request_poll = std::function<void()>{};
+                   { this->impl.poll() } -> std::same_as<bool>;
+                 })
+    {
+      // Only active while asynchronous custom-item work is pending. All access
+      // to impl, including completion delivery, remains on the GUI thread.
+      m_pollTimer = std::make_unique<QTimer>();
+      m_pollTimer->setInterval(16);
+      QObject::connect(m_pollTimer.get(), &QTimer::timeout, m_pollTimer.get(), [this] {
+        if(!this->impl.poll())
+          m_pollTimer->stop();
+      });
+      this->impl.request_poll = [timer = QPointer<QTimer>{m_pollTimer.get()}] {
+        if(timer && !timer->isActive())
+          timer->start();
+      };
+      // The item outlives its widget when the UI is rebuilt in place: what it
+      // asked the widget before to poll for is taken by this one.
+      m_pollTimer->start();
+    }
+    if constexpr(requires { this->impl.sample_rate = 0.; })
+    {
+      // The rate of the audio device, until the item learns another one, e.g.
+      // from its processor while it plays
+      if(auto* audio = score::AppContext().findSettings<Audio::Settings::Model>())
+      {
+        this->impl.sample_rate = audio->getRate();
+        m_settingsContext = std::make_unique<QObject>();
+        QObject::connect(
+            audio, &Audio::Settings::Model::RateChanged, m_settingsContext.get(),
+            [this](int rate) {
+          this->impl.sample_rate = rate;
+          this->update();
+        });
+      }
+    }
     if constexpr(accepts_drops)
       this->setAcceptDrops(true);
   }
+
+  ~CustomItem() override { finishWheel(); }
 
   QRectF boundingRect() const override
   {
@@ -517,6 +568,38 @@ public:
   };
 
 protected:
+  //! Derived controls call this before their transaction bindings go away.
+  void finishWheel()
+  {
+    if constexpr(groups_wheel)
+      if(m_wheel)
+        m_wheel->finish();
+  }
+
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value) override
+  {
+    if constexpr(groups_wheel)
+    {
+      if(change == ItemSceneChange
+         || (change == ItemVisibleChange && !value.toBool())
+         || (change == ItemEnabledChange && !value.toBool()))
+        finishWheel();
+    }
+    return QGraphicsItem::itemChange(change, value);
+  }
+
+  void focusOutEvent(QFocusEvent* event) override
+  {
+    finishWheel();
+    QGraphicsItem::focusOutEvent(event);
+  }
+
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override
+  {
+    finishWheel();
+    QGraphicsItem::contextMenuEvent(event);
+  }
+
   static custom_mouse_event make_event(QGraphicsSceneMouseEvent* event) noexcept
   {
     custom_mouse_event p;
@@ -552,6 +635,7 @@ protected:
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
+    finishWheel();
     if constexpr(requires { impl.mouse_press(0, 0); })
     {
       if(impl.mouse_press(event->pos().x(), event->pos().y()))
@@ -648,6 +732,29 @@ protected:
     update();
   }
 
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    if constexpr(requires { impl.mouse_double_click(0., 0.); })
+    {
+      if(impl.mouse_double_click(event->pos().x(), event->pos().y()))
+        event->accept();
+      else
+        event->ignore();
+    }
+    else if constexpr(requires { impl.mouse_double_click(custom_mouse_event{}); })
+    {
+      if(impl.mouse_double_click(make_event(event)))
+        event->accept();
+      else
+        event->ignore();
+    }
+    else
+    {
+      QGraphicsItem::mouseDoubleClickEvent(event);
+    }
+    update();
+  }
+
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
   {
     if constexpr(requires { impl.mouse_release(0, 0); })
@@ -703,13 +810,54 @@ protected:
     event->ignore();
   }
 
-  //! Only widgets that define wheel() take the event: everything else keeps
-  //! letting the view scroll.
+  //! A bool wheel() result can leave unhandled positions to the view's
+  //! scrolling. Existing void handlers consume the event unconditionally.
   void wheelEvent(QGraphicsSceneWheelEvent* event) override
   {
-    if constexpr(requires { impl.wheel(0., 0., 0.); })
+    if constexpr(groups_wheel)
     {
-      impl.wheel(event->pos().x(), event->pos().y(), event->delta());
+      if(!m_wheel)
+        m_wheel = std::make_unique<WheelGesture>(*this, [](QGraphicsItem& item) {
+          static_cast<CustomItem&>(item).impl.finish_wheel();
+        });
+      const auto target = std::as_const(impl).wheel_target(
+          event->pos().x(), event->pos().y());
+      // End phases often carry no delta and may be outside a supported target.
+      // They must close the transaction before either rejection below.
+      m_wheel->prepare(*event, target);
+      if(target < 0 || event->delta() == 0)
+      {
+        event->ignore();
+        return;
+      }
+      const bool handled
+          = impl.wheel(event->pos().x(), event->pos().y(), event->delta());
+      if(!handled || event->phase() == Qt::ScrollEnd)
+        finishWheel();
+      if(handled)
+      {
+        event->accept();
+        update();
+      }
+      else
+      {
+        event->ignore();
+      }
+    }
+    else if constexpr(requires { impl.wheel(0., 0., 0.); })
+    {
+      if constexpr(std::is_same_v<decltype(impl.wheel(0., 0., 0.)), bool>)
+      {
+        if(!impl.wheel(event->pos().x(), event->pos().y(), event->delta()))
+        {
+          event->ignore();
+          return;
+        }
+      }
+      else
+      {
+        impl.wheel(event->pos().x(), event->pos().y(), event->delta());
+      }
       event->accept();
       update();
     }
@@ -726,6 +874,10 @@ private:
   //! Expires with the item: tells a drag's event loop that it was deleted
   std::shared_ptr<char> m_alive;
   CustomItemWaveforms m_waveforms;
+  std::unique_ptr<QTimer> m_pollTimer;
+  //! Context of the connections to the application's settings
+  std::unique_ptr<QObject> m_settingsContext;
+  std::unique_ptr<WheelGesture> m_wheel;
 };
 
 //! A custom item editing one control through its halp::transaction: a
@@ -768,6 +920,7 @@ public:
 
   ~CustomControl()
   {
+    this->finishWheel();
     if(m_active)
       m_edits.endGesture();
   }

@@ -125,6 +125,7 @@ public:
 
   ~CustomMultiControl()
   {
+    this->finishWheel();
     // Destroyed mid-gesture (UI rebuilt on inlet change): what it did stays
     if(m_active)
       m_edits.endGesture();
