@@ -1243,10 +1243,12 @@ private:
 // --- MultiWindowNode implementation ---
 
 MultiWindowNode::MultiWindowNode(
-    Configuration conf, const std::vector<Gfx::OutputMapping>& mappings)
+    Configuration conf, const std::vector<Gfx::OutputMapping>& mappings,
+    QSize canvasSize)
     : OutputNode{}
     , m_conf{conf}
     , m_mappings{mappings}
+    , m_canvasSize{canvasSize}
 {
   input.push_back(new Port{this, {}, Types::Image, {}});
 }
@@ -1270,9 +1272,10 @@ bool MultiWindowNode::canRender() const
 
 void MultiWindowNode::setRenderSize(QSize sz)
 {
-  if(!m_renderState)
-    return;
   if(sz.width() < 1 || sz.height() < 1)
+    return;
+  m_canvasSize = sz;
+  if(!m_renderState)
     return;
   if(sz == m_renderState->renderSize)
     return;
@@ -2103,7 +2106,7 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
   // Create shared QRhi without a specific window. The rhi will be used
   // by every window's swap chain as well as by the offscreen target.
   m_renderState
-      = score::gfx::createRenderState(conf.graphicsApi, QSize{1280, 720}, nullptr);
+      = score::gfx::createRenderState(conf.graphicsApi, m_canvasSize, nullptr);
   if(!m_renderState || !m_renderState->rhi)
     return;
 

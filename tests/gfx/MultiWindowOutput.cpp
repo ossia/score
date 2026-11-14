@@ -241,6 +241,36 @@ TEST_CASE("MultiWindowNode render size recreates the offscreen target",
   CHECK(afterSame == QSize{640, 360});
 }
 
+TEST_CASE("MultiWindowNode renders at the canvas size it is given",
+          "[gfx][window][multiwindow]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  Outcome o;
+  QSize given;
+
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    MultiWindowRig rig;
+    if(!rig.build(
+           api, two_up(), QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+           QSize{2048, 768}))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    rig.render(2);
+    given = rig.node->offscreenTarget().texture->pixelSize();
+  });
+
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+
+  INFO("backend: " << o.backend);
+  CHECK(given == QSize{2048, 768});
+}
+
 TEST_CASE("MultiWindowNode window close and re-expose", "[gfx][window][multiwindow]")
 {
   const auto api = GENERATE(from_range(platform_backends()));

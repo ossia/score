@@ -12,7 +12,8 @@ class Window;
 struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
 {
   explicit MultiWindowNode(
-      Configuration conf, const std::vector<Gfx::OutputMapping>& mappings);
+      Configuration conf, const std::vector<Gfx::OutputMapping>& mappings,
+      QSize canvasSize = QSize{1280, 720});
   virtual ~MultiWindowNode();
 
   void startRendering() override;
@@ -197,6 +198,7 @@ private:
 
   Configuration m_conf;
   std::vector<Gfx::OutputMapping> m_mappings;
+  QSize m_canvasSize;
   std::vector<WindowOutput> m_windowOutputs;
 
   std::shared_ptr<RenderState> m_renderState;

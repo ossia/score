@@ -19,7 +19,7 @@ namespace Gfx
 {
 static score::gfx::MultiWindowNode* createMultiWindowNode(
     std::vector<OutputMapping> mappings, SwapchainFlag swapFlag,
-    SwapchainFormat swapFormat, const score::PathRoots& roots)
+    SwapchainFormat swapFormat, const score::PathRoots& roots, QSize canvasSize)
 {
   for(auto& m : mappings)
   {
@@ -35,7 +35,7 @@ static score::gfx::MultiWindowNode* createMultiWindowNode(
   else
     conf = {.manualRenderingRate = 1000. / 60., .supportsVSync = false};
 
-  auto node = new score::gfx::MultiWindowNode{conf, mappings};
+  auto node = new score::gfx::MultiWindowNode{conf, mappings, canvasSize};
   node->setSwapchainFlag(swapFlag);
   node->setSwapchainFormat(swapFormat);
   return node;
@@ -187,9 +187,9 @@ public:
       std::unique_ptr<gfx_protocol_base> proto, std::string name,
       SwapchainFlag swapFlag = SwapchainFlag::NoFlag,
       SwapchainFormat swapFormat = SwapchainFormat::SDR,
-      score::PathRoots roots = score::pathRoots())
+      score::PathRoots roots = score::pathRoots(), QSize canvasSize = QSize{1280, 720})
       : ossia::net::device_base{std::move(proto)}
-      , m_node{createMultiWindowNode(mappings, swapFlag, swapFormat, roots)}
+      , m_node{createMultiWindowNode(mappings, swapFlag, swapFormat, roots, canvasSize)}
       , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_node, name}
       , m_roots{std::move(roots)}
   {
