@@ -406,9 +406,16 @@ struct Node : Looper::looper_node<Node>
     stop_take = std::make_shared<Looper::audio_stop_take>();
   }
 
+  //! The binding prepares the node again, from the audio thread, when the
+  //! input's channel count or the engine's buffer size change. What is set up
+  //! here only depends on the rate and on controls read at the start, and the
+  //! stretched loop is played in spans of the prepared length: then there is
+  //! nothing to do.
   void prepare(halp::setup s)
   {
     const double rate = s.rate > 0 ? s.rate : 48000.;
+    if(std::exchange(m_prepared_rate, rate) == rate)
+      return;
     layers.allocate(
         inputs.channels.value, inputs.max_layers.value,
         int64_t(inputs.max_seconds.value * rate));
@@ -419,11 +426,13 @@ struct Node : Looper::looper_node<Node>
     allocate_ring(layers.channels, int64_t(inputs.keep.value * rate));
     m_switches.seen_passes = layers.count;
     prepare_stretch(rate, s.frames);
-    if(ossia_document_context)
+    if(!writer && ossia_document_context)
+    {
       writer = Looper::take_writer::make(*ossia_document_context, "Looper", "wav");
-    if(writer)
       writer->tell_views = send_message_from_worker;
+    }
   }
+  double m_prepared_rate{};
 
   //! Main thread only: the stretcher allocates. It is run once here over the
   //! longest span it will be given, on silence, so that the buffers it sizes
@@ -807,6 +816,7 @@ private:
   double m_stretch_speed{1.};
   bool m_stretch_reverse{};
   void play_stretched(int64_t first_pos, int64_t samples);
+  void play_stretched_span(int64_t first_pos, int64_t samples);
 
   // The playhead as a tape's: it reads the loop at m_speed, backwards when
   // m_reverse is set. Its position is transport.playbackPos and the part of a
@@ -1354,14 +1364,24 @@ inline void Node::load_file()
 //! loop starts a round, so that a tempo change is heard from the next round.
 inline void Node::play_stretched(int64_t first_pos, int64_t samples)
 {
-  const int64_t len = layers.length;
   const int chans = layers.channels;
   if(std::ssize(m_stretch_out) < chans || std::ssize(m_stretch_span) < chans
-     || samples > std::ssize(m_stretch_out[0]))
+     || m_stretch_out[0].empty())
   {
     play(first_pos, samples);
     return;
   }
+  // A buffer longer than the stretchers were prepared for is played in spans
+  // of what they were prepared for.
+  const auto span = std::ssize(m_stretch_out[0]);
+  for(int64_t done = 0; done < samples; done += span)
+    play_stretched_span(first_pos + done, std::min<int64_t>(span, samples - done));
+}
+
+inline void Node::play_stretched_span(int64_t first_pos, int64_t samples)
+{
+  const int64_t len = layers.length;
+  const int chans = layers.channels;
   if(!m_stretch_ready || transport.playbackPos % len != m_expected_pos
      || m_stretch_speed != m_speed || m_stretch_reverse != m_reverse)
   {
