@@ -1775,7 +1775,10 @@ void Model::loadPreset(const Process::Preset& preset)
         // Load the state, then show the values it set: the controls are in
         // the order of the parameters, their ids are score's
         if(state->load(m_plugin->plugin, &stream))
+        {
           refreshParamValues();
+          presetLoaded();
+        }
       }
     }
   }
@@ -1815,7 +1818,10 @@ void Model::loadPreset(const Process::Preset& preset)
       if(preset_load->from_location(
              m_plugin->plugin, location_kind, location_str,
              load_key.isEmpty() ? nullptr : key_utf8.constData()))
+      {
         refreshParamValues();
+        presetLoaded();
+      }
     }
   }
 }

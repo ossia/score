@@ -2166,6 +2166,12 @@ Executor::Executor(Clap::Model& proc, const Execution::Context& ctx, QObject* pa
     // count exceeds that the audio thread bumps m_requested_pool and this
     // timer creates more on the main thread (CLAP requires create_plugin /
     // init / activate / state.load to all run there).
+    // The instances it made, before the node reaches the audio thread
+    const auto& mono = static_cast<const clap_node_mono&>(*clap);
+    for(std::size_t i = 1; i < mono.m_poly.size(); i++)
+      m_pool.push_back(mono.m_poly[i].inst);
+    connect(&proc, &Clap::Model::presetLoaded, this, [this] { loadPresetInPool(); });
+
     constexpr std::size_t kInitialPoly = 8;
     m_pool_sample_rate = e.sampleRate;
     m_pool_buffer_size = e.setupBufferSize();
@@ -2262,6 +2268,19 @@ void Executor::cleanup()
   ProcessComponent_T::cleanup();
 }
 
+void Executor::loadPresetInPool()
+{
+  auto handle = this->process().handle();
+  if(!handle || !handle->plugin)
+    return;
+  const QByteArray state = snapshot_clap_state(handle->plugin);
+  if(state.isEmpty())
+    return;
+  for(const auto& w : m_pool)
+    if(auto p = w.lock(); p && p->plugin)
+      apply_clap_state(p->plugin, state);
+}
+
 void Executor::grow_pool_tick()
 {
   auto mono = std::dynamic_pointer_cast<clap_node_mono>(this->node);
@@ -2297,6 +2316,7 @@ void Executor::grow_pool_tick()
       qWarning() << "CLAP: failed to grow the instances of a mono plug-in";
       break;
     }
+    m_pool.push_back(p);
     // Not taken, it goes with the command, which the main thread releases
     in_exec([weak_node, p = std::move(p)]() mutable {
       if(auto n = weak_node.lock())
