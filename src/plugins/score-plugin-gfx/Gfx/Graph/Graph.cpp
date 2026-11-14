@@ -679,6 +679,7 @@ Graph::createRenderList(OutputNode* output, std::shared_ptr<RenderState> state)
 {
   auto ptr = std::make_shared<RenderList>(*output, state);
   ptr->setAssetTable(m_assetTable);
+  ptr->setNodeProfiler(m_nodeProfiler);
   state->renderer = ptr;
   output->setRenderer(ptr);
 #if 0
