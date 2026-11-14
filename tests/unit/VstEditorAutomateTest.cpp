@@ -201,3 +201,54 @@ TEST_CASE(
     QCoreApplication::processEvents();
   });
 }
+
+TEST_CASE(
+    "VST 2: a plug-in still processing once its process is deleted calls the "
+    "host safely",
+    "[vst]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QObject parent;
+    auto* model = new_process(ctx, parent, SCORE_VST_EDITED_EFFECT, "sEdE"_4c);
+    REQUIRE(model->fx);
+    run_main_thread();
+
+    // What the node holds: the process is deleted on the main thread while
+    // the audio thread is still in the tick that runs the node
+    std::shared_ptr<vst::AEffectWrapper> node_ref = model->fx;
+    const auto* time = &node_ref->info;
+    AEffect* effect = node_ref->fx;
+    effect->dispatcher(effect, effVendorSpecific, 6, 0, nullptr, 0.f);
+    delete model;
+
+    int allocations = -1;
+    std::thread audio{[&] {
+      float in[64]{}, out[64]{};
+      float* ins[1]{in};
+      float* outs[1]{out};
+      alloc_counter::scope s;
+      effect->processReplacing(effect, ins, outs, 64);
+      allocations = s.allocations();
+    }};
+    audio.join();
+    CHECK(allocations == 0);
+    CHECK(
+        effect->dispatcher(effect, effVendorSpecific, 7, 0, nullptr, 0.f)
+        == reinterpret_cast<intptr_t>(time));
+
+    // The node is gone too; the plug-in is closed later, on the main thread,
+    // and one of its own threads may call the host until then
+    node_ref.reset();
+    std::thread own{[&] {
+      float in[64]{}, out[64]{};
+      float* ins[1]{in};
+      float* outs[1]{out};
+      effect->processReplacing(effect, ins, outs, 64);
+    }};
+    own.join();
+    CHECK(
+        effect->dispatcher(effect, effVendorSpecific, 7, 0, nullptr, 0.f)
+        == reinterpret_cast<intptr_t>(time));
+    run_main_thread();
+  });
+}

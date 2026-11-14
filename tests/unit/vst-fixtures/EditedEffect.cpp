@@ -13,7 +13,11 @@
 // - index 4: gives the number of blocks processed so far;
 // - index 5: the plug-in gets a second parameter, "Wet Level", and its editor
 //   moves it to opt and calls audioMasterAutomate, as a plug-in whose
-//   parameters depend on its state.
+//   parameters depend on its state;
+// - index 6: from then on, each process call asks the host for the transport
+//   (audioMasterGetTime) and says its parameter changed (audioMasterAutomate),
+//   as plug-ins that follow the host's tempo or automate themselves do;
+// - index 7: gives what audioMasterGetTime answered in the last process call.
 
 #include <Vst/vst-compat.hpp>
 
@@ -31,6 +35,8 @@ struct effect
   std::atomic<float> wet{0.f};
   std::atomic<intptr_t> set_calls{};
   std::atomic<intptr_t> blocks{};
+  std::atomic_bool host_calls_in_process{};
+  std::atomic<intptr_t> time_answer{-1};
 };
 
 effect& self(AEffect* e)
@@ -70,6 +76,11 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t, void* ptr, fl
           e->numParams = 2;
           self(e).master(e, audioMasterAutomate, 1, 0, nullptr, opt);
           return 1;
+        case 6:
+          self(e).host_calls_in_process = true;
+          return 1;
+        case 7:
+          return self(e).time_answer;
       }
       return 0;
     default:
@@ -79,7 +90,13 @@ intptr_t dispatcher(AEffect* e, int32_t op, int32_t idx, intptr_t, void* ptr, fl
 
 void process(AEffect* e, float** in, float** out, int32_t n)
 {
-  self(e).blocks++;
+  auto& s = self(e);
+  s.blocks++;
+  if(s.host_calls_in_process)
+  {
+    s.time_answer = s.master(e, audioMasterGetTime, 0, kVstTempoValid, nullptr, 0.f);
+    s.master(e, audioMasterAutomate, 0, 0, nullptr, s.level);
+  }
   std::copy_n(in[0], n, out[0]);
 }
 
