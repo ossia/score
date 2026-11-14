@@ -222,6 +222,35 @@ int main()
         "weave falls back to bob when the partner field is missing");
   }
 
+  std::printf("\ncolour range of camera MJPEG:\n");
+  {
+    using namespace score::gfx;
+    constexpr auto U = AVCOL_RANGE_UNSPECIFIED;
+    constexpr auto J = AVCOL_RANGE_JPEG;
+    constexpr auto M = AVCOL_RANGE_MPEG;
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUVJ422P, U, U) == J,
+        "a YUVJ frame from a source that declares no range is full range");
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUV422P, U, J) == J,
+        "a frame that says full range is full range when the source says nothing");
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUVJ422P, M, J) == M,
+        "what the source declares wins");
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUV420P, U, U) == U,
+        "a plain YUV format with no range anywhere stays unspecified");
+
+    Video::ImageFormat built = progressive1080();
+    built.pixel_format = AV_PIX_FMT_YUVJ422P;
+    built.color_range = effectiveColorRange(AV_PIX_FMT_YUVJ422P, U, U);
+    Video::ImageFormat src = built;
+    src.color_range = effectiveColorRange(AV_PIX_FMT_YUVJ422P, U, U);
+    check(
+        !videoDecoderNeedsRebuild(true, built, src, AV_PIX_FMT_YUVJ422P, 1920, 1080),
+        "the resolved range does not rebuild the decoder on every frame");
+  }
+
   std::printf(
       "\nvideo rebuild: %s (%d failure%s)\n", g_fail ? "FAILED" : "passed", g_fail,
       g_fail == 1 ? "" : "s");
