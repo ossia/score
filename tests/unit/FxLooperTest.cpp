@@ -1681,6 +1681,109 @@ TEST_CASE("Looper: following the tempo allocates nothing, with more channels tha
   }
 }
 
+namespace
+{
+//! A looper set up as the executor does, on the main thread, with a 1280-frame
+//! loop recorded at 120 bpm and played, resampled, at 60.
+void record_resampled_loop(looper_harness& h)
+{
+  h.node.inputs.channels.value = 2;
+  h.node.inputs.max_layers.value = 8;
+  h.node.inputs.max_seconds.value = 2;
+  h.node.inputs.follow_tempo.value = Nodes::Looper::FollowTempo::Repitch;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.prepare(halp::setup{
+      .input_channels = 2, .output_channels = 2, .frames = 64, .rate = 48000.});
+  h.fill_input(0, [](int64_t i) { return std::sin(i * 0.1); });
+  h.fill_input(1, [](int64_t i) { return std::cos(i * 0.1); });
+  h.node.inputs.mode = LoopMode::Record;
+  for(int i = 0; i < 20; i++)
+    h.run(64);
+  h.reset_input();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  h.tempo = 60.;
+  for(int i = 0; i < 40; i++)
+    h.run(64);
+}
+}
+
+TEST_CASE("Looper: set up again while it plays, the looper keeps its loop and allocates nothing",
+          "[fx][audio][looper][tempo]")
+{
+  looper_harness h{2, 64};
+  record_resampled_loop(h);
+  REQUIRE(h.node.layers.length == 1280);
+  const auto pos = h.node.transport.playbackPos;
+
+  // The binding prepares again from its tick when the input's channel count
+  // or the engine buffer change. Controls that apply from the next start
+  // were changed meanwhile.
+  h.node.inputs.channels.value = 1;
+  h.node.inputs.max_layers.value = 4;
+  h.node.inputs.max_seconds.value = 10;
+  h.node.inputs.follow_tempo.value = Nodes::Looper::FollowTempo::Timestretch;
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    h.node.prepare(halp::setup{
+        .input_channels = 1, .output_channels = 1, .frames = 16384, .rate = 48000.});
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(h.node.layers.length == 1280);
+  CHECK(h.node.layers.channels == 2);
+  CHECK(h.node.layers.count == 1);
+  CHECK(h.node.transport.playbackPos == pos);
+  CHECK(h.node.transport.actualMode == LoopMode::Play);
+}
+
+TEST_CASE("Looper: a buffer longer than the stretchers were prepared for is stretched, "
+          "as in shorter ticks, and allocates nothing",
+          "[fx][audio][looper][tempo]")
+{
+  constexpr int64_t long_tick = 16384;
+  looper_harness shorter{2, int(long_tick)}, longer{2, int(long_tick)};
+  record_resampled_loop(shorter);
+  record_resampled_loop(longer);
+
+  std::array<std::vector<double>, 2> expected;
+  for(int i = 0; i < 2; i++)
+  {
+    shorter.run(long_tick / 2);
+    for(int c = 0; c < 2; c++)
+      expected[c].insert(
+          expected[c].end(), shorter.out_buf[c].begin(),
+          shorter.out_buf[c].begin() + long_tick / 2);
+  }
+
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    longer.st.bufferSize = int(long_tick);
+    longer.node.prepare(halp::setup{
+        .input_channels = 2, .output_channels = 2, .frames = int(long_tick),
+        .rate = 48000.});
+    longer.run(long_tick);
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(shorter.node.transport.playbackPos == longer.node.transport.playbackPos);
+  for(int c = 0; c < 2; c++)
+  {
+    INFO(c);
+    double energy = 0.;
+    int64_t differ = 0;
+    for(int64_t i = 0; i < long_tick; i++)
+    {
+      energy += std::abs(expected[c][i]);
+      differ += longer.out_buf[c][i] != expected[c][i];
+    }
+    CHECK(energy > 100.);
+    CHECK(differ == 0);
+  }
+}
+
 TEST_CASE("Looper: the two oldest passes merge over several ticks, heard as they were",
           "[fx][audio][looper][layers]")
 {
