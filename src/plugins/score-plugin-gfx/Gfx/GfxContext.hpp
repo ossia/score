@@ -4,6 +4,7 @@
 
 #include <Gfx/AssetTable.hpp>
 #include <Gfx/Graph/Node.hpp>
+#include <Gfx/Graph/NodeProfiler.hpp>
 #include <Gfx/Graph/RenderClock.hpp>
 
 #include <score/tools/Timers.hpp>
@@ -196,6 +197,9 @@ public:
   AssetTable& assets() noexcept { return m_assets; }
   const AssetTable& assets() const noexcept { return m_assets; }
 
+  //! Per-node render timings of this context's outputs, while enabled.
+  score::gfx::NodeProfiler& profiler() noexcept { return m_profiler; }
+
 private:
   //! Moves each preview to a render list of the patch, or to its own output.
   void updatePreviews();
@@ -314,6 +318,7 @@ private:
   ossia::object_pool<std::vector<score::gfx::gfx_input>> m_buffers;
 
   AssetTable m_assets;
+  score::gfx::NodeProfiler m_profiler;
 
   score::Timers m_timers;
 
