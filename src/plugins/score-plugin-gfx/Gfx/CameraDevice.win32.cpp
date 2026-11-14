@@ -624,18 +624,25 @@ public:
           qDebug() << "Camera" << m_name << c.spec->name << ":"
                    << ossia::convert<double>(v) << "clamped to"
                    << ossia::convert<double>(toValue(c, clamped));
-        return post([this, &c, clamped] { apply(c, clamped, dshow_flag_manual); });
+        return post([this, &c, clamped] { request(c, clamped, dshow_flag_manual); });
       }
       else if(&param == c.auto_param)
       {
         const bool automatic = ossia::convert<bool>(v);
         return post([this, &c, automatic] {
           read(c);
-          apply(c, c.value, automatic ? dshow_flag_auto : dshow_flag_manual);
+          request(c, c.value, automatic ? dshow_flag_auto : dshow_flag_manual);
         });
       }
     }
     return false;
+  }
+
+  void streamStarted() override
+  {
+    post([this] {
+      m_enforce_until = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    });
   }
 
   void stop() override
@@ -655,6 +662,8 @@ private:
     const DShowControlSpec* spec{};
     long min{}, max{}, value{}, flags{};
     bool has_auto{};
+    bool written{};
+    long wanted_value{}, wanted_flags{}, applied_value{};
     ossia::net::parameter_base* param{};
     ossia::net::parameter_base* auto_param{};
   };
@@ -689,7 +698,7 @@ private:
       std::vector<std::function<void()>> ops;
       {
         std::unique_lock lock{m_mutex};
-        m_cv.wait_for(lock, std::chrono::milliseconds(500), [this] {
+        m_cv.wait_for(lock, std::chrono::milliseconds(enforcing() ? 100 : 500), [this] {
           return !m_running || !m_queue.empty();
         });
         if(!m_running)
@@ -699,7 +708,7 @@ private:
       for(auto& op : ops)
         op();
       if(ops.empty() && m_published)
-        refresh();
+        refresh(enforcing());
     }
 
     if(m_camera)
@@ -795,12 +804,38 @@ private:
       c.auto_param->set_value(bool(c.flags & dshow_flag_auto));
   }
 
-  void refresh()
+  void request(Control& c, long value, long flags)
+  {
+    apply(c, value, flags);
+    c.written = true;
+    c.wanted_value = value;
+    c.wanted_flags = flags;
+    c.applied_value = c.value;
+  }
+
+  bool enforcing() const noexcept
+  {
+    return std::chrono::steady_clock::now() < m_enforce_until;
+  }
+
+  void refresh(bool enforce)
   {
     for(auto& c : m_controls)
     {
       const long value = c.value, flags = c.flags;
-      if(read(c) && (c.value != value || c.flags != flags))
+      if(!read(c))
+        continue;
+
+      const bool manual = c.wanted_flags == dshow_flag_manual;
+      if(enforce && c.written
+         && (bool(c.flags & dshow_flag_manual) != manual
+             || (manual && c.value != c.applied_value)))
+      {
+        qDebug() << "Camera" << m_name << c.spec->name << ": reset to" << c.value
+                 << "by the device, set again";
+        apply(c, c.wanted_value, c.wanted_flags);
+      }
+      else if(c.value != value || c.flags != flags)
         publish(c);
     }
   }
@@ -815,6 +850,7 @@ private:
   std::vector<std::function<void()>> m_queue;
   bool m_running{true};
   std::atomic_bool m_published{};
+  std::chrono::steady_clock::time_point m_enforce_until{};
   std::thread m_thread;
 };
 }
