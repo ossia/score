@@ -57,13 +57,12 @@ public:
   //! The MIDI output of the process, when it has one
   ossia::midi_outlet* midi_out{};
 
-  //! The events the plug-in sends (audioMasterProcessEvents) while it
-  //! processes a block, dated in the tick. Sent from any other thread, or at
-  //! any other time, they have no date and are dropped.
+  //! The events the plug-in sends (audioMasterProcessEvents) while this node
+  //! has it process a block, dated in the tick; called on the thread making
+  //! that call.
   void receiveEvents(const VstEvents* events) noexcept
   {
-    if(!midi_out || !events
-       || m_processThread.load(std::memory_order_relaxed) != std::this_thread::get_id())
+    if(!midi_out || !events)
       return;
     auto& out = midi_out->data.messages;
     const auto push = [&](const libremidi::ump& u) {
@@ -117,9 +116,7 @@ public:
   }
 
 protected:
-  //! The thread that is in a process call of the plug-in, and where in the
-  //! tick the block it processes starts
-  std::atomic<std::thread::id> m_processThread{};
+  //! Where in the tick the block the plug-in processes starts
   int64_t m_blockStart{};
   libremidi::midi1_to_midi2 m_toUmp;
 
@@ -258,12 +255,17 @@ public:
     dispatch(effMainsChanged, 0, 1);
     dispatch(effStartProcess);
 
-    fx->fx->resvd2 = reinterpret_cast<intptr_t>(static_cast<vst_node_base*>(this));
+    fx->host->activeNode.store(this, std::memory_order_release);
   }
 
   ~vst_node()
   {
-    fx->fx->resvd2 = 0;
+    // A node made since for the same plug-in has resumed it, and may be
+    // processing it: it is the one to suspend it
+    vst_node_base* self = this;
+    if(!fx->host->activeNode.compare_exchange_strong(
+           self, nullptr, std::memory_order_acq_rel))
+      return;
     fx->info.flags = (fx->info.flags & ~kVstTransportPlaying) | kVstTransportChanged;
     dispatch(effStopProcess);
     dispatch(effMainsChanged, 0, 0);
@@ -510,7 +512,9 @@ public:
                                      ? time_info.tempo / (60. * time_info.sampleRate)
                                      : 0.;
     const int64_t block = std::max(m_bs, 1);
-    m_processThread.store(std::this_thread::get_id(), std::memory_order_relaxed);
+    auto& host = *fx->host;
+    host.processingNode = this;
+    host.processThread.store(std::this_thread::get_id(), std::memory_order_relaxed);
     for(int64_t done = 0; done < samples;)
     {
       const int64_t n = std::min(block, samples - done);
@@ -537,7 +541,7 @@ public:
         }
       }
     }
-    m_processThread.store(std::thread::id{}, std::memory_order_relaxed);
+    host.processThread.store(std::thread::id{}, std::memory_order_relaxed);
   }
 
   void processFloat(int64_t offset, int64_t samples)

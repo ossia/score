@@ -148,8 +148,8 @@ Model::~Model()
   if(this->externalUI)
     this->externalUI->close();
 
-  if(fx && fx->fx)
-    fx->fx->resvd1 = 0;
+  if(fx)
+    fx->host->model = nullptr;
 
   fx.reset();
 }
@@ -348,9 +348,9 @@ void Model::reloadControls()
   }
 }
 
-void Model::parameterChangedByPlugin(int32_t index) noexcept
+void HostState::parameterChanged(int32_t index) noexcept
 {
-  auto* c = m_changedParams.load(std::memory_order_acquire);
+  auto* c = changedParams.load(std::memory_order_acquire);
   if(c && index >= 0 && index < c->count)
   {
     c->flags[index].store(true, std::memory_order_release);
@@ -358,15 +358,15 @@ void Model::parameterChangedByPlugin(int32_t index) noexcept
   else
   {
     if(index >= 0)
-      m_otherParam.store(index, std::memory_order_relaxed);
-    m_otherParamChanged.store(true, std::memory_order_release);
+      otherParam.store(index, std::memory_order_relaxed);
+    otherParamChanged.store(true, std::memory_order_release);
   }
-  m_paramsChanged.store(true, std::memory_order_release);
+  paramsChanged.store(true, std::memory_order_release);
 }
 
-bool Model::trackParameters(int32_t count)
+bool HostState::trackParameters(int32_t count)
 {
-  auto* old = m_changedParams.load(std::memory_order_relaxed);
+  auto* old = changedParams.load(std::memory_order_relaxed);
   if(count <= 0 || (old && old->count >= count))
     return false;
 
@@ -377,32 +377,33 @@ bool Model::trackParameters(int32_t count)
     for(int32_t i = 0; i < old->count; i++)
       block->flags[i].store(
           old->flags[i].load(std::memory_order_acquire), std::memory_order_relaxed);
-  m_changedParams.store(block.get(), std::memory_order_release);
-  m_changedParamBlocks.push_back(std::move(block));
+  changedParams.store(block.get(), std::memory_order_release);
+  changedParamBlocks.push_back(std::move(block));
   return true;
 }
 
 void Model::updateControlsChangedByPlugin()
 {
-  if(!m_paramsChanged.exchange(false, std::memory_order_acquire))
-    return;
   if(!fx || !fx->fx)
+    return;
+  auto& host = *fx->host;
+  if(!host.paramsChanged.exchange(false, std::memory_order_acquire))
     return;
 
   // A plug-in may have more parameters than when it was opened: a flag raised
   // while they are made may be lost, so each control is read again
   const int32_t count = fx->fx->numParams;
-  bool all = trackParameters(count);
+  bool all = host.trackParameters(count);
 
   // An index the flags did not cover: each control is read again, and the
   // last such index is a parameter changed
   int32_t other = -1;
-  if(m_otherParamChanged.exchange(false, std::memory_order_acquire))
+  if(host.otherParamChanged.exchange(false, std::memory_order_acquire))
   {
     all = true;
-    other = m_otherParam.exchange(-1, std::memory_order_relaxed);
+    other = host.otherParam.exchange(-1, std::memory_order_relaxed);
   }
-  auto* raised = m_changedParams.load(std::memory_order_relaxed);
+  auto* raised = host.changedParams.load(std::memory_order_relaxed);
   for(int32_t i = 0; i < count; i++)
   {
     const bool changed
@@ -451,25 +452,25 @@ intptr_t vst_host_callback(
 {
   intptr_t result = 0;
 
-  if(effect)
+  // Never the process itself: the plug-in may call from any thread, the
+  // process may be destroyed meanwhile on the main thread
+  auto* host = effect ? reinterpret_cast<HostState*>(effect->resvd1) : nullptr;
+  if(host)
   {
     switch(opcode)
     {
       case audioMasterGetTime: {
-        if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
-        {
-          result = reinterpret_cast<intptr_t>(&vst->fx->info);
-        }
+        result = reinterpret_cast<intptr_t>(&host->info);
         break;
       }
       case audioMasterSizeWindow: {
-        auto vst = reinterpret_cast<Model*>(effect->resvd1);
-        if(vst && vst->externalUI)
-        {
-          auto window = ((Window*)vst->externalUI);
-          ossia::qt::run_async(
-              window, [window, index, value] { window->resize(index, value); });
-        }
+        ossia::qt::run_async(
+            QCoreApplication::instance(),
+            [w = host->weak_from_this(), index, value] {
+          if(auto h = w.lock())
+            if(h->model && h->model->externalUI)
+              static_cast<Window*>(h->model->externalUI)->resize(index, value);
+        });
         result = 1;
         break;
       }
@@ -481,8 +482,7 @@ intptr_t vst_host_callback(
       }
 
       case audioMasterIdle: {
-        if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
-          vst->needIdle.store(true, std::memory_order_release);
+        host->needIdle.store(true, std::memory_order_release);
         result = 1;
         break;
       }
@@ -492,13 +492,7 @@ intptr_t vst_host_callback(
         break;
 
       case audioMasterUpdateDisplay: {
-        if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
-        {
-          ossia::qt::run_async(vst, [vst] {
-            vst->reloadControls();
-            vst->reloadPrograms();
-          });
-        }
+        host->displayChanged.store(true, std::memory_order_release);
         break;
       }
 
@@ -508,8 +502,17 @@ intptr_t vst_host_callback(
         // always the normalized value, e.g. DPF plug-ins built with a host
         // callback that takes an int32_t in its place leave whatever the
         // float register holds, often the parameter in its own unit.
-        if(auto vst = reinterpret_cast<Model*>(effect->resvd1))
-          vst->parameterChangedByPlugin(index);
+        host->parameterChanged(index);
+        break;
+      }
+
+      case audioMasterProcessEvents: {
+        // Dated in the block the node is processing: from any other thread,
+        // or at any other time, the events have no date and are dropped
+        if(host->processThread.load(std::memory_order_relaxed)
+           == std::this_thread::get_id())
+          if(auto node = host->processingNode)
+            node->receiveEvents(static_cast<const VstEvents*>(ptr));
         break;
       }
     }
@@ -518,9 +521,6 @@ intptr_t vst_host_callback(
   switch(opcode)
   {
     case audioMasterProcessEvents:
-      if(effect)
-        if(auto node = reinterpret_cast<vst_node_base*>(effect->resvd2))
-          node->receiveEvents(static_cast<const VstEvents*>(ptr));
       result = 1;
       break;
     case audioMasterIOChanged:
@@ -616,8 +616,7 @@ void Model::closePlugin()
 {
   if(fx)
   {
-    fx->fx->resvd1 = 0;
-    std::atomic_thread_fence(std::memory_order_seq_cst);
+    fx->host->model = nullptr;
     if(externalUI)
     {
       auto w = reinterpret_cast<Window*>(externalUI);
@@ -750,12 +749,8 @@ void Model::initFx()
   }
 
   // Before the plug-in can call the host with this process
-  trackParameters(fx->fx->numParams);
-  m_otherParam.store(-1, std::memory_order_relaxed);
-  m_otherParamChanged.store(false, std::memory_order_relaxed);
-  m_paramsChanged.store(false, std::memory_order_relaxed);
-
-  fx->fx->resvd1 = reinterpret_cast<intptr_t>(this);
+  fx->host->trackParameters(fx->fx->numParams);
+  fx->host->model = this;
 
   auto& ctx = score::GUIAppContext();
   auto& media = ctx.settings<Audio::Settings::Model>();
@@ -1097,7 +1092,8 @@ AEffectWrapper::~AEffectWrapper()
 {
   if(fx)
   {
-    ossia::qt::run_async(QCoreApplication::instance(), [fx = fx] {
+    // What the plug-in calls the host with lives until it is closed
+    ossia::qt::run_async(QCoreApplication::instance(), [fx = fx, host = host] {
       int uid = fx->uniqueID;
       fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
 
