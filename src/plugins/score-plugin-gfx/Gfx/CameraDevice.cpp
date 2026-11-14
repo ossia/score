@@ -44,6 +44,13 @@ public:
     return controls && controls->push(p, v);
   }
 
+  void start_execution() override
+  {
+    video_texture_input_protocol::start_execution();
+    if(controls)
+      controls->streamStarted();
+  }
+
   std::shared_ptr<CameraControls> controls;
 };
 

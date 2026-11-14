@@ -16,6 +16,9 @@ struct CameraControls
   virtual void setup(ossia::net::node_base& root) = 0;
   virtual bool push(const ossia::net::parameter_base&, const ossia::value&) = 0;
 
+  //! The capture was (re)started: a camera may reset itself when opened
+  virtual void streamStarted() = 0;
+
   //! Must be called before the nodes given to setup() are destroyed
   virtual void stop() = 0;
 };
