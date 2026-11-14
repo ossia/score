@@ -20,6 +20,35 @@ class GPUVideoDecoder;
  * reports now, and @p w / @p h the incoming AVFrame's own size -- which for a
  * fielded source is HALF the picture height that @p src carries.
  */
+/**
+ * @brief The colour range frames of @p fmt are decoded with.
+ *
+ * What the source declares wins; a source that declares nothing (a UVC camera
+ * opened through dshow or v4l2: neither sets a range for MJPEG) takes the
+ * decoded frame's own range, and failing that the YUVJ formats are full range
+ * by definition. Left unspecified, the conversion reads them as limited and
+ * stretches every code by 255/219: JPEG black comes out at -0.073.
+ */
+inline AVColorRange effectiveColorRange(
+    AVPixelFormat fmt, AVColorRange declared, AVColorRange frame) noexcept
+{
+  if(declared != AVCOL_RANGE_UNSPECIFIED)
+    return declared;
+  if(frame != AVCOL_RANGE_UNSPECIFIED)
+    return frame;
+  switch(fmt)
+  {
+    case AV_PIX_FMT_YUVJ420P:
+    case AV_PIX_FMT_YUVJ422P:
+    case AV_PIX_FMT_YUVJ444P:
+    case AV_PIX_FMT_YUVJ440P:
+    case AV_PIX_FMT_YUVJ411P:
+      return AVCOL_RANGE_JPEG;
+    default:
+      return declared;
+  }
+}
+
 inline bool videoDecoderNeedsRebuild(
     bool hasDecoder, const Video::ImageFormat& built, const Video::ImageFormat& src,
     AVPixelFormat fmt, int w, int h) noexcept
@@ -101,7 +130,8 @@ public:
 
   void createGpuDecoder();
   void setupGpuDecoder(RenderList& r);
-  void checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h);
+  void checkFormat(
+      RenderList& r, AVPixelFormat fmt, int w, int h, AVColorRange frameRange);
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;
