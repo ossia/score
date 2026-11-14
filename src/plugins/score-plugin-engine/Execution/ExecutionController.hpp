@@ -1,4 +1,5 @@
 #pragma once
+#include <QPointer>
 #include <Process/TimeValue.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -133,6 +134,9 @@ private:
 
   bool m_playing{false};
   bool m_paused{false};
+  //! What plays: the current document may be another one by the time it
+  //! stops (stopping because the documents are being switched).
+  QPointer<score::Document> m_playingDocument;
   bool m_requestLocalPlay{};
 };
 }

@@ -2351,6 +2351,54 @@ endif()
 score_add_test(test_unit_audio_protocol_tree
   SOURCES AudioProtocolTreeTest.cpp)
 
+# set_tick(): the previous tick never runs once it returned.
+score_add_test(test_unit_audio_tick_handshake
+  SOURCES AudioTickHandshakeTest.cpp)
+
+# What plays and what the audio thread runs agree, across engine restarts,
+# document switches and closes.
+if(TARGET score_plugin_engine AND TARGET score_plugin_audio)
+  score_add_test(test_unit_execution_audio_engine
+    SOURCES ExecutionAudioEngineTest.cpp
+    APP
+    PLUGINS score_plugin_audio score_plugin_deviceexplorer score_plugin_engine
+            score_plugin_scenario score_lib_process score_lib_device)
+endif()
+
+# The SDL engine across restarts (SDL's dummy / disk drivers: runs headless).
+if(TARGET ossia::sdl2)
+  score_add_test(test_unit_sdl_engine
+    SOURCES SDLEngineTest.cpp
+    LIBS ossia::sdl2)
+endif()
+
+# The miniaudio engine against the real CoreAudio devices: needs BlackHole,
+# skipped without it. Opens devices, so never in parallel with another.
+if(APPLE)
+  score_add_test(test_hw_coreaudio_engine
+    SOURCES CoreAudioEngineTest.cpp
+    LIBS "-framework CoreAudio" "-framework AudioToolbox")
+  # As score-plugin-audio: the declarations only, the implementation is in ossia
+  target_include_directories(test_hw_coreaudio_engine SYSTEM PRIVATE
+    "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
+  set_tests_properties(test_hw_coreaudio_engine PROPERTIES
+    LABELS "hardware;coreaudio" RUN_SERIAL TRUE TIMEOUT 600)
+
+  # The same devices, through score's audio plug-in.
+  if(TARGET score_plugin_audio)
+    score_add_test(test_hw_coreaudio_app
+      SOURCES CoreAudioAppTest.cpp
+      APP
+      PLUGINS score_plugin_audio score_plugin_deviceexplorer score_lib_device
+              score_plugin_engine score_plugin_scenario score_lib_process
+      LIBS "-framework CoreAudio" "-framework AudioToolbox")
+    target_include_directories(test_hw_coreaudio_app SYSTEM PRIVATE
+      "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
+    set_tests_properties(test_hw_coreaudio_app PROPERTIES
+      LABELS "hardware;coreaudio" RUN_SERIAL TRUE TIMEOUT 600)
+  endif()
+endif()
+
 score_add_test(test_unit_vector_domain_scalar
   SOURCES VectorDomainScalarTest.cpp)
 if(TARGET score_plugin_avnd)
