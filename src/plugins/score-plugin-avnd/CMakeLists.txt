@@ -555,6 +555,120 @@ avnd_make_score(
   MAIN_CLASS Bitcrush
   NAMESPACE ao
 )
+
+# Dynamic Waveshaper uses the exact SST catalog shipped by Surge XT, not its
+# eight-shape legacy Distortion effect. Keep the dependencies private to the
+# adapter: SIMD headers/macros must not leak into every score/UI translation unit.
+set(avnd_sst_waveshapers_SOURCE_DIR "${3RDPARTY_FOLDER}/sst-waveshapers")
+set(avnd_sst_basic_blocks_SOURCE_DIR "${3RDPARTY_FOLDER}/sst-basic-blocks")
+set(avnd_sst_filters_SOURCE_DIR "${3RDPARTY_FOLDER}/sst-filters")
+set(avnd_simde_SOURCE_DIR "${3RDPARTY_FOLDER}/simde")
+score_register_license(sst_waveshapers
+  URL "https://github.com/surge-synthesizer/sst-waveshapers"
+  FILES "${avnd_sst_waveshapers_SOURCE_DIR}/LICENSE.md")
+score_register_license(sst_basic_blocks
+  URL "https://github.com/surge-synthesizer/sst-basic-blocks"
+  FILES "${avnd_sst_basic_blocks_SOURCE_DIR}/LICENSE.md")
+score_register_license(SIMDe
+  URL "https://github.com/simd-everywhere/simde"
+  FILES "${avnd_simde_SOURCE_DIR}/COPYING")
+
+add_library(avnd_dynamic_waveshaper_dependencies INTERFACE)
+target_include_directories(avnd_dynamic_waveshaper_dependencies SYSTEM INTERFACE
+  "${avnd_sst_waveshapers_SOURCE_DIR}/include"
+  "${avnd_sst_basic_blocks_SOURCE_DIR}/include"
+  "${avnd_simde_SOURCE_DIR}")
+target_compile_definitions(avnd_dynamic_waveshaper_dependencies INTERFACE
+  SURGE_XT_1X_WST=1 _USE_MATH_DEFINES=1)
+if(WIN32)
+  target_compile_definitions(avnd_dynamic_waveshaper_dependencies INTERFACE NOMINMAX)
+endif()
+
+add_library(avnd_dynamic_waveshaper STATIC
+  "${AVND_FOLDER}/examples/Advanced/Audio/DynamicWaveshaper/SurgeShaper.cpp")
+target_compile_features(avnd_dynamic_waveshaper PUBLIC cxx_std_20)
+target_link_libraries(avnd_dynamic_waveshaper PRIVATE avnd_dynamic_waveshaper_dependencies)
+set_target_properties(avnd_dynamic_waveshaper PROPERTIES
+  POSITION_INDEPENDENT_CODE ON UNITY_BUILD OFF)
+if(NOT MSVC)
+  target_compile_options(avnd_dynamic_waveshaper PRIVATE -O3 -fno-fast-math)
+endif()
+target_link_libraries(score_plugin_avnd PRIVATE avnd_dynamic_waveshaper)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/DynamicWaveshaper.hpp"
+  TARGET dynamic_waveshaper
+  MAIN_CLASS DynamicWaveshaper
+  NAMESPACE ao
+  OPTIMIZED)
+
+# Character Filter keeps the SST filters++ implementation private to its DSP adapter.
+score_register_license(sst_filters
+  URL "https://github.com/surge-synthesizer/sst-filters"
+  FILES "${avnd_sst_filters_SOURCE_DIR}/LICENSE.md")
+
+add_library(avnd_character_filter STATIC
+  "${AVND_FOLDER}/examples/Advanced/Audio/CharacterFilter/Dsp.cpp")
+target_compile_features(avnd_character_filter PUBLIC cxx_std_20)
+target_include_directories(avnd_character_filter SYSTEM PRIVATE
+  "${avnd_sst_filters_SOURCE_DIR}/include"
+  "${avnd_sst_basic_blocks_SOURCE_DIR}/include"
+  "${avnd_simde_SOURCE_DIR}")
+# Both adapters use the same header configuration (also avoiding an ODR mismatch).
+# The 131072-sample comb ring holds a full 20 Hz period through 768 kHz host
+# rates in Character Filter (2x oversampling), and through 384 kHz in Parametriq (4x).
+target_compile_definitions(avnd_character_filter PRIVATE
+  _USE_MATH_DEFINES=1 SST_FILTERS_COMB_EXTENSION_FACTOR=64)
+if(WIN32)
+  target_compile_definitions(avnd_character_filter PRIVATE NOMINMAX)
+endif()
+set_target_properties(avnd_character_filter PROPERTIES
+  POSITION_INDEPENDENT_CODE ON UNITY_BUILD OFF)
+if(NOT MSVC)
+  target_compile_options(avnd_character_filter PRIVATE -O3 -fno-fast-math)
+endif()
+target_link_libraries(score_plugin_avnd PRIVATE avnd_character_filter)
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Audio/CharacterFilter.hpp"
+  TARGET character_filter
+  MAIN_CLASS CharacterFilter
+  NAMESPACE ao
+  OPTIMIZED)
+
+set(AVND_PARAMETRIQ "${AVND_FOLDER}/examples/Advanced/Parametriq")
+# Upstream f3dec12 with the performance-v2 revision and a local addition:
+# the comment at the top of Ivantsov/filters.h says which.
+score_register_license(ivantsov_filters
+  URL "https://github.com/yIvantsov/ivantsov-filters"
+  FILES "${AVND_PARAMETRIQ}/Ivantsov/LICENSE"
+  NOTICES "${AVND_PARAMETRIQ}/Ivantsov/filters.h")
+add_library(avnd_parametric_eq STATIC
+  "${AVND_PARAMETRIQ}/Model.cpp"
+  "${AVND_PARAMETRIQ}/Dsp.cpp"
+  "${AVND_PARAMETRIQ}/Response.cpp")
+target_compile_features(avnd_parametric_eq PUBLIC cxx_std_20)
+target_include_directories(avnd_parametric_eq SYSTEM PRIVATE
+  "${avnd_sst_filters_SOURCE_DIR}/include"
+  "${avnd_sst_basic_blocks_SOURCE_DIR}/include"
+  "${avnd_simde_SOURCE_DIR}")
+target_compile_definitions(avnd_parametric_eq PRIVATE
+  _USE_MATH_DEFINES=1 SST_FILTERS_COMB_EXTENSION_FACTOR=64)
+if(WIN32)
+  target_compile_definitions(avnd_parametric_eq PRIVATE NOMINMAX)
+endif()
+set_target_properties(avnd_parametric_eq PROPERTIES
+  POSITION_INDEPENDENT_CODE ON UNITY_BUILD OFF)
+if(NOT MSVC)
+  target_compile_options(avnd_parametric_eq PRIVATE -O3 -fno-fast-math)
+endif()
+target_link_libraries(avnd_parametric_eq PRIVATE dspfilters Threads::Threads)
+target_link_libraries(score_plugin_avnd PRIVATE avnd_parametric_eq)
+
+avnd_make_score(
+  SOURCES "${AVND_FOLDER}/examples/Advanced/Parametriq/ParametricEq.hpp"
+  TARGET parametric_eq
+  MAIN_CLASS ParametricEq
+  NAMESPACE examples
+  OPTIMIZED)
 avnd_make_score(
   SOURCES "${AVND_FOLDER}/examples/Advanced/Utilities/ControlToCV.hpp"
   TARGET control_to_cv
@@ -1473,6 +1587,8 @@ endFunction()
 # Commands
 addAvndTest(ossia_value_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/from_ossia_value_Test.cpp")
+addAvndTest(ossia_audio_Test
+             "${AVND_FOLDER}/tests/test_ossia_audio.cpp")
 addAvndTest(point_tracker_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/PointTracker_Test.cpp")
 target_include_directories(Avnd_point_tracker_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -1525,6 +1641,42 @@ addAvndTest(adsr_Test
              "${CMAKE_CURRENT_SOURCE_DIR}/Tests/ADSR_Test.cpp")
 target_include_directories(Avnd_adsr_Test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}" "${AVND_FOLDER}/examples")
+
+add_executable(Avnd_dynamic_waveshaper_Test
+  "${AVND_FOLDER}/tests/objects/dynamic_waveshaper.cpp")
+setup_score_common_test_features(Avnd_dynamic_waveshaper_Test)
+target_include_directories(Avnd_dynamic_waveshaper_Test PRIVATE
+  "${AVND_FOLDER}" "${OSSIA_3RDPARTY_FOLDER}/magic_enum/include")
+target_link_libraries(Avnd_dynamic_waveshaper_Test PRIVATE
+  avnd_dynamic_waveshaper Boost::boost Catch2::Catch2WithMain)
+add_test(NAME Avnd_dynamic_waveshaper_Test_target COMMAND Avnd_dynamic_waveshaper_Test)
+
+add_executable(Avnd_polyphony_channels_Test
+  "${AVND_FOLDER}/tests/objects/polyphony_channels.cpp")
+setup_score_common_test_features(Avnd_polyphony_channels_Test)
+target_include_directories(Avnd_polyphony_channels_Test PRIVATE
+  "${AVND_FOLDER}/include" "${OSSIA_3RDPARTY_FOLDER}/magic_enum/include")
+target_link_libraries(Avnd_polyphony_channels_Test PRIVATE Boost::boost Catch2::Catch2WithMain)
+add_test(NAME Avnd_polyphony_channels_Test_target COMMAND Avnd_polyphony_channels_Test)
+
+add_executable(Avnd_character_filter_Test
+  "${AVND_FOLDER}/tests/objects/character_filter.cpp")
+setup_score_common_test_features(Avnd_character_filter_Test)
+target_include_directories(Avnd_character_filter_Test PRIVATE
+  "${AVND_FOLDER}" "${OSSIA_3RDPARTY_FOLDER}/magic_enum/include")
+target_link_libraries(Avnd_character_filter_Test PRIVATE
+  avnd_character_filter Catch2::Catch2WithMain)
+add_test(NAME Avnd_character_filter_Test_target COMMAND Avnd_character_filter_Test)
+
+add_executable(Avnd_parametric_eq_Test
+  "${AVND_FOLDER}/tests/objects/parametric_eq.cpp")
+setup_score_common_test_features(Avnd_parametric_eq_Test)
+target_include_directories(Avnd_parametric_eq_Test PRIVATE
+  "${AVND_FOLDER}" "${AVND_FOLDER}/include"
+  "${OSSIA_3RDPARTY_FOLDER}/magic_enum/include")
+target_link_libraries(Avnd_parametric_eq_Test PRIVATE
+  avnd_parametric_eq Boost::boost Catch2::Catch2WithMain)
+add_test(NAME Avnd_parametric_eq_Test_target COMMAND Avnd_parametric_eq_Test)
 endif()
 
 set(CMAKE_AUTOMOC OFF)

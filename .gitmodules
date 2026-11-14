@@ -135,3 +135,16 @@
 [submodule "3rdparty/libebur128"]
 	path = 3rdparty/libebur128
 	url = https://github.com/jiixyj/libebur128
+[submodule "3rdparty/sst-waveshapers"]
+	path = 3rdparty/sst-waveshapers
+	url = https://github.com/surge-synthesizer/sst-waveshapers
+[submodule "3rdparty/sst-basic-blocks"]
+	path = 3rdparty/sst-basic-blocks
+	url = https://github.com/surge-synthesizer/sst-basic-blocks
+[submodule "3rdparty/sst-filters"]
+	path = 3rdparty/sst-filters
+	url = https://github.com/jcelerier/sst-filters
+	branch = fix/svf-unused-statics
+[submodule "3rdparty/simde"]
+	path = 3rdparty/simde
+	url = https://github.com/simd-everywhere/simde
