@@ -18,6 +18,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace coreaudio_test
@@ -278,6 +279,38 @@ struct NominalRateGuard
   {
     if(nominal_rate(dev) != saved)
       set_nominal_rate(dev, saved);
+  }
+};
+
+//! Every device's nominal rate, put back when done: score switches the rate
+//! of the devices it opens (the system's default ones too, in a fresh app)
+//! when nothing else uses them. Only those that changed are touched.
+struct AllNominalRatesGuard
+{
+  std::vector<std::pair<AudioObjectID, double>> saved;
+  AllNominalRatesGuard()
+  {
+    const AudioObjectPropertyAddress addr{
+        kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain};
+    UInt32 size{};
+    if(AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &addr, 0, nullptr, &size)
+       != noErr)
+      return;
+    std::vector<AudioObjectID> ids(size / sizeof(AudioObjectID));
+    if(AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, nullptr, &size, ids.data())
+       != noErr)
+      return;
+    ids.resize(size / sizeof(AudioObjectID));
+    for(auto id : ids)
+      if(const double r = nominal_rate(id); r > 0)
+        saved.emplace_back(id, r);
+  }
+  ~AllNominalRatesGuard()
+  {
+    for(auto [id, rate] : saved)
+      if(nominal_rate(id) != rate)
+        set_nominal_rate(id, rate);
   }
 };
 

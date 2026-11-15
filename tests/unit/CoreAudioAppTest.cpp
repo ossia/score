@@ -82,6 +82,7 @@ void run_with_coreaudio(auto&& f)
   qputenv("SCORE_AUDIO_BACKEND", "coreaudio");
   if(!qEnvironmentVariableIsSet("SCORE_DISABLE_AUDIOPLUGINS"))
     qputenv("SCORE_DISABLE_AUDIOPLUGINS", "1");
+  AllNominalRatesGuard rates;
   score::test::run_in_app(f);
 }
 
