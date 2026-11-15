@@ -64,6 +64,9 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     Gfx::OutputQuality quality;
     std::shared_ptr<const CubeLut> lut;
     std::shared_ptr<const FloatImage> warpMap;
+    //! 99.5th percentile of the change in source u and v between neighbouring
+    //! valid warp-map texels.
+    std::array<float, 2> warpStep{};
     std::shared_ptr<const FloatImage> alphaMap;
     std::shared_ptr<const FloatImage> betaMap;
     //! size x 1, rgb = projector code for linear light i / (size - 1).
@@ -132,6 +135,8 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     int transfer{};
   };
   EffectiveQuality effectiveQuality(const WindowOutput& wo) const noexcept;
+  //! Whether the warp map samples the canvas at more than a texel per output pixel.
+  bool warpMinifies(const WindowOutput& wo) const noexcept;
   //! The canvas format and whether it needs mips, for the current settings.
   std::pair<QRhiTexture::Format, bool> canvasSpec() const noexcept;
 
