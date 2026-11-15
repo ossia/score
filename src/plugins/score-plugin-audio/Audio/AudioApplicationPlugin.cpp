@@ -32,6 +32,8 @@
 #include <QLabel>
 #include <QToolBar>
 
+#include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Audio::ApplicationPlugin)
 
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
