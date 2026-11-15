@@ -4,6 +4,9 @@
 // ALSA's own plug-ins stand in for the devices, so this runs headless: "file"
 // records what is played (and plays a file as the capture), "null" accepts
 // any channel count, "multi" over "null" has a fixed count as hardware does.
+//
+// score's channels are linear, with no speaker layout: whatever count score
+// asks for, its channel c is the device's channel c, never mixed into others.
 
 #include <ossia/audio/miniaudio_protocol.hpp>
 
@@ -62,10 +65,16 @@ struct ALSAConfig
           / ("ossia-alsa-test-" + std::to_string(::getpid()));
     fs::create_directories(dir);
     const auto d = dir.string();
-    std::string bindings;
-    for(int c = 0; c < 8; c++)
-      bindings += "  bindings." + std::to_string(c) + " { slave a; channel "
-                  + std::to_string(c) + " }\n";
+    // A device of exactly n channels, as hardware is
+    auto multi = [](int n) {
+      std::string m = "pcm.ossia_multi" + std::to_string(n)
+                      + " {\n  type multi\n  slaves.a.pcm { type null }\n  slaves.a.channels "
+                      + std::to_string(n) + "\n";
+      for(int c = 0; c < n; c++)
+        m += "  bindings." + std::to_string(c) + " { slave a; channel " + std::to_string(c)
+             + " }\n";
+      return m + "}\n";
+    };
     // The capture input, channel c at -(c + 1) / 64 in every frame: long
     // enough for the periods that run, unpaced, before the tick is set
     {
@@ -76,13 +85,15 @@ struct ALSAConfig
       f.write(reinterpret_cast<const char*>(in.data()), in.size() * sizeof(float));
     }
     std::ofstream f{dir / "asound.conf"};
-    f << "pcm.ossia_multi8 {\n  type multi\n  slaves.a.pcm { type null }\n"
-         "  slaves.a.channels 8\n"
-      << bindings << "}\n"
+    f << multi(8) << multi(64)
       << "pcm.ossia_any { type file slave.pcm { type null } file \"" << d
       << "/any.raw\" format \"raw\" }\n"
       << "pcm.ossia_fixed8 { type file slave.pcm \"ossia_multi8\" file \"" << d
       << "/fixed8.raw\" format \"raw\" }\n"
+      << "pcm.ossia_fixed64 { type file slave.pcm \"ossia_multi64\" file \"" << d
+      << "/fixed64.raw\" format \"raw\" }\n"
+      // ALSA's plug layer converts channel counts, unless told not to
+      << "pcm.ossia_plug8 { type plug slave.pcm \"ossia_fixed8\" }\n"
       << "pcm.ossia_in8 { type file slave.pcm \"ossia_multi8\" file \"/dev/null\" infile \""
       << d << "/in8.raw\" format \"raw\" }\n";
     f.close();
@@ -140,6 +151,46 @@ std::vector<float> played(const fs::path& file, int channels)
   first -= first % channels;
   return {all.begin() + first, all.end() - all.size() % channels};
 }
+}
+
+//! Frames where device channel c is not score's channel c (or silence past
+//! score's last channel)
+int misplaced(const std::vector<float>& out, int device_channels, int score_channels)
+{
+  int wrong = 0;
+  for(std::size_t i = 0; i < out.size(); i++)
+  {
+    const int c = int(i % device_channels);
+    const float expected = c < score_channels ? float(c + 1) / 64.f : 0.f;
+    wrong += out[i] != expected;
+  }
+  return wrong;
+}
+
+//! Plays score's outputs on a device that has its own count
+void play_on(const char* device, const char* file, int outputs, int device_channels)
+{
+  ALSAConfig conf;
+  auto ctx = alsa_context();
+  if(!ctx)
+    SKIP("no ALSA");
+
+  INFO(outputs << " outputs on " << device);
+  std::atomic_int calls{};
+  std::vector<std::vector<float>> inputs;
+  ossia::miniaudio_engine engine{ctx, "test", ma_device_id{}, alsa_id(device), 0,
+                                 outputs, rate, bs};
+  // The device's own count: miniaudio converts nothing
+  CHECK(engine.device().playback.internalChannels == ma_uint32(device_channels));
+  CHECK(engine.device().playback.channels == ma_uint32(device_channels));
+  CHECK(engine.effective_outputs == outputs);
+
+  engine.set_tick(MarkerTick{&calls, &inputs});
+  run(engine, calls);
+
+  const auto out = played(conf.dir / file, device_channels);
+  REQUIRE(out.size() >= std::size_t(device_channels * bs));
+  CHECK(misplaced(out, device_channels, outputs) == 0);
 }
 
 TEST_CASE("ALSA: a device is opened with the channels score asks for", "[audio][alsa]")
@@ -218,26 +269,53 @@ TEST_CASE("ALSA: score's channels are the device's, in order", "[audio][alsa]")
 
 TEST_CASE("ALSA: fewer channels than the device has", "[audio][alsa]")
 {
+  // The others are silent, not a mix of score's
+  play_on("ossia_fixed8", "fixed8.raw", 2, 8);
+  play_on("ossia_fixed8", "fixed8.raw", 6, 8);
+}
+
+TEST_CASE("ALSA: more channels than the device has", "[audio][alsa]")
+{
+  // Those past the device's last are dropped, not mixed into it
+  play_on("ossia_fixed8", "fixed8.raw", 12, 8);
+}
+
+TEST_CASE("ALSA: past 32 channels, none is mixed into another", "[audio][alsa]")
+{
+  play_on("ossia_fixed64", "fixed64.raw", 40, 64);
+  play_on("ossia_fixed64", "fixed64.raw", 64, 64);
+}
+
+TEST_CASE("ALSA: the plug layer does not convert the channel count", "[audio][alsa]")
+{
+  play_on("ossia_plug8", "fixed8.raw", 2, 8);
+}
+
+TEST_CASE("ALSA: fewer inputs than the device has", "[audio][alsa]")
+{
   ALSAConfig conf;
   auto ctx = alsa_context();
   if(!ctx)
     SKIP("no ALSA");
 
-  // As before: miniaudio converts score's two channels to the device's eight
   std::atomic_int calls{};
   std::vector<std::vector<float>> inputs;
-  ossia::miniaudio_engine engine{ctx, "test", ma_device_id{}, alsa_id("ossia_fixed8"),
-                                 0,   2,      rate,          bs};
-  CHECK(engine.device().playback.internalChannels == 8);
-  CHECK(engine.effective_outputs == 2);
+  ossia::miniaudio_engine engine{ctx, "test", alsa_id("ossia_in8"), alsa_id("ossia_any"),
+                                 3,   2,      rate,                bs};
+  CHECK(engine.device().capture.internalChannels == 8);
+  CHECK(engine.effective_inputs == 3);
 
   engine.set_tick(MarkerTick{&calls, &inputs});
   run(engine, calls);
 
-  const auto out = played(conf.dir / "fixed8.raw", 8);
-  REQUIRE(out.size() >= std::size_t(8 * bs));
-  // Front left and right get score's left and right
-  CHECK(out[0] > 0.f);
-  CHECK(out[1] > 0.f);
+  REQUIRE(inputs.size() == 3);
+  for(int c = 0; c < 3; c++)
+  {
+    INFO("input " << c);
+    int wrong_in = 0;
+    for(float v : inputs[c])
+      wrong_in += v != -float(c + 1) / 64.f;
+    CHECK(wrong_in == 0);
+  }
 }
 #endif
