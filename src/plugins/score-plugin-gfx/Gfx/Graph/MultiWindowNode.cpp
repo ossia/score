@@ -324,7 +324,7 @@ int canvasRank(QRhiTexture::Format f) noexcept
 class MultiWindowRenderer final : public score::gfx::OutputNodeRenderer
 {
 public:
-  QShader m_vertexS, m_fragmentS;
+  QShader m_vertexS, m_fragmentS, m_bakeFragmentS;
   score::gfx::MeshBuffers m_mesh{};
 
   struct PerWindowData
@@ -343,6 +343,14 @@ public:
     int readbackServed{};
     std::array<score::gfx::Sampler, 1> samplers{};
     QRectF sourceRect{0, 0, 1, 1};
+
+    QRhiTexture* bakedWarp{};
+    QRhiTextureRenderTarget* bakeRT{};
+    QRhiRenderPassDescriptor* bakeRP{};
+    score::gfx::Pipeline bakePipeline;
+    bool bakeTargetOk{};
+    int bakedWarpVersion{-1};
+    bool bakedBicubic{};
   };
   std::vector<PerWindowData> m_perWindow;
 
@@ -383,7 +391,7 @@ public:
     // sourceRect is in canvas space (Y-down: y=0 top, y=1 bottom).
     // Following the ScaledRenderer pattern: on SPIRV flip v_texcoord.y,
     // on OpenGL flip sourceRect.y to convert from canvas Y-down to texture Y-up.
-    static const constexpr auto frag_shader = R"_(#version 450
+    static const constexpr auto frag_head = R"_(#version 450
       layout(location = 0) in vec2 v_texcoord;
       layout(location = 0) out vec4 fragColor;
 
@@ -424,6 +432,7 @@ public:
       layout(binding = 14) uniform sampler2D compMap0;
       layout(binding = 15) uniform sampler2D compMap1;
       layout(binding = 16) uniform sampler2D compMap2;
+      layout(binding = 17) uniform sampler2D bakedWarp;
 
       layout(std140, binding = 12) uniform QualityParams {
           vec4 quality;  // x = sampling (0 linear, 1 trilinear, 2 anisotropic), y = max taps, z = bicubic warp, w = dither levels
@@ -432,54 +441,9 @@ public:
           vec4 lutMax;
       };
 
-      vec3 warpTexel(ivec2 p, ivec2 size)
-      {
-          vec4 m = texelFetch(warpMap, clamp(p, ivec2(0), size - 1), 0);
-          return vec3(m.xy, m.w > 0.5 ? 1.0 : 0.0);
-      }
+)_";
 
-      // xy = source UV, z = 1 when valid.
-      vec3 sampleWarp(vec2 uv)
-      {
-          ivec2 size = textureSize(warpMap, 0);
-          vec2 f = uv * vec2(size) - 0.5;
-          vec2 fl = floor(f);
-          vec2 t = f - fl;
-          ivec2 b = ivec2(fl);
-          if(quality.z > 0.5)
-          {
-              vec2 w0 = t * (-0.5 + t * (1.0 - 0.5 * t));
-              vec2 w1 = 1.0 + t * t * (-2.5 + 1.5 * t);
-              vec2 w2 = t * (0.5 + t * (2.0 - 1.5 * t));
-              vec2 w3 = t * t * (-0.5 + 0.5 * t);
-              float wx[4] = float[4](w0.x, w1.x, w2.x, w3.x);
-              float wy[4] = float[4](w0.y, w1.y, w2.y, w3.y);
-              vec2 acc = vec2(0.0);
-              float valid = 0.0;
-              for(int j = 0; j < 4; j++)
-                  for(int i = 0; i < 4; i++)
-                  {
-                      vec3 s = warpTexel(b + ivec2(i - 1, j - 1), size);
-                      acc += wx[i] * wy[j] * s.xy;
-                      valid += s.z;
-                  }
-              if(valid > 15.5)
-                  return vec3(acc, 1.0);
-          }
-          vec3 s00 = warpTexel(b, size);
-          vec3 s10 = warpTexel(b + ivec2(1, 0), size);
-          vec3 s01 = warpTexel(b + ivec2(0, 1), size);
-          vec3 s11 = warpTexel(b + ivec2(1, 1), size);
-          float w00 = (1.0 - t.x) * (1.0 - t.y) * s00.z;
-          float w10 = t.x * (1.0 - t.y) * s10.z;
-          float w01 = (1.0 - t.x) * t.y * s01.z;
-          float w11 = t.x * t.y * s11.z;
-          float w = w00 + w10 + w01 + w11;
-          if(w < 0.5)
-              return vec3(0.0);
-          return vec3((w00 * s00.xy + w10 * s10.xy + w01 * s01.xy + w11 * s11.xy) / w, 1.0);
-      }
-
+    static const constexpr auto frag_tail = R"_(
       vec3 sampleSource(vec2 uv, vec2 dx, vec2 dy)
       {
           if(quality.x < 0.5)
@@ -610,7 +574,8 @@ public:
 
           if(mapFlags.x > 0.5)
           {
-              vec3 m = sampleWarp(screenUv);
+              vec3 m = quality.z > 1.5 ? texelFetch(bakedWarp, ivec2(gl_FragCoord.xy), 0).xyz
+                                       : sampleWarp(screenUv);
               tc = vec2(m.x, 1.0 - m.y);
               inside = place(tc) && m.z > 0.5;
           }
@@ -709,8 +674,83 @@ public:
       }
       )_";
 
-    std::tie(m_vertexS, m_fragmentS)
-        = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), frag_shader);
+    static const constexpr auto warp_glsl = R"_(
+      vec3 warpTexel(ivec2 p, ivec2 size)
+      {
+          vec4 m = texelFetch(warpMap, clamp(p, ivec2(0), size - 1), 0);
+          return vec3(m.xy, m.w > 0.5 ? 1.0 : 0.0);
+      }
+
+      // xy = source UV, z = 1 when valid.
+      vec3 sampleWarp(vec2 uv)
+      {
+          ivec2 size = textureSize(warpMap, 0);
+          vec2 f = uv * vec2(size) - 0.5;
+          vec2 fl = floor(f);
+          vec2 t = f - fl;
+          ivec2 b = ivec2(fl);
+          if(mod(quality.z, 2.0) > 0.5)
+          {
+              vec2 w0 = t * (-0.5 + t * (1.0 - 0.5 * t));
+              vec2 w1 = 1.0 + t * t * (-2.5 + 1.5 * t);
+              vec2 w2 = t * (0.5 + t * (2.0 - 1.5 * t));
+              vec2 w3 = t * t * (-0.5 + 0.5 * t);
+              float wx[4] = float[4](w0.x, w1.x, w2.x, w3.x);
+              float wy[4] = float[4](w0.y, w1.y, w2.y, w3.y);
+              vec2 acc = vec2(0.0);
+              float valid = 0.0;
+              for(int j = 0; j < 4; j++)
+                  for(int i = 0; i < 4; i++)
+                  {
+                      vec3 s = warpTexel(b + ivec2(i - 1, j - 1), size);
+                      acc += wx[i] * wy[j] * s.xy;
+                      valid += s.z;
+                  }
+              if(valid > 15.5)
+                  return vec3(acc, 1.0);
+          }
+          vec3 s00 = warpTexel(b, size);
+          vec3 s10 = warpTexel(b + ivec2(1, 0), size);
+          vec3 s01 = warpTexel(b + ivec2(0, 1), size);
+          vec3 s11 = warpTexel(b + ivec2(1, 1), size);
+          float w00 = (1.0 - t.x) * (1.0 - t.y) * s00.z;
+          float w10 = t.x * (1.0 - t.y) * s10.z;
+          float w01 = (1.0 - t.x) * t.y * s01.z;
+          float w11 = t.x * t.y * s11.z;
+          float w = w00 + w10 + w01 + w11;
+          if(w < 0.5)
+              return vec3(0.0);
+          return vec3((w00 * s00.xy + w10 * s10.xy + w01 * s01.xy + w11 * s11.xy) / w, 1.0);
+      }
+      )_";
+
+    static const constexpr auto bake_head = R"_(#version 450
+      layout(location = 0) in vec2 v_texcoord;
+      layout(location = 0) out vec4 fragColor;
+
+      layout(binding = 7) uniform sampler2D warpMap;
+
+      layout(std140, binding = 12) uniform QualityParams {
+          vec4 quality;
+          vec4 quality2;
+          vec4 lutMin;
+          vec4 lutMax;
+      };
+      )_";
+
+    static const constexpr auto bake_main = R"_(
+      void main()
+      {
+          fragColor = vec4(sampleWarp(vec2(v_texcoord.x, 1.0 - v_texcoord.y)), 1.0);
+      }
+      )_";
+
+    std::tie(m_vertexS, m_fragmentS) = score::gfx::makeShaders(
+        renderer.state, mesh.defaultVertexShader(),
+        QString::fromUtf8(frag_head) + warp_glsl + frag_tail);
+    std::tie(std::ignore, m_bakeFragmentS) = score::gfx::makeShaders(
+        renderer.state, mesh.defaultVertexShader(),
+        QString::fromUtf8(bake_head) + warp_glsl + bake_main);
 
     auto& rhi = *renderer.state.rhi;
     m_mapSampler = rhi.newSampler(
@@ -864,6 +904,11 @@ public:
     }
     pw.uploadedVersions.fill(-1);
 
+    pw.bakedWarp = rhi.newTexture(QRhiTexture::RGBA32F, QSize{1, 1}, 1, QRhiTexture::RenderTarget);
+    pw.bakedWarp->setName(QByteArray("MultiWindowRenderer::bakedWarp_") + QByteArray::number(index));
+    pw.bakedWarp->create();
+    pw.bakedWarpVersion = -1;
+
     // Seed initial UBO contents if we were given a batch to piggy-back on.
     // When `res` is null (lazy build from initWindowSwapChain) we skip the
     // initial upload; renderSubRegion() re-uploads every frame anyway.
@@ -918,7 +963,8 @@ public:
           B::uniformBuffer(6, F, pw.colorUBO),
           B::sampledTexture(10, F, pw.lutTexture, m_lutSampler),
           B::sampledTexture(11, F, m_noiseTexture, m_noiseSampler),
-          B::uniformBuffer(12, F, pw.qualityUBO)};
+          B::uniformBuffer(12, F, pw.qualityUBO),
+          B::sampledTexture(17, F, pw.bakedWarp, m_warpSampler)};
       for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
         extraBindings.push_back(B::sampledTexture(
             mapBindings[m], F, pw.mapTextures[m],
@@ -930,6 +976,29 @@ public:
           pw.samplers, score::gfx::premultipliedOverBlend(),
           {extraBindings.data(), extraBindings.size()});
     }
+
+    pw.bakeRT = rhi.newTextureRenderTarget({pw.bakedWarp});
+    pw.bakeRT->setName(QByteArray("MultiWindowRenderer::bakeRT_") + QByteArray::number(index));
+    pw.bakeRP = pw.bakeRT->newCompatibleRenderPassDescriptor();
+    pw.bakeRT->setRenderPassDescriptor(pw.bakeRP);
+    pw.bakeTargetOk = pw.bakeRT->create();
+    if(pw.bakeTargetOk)
+    {
+      score::gfx::TextureRenderTarget rt;
+      rt.texture = pw.bakedWarp;
+      rt.renderTarget = pw.bakeRT;
+      rt.renderPass = pw.bakeRP;
+
+      using B = QRhiShaderResourceBinding;
+      constexpr auto F = B::FragmentStage;
+      std::vector<B> extraBindings{
+          B::sampledTexture(7, F, pw.mapTextures[MultiWindowNode::WarpSlot], m_warpSampler),
+          B::uniformBuffer(12, F, pw.qualityUBO)};
+      pw.bakePipeline = score::gfx::buildPipeline(
+          renderer, renderer.defaultTriangle(), m_vertexS, m_bakeFragmentS, rt, nullptr,
+          pw.uvRectUBO, {}, QRhiGraphicsPipeline::TargetBlend{}, {extraBindings.data(), extraBindings.size()});
+      pw.bakeTargetOk = pw.bakePipeline.pipeline != nullptr;
+    }
   }
 
   void releaseWindowPipeline(int index)
@@ -939,6 +1008,15 @@ public:
 
     auto& pw = m_perWindow[index];
     pw.pipeline.release();
+    pw.bakePipeline.release();
+    delete pw.bakeRT;
+    pw.bakeRT = nullptr;
+    delete pw.bakeRP;
+    pw.bakeRP = nullptr;
+    delete pw.bakedWarp;
+    pw.bakedWarp = nullptr;
+    pw.bakeTargetOk = false;
+    pw.bakedWarpVersion = -1;
     for(auto& s : pw.samplers)
       delete s.sampler;
     pw.samplers = {};
@@ -1090,6 +1168,24 @@ private:
     res->uploadTexture(pw.lutTexture, desc);
   }
 
+  static bool ensureBakeTarget(PerWindowData& pw, QSize sz)
+  {
+    if(pw.bakedWarp->pixelSize() == sz)
+      return true;
+    pw.bakedWarpVersion = -1;
+    pw.bakedWarp->destroy();
+    pw.bakedWarp->setPixelSize(sz);
+    if(pw.bakedWarp->create() && pw.bakeRT->create())
+      return true;
+    qWarning() << "MultiWindowNode: cannot create a" << sz << "warp bake target";
+    pw.bakeTargetOk = false;
+    pw.bakedWarp->destroy();
+    pw.bakedWarp->setPixelSize({1, 1});
+    pw.bakedWarp->create();
+    pw.bakeRT->create();
+    return false;
+  }
+
   void renderSubRegion(
       int index, score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
       QRhiResourceUpdateBatch*& res)
@@ -1115,6 +1211,15 @@ private:
       return;
 
     uploadMaps(wo, pw, renderer, res);
+
+    const QSize pixelSize = wo.swapChain->currentPixelSize();
+    const bool bicubic = wo.quality.warpInterpolation == Gfx::WarpInterpolation::Bicubic;
+    const bool useBaked = pw.mapOk[MultiWindowNode::WarpSlot] && pw.bakeTargetOk
+                          && qEnvironmentVariableIntValue("SCORE_MW_NO_WARP_BAKE") == 0
+                          && ensureBakeTarget(pw, pixelSize);
+    const bool needBake = useBaked
+                          && (pw.bakedWarpVersion != wo.mapVersions[MultiWindowNode::WarpSlot]
+                              || pw.bakedBicubic != bicubic);
 
     // Update UBOs from live data (may have changed via device parameters)
     if(pw.uvRectUBO)
@@ -1179,7 +1284,7 @@ private:
       float qualityData[16] = {
           float(sampling),
           float(std::clamp(wo.quality.maxAnisotropy, 1, 16)),
-          wo.quality.warpInterpolation == Gfx::WarpInterpolation::Bicubic ? 1.f : 0.f,
+          (bicubic ? 1.f : 0.f) + (useBaked ? 2.f : 0.f),
           float(q.ditherLevels),
           float(q.transfer),
           pw.lutOk ? 1.f : 0.f,
@@ -1199,10 +1304,23 @@ private:
       m_frame++;
     }
 
+    if(needBake)
+    {
+      cb.beginPass(pw.bakeRT, Qt::black, {1.0f, 0}, res);
+      res = nullptr;
+      cb.setGraphicsPipeline(pw.bakePipeline.pipeline);
+      cb.setShaderResources(pw.bakePipeline.srb);
+      cb.setViewport(QRhiViewport(0, 0, pixelSize.width(), pixelSize.height()));
+      renderer.defaultTriangle().draw(m_mesh, cb);
+      cb.endPass();
+      pw.bakedWarpVersion = wo.mapVersions[MultiWindowNode::WarpSlot];
+      pw.bakedBicubic = bicubic;
+    }
+
     cb.beginPass(rt, Qt::black, {0.0f, 0}, res);
     res = nullptr;
     {
-      auto sz = wo.swapChain->currentPixelSize();
+      auto sz = pixelSize;
       cb.setGraphicsPipeline(pw.pipeline.pipeline);
       cb.setShaderResources(pw.pipeline.srb);
       cb.setViewport(QRhiViewport(0, 0, sz.width(), sz.height()));
