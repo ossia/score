@@ -8,6 +8,7 @@
 #include <ossia/detail/thread_priority.hpp>
 
 #include <algorithm>
+#include <cmath>
 
 #include <wobjectimpl.h>
 
@@ -270,6 +271,8 @@ Timers::~Timers()
 
 HighResolutionTimer* Timers::acquireTimer(QObject* user, double frequencyHz)
 {
+  frequencyHz
+      = std::round(HighResolutionTimerPrivate::sanitizeFrequency(frequencyHz) * 1e6) / 1e6;
   std::lock_guard lock{m_mutex};
   if (auto it = m_timers.find(frequencyHz); it != m_timers.end())
   {
