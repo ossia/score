@@ -2372,6 +2372,16 @@ if(TARGET ossia::sdl2)
     LIBS ossia::sdl2)
 endif()
 
+# The miniaudio engine on ALSA, through ALSA's own plug-ins: headless.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  score_add_test(test_unit_miniaudio_alsa
+    SOURCES MiniAudioALSATest.cpp)
+  # As score-plugin-audio: the declarations only, the implementation is in ossia
+  target_include_directories(test_unit_miniaudio_alsa SYSTEM PRIVATE
+    "${OSSIA_3RDPARTY_FOLDER}/miniaudio")
+  set_tests_properties(test_unit_miniaudio_alsa PROPERTIES RUN_SERIAL TRUE)
+endif()
+
 # The miniaudio engine against the real CoreAudio devices: needs BlackHole,
 # skipped without it. Opens devices, so never in parallel with another.
 if(APPLE)

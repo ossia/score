@@ -6,8 +6,10 @@
 #if OSSIA_ENABLE_MINIAUDIO
 #include <Audio/GenericMiniAudioInterface.hpp>
 
+#if defined(OSSIA_MINIAUDIO_COREAUDIO_HAL)
 #include <Block.h>
 #include <CoreAudio/CoreAudio.h>
+#endif
 namespace Audio
 {
 class CoreAudioFactory final : public GenericMiniAudioFactory
@@ -18,6 +20,7 @@ public:
   {
     rescan();
 
+#if defined(OSSIA_MINIAUDIO_COREAUDIO_HAL)
     // Devices plugged, unplugged, created (aggregates) while score runs
     auto stale = m_stale;
     m_devicesChanged = Block_copy(^(UInt32, const AudioObjectPropertyAddress*) {
@@ -25,12 +28,15 @@ public:
     });
     AudioObjectAddPropertyListenerBlock(
         kAudioObjectSystemObject, &devicesAddress, nullptr, m_devicesChanged);
+#endif
   }
   ~CoreAudioFactory() override
   {
+#if defined(OSSIA_MINIAUDIO_COREAUDIO_HAL)
     AudioObjectRemovePropertyListenerBlock(
         kAudioObjectSystemObject, &devicesAddress, nullptr, m_devicesChanged);
     Block_release(m_devicesChanged);
+#endif
   }
   QString prettyName() const override { return QObject::tr("CoreAudio"); }
   bool available() const noexcept override { return true; }
@@ -57,11 +63,13 @@ public:
     return QString::fromUtf8(id.coreaudio);
   }
 
+#if defined(OSSIA_MINIAUDIO_COREAUDIO_HAL)
 private:
   static constexpr AudioObjectPropertyAddress devicesAddress{
       kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
       kAudioObjectPropertyElementMain};
   AudioObjectPropertyListenerBlock m_devicesChanged{};
+#endif
 };
 }
 #endif
