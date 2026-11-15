@@ -42,6 +42,11 @@ ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent co
 
 In order to build score, follow the [documentation](https://ossia.io/score-docs/development/build-from-source.html).
 
+Ubuntu 24.04 (Noble) CI uses GCC 14 and Clang 23 with the system Qt 6.4.
+Both jobs use LLVM/Clang 23 development packages from apt.llvm.org for the JIT
+and LLD 23 through `-fuse-ld=lld`; the unversioned linker name preserves CMake's
+multiarch Qt discovery.
+
 ## Packaging status
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/ossia-score.svg?columns=3&header=ossia-score)](https://repology.org/project/ossia-score/versions)
