@@ -308,6 +308,25 @@ void writeFlipWarp(const QString& base, int W, int H)
   REQUIRE(score::gfx::writePFM(base + ".valid.pfm", valid));
 }
 
+//! A valid warp sampling the source rectangle [u0;u1] x [v0;v1] over W x H texels.
+void writeRangeWarp(const QString& base, int W, int H, float u0, float u1, float v0, float v1)
+{
+  score::gfx::FloatImage uv;
+  uv.width = W;
+  uv.height = H;
+  uv.channels = 3;
+  uv.data.resize(std::size_t(W) * H * 3);
+  for(int y = 0; y < H; y++)
+    for(int x = 0; x < W; x++)
+    {
+      float* p = uv.row(y) + x * 3;
+      p[0] = u0 + (u1 - u0) * (x + 0.5f) / W;
+      p[1] = v0 + (v1 - v0) * (y + 0.5f) / H;
+      p[2] = 0.f;
+    }
+  REQUIRE(score::gfx::writePFM(base + ".xyz.pfm", uv));
+}
+
 void writeFile(const QString& path, const QByteArray& bytes)
 {
   QFile f{path};
@@ -374,6 +393,35 @@ TEST_CASE("multi-window warp map indexes the output pixel, like the alpha map", 
   CHECK(std::abs(f.at(0.1, 0.5)[0] - u8(0.1)) <= 8);
   CHECK(std::abs(f.at(0.6, 0.5)[0] - u8(0.6)) <= 8);
   CHECK(f.at(0.9, 0.5)[1] <= 2);
+}
+
+TEST_CASE("multi-window Auto sampling uses mips only when the warp minifies the canvas", "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  writeRangeWarp(dir.filePath("whole"), 64, 32, 0.f, 1.f, 0.f, 1.f);
+  writeRangeWarp(dir.filePath("detail"), 64, 32, 0.45f, 0.5f, 0.45f, 0.5f);
+
+  int whole = -1, detail = -1;
+  auto m = single();
+  m.maps.warp = dir.filePath("whole.xyz.pfm");
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    Frame f;
+    grab(rig, f);
+    whole = rig.node->effectiveQuality(rig.node->windowOutputs()[0]).sampling;
+    auto maps = m.maps;
+    maps.warp = dir.filePath("detail.xyz.pfm");
+    rig.node->setMaps(0, maps);
+    grab(rig, f);
+    detail = rig.node->effectiveQuality(rig.node->windowOutputs()[0]).sampling;
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  CHECK(whole == 2);
+  CHECK(detail == 0);
 }
 
 TEST_CASE("multi-window map of another size swaps in live", "[gfx][window][multiwindow][calibration]")

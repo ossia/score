@@ -1485,6 +1485,43 @@ void MultiWindowNode::setColor(int windowIndex, const Gfx::OutputColor& color)
 
 namespace
 {
+std::array<float, 2> warpStep(const FloatImage& img)
+{
+  std::array<float, 2> out{};
+  if(!img.valid() || img.channels < 4)
+    return out;
+  std::array<std::vector<float>, 2> steps;
+  const int W = img.width, H = img.height, C = img.channels;
+  auto add = [&](const float* a, const float* b) {
+    if(a[3] > 0.5f && b[3] > 0.5f)
+      for(int k = 0; k < 2; k++)
+        if(const float d = std::abs(a[k] - b[k]); std::isfinite(d))
+          steps[k].push_back(d);
+  };
+  for(int y = 0; y < H; y++)
+  {
+    const float* r = img.row(y);
+    const float* n = y + 1 < H ? img.row(y + 1) : nullptr;
+    for(int x = 0; x < W; x++)
+    {
+      if(x + 1 < W)
+        add(r + x * C, r + (x + 1) * C);
+      if(n)
+        add(r + x * C, n + x * C);
+    }
+  }
+  for(int k = 0; k < 2; k++)
+  {
+    auto& v = steps[k];
+    if(v.empty())
+      continue;
+    auto it = v.begin() + std::ptrdiff_t(0.995 * double(v.size() - 1));
+    std::nth_element(v.begin(), it, v.end());
+    out[k] = *it;
+  }
+  return out;
+}
+
 template <typename T>
 bool loaded(const T& v) noexcept
 {
@@ -1554,7 +1591,10 @@ void MultiWindowNode::loadMaps(int windowIndex, const Gfx::OutputMaps& maps)
     return [&loader, kind](const QString& p, QString& e) { return loader.map(p, kind, e); };
   };
   if(update(Warp, wo.warpMap, image(WarpMapKind::Map)))
+  {
     wo.mapVersions[WarpSlot]++;
+    wo.warpStep = wo.warpMap ? warpStep(*wo.warpMap) : std::array<float, 2>{};
+  }
   if(update(Alpha, wo.alphaMap, image(WarpMapKind::Alpha)))
     wo.mapVersions[AlphaSlot]++;
   if(update(Beta, wo.betaMap, image(WarpMapKind::Beta)))
@@ -1599,6 +1639,19 @@ void MultiWindowNode::setQuality(int windowIndex, const Gfx::OutputQuality& qual
   updateCanvasSpec();
 }
 
+bool MultiWindowNode::warpMinifies(const WindowOutput& wo) const noexcept
+{
+  if(!wo.warpMap)
+    return false;
+  QSize out{wo.warpMap->width, wo.warpMap->height};
+  if(wo.swapChain && !wo.swapChain->surfacePixelSize().isEmpty())
+    out = wo.swapChain->surfacePixelSize();
+  const double perPixel = double(wo.warpMap->width) / std::max(1, out.width());
+  const double du = wo.warpStep[0] * wo.sourceRect.width() * m_canvasSize.width();
+  const double dv = wo.warpStep[1] * wo.sourceRect.height() * m_canvasSize.height();
+  return std::hypot(du, dv) * perPixel > 1.0;
+}
+
 MultiWindowNode::EffectiveQuality
 MultiWindowNode::effectiveQuality(const WindowOutput& wo) const noexcept
 {
@@ -1606,7 +1659,12 @@ MultiWindowNode::effectiveQuality(const WindowOutput& wo) const noexcept
   switch(wo.quality.sampling)
   {
     case Gfx::OutputSampling::Auto:
-      q.sampling = (wo.warpMap || !wo.cornerWarp.isIdentity()) ? 2 : 0;
+      if(!wo.cornerWarp.isIdentity())
+        q.sampling = 2;
+      else if(wo.warpMap)
+        q.sampling = warpMinifies(wo) ? 2 : 0;
+      else
+        q.sampling = 0;
       break;
     case Gfx::OutputSampling::Linear:
       q.sampling = 0;
