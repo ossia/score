@@ -194,12 +194,14 @@ struct ArtnetSpecificSettings
     return {std::clamp(start_universe, first, last), last};
   }
 
-  //! Brings the start universe and the universe count within the transport's limits.
+  //! Brings the start universe, the universe count and the universe size within
+  //! what the transport and DMX allow.
   constexpr void clampUniverses() noexcept
   {
     const auto [first, last] = outputUniverses();
     start_universe = first;
     universe_count = std::clamp(universe_count, 1, last - first + 1);
+    channels_per_universe = std::clamp(channels_per_universe, 1, 512);
   }
 };
 }

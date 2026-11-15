@@ -69,7 +69,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   checkForChanges(m_host);
 
   m_rate = new QSpinBox{this};
-  m_rate->setRange(0, 240);
+  m_rate->setRange(1, 240);
   m_rate->setValue(44);
 
   m_universe = new QSpinBox{this};
@@ -437,9 +437,9 @@ void ArtnetProtocolSettingsWidget::updateUniverseWarning()
   for(int row = 0; row < std::ssize(m_fixtures) && row < m_fixturesWidget->rowCount(); row++)
   {
     const auto& fixt = m_fixtures[row];
-    const int64_t end = int64_t(fixt.universe) * channels_per_universe + fixt.address
-                        + std::max(usedChannels(fixt), 1) - 1;
-    const bool fits = fixt.universe >= start && end / channels_per_universe <= last;
+    const int64_t end = int64_t(std::max(fixt.universe, start)) * channels_per_universe
+                        + fixt.address + std::max(usedChannels(fixt), 1) - 1;
+    const bool fits = end / channels_per_universe <= last;
     if(auto item = m_fixturesWidget->item(row, 3))
     {
       item->setData(Qt::ForegroundRole, fits ? QVariant{} : QVariant{QColor(Qt::red)});
@@ -464,11 +464,13 @@ void ArtnetProtocolSettingsWidget::addressChanged(int row)
 {
   auto new_value = m_fixturesWidget->item(row, 2)->data(Qt::DisplayRole).toInt();
   m_fixtures[row].address = new_value - 1;
+  updateUniverseWarning();
 }
 void ArtnetProtocolSettingsWidget::universeChanged(int row)
 {
   auto new_value = m_fixturesWidget->item(row, 3)->data(Qt::DisplayRole).toInt();
   m_fixtures[row].universe = new_value;
+  updateUniverseWarning();
 }
 
 ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() { }

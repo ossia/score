@@ -2,13 +2,12 @@
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include "FixtureDialog.hpp"
 
+#include <Library/ItemModelFilterLineEdit.hpp>
 #include <Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp>
 #include <Protocols/Artnet/DMXFixtureInstantiation.hpp>
 #include <Protocols/Artnet/FixtureDatabase.hpp>
 
 #include <score/application/ApplicationContext.hpp>
-
-#include <Library/ItemModelFilterLineEdit.hpp>
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -17,6 +16,7 @@
 #include <QPlainTextEdit>
 #include <QPointer>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QTableWidget>
 #include <QTimer>
 #include <QTreeWidget>
@@ -156,12 +156,14 @@ void AddFixtureDialog::updateParameters(const FixtureNode& fixt)
 {
   m_name.setText(fixt.name);
 
-  m_mode.clear();
-  for(auto& mode : fixt.modes)
-    m_mode.addItem(mode.name);
-  m_mode.setCurrentIndex(0);
-
   m_currentFixture = &fixt;
+  {
+    const QSignalBlocker block{m_mode};
+    m_mode.clear();
+    for(auto& mode : fixt.modes)
+      m_mode.addItem(mode.name);
+    m_mode.setCurrentIndex(0);
+  }
 
   setMode(0);
 }
