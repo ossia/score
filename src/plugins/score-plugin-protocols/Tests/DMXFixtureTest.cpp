@@ -1173,7 +1173,9 @@ TEST_CASE(
   CHECK(bin.universe_count == 1);
 }
 
-TEST_CASE("Fixtures past the last universe of the device are not created", "[dmx][universe]")
+TEST_CASE(
+    "Fixtures starting past the last universe of the device are not created",
+    "[dmx][universe]")
 {
   // An Art-Net device starting at universe 32760 outputs 8 universes.
   constexpr int start = 32760;
@@ -1195,16 +1197,42 @@ TEST_CASE("Fixtures past the last universe of the device are not created", "[dmx
   CHECK(rig.node("/L") == nullptr);
   CHECK(rig.buffer.universes() == 1);
 
-  CHECK(!addArtnetFixture(rig.dev, rig.buffer, straddling, start, 512, max_universes));
-  CHECK(rig.node("/Straddling") == nullptr);
-  CHECK(rig.buffer.universes() == 1);
-
   CHECK(addArtnetFixture(rig.dev, rig.buffer, last, start, 512, max_universes));
   CHECK(rig.node("/Last") != nullptr);
   CHECK(rig.buffer.universes() == max_universes);
+
+  // A fixture that starts in the last universe exists: the part of it within
+  // that universe is output.
+  CHECK(addArtnetFixture(rig.dev, rig.buffer, straddling, start, 512, max_universes));
+  REQUIRE(rig.node("/Straddling") != nullptr);
+  auto& strip = *rig.node("/Straddling")->get_parameter();
+  strip.push_value(std::vector<ossia::value>(30, 200));
+  CHECK(rig.buffer.data[(max_universes - 1) * 512 + 505] == 200);
+  CHECK(rig.buffer.data[(max_universes - 1) * 512 + 511] == 200);
 
   std::vector<Artnet::Fixture> fixtures{far, last};
   CHECK(requiredUniverses(fixtures, start, 512, max_universes) == max_universes);
   fixtures = {far};
   CHECK(requiredUniverses(fixtures, start, 512, max_universes) == 1);
+  fixtures = {straddling};
+  CHECK(requiredUniverses(fixtures, start, 512, max_universes) == max_universes + 1);
+}
+
+TEST_CASE(
+    "An LED strip longer than a single-universe output keeps its first pixels",
+    "[dmx][universe]")
+{
+  // A DMX USB Pro outputs one universe: 200 RGB pixels need 600 channels.
+  auto strip = ledStrip(200, 3);
+  Rig rig;
+  REQUIRE(addArtnetFixture(rig.dev, rig.buffer, strip, 0, 512, 1));
+  std::vector<Artnet::Fixture> fixtures{strip};
+  CHECK(requiredUniverses(fixtures, 0, 512, 1) == 2);
+  CHECK(rig.buffer.universes() == 2);
+
+  auto node = rig.node("/" + strip.fixtureName.toStdString());
+  REQUIRE(node != nullptr);
+  node->get_parameter()->push_value(std::vector<ossia::value>(600, 77));
+  CHECK(rig.buffer.data[0] == 77);
+  CHECK(rig.buffer.data[511] == 77);
 }

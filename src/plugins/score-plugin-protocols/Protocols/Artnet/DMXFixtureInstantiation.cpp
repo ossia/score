@@ -217,15 +217,12 @@ bool addArtnetFixture(
     return false;
 
   const int64_t base = fixtureBase(fix, start_universe, channels_per_universe);
-  auto fits = [&](int64_t last_channel) {
-    return last_channel / channels_per_universe < max_universes;
-  };
+  if(base / channels_per_universe >= max_universes)
+    return false;
 
   if(fix.led)
   {
     const int64_t last = base + std::max(Artnet::usedChannels(fix), 1) - 1;
-    if(!fits(last))
-      return false;
     auto fixt_node = dev.create_child(fix.fixtureName.toStdString());
     if(!fixt_node)
       return false;
@@ -275,8 +272,6 @@ bool addArtnetFixture(
     layouts.emplace_back(&chan, layout);
   }
 
-  if(!fits(last_channel))
-    return false;
   auto fixt_node = dev.create_child(fix.fixtureName.toStdString());
   if(!fixt_node)
     return false;
@@ -305,10 +300,9 @@ int requiredUniverses(
     const int64_t size = Artnet::usedChannels(fix);
     if(fix.led && size > max_led_channels)
       continue;
-    const int64_t end = fixtureBase(fix, start_universe, channels_per_universe)
-                        + std::max<int64_t>(size, 1) - 1;
-    if(end / channels_per_universe < max_universes)
-      last = std::max(last, end);
+    const int64_t base = fixtureBase(fix, start_universe, channels_per_universe);
+    if(base / channels_per_universe < max_universes)
+      last = std::max(last, base + std::max<int64_t>(size, 1) - 1);
   }
   return int(1 + last / channels_per_universe);
 }
