@@ -1485,18 +1485,18 @@ void MultiWindowNode::setColor(int windowIndex, const Gfx::OutputColor& color)
 
 namespace
 {
-std::array<float, 2> warpStep(const FloatImage& img)
+std::array<float, 4> warpStep(const FloatImage& img)
 {
-  std::array<float, 2> out{};
+  std::array<float, 4> out{};
   if(!img.valid() || img.channels < 4)
     return out;
-  std::array<std::vector<float>, 2> steps;
+  std::array<std::vector<float>, 4> steps;
   const int W = img.width, H = img.height, C = img.channels;
-  auto add = [&](const float* a, const float* b) {
+  auto add = [&](const float* a, const float* b, int axis) {
     if(a[3] > 0.5f && b[3] > 0.5f)
       for(int k = 0; k < 2; k++)
         if(const float d = std::abs(a[k] - b[k]); std::isfinite(d))
-          steps[k].push_back(d);
+          steps[axis * 2 + k].push_back(d);
   };
   for(int y = 0; y < H; y++)
   {
@@ -1505,12 +1505,12 @@ std::array<float, 2> warpStep(const FloatImage& img)
     for(int x = 0; x < W; x++)
     {
       if(x + 1 < W)
-        add(r + x * C, r + (x + 1) * C);
+        add(r + x * C, r + (x + 1) * C, 0);
       if(n)
-        add(r + x * C, n + x * C);
+        add(r + x * C, n + x * C, 1);
     }
   }
-  for(int k = 0; k < 2; k++)
+  for(int k = 0; k < 4; k++)
   {
     auto& v = steps[k];
     if(v.empty())
@@ -1593,7 +1593,7 @@ void MultiWindowNode::loadMaps(int windowIndex, const Gfx::OutputMaps& maps)
   if(update(Warp, wo.warpMap, image(WarpMapKind::Map)))
   {
     wo.mapVersions[WarpSlot]++;
-    wo.warpStep = wo.warpMap ? warpStep(*wo.warpMap) : std::array<float, 2>{};
+    wo.warpStep = wo.warpMap ? warpStep(*wo.warpMap) : std::array<float, 4>{};
   }
   if(update(Alpha, wo.alphaMap, image(WarpMapKind::Alpha)))
     wo.mapVersions[AlphaSlot]++;
@@ -1647,9 +1647,11 @@ bool MultiWindowNode::warpMinifies(const WindowOutput& wo) const noexcept
   if(wo.swapChain && !wo.swapChain->surfacePixelSize().isEmpty())
     out = wo.swapChain->surfacePixelSize();
   const double perPixel = double(wo.warpMap->width) / std::max(1, out.width());
-  const double du = wo.warpStep[0] * wo.sourceRect.width() * m_canvasSize.width();
-  const double dv = wo.warpStep[1] * wo.sourceRect.height() * m_canvasSize.height();
-  return std::hypot(du, dv) * perPixel > 1.0;
+  const double sx = wo.sourceRect.width() * m_canvasSize.width();
+  const double sy = wo.sourceRect.height() * m_canvasSize.height();
+  const double alongX = std::hypot(wo.warpStep[0] * sx, wo.warpStep[1] * sy);
+  const double alongY = std::hypot(wo.warpStep[2] * sx, wo.warpStep[3] * sy);
+  return std::max(alongX, alongY) * perPixel > 1.5;
 }
 
 MultiWindowNode::EffectiveQuality

@@ -64,9 +64,9 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     Gfx::OutputQuality quality;
     std::shared_ptr<const CubeLut> lut;
     std::shared_ptr<const FloatImage> warpMap;
-    //! 99.5th percentile of the change in source u and v between neighbouring
-    //! valid warp-map texels.
-    std::array<float, 2> warpStep{};
+    //! 99.5th percentile of the change in source u and v between valid
+    //! warp-map texels: u, v along a row, then u, v along a column.
+    std::array<float, 4> warpStep{};
     std::shared_ptr<const FloatImage> alphaMap;
     std::shared_ptr<const FloatImage> betaMap;
     //! size x 1, rgb = projector code for linear light i / (size - 1).
