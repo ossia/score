@@ -43,7 +43,7 @@ $SUDO apt-get install -y \
      libqt6websockets6-dev \
      libqt6serialport6-dev \
      libqt6shadertools6-dev \
-     libbluetooth-dev libsdl2-dev libsdl2-2.0-0 \
+     libbluetooth-dev libudev-dev \
      libglu1-mesa-dev libglu1-mesa libgles2-mesa-dev \
      libavahi-compat-libdnssd-dev libsamplerate0-dev \
      portaudio19-dev \
@@ -52,5 +52,8 @@ $SUDO apt-get install -y \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
      file \
      dpkg-dev
+
+# SDL3 is not packaged on this release; build it from source
+source ci/sdl3.source.deps.sh
 
 source ci/common.deps.sh LINUX

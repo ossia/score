@@ -10,7 +10,6 @@ source ci/common.setup.sh
 
 export CLANG_VERSION=19
 
-# libsdl2-dev libsdl2-2.0-0
 $SUDO apt-get update -qq
 $SUDO apt-get install -qq --force-yes \
      ${PACKAGES:=} \
@@ -21,6 +20,7 @@ $SUDO apt-get install -qq --force-yes \
      clang-$CLANG_VERSION lld-$CLANG_VERSION libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev clang-tools-$CLANG_VERSION \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \
+     libsdl3-dev \
      libdrm-dev libgbm-dev \
      libdbus-1-dev \
      libx11-dev libxext-dev libxcomposite-dev libxrandr-dev \
