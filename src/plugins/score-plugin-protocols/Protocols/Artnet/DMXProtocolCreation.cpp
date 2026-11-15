@@ -38,7 +38,7 @@ std::unique_ptr<ossia::net::dmx_protocol_base> instantiateDMXProtocol(
       conf.autocreate = ossia::net::dmx_config::just_index;
     }
   }
-  conf.frequency = set.rate;
+  conf.frequency = std::max(set.rate, 1);
   conf.start_universe = set.start_universe;
   conf.universe_count = set.universe_count;
   conf.multicast = set.multicast;

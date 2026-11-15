@@ -16,6 +16,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QStyledItemDelegate>
+#include <QTableWidget>
 #include <QTimer>
 
 #include <catch2/catch_all.hpp>
@@ -271,6 +273,82 @@ TEST_CASE("Fixtures in a universe the device cannot output are pointed out", "[d
 
     Controls c{*w};
     c.transport->setCurrentIndex(DMXUSBProMk2);
+    CHECK(warning->isHidden());
+  });
+}
+
+TEST_CASE(
+    "The universe warning follows edits of the fixture table", "[dmx][gui][dmxusbpro]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto w = makeWidget(ctx);
+    auto* warning = w->findChild<QLabel*>("universeWarning");
+    auto* table = w->findChild<QTableWidget*>();
+    REQUIRE(warning);
+    REQUIRE(table);
+
+    Protocols::Artnet::Fixture first;
+    first.fixtureName = "First";
+    first.mode.channelNames = {"Dimmer"};
+    first.universe = 0;
+    Protocols::Artnet::Fixture second = first;
+    second.fixtureName = "Second";
+    second.universe = 1;
+
+    Device::DeviceSettings set;
+    set.name = "DMX";
+    set.protocol = Protocols::ArtnetProtocolFactory::static_concreteKey();
+    Protocols::ArtnetSpecificSettings in;
+    in.fixtures = {first, second};
+    in.transport = Protocols::ArtnetSpecificSettings::DMXUSBPRO;
+    set.deviceSpecificSettings = QVariant::fromValue(in);
+    w->setSettings(set);
+    REQUIRE(!warning->isHidden());
+
+    auto edit = [&](int column, int value) {
+      auto* delegate = table->itemDelegateForColumn(column);
+      REQUIRE(delegate);
+      QSpinBox editor;
+      editor.setRange(0, 100000);
+      editor.setValue(value);
+      delegate->setModelData(&editor, table->model(), table->model()->index(1, column));
+    };
+
+    // Second moves back into the only universe a DMX USB Pro outputs.
+    edit(3, 0);
+    CHECK(warning->isHidden());
+
+    // Its single channel no longer fits there at address 513.
+    edit(2, 513);
+    CHECK(!warning->isHidden());
+    edit(2, 512);
+    CHECK(warning->isHidden());
+  });
+}
+
+TEST_CASE(
+    "Fixtures below the start universe are output on it, without a warning",
+    "[dmx][gui]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto w = makeWidget(ctx);
+    auto* warning = w->findChild<QLabel*>("universeWarning");
+    REQUIRE(warning);
+
+    Protocols::Artnet::Fixture fixture;
+    fixture.fixtureName = "First";
+    fixture.mode.channelNames = {"Dimmer"};
+    fixture.universe = 0;
+
+    Device::DeviceSettings set;
+    set.name = "DMX";
+    set.protocol = Protocols::ArtnetProtocolFactory::static_concreteKey();
+    Protocols::ArtnetSpecificSettings in;
+    in.fixtures = {fixture};
+    in.transport = Protocols::ArtnetSpecificSettings::E131;
+    in.start_universe = 2;
+    set.deviceSpecificSettings = QVariant::fromValue(in);
+    w->setSettings(set);
     CHECK(warning->isHidden());
   });
 }
