@@ -3396,6 +3396,10 @@ if(TARGET score_plugin_vst3 AND TARGET base AND TARGET pluginterfaces AND UNIX A
   endforeach()
 endif()
 
+score_add_test(test_unit_timers
+  SOURCES TimersTest.cpp
+  PLUGINS score_lib_base)
+
 score_add_test(test_unit_profiler
   SOURCES ProfilerTest.cpp
   PLUGINS score_plugin_engine)
