@@ -7,6 +7,7 @@
 #include <Threedim/CalibrationFiles.hpp>
 #include <Threedim/StructuredLightCalibration.hpp>
 
+#include <QFile>
 #include <QTemporaryDir>
 
 #include <catch2/catch_approx.hpp>
@@ -254,6 +255,11 @@ TEST_CASE("Structured light: two projectors in one run, with photometric maps", 
   CHECK(c1.lum.size() == std::size_t(PW * PH * 3));
   CHECK(c2.black.size() == std::size_t(PW * PH * 3));
   CHECK(c2.hasModel());
+  REQUIRE(QFile::copy(dir.filePath("room_p1.json"), dir.filePath("alias.json")));
+  const auto c3 = Threedim::loadCalibration(dir.filePath("alias.json").toStdString());
+  REQUIRE(c3.ok());
+  CHECK(c3.black.size() == std::size_t(PW * PH * 3));
+  CHECK(c3.hasModel());
   const auto M2 = procam::fromColumnMajor(c2.pose);
   CHECK((M2.topRightCorner<3, 1>() - b.proj[1].model.position()).norm() < 0.03);
 }
