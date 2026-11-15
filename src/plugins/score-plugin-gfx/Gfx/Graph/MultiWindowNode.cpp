@@ -1983,6 +1983,52 @@ void MultiWindowNode::render()
     return;
   }
 
+  const auto windowLive = [this](int i) {
+    auto& wo = m_windowOutputs[i];
+    return wo.window && wo.swapChain && wo.hasSwapChain && wo.window->isExposed()
+           && !wo.swapChain->surfacePixelSize().isEmpty();
+  };
+
+#if defined(QRHI_HAS_FRAME_SLOT_GROUPS)
+  static const bool noSlotGroup = qEnvironmentVariableIntValue("SCORE_MW_NO_SLOT_GROUP") != 0;
+  int lastLive = -1;
+  if(!this->renderedNodes.empty() && !noSlotGroup)
+    for(int i = 0; i < (int)m_windowOutputs.size(); ++i)
+      if(windowLive(i))
+        lastLive = i;
+  const bool slotGroup = lastLive >= 0;
+  const QRhi::BeginFrameFlags windowBeginFlags
+      = slotGroup ? QRhi::ContinueFrameSlot : QRhi::BeginFrameFlags{};
+  const auto windowEndFlags = [&](int i) {
+    return slotGroup && i != lastLive ? QRhi::KeepFrameSlot : QRhi::EndFrameFlags{};
+  };
+  const QRhi::EndFrameFlags offscreenEndFlags
+      = slotGroup ? QRhi::KeepFrameSlot : QRhi::EndFrameFlags{};
+  struct SlotCloser
+  {
+    QRhi& rhi;
+    bool open{};
+    ~SlotCloser()
+    {
+      if(!open)
+        return;
+      QRhiCommandBuffer* cb{};
+      if(rhi.beginOffscreenFrame(&cb, QRhi::ContinueFrameSlot) == QRhi::FrameOpSuccess)
+        rhi.endOffscreenFrame();
+    }
+  } slot{*rhi};
+  const auto slotEnded = [&](QRhi::EndFrameFlags f) {
+    slot.open = f.testFlag(QRhi::KeepFrameSlot);
+  };
+  const auto slotLost = [&] { slot.open = false; };
+#else
+  const QRhi::BeginFrameFlags windowBeginFlags{};
+  const auto windowEndFlags = [](int) { return QRhi::EndFrameFlags{}; };
+  const QRhi::EndFrameFlags offscreenEndFlags{};
+  const auto slotEnded = [](QRhi::EndFrameFlags) { };
+  const auto slotLost = [] { };
+#endif
+
   // Step 1: render the upstream graph into the offscreen target, in a
   // frame that is not attached to any swap chain. This is what decouples
   // upstream rendering from any specific window's lifetime.
@@ -2003,9 +2049,13 @@ void MultiWindowNode::render()
       frame.commands().resourceUpdate(mipBatch);
     }
 
-    frame.end();
+    frame.end(offscreenEndFlags);
     if(checkDeviceLost(frame, *rhi, "MultiWindowNode"))
+    {
+      slotLost();
       return;
+    }
+    slotEnded(offscreenEndFlags);
   }
 
   // Step 2: for each live window, blit its sub-region in its own frame.
@@ -2028,7 +2078,7 @@ void MultiWindowNode::render()
   for(int i = 0; i < (int)m_windowOutputs.size(); ++i)
   {
     auto& wo = m_windowOutputs[i];
-    if(!wo.window || !wo.swapChain || !wo.hasSwapChain)
+    if(!windowLive(i))
       continue;
 
     // A window that is not exposed has no valid native drawable, and
@@ -2038,21 +2088,21 @@ void MultiWindowNode::render()
     // (gldUpdateReadFramebuffer, EXC_BAD_ACCESS at 0xb8). An empty surface is
     // unsafe for the same reason. This is the rule the single-window path
     // follows: ScreenNode and Window both gate on isExposed() throughout.
-    if(!wo.window->isExposed() || wo.swapChain->surfacePixelSize().isEmpty())
-      continue;
-
-    QRhi::FrameOpResult r = rhi->beginFrame(wo.swapChain);
+    QRhi::FrameOpResult r = rhi->beginFrame(wo.swapChain, windowBeginFlags);
     if(r == QRhi::FrameOpSwapChainOutOfDate)
     {
       wo.hasSwapChain = wo.swapChain->createOrResize();
       if(!wo.hasSwapChain)
         continue;
-      r = rhi->beginFrame(wo.swapChain);
+      r = rhi->beginFrame(wo.swapChain, windowBeginFlags);
     }
     if(r != QRhi::FrameOpSuccess)
     {
       if(checkDeviceLost(r, *rhi, "MultiWindowNode"))
+      {
+        slotLost();
         return;
+      }
       continue;
     }
 
@@ -2075,8 +2125,12 @@ void MultiWindowNode::render()
       guard.release();
     }
 
-    if(checkDeviceLost(rhi->endFrame(wo.swapChain), *rhi, "MultiWindowNode"))
+    if(checkDeviceLost(rhi->endFrame(wo.swapChain, windowEndFlags(i)), *rhi, "MultiWindowNode"))
+    {
+      slotLost();
       return;
+    }
+    slotEnded(windowEndFlags(i));
   }
 
   if(profiler)
