@@ -378,12 +378,15 @@ bool writeCompensation(
 CompensationMaps loadCompensation(const QString& path, QString* error)
 {
   QString base = stripSuffix(
-      path, {".comp.json", ".compoffset.pfm", ".comp0.pfm", ".comp1.pfm", ".comp2.pfm"});
+      path, {".comp.json", ".compoffset.pfm", ".comp0.pfm", ".comp1.pfm", ".comp2.pfm", ".json"});
+  const QString json = path.endsWith(QLatin1String(".json"), Qt::CaseInsensitive)
+                           ? path
+                           : base + QStringLiteral(".comp.json");
   QStringList rowFiles{
       base + QStringLiteral(".comp0.pfm"), base + QStringLiteral(".comp1.pfm"),
       base + QStringLiteral(".comp2.pfm")};
   QString offFile = base + QStringLiteral(".compoffset.pfm");
-  QFile f{base + QStringLiteral(".comp.json")};
+  QFile f{json};
   if(f.open(QIODevice::ReadOnly))
   {
     const auto o = QJsonDocument::fromJson(f.readAll()).object();

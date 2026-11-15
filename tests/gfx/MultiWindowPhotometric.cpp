@@ -207,6 +207,10 @@ TEST_CASE("multi-window radiometric compensation matrix", "[gfx][window][multiwi
   const auto back = score::gfx::loadCompensation(dir.filePath("swap.comp.json"));
   REQUIRE(back.valid());
   CHECK(back.rows[2].data[3] == 0.1f);
+  REQUIRE(QFile::copy(dir.filePath("swap.comp.json"), dir.filePath("swap.scaled.json")));
+  const auto renamed = score::gfx::loadCompensation(dir.filePath("swap.scaled.json"));
+  REQUIRE(renamed.valid());
+  CHECK(renamed.rows[2].data[3] == 0.1f);
 
   auto m = undithered();
   m.maps.compensation = dir.filePath("swap.comp.json");

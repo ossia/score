@@ -45,35 +45,44 @@ CalibrationFile loadCalibration(const std::string& path)
   CalibrationFile c;
   c.base = SaveFloatTexture::basePath(path);
   const QString qbase = QString::fromStdString(c.base);
+  QJsonObject o;
+  if(QFile f{qbase + ".json"}; f.open(QIODevice::ReadOnly))
+    o = QJsonDocument::fromJson(f.readAll()).object();
+  const QString dir = QFileInfo(qbase + ".json").absolutePath() + '/';
+  const auto listed = o["files"].toArray();
+  auto file = [&](const char* suffix) -> QString {
+    for(const auto& v : listed)
+      if(const auto name = v.toString(); name.endsWith(QLatin1String(suffix), Qt::CaseInsensitive))
+        return QFileInfo(name).isAbsolute() ? name : dir + name;
+    return qbase + suffix;
+  };
+
   QString err;
-  const auto img = score::gfx::loadFloatImageRGBA(qbase + ".xyz.pfm", &err);
+  const QString xyzFile = file(".xyz.pfm");
+  const auto img = score::gfx::loadFloatImageRGBA(xyzFile, &err);
   if(!img.valid() || img.channels != 4)
   {
-    c.error = "cannot read " + QString(qbase + ".xyz.pfm").toStdString();
+    c.error = "cannot read " + xyzFile.toStdString()
+              + (err.isEmpty() ? std::string{} : ": " + err.toStdString());
     return c;
   }
   c.width = img.width;
   c.height = img.height;
   c.xyz = img.data;
 
-  QFile f{qbase + ".json"};
-  if(f.open(QIODevice::ReadOnly))
+  c.viewerMode = o["mode"].toString() == "viewer";
+  const auto k = o["intrinsics"].toArray();
+  for(int i = 0; i < 4 && i < k.size(); i++)
+    c.intrinsics[i] = float(k[i].toDouble());
+  const auto p = o["worldFromProjector"].toArray();
+  if(p.size() == 16)
   {
-    const auto o = QJsonDocument::fromJson(f.readAll()).object();
-    c.viewerMode = o["mode"].toString() == "viewer";
-    const auto k = o["intrinsics"].toArray();
-    for(int i = 0; i < 4 && i < k.size(); i++)
-      c.intrinsics[i] = float(k[i].toDouble());
-    const auto p = o["worldFromProjector"].toArray();
-    if(p.size() == 16)
-    {
-      for(int i = 0; i < 16; i++)
-        c.pose[i] = float(p[i].toDouble());
-      c.hasPose = true;
-    }
+    for(int i = 0; i < 16; i++)
+      c.pose[i] = float(p[i].toDouble());
+    c.hasPose = true;
   }
-  c.lum = readRGB(qbase + ".lum.pfm", c.width, c.height);
-  c.black = readRGB(qbase + ".black.pfm", c.width, c.height);
+  c.lum = readRGB(file(".lum.pfm"), c.width, c.height);
+  c.black = readRGB(file(".black.pfm"), c.width, c.height);
   return c;
 }
 
