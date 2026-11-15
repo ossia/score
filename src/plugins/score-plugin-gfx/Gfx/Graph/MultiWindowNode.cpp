@@ -1531,6 +1531,49 @@ void MultiWindowNode::setColor(int windowIndex, const Gfx::OutputColor& color)
 
 namespace
 {
+std::array<float, 4> warpStep(const FloatImage& img)
+{
+  std::array<float, 4> out{};
+  if(!img.valid() || img.channels < 4)
+    return out;
+  const int W = img.width, H = img.height, C = img.channels;
+  constexpr double maxSamples = 1 << 18;
+  const int stride = std::max(1, int(std::ceil(std::sqrt(double(W) * H / maxSamples))));
+  const std::size_t expected
+      = std::size_t((W + stride - 1) / stride) * std::size_t((H + stride - 1) / stride);
+  std::array<std::vector<float>, 4> steps;
+  for(auto& v : steps)
+    v.reserve(expected);
+  auto add = [&](const float* a, const float* b, int axis) {
+    if(a[3] > 0.5f && b[3] > 0.5f)
+      for(int k = 0; k < 2; k++)
+        if(const float d = std::abs(a[k] - b[k]); std::isfinite(d))
+          steps[axis * 2 + k].push_back(d);
+  };
+  for(int y = 0; y < H; y += stride)
+  {
+    const float* r = img.row(y);
+    const float* n = y + 1 < H ? img.row(y + 1) : nullptr;
+    for(int x = 0; x < W; x += stride)
+    {
+      if(x + 1 < W)
+        add(r + x * C, r + (x + 1) * C, 0);
+      if(n)
+        add(r + x * C, n + x * C, 1);
+    }
+  }
+  for(int k = 0; k < 4; k++)
+  {
+    auto& v = steps[k];
+    if(v.empty())
+      continue;
+    auto it = v.begin() + std::ptrdiff_t(0.995 * double(v.size() - 1));
+    std::nth_element(v.begin(), it, v.end());
+    out[k] = *it;
+  }
+  return out;
+}
+
 template <typename T>
 bool loaded(const T& v) noexcept
 {
@@ -1612,7 +1655,10 @@ void loadInto(
     return [&loader, kind](const QString& p, QString& e) { return loader.map(p, kind, e); };
   };
   if(update(Warp, wo.warpMap, image(WarpMapKind::Map)))
+  {
     wo.changed[M::WarpSlot] = true;
+    wo.warpStep = wo.warpMap ? warpStep(*wo.warpMap) : std::array<float, 4>{};
+  }
   if(update(Alpha, wo.alphaMap, image(WarpMapKind::Alpha)))
   {
     wo.changed[M::AlphaSlot] = true;
@@ -1654,6 +1700,7 @@ MultiWindowNode::LoadedMaps loadedMaps(const MultiWindowNode::WindowOutput& wo)
   m.responseMap = wo.responseMap;
   m.lut = wo.lut;
   m.compensationMaps = wo.compensationMaps;
+  m.warpStep = wo.warpStep;
   m.mapStamps = wo.mapStamps;
   m.responseWithMixing = wo.responseWithMixing;
   m.alphaLinear = wo.alphaLinear;
@@ -1669,6 +1716,7 @@ void assignMaps(MultiWindowNode::WindowOutput& wo, MultiWindowNode::LoadedMaps&&
   wo.responseMap = std::move(m.responseMap);
   wo.lut = std::move(m.lut);
   wo.compensationMaps = std::move(m.compensationMaps);
+  wo.warpStep = m.warpStep;
   wo.mapStamps = std::move(m.mapStamps);
   wo.responseWithMixing = m.responseWithMixing;
   wo.alphaLinear = m.alphaLinear;
@@ -1754,6 +1802,22 @@ void MultiWindowNode::setQuality(int windowIndex, const Gfx::OutputQuality& qual
   updateCanvasSpec();
 }
 
+bool MultiWindowNode::warpMinifies(const WindowOutput& wo) const noexcept
+{
+  if(!wo.warpMap)
+    return false;
+  QSize out{wo.warpMap->width, wo.warpMap->height};
+  if(wo.swapChain && !wo.swapChain->surfacePixelSize().isEmpty())
+    out = wo.swapChain->surfacePixelSize();
+  const double perPixelX = double(wo.warpMap->width) / std::max(1, out.width());
+  const double perPixelY = double(wo.warpMap->height) / std::max(1, out.height());
+  const double sx = wo.sourceRect.width() * m_canvasSize.width();
+  const double sy = wo.sourceRect.height() * m_canvasSize.height();
+  const double alongX = std::hypot(wo.warpStep[0] * sx, wo.warpStep[1] * sy) * perPixelX;
+  const double alongY = std::hypot(wo.warpStep[2] * sx, wo.warpStep[3] * sy) * perPixelY;
+  return std::max(alongX, alongY) > 1.5;
+}
+
 MultiWindowNode::EffectiveQuality
 MultiWindowNode::effectiveQuality(const WindowOutput& wo) const noexcept
 {
@@ -1761,7 +1825,7 @@ MultiWindowNode::effectiveQuality(const WindowOutput& wo) const noexcept
   switch(wo.quality.sampling)
   {
     case Gfx::OutputSampling::Auto:
-      q.sampling = wo.warpMap ? 2 : 0;
+      q.sampling = wo.warpMap && warpMinifies(wo) ? 2 : 0;
       break;
     case Gfx::OutputSampling::Linear:
       q.sampling = 0;
