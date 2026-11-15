@@ -16,6 +16,8 @@ cmake .. \
   -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
   -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
   -DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
+  -DLLVM_DIR=/usr/lib/llvm-23/lib/cmake/llvm \
+  -DClang_DIR=/usr/lib/llvm-23/lib/cmake/clang \
   $CMAKEFLAGS
 
 cmake --build .
