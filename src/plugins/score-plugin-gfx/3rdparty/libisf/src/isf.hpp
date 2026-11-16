@@ -1132,6 +1132,7 @@ struct descriptor
     std::string type;            // "SINGLE" / "PER_MIP" / "PER_CUBE_FACE" / "PER_LAYER" / "MANUAL"
     std::string target;          // PER_MIP / PER_CUBE_FACE / PER_LAYER: OUTPUT name to iterate
     std::string count_expression; // MANUAL: integer-valued expression
+    std::string faces_expression; // PER_CUBE_FACE: bit i set draws face i (+X -X +Y -Y +Z -Z); empty draws all
   };
   raster_execution_model execution_model;
 

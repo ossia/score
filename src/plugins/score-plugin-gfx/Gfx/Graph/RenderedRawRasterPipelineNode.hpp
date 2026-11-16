@@ -10,6 +10,7 @@
 
 #include <ossia/detail/small_flat_map.hpp>
 
+#include <optional>
 #include <span>
 
 namespace score::gfx
@@ -87,6 +88,7 @@ private:
   // fast path; otherwise delegate to ossia::math_expression with '$' →
   // 'var_' rewrite — same convention as CSF STRIDE / image-size
   // expressions. Returns >= 1; unparseable expressions degrade to 1.
+  int resolveCubeFaceMask() const;
   int resolveManualInvocationCount() const;
   bool outputSizeReadsBufferSizes() const noexcept;
   //! The size OUTPUTS.WIDTH / HEIGHT declare, invalid when none does.
@@ -110,6 +112,8 @@ private:
   // scalar inputs). Used for OUTPUTS.WIDTH / HEIGHT.
   // Returns `fallback` when the expression is empty, >=1 otherwise.
   int resolveIntExpression(const std::string& expr, int fallback) const;
+  //! The value of `expr` over that variable surface; nullopt when it fails.
+  std::optional<double> evaluateExpression(const std::string& expr) const;
 
   template <typename F>
   void refreshStorageBuffers(F&& refresh);
@@ -391,6 +395,7 @@ private:
   // the target" question) and reuses the m_mipRTs vector for storage
   // — interpretation is mode-dependent (mip level vs face index).
   int m_perCubeFaceOutputIndex{-1};
+  int m_clearedFaces{0};
 
   // PerMip state. When PerMip is active the MRT target texture is
   // allocated with QRhiTexture::MipMapped and m_mipCount / m_mipRTs

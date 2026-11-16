@@ -8,6 +8,9 @@
 #include <Gfx/Graph/RhiClearBuffer.hpp>
 #include <Gfx/Graph/RenderedISFSamplerUtils.hpp>
 #include <Gfx/Graph/RenderedRawRasterPipelineNode.hpp>
+
+#include <charconv>
+#include <utility>
 #include <Gfx/Graph/SceneGPUState.hpp>
 #include <Gfx/Graph/SSBO.hpp>
 #include <Gfx/Graph/Utils.hpp>
@@ -1639,6 +1642,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       rb->deleteLater();
   }
   m_mipRTs.clear();
+  m_clearedFaces = 0;
   m_mipCount = 0;
   m_perMipViews = 1;
 
@@ -1852,6 +1856,15 @@ void RenderedRawRasterPipelineNode::initMRTPass(
         }
         ++colorIdx;
       }
+    }
+
+    if(!n.descriptor().execution_model.faces_expression.empty()
+       && m_executionMode != ExecutionMode::PerCubeFace)
+    {
+      static bool warned = false;
+      if(!std::exchange(warned, true))
+        qWarning() << "RawRaster: EXECUTION_MODEL.FACES is ignored: it only applies to "
+                      "PER_CUBE_FACE, and this pass does not run per face";
     }
 
     // PER_MIP + lowered MULTIVIEW: the view index is a uniform now, so the
@@ -3762,6 +3775,7 @@ void RenderedRawRasterPipelineNode::releaseState(RenderList& r)
       rb->deleteLater();
   }
   m_mipRTs.clear();
+  m_clearedFaces = 0;
   m_mipCount = 0;
   m_perMipViews = 1;
   m_perMipOutputIndex = -1;
@@ -5076,6 +5090,8 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
     srb->create();
     m_perInvocationSRBs.push_back(srb);
   }
+  const int faceMask
+      = m_executionMode == ExecutionMode::PerCubeFace ? resolveCubeFaceMask() : 0x3f;
   for(int i = 0; i < invocationCount; ++i)
   {
     // Stamp the per-invocation index into ProcessUBO. For PerMip this
@@ -5158,6 +5174,23 @@ void RenderedRawRasterPipelineNode::runInitialPasses(
                  << "has no render target; skipping it";
       continue;
     }
+
+    if(m_executionMode == ExecutionMode::PerCubeFace && i < 6 && !(faceMask & (1 << i)))
+    {
+      if(m_clearedFaces & (1 << i))
+      {
+        cb.resourceUpdate(invBatch);
+        continue;
+      }
+      cb.beginPass(
+          rtForPass, Qt::transparent,
+          {depthClearForCompare(this->depthCompare()), 0}, invBatch);
+      cb.endPass();
+      m_clearedFaces |= 1 << i;
+      continue;
+    }
+    if(m_executionMode == ExecutionMode::PerCubeFace && i < 6)
+      m_clearedFaces &= ~(1 << i);
 
     cb.beginPass(
         rtForPass, Qt::transparent,
@@ -5673,6 +5706,14 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
     }
   }
 
+  if(const auto v = evaluateExpression(expr))
+    return is_texture_dimension(*v) ? int(*v) : 1;
+  return fallback;
+}
+
+std::optional<double>
+RenderedRawRasterPipelineNode::evaluateExpression(const std::string& expr) const
+{
   ossia::math_expression e;
   ossia::small_pod_vector<double, 16> data;
   // ossia::math_expression::add_constant stores a double& into `data`, so the
@@ -5739,7 +5780,8 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
       return;
     if(ossia::get_if<isf::float_input>(&inp.data))
       e.add_constant("var_" + inp.name, data.emplace_back(*(float*)port->value));
-    else if(ossia::get_if<isf::long_input>(&inp.data))
+    else if(ossia::get_if<isf::long_input>(&inp.data)
+            || ossia::get_if<isf::bool_input>(&inp.data))
       e.add_constant("var_" + inp.name, data.emplace_back(*(int*)port->value));
   });
 
@@ -5831,14 +5873,11 @@ int RenderedRawRasterPipelineNode::resolveIntExpression(
   boost::algorithm::replace_all(eval_expr, "$", "var_");
   e.register_symbol_table();
   if(e.set_expression(eval_expr))
-    if(const double v = e.value(); is_texture_dimension(v))
-      return int(v);
-    else
-      return 1;
+    return e.value();
 
-  qWarning() << "RawRaster: integer expression failed:"
-             << e.error().c_str() << eval_expr.c_str();
-  return fallback;
+  qWarning() << "RawRaster: expression failed:" << e.error().c_str()
+             << eval_expr.c_str();
+  return std::nullopt;
 }
 
 static std::optional<ossia::geometry> expandPrimitives(const ossia::geometry& g)
@@ -6054,6 +6093,21 @@ bool RenderedRawRasterPipelineNode::outputSizeReadsBufferSizes() const noexcept
   return std::any_of(
       n.descriptor().outputs.begin(), n.descriptor().outputs.end(),
       [&](const auto& o) { return reads(o.width_expression) || reads(o.height_expression); });
+}
+
+int RenderedRawRasterPipelineNode::resolveCubeFaceMask() const
+{
+  const auto& expr = n.descriptor().execution_model.faces_expression;
+  if(expr.empty())
+    return 0x3f;
+  int literal{};
+  const auto* first = expr.data();
+  const auto* last = first + expr.size();
+  if(auto [ptr, ec] = std::from_chars(first, last, literal); ec == std::errc{} && ptr == last)
+    return std::clamp(literal, 0, 0x3f);
+  if(const auto v = evaluateExpression(expr); v && std::isfinite(*v))
+    return int(std::clamp(*v, 0., double(0x3f)));
+  return 0x3f;
 }
 
 int RenderedRawRasterPipelineNode::resolveManualInvocationCount() const
