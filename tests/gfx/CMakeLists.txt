@@ -1359,6 +1359,7 @@ score_add_gfx_process_test(preview_output_rebuild GfxPreviewOutputRebuild.cpp)
 # A preview reads back where an output of the patch renders its outlet, else
 # on the shared output of the previews.
 score_add_gfx_process_test(preview_hub GfxPreviewHub.cpp)
+score_add_gfx_process_test(texture_capture GfxTextureCapture.cpp)
 
 # Inserting a node into a running graph keeps the state of the nodes already
 # rendering (persistent passes, persistent storage buffers).

@@ -162,6 +162,7 @@ set(HDRS
     Gfx/Widgets/CameraPreviewWidget.hpp
     Gfx/Widgets/RhiPreviewWidget.hpp
     Gfx/Widgets/TexturePreview.hpp
+    Gfx/TextureCapture.hpp
     Gfx/Widgets/OutletPreviewLayer.hpp
 
     Gfx/GeometryFilter/Executor.hpp
@@ -491,6 +492,7 @@ set(SRCS
     Gfx/Widgets/CameraPreviewWidget.cpp
     Gfx/Widgets/RhiPreviewWidget.cpp
     Gfx/Widgets/TexturePreview.cpp
+    Gfx/TextureCapture.cpp
     Gfx/Widgets/OutletPreviewLayer.cpp
 
     Gfx/GeometryFilter/Executor.cpp
