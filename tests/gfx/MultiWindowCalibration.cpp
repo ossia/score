@@ -568,3 +568,73 @@ TEST_CASE("multi-window live settings write through and the canvas only upgrades
   CHECK(storedWarp.topLeft.x() == Approx(0.1));
   CHECK(storedBlend == 0.2f);
 }
+
+TEST_CASE(
+    "multi-window calibration override shows each window's image pixel for pixel",
+    "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.color.gain = {0.25f, 0.25f, 0.25f};
+  m.cornerWarp.bottomRight = {0.8, 0.9};
+  m.blendLeft = {0.3f, 2.2f};
+
+  auto img = std::make_shared<score::gfx::MultiWindowNode::CalibrationImage>();
+  img->width = m.windowSize.width();
+  img->height = m.windowSize.height();
+  img->rgba.resize(std::size_t(img->width) * img->height * 4);
+  for(int y = 0; y < img->height; y++)
+    for(int x = 0; x < img->width; x++)
+    {
+      uint8_t* p = &img->rgba[(std::size_t(y) * img->width + x) * 4];
+      const bool top = y < 8, left = x < img->width / 2;
+      p[0] = top ? 255 : left ? 200 : 0;
+      p[1] = top ? 0 : left ? 200 : 0;
+      p[2] = top ? 0 : left ? 200 : 0;
+      p[3] = 255;
+    }
+
+  Frame before, cal, black, normal;
+  bool ok0{}, ok1{}, ok2{}, ok3{};
+  auto o = runRig(
+      api, m,
+      [&](MultiWindowRig& rig, Outcome&) {
+    ok0 = grab(rig, before);
+    rig.node->setCalibration({img});
+    ok1 = grab(rig, cal);
+    rig.node->setCalibration({nullptr});
+    ok2 = grab(rig, black);
+    rig.node->clearCalibration();
+    ok3 = grab(rig, normal);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-y.fs"));
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok0);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  REQUIRE(ok3);
+  // The readback's row order, from the canvas through the output stage: the
+  // top of the screen is where isf-gradient-y is brightest.
+  const int cx = before.width / 2;
+  const bool topFirst = before.px(cx, 2)[1] > before.px(cx, before.height - 3)[1];
+  REQUIRE(cal.width == img->width);
+  REQUIRE(cal.height == img->height);
+  int wrong = 0;
+  for(int y = 0; y < cal.height; y++)
+    for(int x = 0; x < cal.width; x++)
+    {
+      const auto px = cal.px(x, topFirst ? y : cal.height - 1 - y);
+      const uint8_t* q = &img->rgba[(std::size_t(y) * img->width + x) * 4];
+      wrong += px[0] != q[0] || px[1] != q[1] || px[2] != q[2];
+    }
+  CHECK(wrong == 0);
+  CHECK(black.px(10, 40) == std::array<int, 3>{0, 0, 0});
+  CHECK(black.px(100, 4) == std::array<int, 3>{0, 0, 0});
+  // Back to the canvas through the output stage, as before the calibration.
+  for(int c = 0; c < 3; c++)
+    CHECK(std::abs(normal.px(cx, normal.height / 2)[c] - before.px(cx, before.height / 2)[c]) <= 2);
+  CHECK(normal.px(cx, normal.height / 2)[1] < 60);
+}
