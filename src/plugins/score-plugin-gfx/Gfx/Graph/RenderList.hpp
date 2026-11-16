@@ -13,6 +13,7 @@
 #include <array>
 #include <chrono>
 #include <memory>
+#include <optional>
 
 namespace Gfx
 {
@@ -254,9 +255,10 @@ public:
    *
    * What the node's renderer exposes for the port, else the target it renders
    * into for one of its edges, one it renders alone into if there is one.
-   * Null when there is none to sample.
+   * Null when there is none to sample. A native tap reads only the texture
+   * the renderer exposes: a target is the consumer's size, not the node's.
    */
-  QRhiTexture* previewSource(const Node& node, int port) const noexcept;
+  QRhiTexture* previewSource(const Node& node, int port, bool native = false) const noexcept;
 
   /**
    * @brief The list that reads back the previews of @p port of @p node.
@@ -265,7 +267,8 @@ public:
    * and has rendered lately (rendersLive), else the preview hub if it renders
    * the node, else none.
    */
-  static const RenderList* previewHost(const Node& node, int port) noexcept;
+  static const RenderList*
+  previewHost(const Node& node, int port, bool native = false) noexcept;
 
   //! Whether this list rendered a frame lately. A hidden window or a slow
   //! output does not: its previews move to the hub meanwhile.
@@ -719,6 +722,8 @@ private:
   };
   std::vector<RetiredPreviewReadback> m_retiredPreviewReadbacks;
   void retirePreviewTap(PreviewTapTarget& t);
+  //! Whether native taps can render into RGBA32F, checked once
+  std::optional<bool> m_floatTaps;
   std::chrono::steady_clock::time_point m_lastRender{std::chrono::steady_clock::now()};
   ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackPlaceholders;
   ossia::flat_set<const Port*> m_selfFeedbackWarned;

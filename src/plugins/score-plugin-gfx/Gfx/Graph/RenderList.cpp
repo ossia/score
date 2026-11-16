@@ -1636,7 +1636,8 @@ TextureRenderTarget RenderList::renderTargetForOutput(const Edge& edge) const no
   return {};
 }
 
-QRhiTexture* RenderList::previewSource(const Node& node, int port) const noexcept
+QRhiTexture*
+RenderList::previewSource(const Node& node, int port, bool native) const noexcept
 {
   if(port < 0 || port >= int(node.output.size()))
     return nullptr;
@@ -1648,6 +1649,8 @@ QRhiTexture* RenderList::previewSource(const Node& node, int port) const noexcep
     return nullptr;
   if(auto* tex = rn->second->textureForOutput(out))
     return tex;
+  if(native)
+    return nullptr;
 
   // A target the node renders into alone shows only it; one it shares with
   // other cables into the same inlet shows what that inlet receives
@@ -1676,7 +1679,8 @@ bool RenderList::rendersLive() const noexcept
   return std::chrono::steady_clock::now() - m_lastRender < 1s;
 }
 
-const RenderList* RenderList::previewHost(const Node& node, int port) noexcept
+const RenderList*
+RenderList::previewHost(const Node& node, int port, bool native) noexcept
 {
   const RenderList* hub{};
   for(const auto& [rl, rn] : node.renderedNodes)
@@ -1685,7 +1689,7 @@ const RenderList* RenderList::previewHost(const Node& node, int port) noexcept
       continue;
     if(!rl->output.preview)
     {
-      if(rl->rendersLive() && rl->previewSource(node, port))
+      if(rl->rendersLive() && rl->previewSource(node, port, native))
         return rl;
     }
     else if(rl->output.previewHub && !hub)
@@ -1795,10 +1799,34 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
     for(const auto& tap : node->previewTaps)
     {
       // Several lists may render the node: exactly one reads each tap back
-      if(previewHost(*node, tap->port) != this)
+      const RenderList* host = previewHost(*node, tap->port, tap->native);
+      if(host != this)
+      {
+        if(tap->native && !output.preview && (!host || host->output.preview)
+           && !previewSource(*node, tap->port, true))
+          tap->problem.store(CaptureProblem::NoOwnTexture, std::memory_order_relaxed);
         continue;
-      QRhiTexture* src = previewSource(*node, tap->port);
+      }
+      QRhiTexture* src = previewSource(*node, tap->port, tap->native);
       tap->readable = src != nullptr;
+      if(tap->native)
+      {
+        auto problem = CaptureProblem::None;
+        if(!src)
+          problem = CaptureProblem::NoOwnTexture;
+        else if(TextureShape::of(*src).kind != TextureKind::Texture2D)
+          problem = CaptureProblem::NotTexture2D;
+        else
+        {
+          if(!m_floatTaps)
+            m_floatTaps = state.rhi->isTextureFormatSupported(QRhiTexture::RGBA32F);
+          if(!*m_floatTaps)
+            problem = CaptureProblem::FloatUnsupported;
+        }
+        tap->problem.store(problem, std::memory_order_relaxed);
+        if(problem != CaptureProblem::None)
+          continue;
+      }
       if(!src || !tap->active || !tap->readback)
         continue;
 
@@ -1825,7 +1853,7 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
           = shape.kind == TextureKind::Texture2D
                 ? src->pixelSize()
                 : ShownTexture::of(shape, TextureLayout::Overview, 0., 0).size(4096);
-      QSize sz = in.scaled(tap->size, Qt::KeepAspectRatio);
+      QSize sz = tap->native ? in : in.scaled(tap->size, Qt::KeepAspectRatio);
       sz = sz.expandedTo({1, 1}).boundedTo(in.expandedTo({1, 1}));
 
       if(!res)
@@ -1838,9 +1866,17 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
       if(!t.rt.texture || t.rt.texture->pixelSize() != sz)
       {
         t.rt.release();
-        t.rt = createRenderTarget(state, QRhiTexture::RGBA8, sz, 1, false);
+        t.rt = createRenderTarget(
+            state, tap->native ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8, sz, 1, false);
         if(!t.rt.texture)
+        {
+          if(tap->native)
+          {
+            m_floatTaps = false;
+            tap->problem.store(CaptureProblem::FloatUnsupported, std::memory_order_relaxed);
+          }
           continue;
+        }
       }
       if(t.pipeline.pipeline && t.kind != shape.kind)
         t.pipeline.release();
@@ -1856,8 +1892,9 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
                 state, mesh.defaultVertexShader(), previewTapShader(shape.kind, *state.rhi));
           if(!t.sampler)
           {
+            const auto filter = tap->native ? QRhiSampler::Nearest : QRhiSampler::Linear;
             t.sampler = state.rhi->newSampler(
-                QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
+                filter, filter, QRhiSampler::None,
                 QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge,
                 QRhiSampler::ClampToEdge);
             t.sampler->setName("RenderList::previewTap");

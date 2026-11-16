@@ -278,6 +278,34 @@ int32_t GfxContext::add_preview(
   return id;
 }
 
+int32_t GfxContext::add_capture(
+    port_index producer, std::shared_ptr<QRhiReadbackResult> readback)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  const int32_t id = m_nextPreview++;
+  Preview p;
+  p.producer = producer;
+  p.readback = readback;
+  p.tap = std::make_shared<score::gfx::PreviewTap>();
+  p.tap->native = true;
+  p.tap->wanted = false;
+  p.tap->readback = std::move(readback);
+  m_previews.emplace(id, std::move(p));
+  updatePreviews();
+  return id;
+}
+
+score::gfx::CaptureProblem GfxContext::capture_problem(int32_t id) const noexcept
+{
+  auto it = m_previews.find(id);
+  if(it == m_previews.end())
+    return score::gfx::CaptureProblem::NoProducer;
+  const auto& p = it->second;
+  if(p.problem != score::gfx::CaptureProblem::None)
+    return p.problem;
+  return p.tap->problem.load(std::memory_order_relaxed);
+}
+
 void GfxContext::set_preview_producer(int32_t id, port_index producer)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
@@ -464,22 +492,27 @@ void GfxContext::updatePreviews()
       }
       // Another producer: the hub may read this one
       p.tap->readable = true;
+      p.tap->problem = score::gfx::CaptureProblem::None;
       p.hubUnreadable = false;
     }
     p.tap->port = p.producer.port;
     p.tap->size = p.size;
+    p.problem = {};
 
-    if(!node || p.producer.port < 0)
+    if(!node || p.producer.port < 0 || p.producer.port >= int(node->output.size()))
     {
       p.tap->active = false;
       leavePreviewHub(p);
       stopPreviewFallback(p);
+      if(p.tap->native)
+        p.problem = score::gfx::CaptureProblem::NoProducer;
       continue;
     }
 
     // An output of the patch that renders the producer, can read the port and
     // keeps rendering: the same list RenderList::renderPreviewTaps reads from
-    const auto* host = score::gfx::RenderList::previewHost(*node, p.producer.port);
+    const auto* host
+        = score::gfx::RenderList::previewHost(*node, p.producer.port, p.tap->native);
     const bool tapped = host && !host->output.preview;
     bool renderedLive = tapped;
     if(!renderedLive)
@@ -500,6 +533,21 @@ void GfxContext::updatePreviews()
       p.tap->active = true;
       leavePreviewHub(p);
       stopPreviewFallback(p);
+    }
+    else if(p.tap->native)
+    {
+      // Read where its own texture is: on the hub when nothing else renders
+      // it, else by the output that renders it when it publishes one there
+      stopPreviewFallback(p);
+      if(!renderedLive && joinPreviewHub(p))
+        p.tap->active = true;
+      else
+      {
+        p.tap->active = false;
+        leavePreviewHub(p);
+        if(!renderedLive)
+          p.problem = score::gfx::CaptureProblem::NoFreeInput;
+      }
     }
     else if(!renderedLive && !p.hubUnreadable && joinPreviewHub(p))
     {

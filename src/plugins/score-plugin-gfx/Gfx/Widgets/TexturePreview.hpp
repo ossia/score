@@ -8,6 +8,7 @@
 
 #include <score_plugin_gfx_export.h>
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 
@@ -40,13 +41,19 @@ public:
   //! Starts previewing `producer`, at most `size` pixels. Replaces any
   //! previous one.
   void attach(GfxContext* ctx, port_index producer, QSize size);
+  //! Starts capturing `producer`: at its own size, in RGBA32F, read back only
+  //! when request() asks (GfxContext::add_capture).
+  void attachNative(GfxContext* ctx, port_index producer);
   //! Rewires the preview to another producer, or to none.
   void setProducer(port_index producer);
   void setSize(QSize size);
   void detach();
 
   bool attached() const noexcept;
+  bool native() const noexcept { return m_native; }
   port_index producer() const noexcept { return m_producer; }
+  GfxContext* context() const noexcept;
+  int32_t id() const noexcept { return m_id; }
   //! Whether a render list of the patch reads it, rather than an output of
   //! its own.
   bool tapped() const noexcept;
@@ -57,6 +64,12 @@ public:
   //! the texture. It refers to the readback's memory: copy it to keep it past
   //! the next frame. Taking it asks for the next frame to be read back.
   QImage image() const;
+  //! The next frame of the list that reads the preview back reads it again.
+  void request() const;
+  //! The readbacks completed since attach.
+  int64_t frames() const noexcept;
+  //! What the last completed readback wrote, null when not attached.
+  const QRhiReadbackResult* readback() const noexcept { return m_readback.get(); }
 
   //! Where an image of `size` goes in `box`: as large as fits, centred.
   static QRectF fit(const QRectF& box, QSize size) noexcept
@@ -68,9 +81,13 @@ public:
   }
 
 private:
+  void makeReadback();
+
   QPointer<GfxContext> m_ctx;
   port_index m_producer{-1, -1};
   int32_t m_id{-1};
+  bool m_native{};
   std::shared_ptr<QRhiReadbackResult> m_readback;
+  std::shared_ptr<std::atomic<int64_t>> m_frames;
 };
 }
