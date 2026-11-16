@@ -1,7 +1,5 @@
 #pragma once
-#include <Gfx/Calibration/Photometric.hpp>
-#include <Gfx/Graph/PhotometricMaps.hpp>
-#include <Threedim/StructuredLight.hpp>
+#include <Threedim/StructuredLightSession.hpp>
 
 #include <halp/controls.hpp>
 #include <halp/file_port.hpp>
@@ -31,7 +29,7 @@ namespace Threedim
 // The run is timed on the wall clock, so it works while the score plays live.
 // Saving writes the map as PFM (name.xyz.pfm + name.valid.pfm) with a
 // name.json sidecar; loading one re-outputs it.
-class StructuredLightCalibration
+class StructuredLightCalibration : public StructuredLightCore
 {
 public:
   halp_meta(name, "Structured Light Calibration")
@@ -60,29 +58,6 @@ public:
       "Canvas places every projector's pattern in one image for a multi-window device.")
   halp_meta(uuid, "3f8c2a61-7d4e-4b19-9a05-c6e1d2b8f47a")
 
-  enum Mode
-  {
-    DepthCamera,
-    ViewerCamera
-  };
-  enum Surface
-  {
-    Planes,
-    SmoothMeasured,
-    RawMeasured
-  };
-  enum IntrinsicsMode
-  {
-    SolveIntrinsics,
-    LockIntrinsics,
-    LockToLoaded
-  };
-  enum IdlePattern
-  {
-    Black,
-    TestGrid,
-    White
-  };
 
   struct ins
   {
@@ -174,9 +149,10 @@ public:
     halp::toggle<"Accumulate intrinsics"> accumulate_intrinsics;
     //! Camera values are raised to this power before the photometric maps.
     halp::hslider_f32<"Camera gamma", halp::range{0.2, 4., 1.}> camera_gamma;
-    //! Projectors calibrated one after the other in one run, each on its own
-    //! pattern outlet (Pattern, Pattern 2, ...), the others black.
-    halp::spinbox_i32<"Projector count", halp::irange{1, 4, 1}> projector_count;
+    //! Projectors calibrated one after the other in one run, the others black:
+    //! the first four on their own pattern outlet (Pattern, Pattern 2, ...),
+    //! every one in its Canvas rect.
+    halp::spinbox_i32<"Projector count", halp::irange{1, 16, 1}> projector_count;
     //! Uniform levels per channel (red, green, blue, grey) after the Gray
     //! code, for the projector response; 0 = off.
     halp::spinbox_i32<"Response levels", halp::irange{0, 64, 0}> response_levels;
@@ -254,136 +230,6 @@ public:
     halp::val_port<"Measured gamma", std::array<float, 3>> measured_gamma;
   } outputs;
 
-  //! What a run (or a loaded file) produced.
-  struct Result
-  {
-    bool ok{};
-    std::string status;
-    int width{}, height{};
-    std::vector<float> xyz;
-    int camWidth{}, camHeight{};
-    std::vector<uint8_t> decoded;
-    std::array<float, 4> intrinsics{};
-    std::array<float, 16> pose{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-    float rms{};
-    float coverage{};
-    int mode{};
-    //! n.xyz, d with n . p + d = 0, as ParametricSurface takes them.
-    std::vector<std::array<float, 4>> planes;
-    //! Per camera pixel.
-    std::vector<sl::DecodedPixel> pixels;
-    //! RGBA per projector pixel, w = valid; empty without RGB frames.
-    std::vector<float> lum, black;
-    float cameraGamma{1.f};
-    int projectorIndex{};
-    std::shared_ptr<const score::gfx::photometric::CameraResponse> crf;
-    std::vector<float> crfExposures;
-    std::optional<score::gfx::ProjectorResponseFile> response;
-    //! Per projector pixel: V^-1 (9, row major), identity where unmeasured.
-    std::vector<float> compInverse;
-    //! Per projector pixel: black / ambient (3), linear camera units.
-    std::vector<float> compBlack;
-    std::vector<uint8_t> compValid;
-    //! Per projector pixel: the largest white s M (1, 1, 1) it can show; 0 where invalid.
-    std::vector<float> compWhite;
-    //! The target white's chroma folded into M, max component 1.
-    std::array<double, 3> compTarget{1., 1., 1.};
-    //! Largest white the given fraction of the pixels reaches.
-    float compScale{};
-    float compGamut{0.85f}, compStrength{1.f}, compGradient{};
-    bool compBlackOn{};
-    sl::GraySequence seq;
-    float phaseValid{};
-    float ransac{};
-    int intrinsicsMode{};
-    bool intrinsicsLocked{};
-    bool fromFile{};
-  };
-
-  enum ExtraKind
-  {
-    RampFrame,
-    PrimaryFrame,
-    CrfFrame,
-    MixFrame,
-    GridFrame
-  };
-  //! A uniform frame after the Gray code.
-  struct Extra
-  {
-    std::array<float, 3> rgb{};
-    //! Sent on Camera exposure before the frame; 0 = unchanged.
-    float exposure{};
-    int kind{};
-    //! 0 red, 1 green, 2 blue, 3 grey.
-    int channel{};
-    //! Kept at full resolution, else every `stride` pixel in x and y.
-    bool full{};
-    std::vector<float> rgbCapture;
-  };
-
-  struct Job
-  {
-    std::shared_ptr<const std::atomic_bool> cancel;
-    sl::Decoder decoder;
-    sl::GraySequence seq;
-    std::vector<float> positions;
-    std::vector<int> positionCount;
-    std::vector<float> zMin, zMax;
-    int positionFrames{};
-    std::array<float, 16> worldFromCamera{};
-    std::array<float, 4> cameraIntrinsics{};
-    int mode{};
-    float minSignal{}, depthJump{}, ransac{}, planeThreshold{0.02f};
-    float phaseMinModulation{0.1f};
-    float whiteMax{1.f};
-    int intrinsicsMode{};
-    bool lockK{};
-    std::array<float, 4> lockedK{};
-    std::string kNote;
-    int minBits{}, holeRadius{}, surface{}, maxPlanes{2};
-    //! RGB per camera pixel of the white and black frames.
-    std::vector<float> whiteRGB, blackRGB;
-    float cameraGamma{1.f};
-    int projectorIndex{};
-    std::vector<Extra> extras;
-    int extraStride{4};
-    int mixLevels{};
-    std::shared_ptr<const score::gfx::photometric::CameraResponse> crf;
-    //! A camera response was recovered but rejected as implausible.
-    bool crfRejected{};
-    float compGamut{0.85f}, compStrength{1.f}, compGradient{};
-    bool compBlack{};
-  };
-
-  //! The frames after the Gray code of a run for projector `index`.
-  static std::vector<Extra> makeExtras(
-      int responseLevels, bool compensation, const std::vector<float>& exposures,
-      int index, int mixLevels = 0);
-  //! Camera response from the CrfFrame extras (grey levels at each exposure).
-  static std::shared_ptr<score::gfx::photometric::CameraResponse>
-  solveCameraResponse(const Job& job, double lambda = 50.);
-  static bool saveCameraResponse(
-      const std::string& path, const score::gfx::photometric::CameraResponse& crf,
-      const std::vector<float>& exposures);
-  static std::shared_ptr<score::gfx::photometric::CameraResponse>
-  loadCameraResponse(const std::string& path);
-  //! The compensation matrices of r at its scale, strength and black option.
-  static score::gfx::CompensationMaps compensationMaps(const Result& r);
-  //! Per projector pixel, the white scale applied by compensationMaps.
-  static std::vector<float> compensationScale(const Result& r);
-  //! Runs compute on every job, the camera response solved once from the
-  //! first, the compensation brought to one common target.
-  static std::vector<Result> computeAll(std::vector<Job> jobs);
-  //! "x y w h;..." -> one normalised rect per projector; side by side when empty.
-  static std::vector<std::array<float, 4>> canvasRects(const std::string& layout, int count);
-
-  static Result compute(Job job);
-  static bool saveFile(const std::string& path, const Result& r);
-  //! `name` for one projector, `name_pN` for projector N > 0 of a multi-projector run.
-  static std::string projectorPath(const std::string& path, int index, int count);
-  static Result loadFile(const std::string& path);
-
   //! The process instance: one object per render list exists for it (one per
   //! output device), and only one of them may drive the projector and camera.
   struct setup
@@ -400,91 +246,37 @@ public:
   void operator()();
   //! One step of the state machine at wall-clock time nowMs.
   void tick(double nowMs);
-  bool running() const noexcept { return m_phase != Phase::Idle; }
-  const Result* lastResult() const noexcept { return m_result.get(); }
+  bool running() const noexcept { return m_session.running(); }
+  const Result* lastResult() const noexcept
+  {
+    const auto& r = m_session.results();
+    return r.empty() ? nullptr : r[0].get();
+  }
 
 private:
-  enum class Phase
-  {
-    Idle,
-    Settling,
-    Capturing,
-    Computing
-  };
-  void showPattern(int k);
-  void finishProjector(double now);
-  template <typename F>
-  void withPatternPort(int projector, F&& f)
-  {
-    switch(projector)
-    {
-      case 1:
-        f(outputs.pattern2);
-        break;
-      case 2:
-        f(outputs.pattern3);
-        break;
-      case 3:
-        f(outputs.pattern4);
-        break;
-      default:
-        f(outputs.pattern);
-        break;
-    }
-  }
-  void blankOthers(int projector);
-  void showFrame(int k);
-  void saveAll();
-  int frameCount() const noexcept { return m_seq.count() + int(m_extras.size()); }
-  int m_framesBefore{}, m_framesTotal{1};
-  void updateCanvas();
-  void showIdle();
-  void publish(const Result& r);
-  void cancelComputation() noexcept;
-  void stop(const std::string& status);
-  bool captureFrame();
   void mirror();
-  void resolveIntrinsics(Job& job) const;
-  std::array<float, 4> m_loadedK{};
-  std::array<float, 4> m_lastSolvedK{};
-  std::vector<std::array<float, 4>> m_solvedKs;
+  void publish(const Result& r);
+  void syncPorts();
+  void updateCanvas();
+  void writeEvents(const StructuredLightSession::Events& ev);
+  StructuredLightSession::Settings settings() const;
 
   std::shared_ptr<Shared> m_shared;
   int m_seenResult{};
-
-  Phase m_phase{Phase::Idle};
-  sl::GraySequence m_seq;
-  Job m_job;
-  int m_k{};
-  double m_shownAt{};
-  double m_lastFrameAt{-1e9};
-  int m_framesTaken{};
-  std::vector<float> m_frameSum;
-  int m_camW{}, m_camH{};
-  std::future<std::vector<Result>> m_future;
-  std::shared_ptr<std::atomic_bool> m_cancel;
-  std::shared_ptr<const Result> m_result;
-  std::vector<std::shared_ptr<const Result>> m_results;
-  std::vector<Job> m_pendingJobs;
-  std::vector<float> m_rgbSum;
-  int m_projector{};
-  int m_projectors{1};
+  int m_published{};
+  StructuredLightSession m_session;
   std::shared_ptr<Result> m_loaded;
 
-  std::vector<Extra> m_extras;
-  std::vector<std::array<float, 3>> m_extraColors;
-  float m_exposureSent{};
-  double m_settleMs{};
-  std::shared_ptr<const score::gfx::photometric::CameraResponse> m_loadedCrf;
-  std::string m_crfFileLoaded;
-  bool m_canvasDirty{true};
-  int m_canvasW{}, m_canvasH{};
+  struct PortState
+  {
+    int kind{-1};
+    int version{};
+    int width{}, height{};
+  };
+  PortState m_ports[4];
+  int m_canvasVersion{-1};
+  int m_canvasW{}, m_canvasH{}, m_canvasCount{};
   std::string m_canvasLayout;
   int m_seenExposure{}, m_seenAuto{};
-
-  int m_shown{-2};
-  int m_shownIdle{-1};
-  float m_shownLevel{-1.f};
-  int m_shownW{}, m_shownH{};
 };
 }

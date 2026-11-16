@@ -52,6 +52,23 @@ TEST_CASE("Calibration plan of a multi-window device", "[calibrationwizard]")
   CHECK(planCalibration(single, "/x").projectors == 0);
 }
 
+TEST_CASE("Calibration plan of six outputs runs them all", "[calibrationwizard]")
+{
+  Gfx::WindowSettings ws;
+  ws.mode = Gfx::WindowMode::MultiWindow;
+  ws.inputWidth = 11520;
+  ws.inputHeight = 1080;
+  for(int i = 0; i < 6; i++)
+    ws.outputs.push_back(output({i / 6., 0, 1. / 6., 1}, {1920, 1080}));
+  const auto p = planCalibration(ws, "/cal/cave");
+  CHECK(p.projectors == 6);
+  CHECK(p.names.size() == 6);
+  CHECK(p.names.back() == "/cal/cave_p5");
+  CHECK(p.canvasLayout.split(';').size() == 6);
+  INFO(p.warnings.join(" | ").toStdString());
+  CHECK(p.warnings.isEmpty());
+}
+
 TEST_CASE("The wizard bypasses the output stage and assigns the calibration", "[calibrationwizard]")
 {
   QTemporaryDir dir;

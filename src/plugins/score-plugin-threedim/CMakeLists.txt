@@ -103,6 +103,9 @@ add_library(
   Threedim/StructuredLight.cpp
   Threedim/StructuredLightCalibration.hpp
   Threedim/StructuredLightCalibration.cpp
+  Threedim/StructuredLightCore.hpp
+  Threedim/StructuredLightSession.hpp
+  Threedim/StructuredLightSession.cpp
   Threedim/CalibrationFiles.hpp
   Threedim/CalibrationFiles.cpp
   Threedim/ProjectorBlend.hpp

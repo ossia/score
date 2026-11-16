@@ -36,10 +36,10 @@ CalibrationPlan planCalibration(
     p.warnings.push_back(QObject::tr("the device is not a multi-window device with outputs"));
     return p;
   }
-  p.projectors = std::min<int>(int(outs.size()), 4);
-  if(outs.size() > 4)
+  p.projectors = std::min<int>(int(outs.size()), 16);
+  if(outs.size() > 16)
     p.warnings.push_back(
-        QObject::tr("Structured Light Calibration takes 4 projectors: outputs 5 and "
+        QObject::tr("Structured Light Calibration takes 16 projectors: outputs 17 and "
                     "later are left out"));
   p.projectorSize = outs[0].windowSize;
   p.canvasSize = QSize(std::max(1, ws.inputWidth), std::max(1, ws.inputHeight));

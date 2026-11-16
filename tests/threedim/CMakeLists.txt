@@ -600,6 +600,7 @@ score_add_test(test_threedim_structured_light
   SOURCES StructuredLightCalibration.cpp
     "${THREEDIM_DIR}/StructuredLight.cpp"
     "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
     "${THREEDIM_DIR}/FloatTextureIO.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_structured_light)
@@ -609,15 +610,27 @@ score_add_test(test_threedim_structured_light_phase
   SOURCES StructuredLightPhase.cpp
     "${THREEDIM_DIR}/StructuredLight.cpp"
     "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
     "${THREEDIM_DIR}/FloatTextureIO.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_structured_light_phase)
+
+# StructuredLightSession on its own: six projectors in one run, no process.
+score_add_test(test_threedim_structured_light_session
+  SOURCES StructuredLightSession.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_session)
 
 # Structured light with two projectors in one run, and the photometric maps.
 score_add_test(test_threedim_structured_light_multi
   SOURCES StructuredLightMulti.cpp
     "${THREEDIM_DIR}/StructuredLight.cpp"
     "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
     "${THREEDIM_DIR}/CalibrationFiles.cpp"
     "${THREEDIM_DIR}/FloatTextureIO.cpp"
   PLUGINS score_plugin_gfx)
@@ -640,6 +653,7 @@ score_add_test(test_threedim_structured_light_photometric
   SOURCES StructuredLightPhotometric.cpp
     "${THREEDIM_DIR}/StructuredLight.cpp"
     "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
     "${THREEDIM_DIR}/FloatTextureIO.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_structured_light_photometric)
