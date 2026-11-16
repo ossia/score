@@ -12,7 +12,7 @@
 // calloc'd descriptor the caller must either free() or hand to
 // av_buffer_create with a release callback (see wrapDescriptorAsDrmPrime).
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
 
 extern "C" {
 #include <libavutil/buffer.h>

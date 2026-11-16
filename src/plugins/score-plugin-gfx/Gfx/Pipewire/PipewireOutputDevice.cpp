@@ -56,7 +56,7 @@
 #include <Gfx/InvertYRenderer.hpp>
 #include <Gfx/SharedOutputSettings.hpp>
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
 #include <Gfx/Graph/interop/EglDmaBufExport.hpp>
 #include <Gfx/Graph/interop/EglDmaBufImport.hpp>
 #include <Gfx/Graph/interop/VkExternalMemoryHelpers.hpp>
@@ -101,7 +101,7 @@
 #include <memory>
 #include <unordered_map>
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
 #include <unistd.h> // close()
 #endif
 
