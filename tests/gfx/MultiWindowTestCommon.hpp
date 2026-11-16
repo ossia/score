@@ -9,6 +9,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <functional>
 #include <array>
 #include <cmath>
 
@@ -18,7 +19,12 @@ struct Frame
 {
   int width{}, height{};
   bool bgra{};
+  //! The readback's first row is the bottom of the window.
+  bool yUp{};
   QByteArray data;
+
+  //! RGB of the pixel at (x, y), y = 0 at the top of the window.
+  std::array<int, 3> top(int x, int y) const { return px(x, yUp ? height - 1 - y : y); }
 
   std::array<int, 3> px(int x, int y) const
   {
@@ -61,11 +67,11 @@ inline void setMaps(MultiWindowRig& rig, int window, const Gfx::OutputMaps& maps
   REQUIRE(pump_until([&] { return !rig.node->mapsLoading(); }, 10000));
 }
 
-inline bool grab(MultiWindowRig& rig, Frame& out)
+inline bool grab(MultiWindowRig& rig, Frame& out, int window = 0)
 {
   rig.render(3);
-  rig.node->requestReadback(0);
-  const auto& rb = rig.node->windowOutputs()[0].readback;
+  rig.node->requestReadback(window);
+  const auto& rb = rig.node->windowOutputs()[window].readback;
   for(int i = 0; i < 30 && rb->data.isEmpty(); i++)
     rig.render(1);
   if(rb->data.isEmpty())
@@ -73,6 +79,7 @@ inline bool grab(MultiWindowRig& rig, Frame& out)
   out.width = rb->pixelSize.width();
   out.height = rb->pixelSize.height();
   out.bgra = rb->format == QRhiTexture::BGRA8;
+  out.yUp = rig.node->renderState()->rhi->isYUpInFramebuffer();
   out.data = rb->data;
   return out.data.size() >= out.width * out.height * 4;
 }
@@ -94,13 +101,15 @@ inline void writeGrey(const QString& path, int w, int h, float v)
 
 template <typename F>
 Outcome runRig(
-    score::gfx::GraphicsApi api, Gfx::OutputMapping mapping, F&& body,
-    const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"))
+    score::gfx::GraphicsApi api, std::vector<Gfx::OutputMapping> mappings, F&& body,
+    const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+    std::function<void(score::gfx::MultiWindowNode&)> beforeCreate = {})
 {
   Outcome o;
   run_in_gui_app([&](const score::GUIApplicationContext&) {
     MultiWindowRig rig;
-    if(!rig.build(api, {mapping}, shader))
+    rig.beforeCreate = std::move(beforeCreate);
+    if(!rig.build(api, mappings, shader))
     {
       o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
       return;
@@ -109,5 +118,16 @@ Outcome runRig(
     body(rig, o);
   });
   return o;
+}
+
+template <typename F>
+Outcome runRig(
+    score::gfx::GraphicsApi api, Gfx::OutputMapping mapping, F&& body,
+    const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+    std::function<void(score::gfx::MultiWindowNode&)> beforeCreate = {})
+{
+  return runRig(
+      api, std::vector<Gfx::OutputMapping>{mapping}, std::forward<F>(body), shader,
+      std::move(beforeCreate));
 }
 }

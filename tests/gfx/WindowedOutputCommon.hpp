@@ -27,6 +27,8 @@
 #include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QScreen>
+
+#include <functional>
 #include <QThread>
 
 #include <catch2/catch_tostring.hpp>
@@ -466,6 +468,8 @@ struct MultiWindowRig
         mappings, canvasSize);
     node->nodeId = 2;
     node->setReadbackSupport(true);
+    if(beforeCreate)
+      beforeCreate(*node);
     node->onFps = [this](float f) { ++fpsCount; };
     node->onWindowsCreated = [this] { ++windowsCreatedCount; };
 
@@ -537,6 +541,8 @@ struct MultiWindowRig
 
   int fpsCount{};
   int windowsCreatedCount{};
+  //! Called on the node before the graph creates its output.
+  std::function<void(score::gfx::MultiWindowNode&)> beforeCreate;
 
   std::unique_ptr<score::gfx::ISFNode> src;
   std::unique_ptr<score::gfx::MultiWindowNode> node;

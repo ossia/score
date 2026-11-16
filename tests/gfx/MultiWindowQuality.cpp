@@ -12,6 +12,8 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <QFile>
+#include <QGenericMatrix>
+#include <QQuaternion>
 #include <QTemporaryDir>
 
 #include <catch2/catch_test_macros.hpp>
@@ -438,4 +440,209 @@ TEST_CASE("multi-window Auto sampling keeps a corner warp linear", "[gfx][window
   const double sd = std::sqrt(std::max(0., sum2 / n - mean * mean));
   INFO("mean " << mean << " sd " << sd);
   CHECK(sd > 20.);
+}
+
+TEST_CASE("multi-window equirectangular canvas orientation", "[gfx][window][multiwindow][canvas]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.windowSize = {128, 64};
+  Frame plain, yawed, ignored;
+  bool ok1{}, ok2{}, ok3{};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    ok1 = grab(rig, plain);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {0.f, 90.f, 0.f}});
+    ok2 = grab(rig, yawed);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::None, {0.f, 90.f, 0.f}});
+    ok3 = grab(rig, ignored);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  REQUIRE(ok3);
+  // Yaw +90 turns -Z towards -X: the output at longitude u shows u - 0.25.
+  for(double fx : {0.125, 0.375, 0.5, 0.625, 0.875})
+  {
+    const double want = std::fmod(fx - 0.25 + 1.0, 1.0);
+    INFO("fx " << fx);
+    CHECK(std::abs(plain.at(fx, 0.5)[0] - u8(fx)) <= 3);
+    CHECK(std::abs(yawed.at(fx, 0.5)[0] - u8(want)) <= 3);
+    CHECK(std::abs(ignored.at(fx, 0.5)[0] - u8(fx)) <= 3);
+  }
+}
+
+TEST_CASE("multi-window equirectangular canvas pitch looks up", "[gfx][window][multiwindow][canvas]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.windowSize = {128, 64};
+  Frame up, down;
+  bool ok1{}, ok2{};
+  auto o = runRig(
+      api, m,
+      [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {45.f, 0.f, 0.f}});
+    ok1 = grab(rig, up);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {-45.f, 0.f, 0.f}});
+    ok2 = grab(rig, down);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-y.fs"));
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  // Straight ahead (-Z, horizon) shows latitude +45 or -45: green 0.75 or 0.25.
+  const int g1 = up.at(0.5, 0.5)[1];
+  const int g2 = down.at(0.5, 0.5)[1];
+  INFO("up " << g1 << " down " << g2);
+  CHECK(std::abs(g1 - u8(0.75)) <= 4);
+  CHECK(std::abs(g2 - u8(0.25)) <= 4);
+}
+
+namespace
+{
+//! W x H texels, u = fract((x + 0.5) / W + 0.5), v = (y + 0.5) / H: the
+//! equirectangular seam lies between texels W / 2 - 1 and W / 2.
+void writeSeamWarp(const QString& base, int W, int H)
+{
+  score::gfx::FloatImage uv;
+  uv.width = W;
+  uv.height = H;
+  uv.channels = 3;
+  uv.data.resize(std::size_t(W) * H * 3);
+  for(int y = 0; y < H; y++)
+    for(int x = 0; x < W; x++)
+    {
+      float* p = uv.row(y) + x * 3;
+      const float u = (x + 0.5f) / W + 0.5f;
+      p[0] = u - std::floor(u);
+      p[1] = (y + 0.5f) / H;
+      p[2] = 0.f;
+    }
+  REQUIRE(score::gfx::writePFM(base + ".xyz.pfm", uv));
+}
+}
+
+TEST_CASE("multi-window warp map across the equirectangular seam", "[gfx][window][multiwindow][canvas][warp]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  const auto interp = GENERATE(Gfx::WarpInterpolation::Bilinear, Gfx::WarpInterpolation::Bicubic);
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  writeSeamWarp(dir.filePath("seam"), 16, 8);
+  auto m = single();
+  m.maps.warp = dir.filePath("seam.xyz.pfm");
+  m.quality.warpInterpolation = interp;
+  m.quality.sampling = Gfx::OutputSampling::Linear;
+  Frame f;
+  bool ok{};
+  auto o = runRig(
+      api, m,
+      [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular});
+    ok = grab(rig, f);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-periodic-x.fs"));
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend << ", bicubic " << (interp == Gfx::WarpInterpolation::Bicubic));
+  REQUIRE(ok);
+  // Between the texel centres either side of the seam the warp reads u = 0.97
+  // .. 1.03, where the content is bright: blending 0.97 with 0.03 as numbers
+  // would go through u = 0.5, its darkest point.
+  int darkest = 255;
+  for(int x = f.width / 2 - f.width / 16; x <= f.width / 2 + f.width / 16; x++)
+    darkest = std::min(darkest, f.px(x, f.height / 2)[0]);
+  INFO("darkest red at the seam " << darkest);
+  CHECK(darkest > 230);
+}
+
+TEST_CASE("multi-window equirectangular canvas wraps across its seam", "[gfx][window][multiwindow][canvas]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.windowSize = {128, 64};
+  m.quality.sampling = Gfx::OutputSampling::Mipmapped;
+  Frame f;
+  bool ok{};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout(
+        {Gfx::CanvasProjection::Equirectangular, {0.f, 180.f + 360.f / 256.f, 0.f}});
+    ok = grab(rig, f);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok);
+  // Yaw 180 and half a pixel puts the canvas's right edge (red 1) and left edge
+  // (red 0) on either side of the centre of pixel 64; its footprint takes both.
+  const int y = f.height / 2;
+  CHECK(f.px(f.width / 2 - 8, y)[0] > 200);
+  CHECK(f.px(f.width / 2 + 8, y)[0] < 55);
+  bool blended = false;
+  for(int x = f.width / 2 - 3; x <= f.width / 2 + 3; x++)
+  {
+    const int r = f.px(x, y)[0];
+    UNSCOPED_INFO("x " << x << " red " << r);
+    blended = blended || (r > 60 && r < 195);
+  }
+  CHECK(blended);
+}
+
+TEST_CASE("multi-window equirectangular orientation: pitch, yaw and roll together", "[gfx][window][multiwindow][canvas]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.windowSize = {128, 64};
+  const std::array<float, 3> euler{20.f, 35.f, -15.f};
+  Frame u, v;
+  bool ok1{}, ok2{};
+  auto layout = Gfx::CanvasLayout{Gfx::CanvasProjection::Equirectangular, euler};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout(layout);
+    ok1 = grab(rig, u);
+  });
+  auto o2 = runRig(
+      api, m,
+      [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout(layout);
+    ok2 = grab(rig, v);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-y.fs"));
+  if(o.skipped || o2.skipped)
+    SKIP(o.backend << ": " << o.skipReason << o2.skipReason);
+  REQUIRE(o.error.empty());
+  REQUIRE(o2.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  const QMatrix3x3 R
+      = QQuaternion::fromEulerAngles(euler[0], euler[1], euler[2]).toRotationMatrix();
+  int checked = 0;
+  for(int py = 8; py < u.height; py += 16)
+    for(int px = 8; px < u.width; px += 16)
+    {
+      const double fx = (px + 0.5) / u.width, fy = (py + 0.5) / u.height;
+      const double lon = (fx - 0.5) * 2. * M_PI, lat = (0.5 - fy) * M_PI;
+      const double d[3]{std::sin(lon) * std::cos(lat), std::sin(lat), -std::cos(lon) * std::cos(lat)};
+      double r[3];
+      for(int k = 0; k < 3; k++)
+        r[k] = R(k, 0) * d[0] + R(k, 1) * d[1] + R(k, 2) * d[2];
+      const double cu = std::atan2(r[0], -r[2]) / (2. * M_PI) + 0.5;
+      const double cv = 0.5 - std::asin(std::clamp(r[1], -1., 1.)) / M_PI;
+      if(cu < 0.05 || cu > 0.95)
+        continue;
+      INFO("pixel " << px << "," << py << " expects u " << cu << " v " << cv);
+      CHECK(std::abs(u.top(px, py)[0] - u8(cu)) <= 6);
+      CHECK(std::abs(v.top(px, py)[1] - u8(1. - cv)) <= 6);
+      checked++;
+    }
+  CHECK(checked > 16);
 }

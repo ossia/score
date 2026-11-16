@@ -17,6 +17,8 @@
 #include <score/tools/ProjectFiles.hpp>
 
 #include <QApplication>
+
+#include <cmath>
 #include <QFileDialog>
 #include <QSplitter>
 
@@ -118,6 +120,35 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
       resLayout->addWidget(m_inputWidth);
       resLayout->addWidget(m_inputHeight);
       globalLayout->addRow(tr("Resolution"), resLayout);
+
+      m_canvasProjection = new QComboBox;
+      m_canvasProjection->addItem(tr("None"));
+      m_canvasProjection->addItem(tr("Equirectangular"));
+      m_canvasProjection->setToolTip(
+          tr("Equirectangular: the canvas is a 360° image (longitude 0 at -Z, +Y up), "
+             "and the orientation turns it in every output's lookup"));
+      globalLayout->addRow(tr("Canvas projection"), m_canvasProjection);
+      auto* orientLayout = new QHBoxLayout;
+      const QString axes[3]{tr("Pitch"), tr("Yaw"), tr("Roll")};
+      for(int i = 0; i < 3; i++)
+      {
+        auto* sb = new QDoubleSpinBox;
+        sb->setRange(-180., 180.);
+        sb->setWrapping(true);
+        sb->setDecimals(2);
+        sb->setSuffix(QStringLiteral("°"));
+        sb->setToolTip(axes[i]);
+        sb->setEnabled(false);
+        m_canvasOrientation[i] = sb;
+        orientLayout->addWidget(sb);
+      }
+      globalLayout->addRow(tr("Canvas orientation"), orientLayout);
+      connect(
+          m_canvasProjection, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          [this](int idx) {
+        for(auto* sb : m_canvasOrientation)
+          sb->setEnabled(idx == 1);
+      });
 
       static int s_lastPreviewContent = 0;
       m_previewContentCombo = new QComboBox;
@@ -1518,6 +1549,14 @@ Device::DeviceSettings WindowSettingsWidget::getSettings() const
     set.inputWidth = m_inputWidth->value();
     set.inputHeight = m_inputHeight->value();
   }
+  if(m_canvasProjection)
+  {
+    set.canvas.projection = m_canvasProjection->currentIndex() == 1
+                                ? CanvasProjection::Equirectangular
+                                : CanvasProjection::None;
+    for(int i = 0; i < 3; i++)
+      set.canvas.orientation[i] = float(m_canvasOrientation[i]->value());
+  }
 
   s.deviceSpecificSettings = QVariant::fromValue(set);
   return s;
@@ -1538,6 +1577,12 @@ void WindowSettingsWidget::setSettings(const Device::DeviceSettings& settings)
     {
       m_inputWidth->setValue(set.inputWidth);
       m_inputHeight->setValue(set.inputHeight);
+    }
+    if(m_canvasProjection)
+    {
+      m_canvasProjection->setCurrentIndex(int(set.canvas.projection));
+      for(int i = 0; i < 3; i++)
+        m_canvasOrientation[i]->setValue(std::remainder(set.canvas.orientation[i], 360.f));
     }
 
     if(this->m_modeCombo->currentIndex() == (int)WindowMode::MultiWindow)

@@ -25,12 +25,31 @@
 
 #include <QFileInfo>
 #include <QFloat16>
+#include <QGenericMatrix>
+#include <QQuaternion>
 #include <QGuiApplication>
 #include <QScreen>
 #include <QThreadPool>
 
 namespace score::gfx
 {
+
+static std::array<float, 16>
+subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas)
+{
+  std::array<float, 16> out{
+      float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height())};
+  const QMatrix3x3 m = QQuaternion::fromEulerAngles(
+                           canvas.orientation[0], canvas.orientation[1],
+                           canvas.orientation[2])
+                           .toRotationMatrix();
+  for(int c = 0; c < 3; c++)
+    for(int r = 0; r < 3; r++)
+      out[4 + 4 * c + r] = m(r, c);
+  out[7] = canvas.projection == Gfx::CanvasProjection::Equirectangular ? 1.f : 0.f;
+  out[11] = canvas.rotates() ? 1.f : 0.f;
+  return out;
+}
 
 // Compute 3x3 homography matrix that maps the warped quad corners to the unit square.
 // Given 4 source points (warped corners) and 4 destination points (unit square corners),
@@ -350,6 +369,7 @@ public:
     bool bakeFailed{};
     int bakedWarpVersion{-1};
     bool bakedBicubic{};
+    bool bakedWrap{};
   };
   std::vector<PerWindowData> m_perWindow;
 
@@ -398,6 +418,9 @@ public:
 
       layout(std140, binding = 2) uniform SubRect {
           vec4 sourceRect; // x, y, width, height in canvas UV space
+          vec4 canvasRot0; // columns of the canvas orientation, canvasRot0.w = equirectangular
+          vec4 canvasRot1; // w = the orientation is not the identity
+          vec4 canvasRot2;
       };
 
       layout(std140, binding = 4) uniform BlendParams {
@@ -444,10 +467,31 @@ public:
 )_";
 
     static const constexpr auto frag_tail = R"_(
+      vec2 wrapCanvas(vec2 uv)
+      {
+          return canvasRot0.w > 0.5 ? vec2(fract(uv.x), uv.y) : uv;
+      }
+
+      vec3 canvasDirection(vec2 c)
+      {
+          const float pi = 3.14159265358979;
+          float lon = (c.x - 0.5) * 2.0 * pi;
+          float lat = (0.5 - c.y) * pi;
+          return vec3(sin(lon) * cos(lat), sin(lat), -cos(lon) * cos(lat));
+      }
+
+      vec2 directionToCanvas(vec3 d)
+      {
+          const float pi = 3.14159265358979;
+          return vec2(
+              atan(d.x, -d.z) / (2.0 * pi) + 0.5,
+              0.5 - asin(clamp(d.y / max(length(d), 1e-9), -1.0, 1.0)) / pi);
+      }
+
       vec3 sampleSource(vec2 uv, vec2 dx, vec2 dy)
       {
           if(quality.x < 0.5)
-              return textureLod(tex, uv, 0.0).rgb;
+              return textureLod(tex, wrapCanvas(uv), 0.0).rgb;
           vec2 sz = vec2(textureSize(tex, 0));
           vec2 px = dx * sz;
           vec2 py = dy * sz;
@@ -457,7 +501,7 @@ public:
           if(lx > limit) { dx *= limit / lx; lx = limit; }
           if(ly > limit) { dy *= limit / ly; ly = limit; }
           if(quality.x < 1.5)
-              return textureLod(tex, uv, max(log2(max(max(lx, ly), 1e-6)), 0.0)).rgb;
+              return textureLod(tex, wrapCanvas(uv), max(log2(max(max(lx, ly), 1e-6)), 0.0)).rgb;
           float pmax = max(lx, ly);
           float pmin = max(min(lx, ly), 1e-6);
           float n = clamp(ceil(pmax / pmin), 1.0, quality.y);
@@ -469,7 +513,7 @@ public:
           {
               if(i >= taps)
                   break;
-              acc += textureLod(tex, uv + axis * ((float(i) + 0.5) / n - 0.5), lod).rgb;
+              acc += textureLod(tex, wrapCanvas(uv + axis * ((float(i) + 0.5) / n - 0.5)), lod).rgb;
           }
           return acc / n;
       }
@@ -580,16 +624,31 @@ public:
               inside = place(tc) && m.z > 0.5;
           }
 
-          vec2 uv;
-          uv.x = sourceRect.x + tc.x * sourceRect.z;
-#if defined(QSHADER_SPIRV)
-          uv.y = sourceRect.y + (1.0 - tc.y) * sourceRect.w;
-#else
-          float texSrcY = 1.0 - sourceRect.y - sourceRect.w;
-          uv.y = texSrcY + tc.y * sourceRect.w;
-#endif
+          vec2 uv = vec2(
+              sourceRect.x + tc.x * sourceRect.z, sourceRect.y + (1.0 - tc.y) * sourceRect.w);
+          if(canvasRot0.w > 0.5)
+          {
+              if(canvasRot1.w > 0.5)
+              {
+                  vec3 d = canvasDirection(uv);
+                  d = canvasRot0.xyz * d.x + canvasRot1.xyz * d.y + canvasRot2.xyz * d.z;
+                  uv = directionToCanvas(d);
+              }
+              else
+                  uv.x = fract(uv.x);
+          }
           vec2 uvDx = dFdx(uv);
           vec2 uvDy = dFdy(uv);
+          if(canvasRot0.w > 0.5)
+          {
+              uvDx.x -= floor(uvDx.x + 0.5);
+              uvDy.x -= floor(uvDy.x + 0.5);
+          }
+#if !defined(QSHADER_SPIRV)
+          uv.y = 1.0 - uv.y;
+          uvDx.y = -uvDx.y;
+          uvDy.y = -uvDy.y;
+#endif
 
           vec3 rgb = vec3(0.0);
           if(inside && uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0)
@@ -698,6 +757,19 @@ public:
           return vec3(m.xy, m.w > 0.5 ? 1.0 : 0.0);
       }
 
+      // On an equirectangular canvas u wraps: a tap is taken on the turn of ref.
+      vec3 unwrapTexel(vec3 s, float ref)
+      {
+          if(canvasRot0.w > 0.5)
+              s.x -= floor(s.x - ref + 0.5);
+          return s;
+      }
+
+      vec3 wrapWarp(vec2 uv)
+      {
+          return vec3(canvasRot0.w > 0.5 ? fract(uv.x) : uv.x, uv.y, 1.0);
+      }
+
       // xy = source UV, z = 1 when valid.
       vec3 sampleWarp(vec2 uv)
       {
@@ -706,6 +778,7 @@ public:
           vec2 fl = floor(f);
           vec2 t = f - fl;
           ivec2 b = ivec2(fl);
+          vec3 s00 = warpTexel(b, size);
           if(mod(quality.z, 2.0) > 0.5)
           {
               vec2 w0 = t * (-0.5 + t * (1.0 - 0.5 * t));
@@ -719,17 +792,16 @@ public:
               for(int j = 0; j < 4; j++)
                   for(int i = 0; i < 4; i++)
                   {
-                      vec3 s = warpTexel(b + ivec2(i - 1, j - 1), size);
+                      vec3 s = unwrapTexel(warpTexel(b + ivec2(i - 1, j - 1), size), s00.x);
                       acc += wx[i] * wy[j] * s.xy;
                       valid += s.z;
                   }
               if(valid > 15.5)
-                  return vec3(acc, 1.0);
+                  return wrapWarp(acc);
           }
-          vec3 s00 = warpTexel(b, size);
-          vec3 s10 = warpTexel(b + ivec2(1, 0), size);
-          vec3 s01 = warpTexel(b + ivec2(0, 1), size);
-          vec3 s11 = warpTexel(b + ivec2(1, 1), size);
+          vec3 s10 = unwrapTexel(warpTexel(b + ivec2(1, 0), size), s00.x);
+          vec3 s01 = unwrapTexel(warpTexel(b + ivec2(0, 1), size), s00.x);
+          vec3 s11 = unwrapTexel(warpTexel(b + ivec2(1, 1), size), s00.x);
           float w00 = (1.0 - t.x) * (1.0 - t.y) * s00.z;
           float w10 = t.x * (1.0 - t.y) * s10.z;
           float w01 = (1.0 - t.x) * t.y * s01.z;
@@ -737,7 +809,7 @@ public:
           float w = w00 + w10 + w01 + w11;
           if(w < 0.5)
               return vec3(0.0);
-          return vec3((w00 * s00.xy + w10 * s10.xy + w01 * s01.xy + w11 * s11.xy) / w, 1.0);
+          return wrapWarp((w00 * s00.xy + w10 * s10.xy + w01 * s01.xy + w11 * s11.xy) / w);
       }
       )_";
 
@@ -746,6 +818,13 @@ public:
       layout(location = 0) out vec4 fragColor;
 
       layout(binding = 7) uniform sampler2D warpMap;
+
+      layout(std140, binding = 2) uniform SubRect {
+          vec4 sourceRect;
+          vec4 canvasRot0;
+          vec4 canvasRot1;
+          vec4 canvasRot2;
+      };
 
       layout(std140, binding = 12) uniform QualityParams {
           vec4 quality;
@@ -866,7 +945,7 @@ public:
 
     // Create UBO for source rect
     pw.uvRectUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16 * sizeof(float));
     pw.uvRectUBO->setName(
         QByteArray("MultiWindowRenderer::uvRectUBO_") + QByteArray::number(index));
     pw.uvRectUBO->create();
@@ -931,10 +1010,8 @@ public:
     // initial upload; renderSubRegion() re-uploads every frame anyway.
     if(res)
     {
-      float rectData[4] = {
-          (float)pw.sourceRect.x(), (float)pw.sourceRect.y(),
-          (float)pw.sourceRect.width(), (float)pw.sourceRect.height()};
-      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData);
+      const auto rectData = subRectUBO(pw.sourceRect, m_multiNode.canvasLayout());
+      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData.data());
 
       float blendData[8] = {
           wo.blendLeft.width,  wo.blendRight.width, wo.blendTop.width,
@@ -957,10 +1034,12 @@ public:
     {
       const bool mips = m_multiNode.offscreenTarget().texture->flags().testFlag(
           QRhiTexture::MipMapped);
+      const bool equirect = m_multiNode.canvasLayout().projection
+                            == Gfx::CanvasProjection::Equirectangular;
       auto sampler = rhi.newSampler(
           QRhiSampler::Linear, QRhiSampler::Linear,
-          mips ? QRhiSampler::Linear : QRhiSampler::None, QRhiSampler::ClampToEdge,
-          QRhiSampler::ClampToEdge);
+          mips ? QRhiSampler::Linear : QRhiSampler::None,
+          equirect ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
       sampler->setName("MultiWindowRenderer::sampler");
       sampler->create();
 
@@ -1257,13 +1336,24 @@ private:
     const QSize pixelSize = wo.swapChain->currentPixelSize();
     const bool bicubic = wo.quality.warpInterpolation == Gfx::WarpInterpolation::Bicubic;
     static const bool noBake = qEnvironmentVariableIntValue("SCORE_MW_NO_WARP_BAKE") != 0;
-    const bool useBaked = pw.mapOk[MultiWindowNode::WarpSlot] && !noBake
-                          && ensureBakeTarget(pw, renderer, pixelSize);
-    if(!pw.mapOk[MultiWindowNode::WarpSlot] && pw.bakeRT)
+    const bool equirect
+        = m_multiNode.canvasLayout().projection == Gfx::CanvasProjection::Equirectangular;
+    const bool warpLookup = pw.mapOk[MultiWindowNode::WarpSlot];
+    const bool useBaked = warpLookup && !noBake && ensureBakeTarget(pw, renderer, pixelSize);
+    if(!warpLookup && pw.bakeRT)
       releaseBakeTarget(pw);
     const bool needBake = useBaked
                           && (pw.bakedWarpVersion != wo.mapVersions[MultiWindowNode::WarpSlot]
-                              || pw.bakedBicubic != bicubic);
+                              || pw.bakedBicubic != bicubic || pw.bakedWrap != equirect);
+    if(auto* canvasSampler = pw.samplers[0].sampler)
+    {
+      const auto u = equirect ? QRhiSampler::Repeat : QRhiSampler::ClampToEdge;
+      if(canvasSampler->addressU() != u)
+      {
+        canvasSampler->setAddressU(u);
+        canvasSampler->create();
+      }
+    }
 
     // Update UBOs from live data (may have changed via device parameters)
     if(pw.uvRectUBO)
@@ -1271,10 +1361,8 @@ private:
       if(!res)
         res = renderer.state.rhi->nextResourceUpdateBatch();
 
-      float rectData[4] = {
-          (float)wo.sourceRect.x(), (float)wo.sourceRect.y(),
-          (float)wo.sourceRect.width(), (float)wo.sourceRect.height()};
-      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData);
+      const auto rectData = subRectUBO(wo.sourceRect, m_multiNode.canvasLayout());
+      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData.data());
     }
 
     if(pw.blendUBO)
@@ -1361,6 +1449,7 @@ private:
       cb.endPass();
       pw.bakedWarpVersion = wo.mapVersions[MultiWindowNode::WarpSlot];
       pw.bakedBicubic = bicubic;
+      pw.bakedWrap = equirect;
     }
 
     cb.beginPass(rt, Qt::black, {0.0f, 0}, res);
@@ -1460,9 +1549,7 @@ void MultiWindowNode::setEdgeBlend(int windowIndex, int side, float width, float
     return;
   if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
   {
-    auto& m = m_mappings[windowIndex];
-    Gfx::EdgeBlend* sides[4]{&m.blendLeft, &m.blendRight, &m.blendTop, &m.blendBottom};
-    *sides[side] = {width, gamma};
+    *m_mappings[windowIndex].blendSides()[side] = {width, gamma};
   }
   if(windowIndex < 0 || windowIndex >= (int)m_windowOutputs.size())
     return;

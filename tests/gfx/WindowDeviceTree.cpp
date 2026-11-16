@@ -726,3 +726,70 @@ TEST_CASE("A calibration fills only the slots its last run wrote", "[gfx][window
   CHECK(m.compensation == base + ".comp.json");
   CHECK(m.alpha == base + ".alpha.pfm");
 }
+
+TEST_CASE("Multi-window device canvas projection and orientation", "[gfx][window][device]")
+{
+  Outcome o;
+  bool connected{};
+  Gfx::CanvasLayout initial, pushed;
+  std::vector<float> initialParam;
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {192, 144};
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+    ws.canvas.projection = CanvasProjection::Equirectangular;
+    ws.canvas.orientation = {10.f, 20.f, 30.f};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinCanvas"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    auto* d = dev.getDevice();
+    REQUIRE(d != nullptr);
+    pump_for(400);
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
+    REQUIRE(node);
+    initial = node->canvasLayout();
+    if(auto* p = param(*d, "/canvas/orientation"))
+    {
+      const auto val = p->value();
+      if(auto v = val.target<ossia::vec3f>())
+        initialParam = {(*v)[0], (*v)[1], (*v)[2]};
+    }
+
+    push(param(*d, "/canvas/orientation"), ossia::vec3f{0.f, 90.f, -5.f});
+    push(param(*d, "/canvas/projection"), 0);
+    pushed = node->canvasLayout();
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  CHECK(initial.projection == CanvasProjection::Equirectangular);
+  CHECK(initial.orientation == std::array<float, 3>{10.f, 20.f, 30.f});
+  CHECK(initialParam == std::vector<float>{10.f, 20.f, 30.f});
+  CHECK(pushed.projection == CanvasProjection::None);
+  CHECK(pushed.orientation == std::array<float, 3>{0.f, 90.f, -5.f});
+}

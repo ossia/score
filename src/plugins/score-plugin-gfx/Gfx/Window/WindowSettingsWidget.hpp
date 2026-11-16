@@ -24,6 +24,8 @@
 #include <QStackedWidget>
 #include <QTabWidget>
 #include <QUrl>
+
+#include <array>
 #include <QVBoxLayout>
 #include <qcheckbox.h>
 
@@ -82,6 +84,8 @@ private:
   QLabel* m_srcSizePixelLabel{};
   QSpinBox* m_inputWidth{};
   QSpinBox* m_inputHeight{};
+  QComboBox* m_canvasProjection{};
+  std::array<QDoubleSpinBox*, 3> m_canvasOrientation{};
 
   // Soft-edge blending controls
   QDoubleSpinBox* m_blendLeftW{};

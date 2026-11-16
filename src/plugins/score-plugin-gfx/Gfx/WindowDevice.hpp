@@ -121,6 +121,7 @@ struct WindowSettings
   std::vector<OutputMapping> outputs;
   int inputWidth{1920};
   int inputHeight{1080};
+  CanvasLayout canvas;
 };
 
 }

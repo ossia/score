@@ -1000,3 +1000,20 @@ TEST_CASE("WindowSettingsWidget stores map files relative to the project", "[gfx
     CHECK(settingsOf(w).outputs[0].maps.blendSpace == BlendMapSpace::Signal);
   });
 }
+
+TEST_CASE("WindowSettingsWidget wraps a canvas orientation outside ±180°", "[gfx][window][settingswidget][canvas]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    WindowSettingsWidget w;
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {mapping({0.0, 0.0, 1.0, 1.0}, {0, 0}, {320, 240})};
+    ws.canvas.projection = CanvasProjection::Equirectangular;
+    ws.canvas.orientation = {190.f, -200.f, 90.f};
+    w.setSettings(makeSettings(ws));
+    const auto got = settingsOf(w);
+    CHECK(got.canvas.orientation[0] == Approx(-170.f));
+    CHECK(got.canvas.orientation[1] == Approx(160.f));
+    CHECK(got.canvas.orientation[2] == Approx(90.f));
+  });
+}
