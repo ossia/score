@@ -130,6 +130,7 @@ TEST_CASE(
   }
 
   std::string skip, failure;
+  Gfx::WindowSettings assigned;
   bool done = false, clearedAfter = false, calibratingDuring = false;
   int resultsOk = 0;
   std::vector<float> coverage;
@@ -166,6 +167,8 @@ TEST_CASE(
       setup.settings.settleMs = 60;
       setup.settings.frames = 1;
       setup.blend = true;
+      setup.canvas.projection = Gfx::CanvasProjection::Equirectangular;
+      setup.sourceRects.assign(Outputs, QRectF{0, 0, 1, 1});
       Threedim::CalibrationRun run{std::move(setup)};
 
       const auto now = [] { return double(QDateTime::currentMSecsSinceEpoch()); };
@@ -196,6 +199,7 @@ TEST_CASE(
         coverage.push_back(r ? r->coverage : 0.f);
       }
       clearedAfter = !rig.node->calibrating();
+      assigned = Threedim::assignCalibrations(ws, run.setup().plan.names, 0);
     }
     g.unregister_node(camId);
     g.updateGraph();
@@ -216,5 +220,11 @@ TEST_CASE(
     CHECK(QFile::exists(n + ".json"));
     CHECK(QFile::exists(n + ".xyz.pfm"));
     CHECK(QFile::exists(n + ".alpha.pfm"));
+    CHECK(QFile::exists(n + ".warp.pfm"));
+    CHECK(QFile::exists(n + ".warp.valid.pfm"));
   }
+  REQUIRE(assigned.outputs.size() == std::size_t(Outputs));
+  CHECK(assigned.outputs[0].maps.warp == base + ".warp.pfm");
+  CHECK(assigned.outputs[2].maps.warp == base + "_p2.warp.pfm");
+  CHECK(assigned.outputs[1].maps.alpha == base + "_p1.alpha.pfm");
 }

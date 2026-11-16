@@ -120,6 +120,8 @@ add_library(
   Threedim/CalibrationWizard.cpp
   Threedim/CalibrationRun.hpp
   Threedim/CalibrationRun.cpp
+  Threedim/EquirectWarp.hpp
+  Threedim/EquirectWarp.cpp
   Threedim/ViewerFrustum.hpp
   Threedim/ViewerFrustum.cpp
   Threedim/LedWall.hpp

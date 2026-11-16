@@ -445,6 +445,13 @@ bool CalibrationWizard::start()
               .arg(dev));
   }
   setup.blend = m_blend->isChecked();
+  setup.canvas = ws->canvas;
+  for(const auto& o : ws->outputs)
+    setup.sourceRects.push_back(o.sourceRect);
+  if(!depth && ws->canvas.projection != Gfx::CanvasProjection::Equirectangular)
+    log(tr("The canvas projection of %1 is not Equirectangular: no warp maps are made "
+           "from the viewing directions.")
+            .arg(deviceName));
 
   m_estimateMs = estimateMs(setup.plan, s);
   const auto plan = setup.plan;

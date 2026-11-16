@@ -1,6 +1,7 @@
 #include "CalibrationRun.hpp"
 
 #include <Threedim/CalibrationFiles.hpp>
+#include <Threedim/EquirectWarp.hpp>
 
 #include <QDir>
 #include <QFileInfo>
@@ -203,6 +204,28 @@ void CalibrationRun::tick(double now)
   if(ev.done)
   {
     m_log.push_back(QString::fromStdString(m_session.status()));
+    if(m_setup.canvas.projection == Gfx::CanvasProjection::Equirectangular
+       && m_setup.settings.mode == StructuredLightSession::ViewerCamera)
+    {
+      const auto& results = m_session.results();
+      int written = 0;
+      for(std::size_t i = 0; i < results.size() && i < std::size_t(m_setup.plan.names.size()); i++)
+      {
+        const auto& r = results[i];
+        if(!r || !r->ok)
+          continue;
+        const QRectF src = i < m_setup.sourceRects.size() ? m_setup.sourceRects[i]
+                                                          : QRectF{0, 0, 1, 1};
+        QString err;
+        if(saveEquirectWarp(
+               m_setup.plan.names[int(i)], equirectWarp(r->xyz, r->width, r->height, src),
+               &err))
+          written++;
+        else
+          m_log.push_back(QObject::tr("Warp map of %1: %2").arg(m_setup.plan.names[int(i)], err));
+      }
+      m_log.push_back(QObject::tr("Equirectangular warp maps written for %1 output(s)").arg(written));
+    }
     if(!m_setup.blend)
     {
       m_status = QObject::tr("Done");
