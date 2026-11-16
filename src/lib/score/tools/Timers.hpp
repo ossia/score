@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <verdigris>
@@ -8,6 +9,18 @@
 
 namespace score
 {
+//! The deadline after `deadline` for a timer of period `interval`, seen at
+//! `now`: the next one of the same phase still ahead of `now`. Slots missed
+//! during a stall are skipped, not caught up.
+constexpr uint64_t
+nextTimerDeadline(uint64_t deadline, uint64_t now, uint64_t interval) noexcept
+{
+  deadline += interval;
+  if(deadline <= now && interval > 0)
+    deadline += ((now - deadline) / interval + 1) * interval;
+  return deadline;
+}
+
 class HighResolutionTimerPrivate;
 
 class SCORE_LIB_BASE_EXPORT HighResolutionTimer : public QObject

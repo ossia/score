@@ -1,5 +1,6 @@
 #include "Timers.hpp"
 #include <QThread>
+#include <QTimerEvent>
 #include <QCoreApplication>
 #include <QMutex>
 #include <QDebug>
@@ -8,6 +9,7 @@
 #include <ossia/detail/thread_priority.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 
 #include <wobjectimpl.h>
@@ -90,7 +92,14 @@ public:
   uint64_t intervalNs;
 
   int timerId{-1};
+  uint64_t deadlineNs{};
   bool accurate{};
+
+  std::chrono::milliseconds untilDeadline() const noexcept
+  {
+    const int64_t left = int64_t(deadlineNs) - int64_t(ossia::now_ns());
+    return std::chrono::milliseconds{std::max<int64_t>(0, (left + 500'000) / 1'000'000)};
+  }
 
   static double sanitizeFrequency(double freq) noexcept
   {
@@ -176,6 +185,12 @@ void HighResolutionTimer::timerEvent(QTimerEvent *k)
     nextTickNs = actualNs + intervalNs;
   }
 #endif
+  if(!d->accurate && k->timerId() == d->timerId)
+  {
+    killTimer(d->timerId);
+    d->deadlineNs = nextTimerDeadline(d->deadlineNs, ossia::now_ns(), d->intervalNs);
+    d->timerId = startTimer(d->untilDeadline(), Qt::PreciseTimer);
+  }
   timeout(this);
 }
 
@@ -184,7 +199,8 @@ void HighResolutionTimer::start()
   d->timerId = -1;
   if(!d->accurate)
   {
-    d->timerId = this->startTimer(std::chrono::milliseconds{int(1000. / this->frequency())}, Qt::PreciseTimer);
+    d->deadlineNs = ossia::now_ns() + d->intervalNs;
+    d->timerId = this->startTimer(d->untilDeadline(), Qt::PreciseTimer);
 
 #if defined(HRT_STATS)
     nextTickNs = ossia::now_ns() + static_cast<uint64_t>(1'000'000'000.0 / frequency());
@@ -241,9 +257,9 @@ void HighResolutionTimer::setMaximumAccuracy(bool b)
 {
   if(b != d->accurate)
   {
-    d->accurate = b;
     QSignalBlocker blocker{*this};
     stop();
+    d->accurate = b;
     start();
   }
 }
