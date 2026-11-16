@@ -281,3 +281,65 @@ TEST_CASE("multi-window minification: mip and anisotropic sampling", "[gfx][wind
   CHECK(std::abs(am - 127.5) < 6.);
   CHECK(as < 4.);
 }
+
+TEST_CASE("multi-window equirectangular canvas orientation", "[gfx][window][multiwindow][canvas]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.windowSize = {128, 64};
+  Frame plain, yawed, ignored;
+  bool ok1{}, ok2{}, ok3{};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    ok1 = grab(rig, plain);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {0.f, 90.f, 0.f}});
+    ok2 = grab(rig, yawed);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::None, {0.f, 90.f, 0.f}});
+    ok3 = grab(rig, ignored);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  REQUIRE(ok3);
+  // Yaw +90 turns -Z towards -X: the output at longitude u shows u - 0.25.
+  for(double fx : {0.125, 0.375, 0.5, 0.625, 0.875})
+  {
+    const double want = std::fmod(fx - 0.25 + 1.0, 1.0);
+    INFO("fx " << fx);
+    CHECK(std::abs(plain.at(fx, 0.5)[0] - u8(fx)) <= 3);
+    CHECK(std::abs(yawed.at(fx, 0.5)[0] - u8(want)) <= 3);
+    CHECK(std::abs(ignored.at(fx, 0.5)[0] - u8(fx)) <= 3);
+  }
+}
+
+TEST_CASE("multi-window equirectangular canvas pitch looks up", "[gfx][window][multiwindow][canvas]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.windowSize = {128, 64};
+  Frame up, down;
+  bool ok1{}, ok2{};
+  auto o = runRig(
+      api, m,
+      [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {45.f, 0.f, 0.f}});
+    ok1 = grab(rig, up);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {-45.f, 0.f, 0.f}});
+    ok2 = grab(rig, down);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-y.fs"));
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  // Straight ahead (-Z, horizon) shows latitude +45 or -45: green 0.75 or 0.25.
+  const int g1 = up.at(0.5, 0.5)[1];
+  const int g2 = down.at(0.5, 0.5)[1];
+  INFO("up " << g1 << " down " << g2);
+  CHECK(std::abs(g1 - u8(0.75)) <= 4);
+  CHECK(std::abs(g2 - u8(0.25)) <= 4);
+}

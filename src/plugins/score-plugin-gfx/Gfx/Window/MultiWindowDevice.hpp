@@ -197,7 +197,8 @@ public:
       std::unique_ptr<gfx_protocol_base> proto, std::string name,
       SwapchainFlag swapFlag = SwapchainFlag::NoFlag,
       SwapchainFormat swapFormat = SwapchainFormat::SDR,
-      score::PathRoots roots = score::pathRoots(), QSize canvasSize = QSize{1280, 720})
+      score::PathRoots roots = score::pathRoots(), QSize canvasSize = QSize{1280, 720},
+      CanvasLayout canvas = {})
       : ossia::net::device_base{std::move(proto)}
       , m_node{createMultiWindowNode(mappings, swapFlag, swapFormat, roots, canvasSize)}
       , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_node, name}
@@ -214,6 +215,50 @@ public:
       fps_param = fps_node->create_parameter(ossia::val_type::FLOAT);
       m_node->onFps = [this](float fps) { fps_param->push_value(fps); };
       m_root.add_child(std::move(fps_node));
+    }
+
+    m_node->setCanvasLayout(canvas);
+    {
+      auto canvas_node
+          = std::make_unique<ossia::net::generic_node>("canvas", *this, m_root);
+      {
+        auto n = std::make_unique<ossia::net::generic_node>("projection", *this, *canvas_node);
+        ossia::net::set_description(
+            *n, "What the canvas holds: 0 none, 1 equirectangular (enables orientation)");
+        auto p = n->create_parameter(ossia::val_type::INT);
+        p->set_domain(ossia::make_domain(0, 1));
+        p->set_bounding(ossia::bounding_mode::CLIP);
+        p->push_value(int(canvas.projection));
+        p->add_callback([this](const ossia::value& v) {
+          if(auto val = v.target<int>())
+            onGui([this, x = *val] {
+              auto c = m_node->canvasLayout();
+              c.projection = x == 1 ? CanvasProjection::Equirectangular
+                                    : CanvasProjection::None;
+              m_node->setCanvasLayout(c);
+            });
+        });
+        canvas_node->add_child(std::move(n));
+      }
+      {
+        auto n = std::make_unique<ossia::net::generic_node>("orientation", *this, *canvas_node);
+        ossia::net::set_description(
+            *n, "Equirectangular canvas orientation, Euler degrees (pitch, yaw, roll)");
+        auto p = n->create_parameter(ossia::val_type::VEC3F);
+        p->set_domain(ossia::make_domain(-180.f, 180.f));
+        p->push_value(
+            ossia::vec3f{canvas.orientation[0], canvas.orientation[1], canvas.orientation[2]});
+        p->add_callback([this](const ossia::value& v) {
+          if(auto val = v.target<ossia::vec3f>())
+            onGui([this, x = *val] {
+              auto c = m_node->canvasLayout();
+              c.orientation = {x[0], x[1], x[2]};
+              m_node->setCanvasLayout(c);
+            });
+        });
+        canvas_node->add_child(std::move(n));
+      }
+      m_root.add_child(std::move(canvas_node));
     }
 
     // Global rendersize parameter

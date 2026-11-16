@@ -154,6 +154,29 @@ struct OutputQuality
   }
 };
 
+//! What the canvas holds, for the outputs that look it up by direction.
+enum class CanvasProjection : int
+{
+  None = 0,
+  //! Longitude along x (0 at -Z, +X to the right), latitude along y (+Y up).
+  Equirectangular = 1
+};
+
+struct CanvasLayout
+{
+  CanvasProjection projection{CanvasProjection::None};
+  //! Euler degrees (x pitch, y yaw, z roll), QQuaternion::fromEulerAngles as
+  //! in Transform 3D: an output pixel facing direction d shows the content at R d.
+  std::array<float, 3> orientation{0.f, 0.f, 0.f};
+
+  bool rotates() const noexcept
+  {
+    return projection == CanvasProjection::Equirectangular
+           && (orientation[0] != 0.f || orientation[1] != 0.f || orientation[2] != 0.f);
+  }
+  bool operator==(const CanvasLayout&) const noexcept = default;
+};
+
 enum class OutputLockMode : int
 {
   Free = 0,       // No constraints
