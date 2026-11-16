@@ -1,37 +1,21 @@
 #include "CalibrationWizard.hpp"
 
-#include <State/Address.hpp>
-
-#include <Process/Commands/EditPort.hpp>
-#include <Process/Commands/SetControlValue.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/ExecutionSetup.hpp>
-#include <Process/ProcessList.hpp>
-
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include <Scenario/Commands/CommandAPI.hpp>
-#include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
-#include <Engine/ApplicationPlugin.hpp>
-#include <Execution/DocumentPlugin.hpp>
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxParameter.hpp>
+#include <Gfx/TextureCapture.hpp>
 #include <Gfx/Window/CalibrationSet.hpp>
-#include <Threedim/StructuredLightCalibration.hpp>
 
 #include <score/actions/MenuManager.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <score/plugins/UuidKey.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-#include <ossia/dataflow/graph_node.hpp>
-#include <ossia/dataflow/port.hpp>
 #include <ossia/network/base/node_functions.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/value/value_conversion.hpp>
@@ -57,103 +41,22 @@
 #include <QStandardPaths>
 #include <QVBoxLayout>
 
-#include <mutex>
 
 namespace Threedim
 {
-struct CalibrationWizard::OutletTap
-{
-  std::mutex mutex;
-  std::string status;
-  float progress{-1.f};
-  int version{};
-};
-
 namespace
 {
-constexpr const char* slcUuid = "3f8c2a61-7d4e-4b19-9a05-c6e1d2b8f47a";
-constexpr const char* blendUuid = "a0d6f1c8-2b47-4e93-8f15-7c3e9b2d6a41";
-
-UuidKey<Process::ProcessModel> processKey(const char* uuid)
-{
-  return UuidKey<Process::ProcessModel>{
-      score::uuids::string_generator::compute(uuid, uuid + 36)};
-}
-
-Process::ProcessModelFactory*
-findFactory(const score::DocumentContext& ctx, const char* uuid)
-{
-  const auto key = processKey(uuid);
-  for(auto& f : ctx.app.interfaces<Process::ProcessFactoryList>())
-    if(f.concreteKey() == key)
-      return &f;
-  return nullptr;
-}
-
-template <typename Ports>
-auto findPort(const Ports& ports, const QString& name) -> typename Ports::value_type
-{
-  for(auto* p : ports)
-    if(p->name() == name)
-      return p;
-  return nullptr;
-}
-
-template <typename Pred>
-Process::ProcessModel* findProcess(
-    const Scenario::IntervalModel& itv, const char* uuid, const Pred& pred)
-{
-  const auto key = processKey(uuid);
-  for(auto& p : itv.processes)
-    if(p.concreteKey() == key && pred(p))
-      return &p;
-  return nullptr;
-}
-
 bool isTexture(const ossia::net::node_base* n)
 {
   const auto* p = n ? n->get_parameter() : nullptr;
   return p && p->get_type() == ossia::parameter_type::TEXTURE;
 }
 
-std::string_view slcModeName(int index)
-{
-  using Mode = decltype(std::declval<StructuredLightCalibration::ins&>().mode);
-  static constexpr Mode::range r{};
-  return r.values[std::clamp(index, 0, int(std::size(r.values)) - 1)];
-}
-
-ossia::value matched(const ossia::value& current, ossia::value v)
-{
-  if(!current.valid() || current.get_type() == v.get_type())
-    return v;
-  switch(current.get_type())
-  {
-    case ossia::val_type::INT:
-    case ossia::val_type::FLOAT:
-    case ossia::val_type::BOOL:
-    case ossia::val_type::VEC2F:
-    case ossia::val_type::VEC3F:
-    case ossia::val_type::VEC4F:
-    case ossia::val_type::STRING:
-      return ossia::convert(v, current.get_type());
-    default:
-      return v;
-  }
-}
-
-bool stoppedStatus(std::string_view s)
-{
-  return s.find("Failed") != std::string_view::npos || s.starts_with("Aborted");
-}
 }
 
 CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
     : QDialog{parent}
     , m_doc{&doc}
-    , m_session{[this](const QString& device, const Gfx::WindowSettings& ws) {
-      return updateDevice(device, ws);
-    }}
 {
   setWindowTitle(tr("Projector calibration"));
   auto* lay = new QVBoxLayout{this};
@@ -206,7 +109,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   form->addRow(tr("Settle"), m_settle);
   m_blend = new QCheckBox;
   m_blend->setChecked(true);
-  m_blend->setToolTip(tr("Run Projector Blend Maps afterwards for the alpha and beta maps"));
+  m_blend->setToolTip(tr("Compute the blend (alpha) and black-level (beta) maps afterwards"));
   form->addRow(tr("Blend maps"), m_blend);
   m_photometric = new QCheckBox;
   m_photometric->setToolTip(
@@ -216,11 +119,9 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
 
   auto* buttons = new QHBoxLayout;
   m_refreshBtn = new QPushButton{tr("Refresh")};
-  m_setupBtn = new QPushButton{tr("Set up")};
   m_startBtn = new QPushButton{tr("Start")};
   m_abortBtn = new QPushButton{tr("Abort")};
   buttons->addWidget(m_refreshBtn);
-  buttons->addWidget(m_setupBtn);
   buttons->addWidget(m_startBtn);
   buttons->addWidget(m_abortBtn);
   lay->addLayout(buttons);
@@ -236,29 +137,15 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   lay->addWidget(m_log);
 
   connect(m_refreshBtn, &QPushButton::clicked, this, &CalibrationWizard::refreshDevices);
-  connect(m_setupBtn, &QPushButton::clicked, this, [this] { setUp(); });
-  connect(m_startBtn, &QPushButton::clicked, this, &CalibrationWizard::start);
+  connect(m_startBtn, &QPushButton::clicked, this, [this] { start(); });
   connect(m_abortBtn, &QPushButton::clicked, this, &CalibrationWizard::abort);
   connect(m_device, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
-    if(auto ws = deviceSettings(m_device->currentText()))
-    {
-      const auto p = planCalibration(*ws, m_name->text());
-      QString s = tr("%1 projector(s) of %2x%3, %4 patterns each, canvas %5x%6")
-                      .arg(p.projectors)
-                      .arg(p.projectorSize.width())
-                      .arg(p.projectorSize.height())
-                      .arg(p.patternsPerProjector)
-                      .arg(p.canvasSize.width())
-                      .arg(p.canvasSize.height());
-      for(const auto& w : p.warnings)
-        s += QStringLiteral("\n- ") + w;
-      m_info->setText(s);
-    }
-    else
-      m_info->clear();
+    updatePlan();
   });
+  connect(m_name, &QLineEdit::editingFinished, this, [this] { updatePlan(); });
 
-  m_timer.setInterval(250);
+  m_timer.setInterval(15);
+  m_timer.setTimerType(Qt::PreciseTimer);
   connect(&m_timer, &QTimer::timeout, this, &CalibrationWizard::poll);
   refreshDevices();
   updateButtons();
@@ -266,25 +153,29 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
 
 CalibrationWizard::~CalibrationWizard()
 {
-  if(m_session.active())
-    stopRun(tr("The calibration window was closed"));
+  if(busy())
+    m_run->abort(tr("The calibration window was closed"));
+  m_run.reset();
 }
 
 void CalibrationWizard::done(int r)
 {
-  if(m_session.active())
-    stopRun(tr("The calibration window was closed"));
+  if(busy())
+  {
+    m_run->abort(tr("The calibration window was closed"));
+    for(const auto& l : m_run->takeLog())
+      log(l);
+  }
+  m_run.reset();
+  m_timer.stop();
   QDialog::done(r);
 }
 
 void CalibrationWizard::detach()
 {
   m_timer.stop();
-  m_session.drop();
-  m_slc = nullptr;
-  m_blendProc = nullptr;
+  m_run.reset();
   m_doc = nullptr;
-  m_phase = Phase::Idle;
   updateButtons();
 }
 
@@ -300,10 +191,9 @@ void CalibrationWizard::log(const QString& s)
 
 void CalibrationWizard::updateButtons()
 {
-  const bool active = m_session.active();
-  m_setupBtn->setEnabled(!active && m_doc);
+  const bool active = busy();
+  m_startBtn->setEnabled(!active && m_doc && m_device->count() > 0);
   m_device->setEnabled(!active);
-  m_startBtn->setEnabled(active && m_phase == Phase::Ready);
   m_abortBtn->setEnabled(active);
 }
 
@@ -322,6 +212,60 @@ CalibrationWizard::deviceSettings(const QString& name) const
       return s.deviceSpecificSettings.value<Gfx::WindowSettings>();
   }
   return {};
+}
+
+score::gfx::MultiWindowNode* CalibrationWizard::multiWindowNode(
+    const score::DocumentContext& ctx, const QString& device)
+{
+  auto& plug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+  auto* d = plug.list().findDevice(device);
+  auto* od = d ? d->getDevice() : nullptr;
+  if(!od)
+    return nullptr;
+  auto* p = dynamic_cast<Gfx::gfx_parameter_base*>(od->get_root_node().get_parameter());
+  return p ? dynamic_cast<score::gfx::MultiWindowNode*>(p->node) : nullptr;
+}
+
+ossia::net::parameter_base*
+CalibrationWizard::parameterAt(const score::DocumentContext& ctx, const QString& address)
+{
+  const int colon = address.indexOf(':');
+  if(colon <= 0)
+    return nullptr;
+  auto& plug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+  auto* d = plug.list().findDevice(address.left(colon));
+  auto* od = d ? d->getDevice() : nullptr;
+  if(!od)
+    return nullptr;
+  QString path = address.mid(colon + 1);
+  if(path.isEmpty())
+    path = QStringLiteral("/");
+  auto* n = path == QStringLiteral("/")
+                ? &od->get_root_node()
+                : ossia::net::find_node(od->get_root_node(), path.toStdString());
+  return n ? n->get_parameter() : nullptr;
+}
+
+void CalibrationWizard::updatePlan()
+{
+  if(auto ws = deviceSettings(m_device->currentText()))
+  {
+    const auto p = planCalibration(*ws, m_name->text());
+    QString s = tr("%1 projector(s) of %2x%3, %4 patterns each")
+                    .arg(p.projectors)
+                    .arg(p.projectorSize.width())
+                    .arg(p.projectorSize.height())
+                    .arg(p.patternsPerProjector);
+    for(const auto& w : p.warnings)
+      if(!w.contains(QStringLiteral("canvas pixels")))
+        s += QStringLiteral("\n- ") + w;
+    if(auto* ctx = context(); ctx && !multiWindowNode(*ctx, m_device->currentText()))
+      s += QStringLiteral("\n- ") + tr("the device is not connected: its windows must be open");
+    m_info->setText(s);
+  }
+  else
+    m_info->clear();
+  updateButtons();
 }
 
 void CalibrationWizard::refreshDevices()
@@ -374,6 +318,9 @@ void CalibrationWizard::refreshDevices()
   if(m_device->count() == 0)
     m_info->setText(tr("No multi-window device: add a Window device in Multi-Window "
                        "Mapping mode with one output per projector."));
+  else
+    updatePlan();
+  updateButtons();
 }
 
 bool CalibrationWizard::updateDevice(const QString& device, const Gfx::WindowSettings& ws)
@@ -392,16 +339,39 @@ bool CalibrationWizard::updateDevice(const QString& device, const Gfx::WindowSet
   return true;
 }
 
-bool CalibrationWizard::setUp()
+double CalibrationWizard::estimateMs(
+    const CalibrationPlan& plan, const StructuredLightSession::Settings& s) const
+{
+  CaptureTiming t;
+  t.settleMs = s.settleMs;
+  t.framesToAverage = s.frames;
+  t.exposureSettleMs = s.exposureSettleMs;
+  for(int k = 0; k < plan.projectors; k++)
+  {
+    const auto extras = StructuredLightCore::makeExtras(
+        s.responseLevels, s.compensation, k == 0 ? s.exposures : std::vector<float>{}, k,
+        s.mixLevels);
+    t.extraFrames.push_back(int(extras.size()));
+    int changes = (k == 0 && s.captureExposure > 0.f) ? 1 : 0;
+    float current = s.captureExposure;
+    for(const auto& e : extras)
+      if(const float x = e.exposure > 0.f ? e.exposure : s.captureExposure; x != current)
+      {
+        changes++;
+        current = x;
+      }
+    if(current != s.captureExposure)
+      changes++;
+    t.exposureChanges.push_back(changes);
+  }
+  return estimateCaptureMs(plan, t) + 5000.;
+}
+
+bool CalibrationWizard::start()
 {
   auto* ctx = context();
-  if(!ctx)
+  if(!ctx || busy())
     return false;
-  if(m_session.active())
-  {
-    log(tr("%1 is already set up: start, or abort first.").arg(m_session.device()));
-    return false;
-  }
   const QString deviceName = m_device->currentText();
   const auto ws = deviceSettings(deviceName);
   if(!ws)
@@ -409,501 +379,132 @@ bool CalibrationWizard::setUp()
     log(tr("Pick a multi-window output device."));
     return false;
   }
-  if(auto exec = ctx->findPlugin<Execution::DocumentPlugin>(); exec && exec->isPlaying())
+  CalibrationRun::Setup setup;
+  setup.plan = planCalibration(*ws, m_name->text());
+  if(setup.plan.projectors == 0)
   {
-    log(tr("Stop the score first: inlet addresses set while playing are not picked up."));
-    return false;
-  }
-  m_plan = planCalibration(*ws, m_name->text());
-  if(m_plan.projectors == 0)
-  {
-    for(const auto& w : m_plan.warnings)
+    for(const auto& w : setup.plan.warnings)
       log(w);
     return false;
   }
-  auto* slcFactory = findFactory(*ctx, slcUuid);
-  if(!slcFactory)
-  {
-    log(tr("Structured Light Calibration is not available."));
-    return false;
-  }
-  QDir{}.mkpath(QFileInfo{m_plan.names[0]}.absolutePath());
-
-  auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx->document);
-  auto& itv = root.baseInterval();
-  Scenario::Command::Macro m{
-      new Scenario::Command::AddMultipleProcessesToMultipleIntervalsMacro, *ctx};
-
-  auto drivesDevice = [&](const Process::ProcessModel& p) {
-    for(const char* name : {"Canvas", "Pattern"})
-      if(auto* o = findPort(p.outlets(), QString::fromLatin1(name));
-         o && o->address().address.device == deviceName)
-        return true;
-    return false;
-  };
-  if(!m_slc)
-    m_slc = findProcess(itv, slcUuid, drivesDevice);
-  if(m_slc)
-    log(tr("Reusing %1.").arg(m_slc->metadata().getName()));
-  else
-    m_slc = m.createProcessInNewSlot(itv, slcFactory->concreteKey(), {});
-  if(!m_slc)
-  {
-    log(tr("Could not create Structured Light Calibration."));
-    return false;
-  }
-  {
-    const auto key = processKey(slcUuid);
-    int others = 0;
-    for(auto& p : itv.processes)
-      others += &p != m_slc.data() && p.concreteKey() == key && drivesDevice(p);
-    if(others > 0)
-      log(tr("%1 other Structured Light Calibration process(es) also drive %2: remove "
-             "them, their idle pattern covers this one's.")
-              .arg(others)
-              .arg(deviceName));
-  }
-
-  auto set = [&](Process::ProcessModel& p, const QString& name, ossia::value v) {
-    if(auto* in = qobject_cast<Process::ControlInlet*>(findPort(p.inlets(), name)))
-      m.setProperty<Process::ControlInlet::p_value>(*in, matched(in->value(), std::move(v)));
-    else
-      log(tr("no inlet %1 on %2").arg(name, p.metadata().getName()));
-  };
-  auto address = [&](Process::Port* port, const QString& addr) {
-    if(!port || addr.isEmpty())
-      return false;
-    auto a = State::parseAddressAccessor(addr);
-    if(!a)
-    {
-      log(tr("not an address: %1").arg(addr));
-      return false;
-    }
-    m.setProperty<Process::Port::p_address>(*port, std::move(*a));
-    return true;
+  setup.gfx = &ctx->plugin<Gfx::DocumentPlugin>().context;
+  QPointer<score::Document> doc = m_doc;
+  setup.node = [doc, deviceName]() -> score::gfx::MultiWindowNode* {
+    return doc ? multiWindowNode(doc->context(), deviceName) : nullptr;
   };
 
+  const QString cam = m_camera->currentText();
+  if(auto* p = parameterAt(*ctx, cam))
+    if(auto port = Gfx::textureProducer(*p))
+      setup.camera = *port;
+  if(setup.camera.node < 0)
+  {
+    log(tr("%1 is not the texture of a camera device.").arg(cam));
+    return false;
+  }
   const bool depth = m_mode->currentIndex() == 0;
-  set(*m_slc, QStringLiteral("Projector size"),
-      ossia::vec2f{float(m_plan.projectorSize.width()), float(m_plan.projectorSize.height())});
-  set(*m_slc, QStringLiteral("Projector count"), m_plan.projectors);
-  if(auto* mode = qobject_cast<Process::ControlInlet*>(
-         findPort(m_slc->inlets(), QStringLiteral("Mode"))))
-    m.setProperty<Process::ControlInlet::p_value>(
-        *mode, mode->value().get_type() == ossia::val_type::STRING
-                   ? ossia::value{std::string(slcModeName(m_mode->currentIndex()))}
-                   : ossia::value{m_mode->currentIndex()});
-  set(*m_slc, QStringLiteral("Settle (ms)"), m_settle->value());
-  set(*m_slc, QStringLiteral("Save file"),
-      QString(m_plan.names[0] + QStringLiteral(".json")).toStdString());
-  set(*m_slc, QStringLiteral("Auto save"), true);
+  if(depth)
+    if(auto* p = parameterAt(*ctx, m_positions->currentText()))
+      if(auto port = Gfx::textureProducer(*p))
+        setup.positions = *port;
 
-  auto* canvas = findPort(m_slc->outlets(), QStringLiteral("Canvas"));
-  if(canvas)
-  {
-    set(*m_slc, QStringLiteral("Canvas layout"), m_plan.canvasLayout.toStdString());
-    set(*m_slc, QStringLiteral("Canvas size"),
-        ossia::vec2f{float(m_plan.canvasSize.width()), float(m_plan.canvasSize.height())});
-    address(canvas, deviceName + QStringLiteral(":/"));
-  }
-  else if(m_plan.projectors == 1)
-    address(findPort(m_slc->outlets(), QStringLiteral("Pattern")), deviceName + ":/");
-  else
-  {
-    log(tr("This Structured Light Calibration has no Canvas outlet: one projector only."));
-    return false;
-  }
-  if(!address(findPort(m_slc->inlets(), QStringLiteral("Camera")), m_camera->currentText()))
-    log(tr("Set the camera address."));
-  if(depth
-     && !address(
-         findPort(m_slc->inlets(), QStringLiteral("Positions")),
-         m_positions->currentText()))
-    log(tr("Depth mode without a Positions address: the XYZ map stays empty."));
-
+  auto& s = setup.settings;
+  s.mode = depth ? StructuredLightSession::DepthCamera : StructuredLightSession::ViewerCamera;
+  s.settleMs = m_settle->value();
   const bool photometric = m_photometric->isChecked();
-  set(*m_slc, QStringLiteral("Response levels"), photometric ? 8 : 0);
-  set(*m_slc, QStringLiteral("Surface compensation"), photometric);
-  set(*m_slc, QStringLiteral("Exposures"), std::string{});
-  set(*m_slc, QStringLiteral("Capture exposure"), 0.f);
+  s.responseLevels = photometric ? 8 : 0;
+  s.compensation = photometric;
   if(photometric)
   {
-    const QString cam = m_camera->currentText();
     const QString dev = cam.section(':', 0, 0);
     if(cam.endsWith(QStringLiteral(":/ir")))
       log(tr("Photometric calibration needs a colour camera, e.g. %1:/rgb.").arg(dev));
-    ossia::net::node_base* exposure{};
-    ossia::net::node_base* autoExposure{};
-    auto& plug = ctx->plugin<Explorer::DeviceDocumentPlugin>();
-    if(auto* d = plug.list().findDevice(dev); d && d->getDevice())
+    const QString exposure = dev + QStringLiteral(":/controls/color/exposure");
+    const QString autoExposure = dev + QStringLiteral(":/controls/color/auto_exposure");
+    auto* e = parameterAt(*ctx, exposure);
+    const float current = e ? ossia::convert<float>(e->value()) : 0.f;
+    if(current > 0.f)
     {
-      auto& droot = d->getDevice()->get_root_node();
-      exposure = ossia::net::find_node(droot, "/controls/color/exposure");
-      autoExposure = ossia::net::find_node(droot, "/controls/color/auto_exposure");
-    }
-    const float e = exposure && exposure->get_parameter()
-                        ? ossia::convert<float>(exposure->get_parameter()->value())
-                        : 0.f;
-    if(e > 0.f)
-    {
-      QStringList bracket;
       for(float f : {0.125f, 0.25f, 0.5f, 1.f, 2.f, 4.f})
-        bracket.push_back(QString::number(e * f));
-      set(*m_slc, QStringLiteral("Exposures"), bracket.join(' ').toStdString());
-      set(*m_slc, QStringLiteral("Capture exposure"), e);
-      address(
-          findPort(m_slc->outlets(), QStringLiteral("Camera exposure")),
-          dev + QStringLiteral(":/controls/color/exposure"));
-      if(autoExposure)
-        address(
-            findPort(m_slc->outlets(), QStringLiteral("Auto exposure")),
-            dev + QStringLiteral(":/controls/color/auto_exposure"));
+        s.exposures.push_back(current * f);
+      s.captureExposure = current;
+      setup.setExposure = [doc, exposure](float v) {
+        if(doc)
+          if(auto* p = parameterAt(doc->context(), exposure))
+            p->push_value(v);
+      };
+      setup.setAutoExposure = [doc, autoExposure](bool v) {
+        if(doc)
+          if(auto* p = parameterAt(doc->context(), autoExposure))
+            p->push_value(v);
+      };
     }
     else
       log(tr("No colour exposure control on %1: the camera is assumed linear. Turn "
              "its auto exposure and auto white balance off.")
               .arg(dev));
   }
+  setup.blend = m_blend->isChecked();
 
-  QStringList files;
-  for(const auto& n : m_plan.names)
-    files.push_back(n + QStringLiteral(".json"));
-  const QString fileList = files.join(QStringLiteral("; "));
-  if(!m_blendProc)
-    m_blendProc = findProcess(itv, blendUuid, [&](const Process::ProcessModel& p) {
-      auto* in
-          = qobject_cast<Process::ControlInlet*>(findPort(p.inlets(), "Calibration files"));
-      return in
-             && QString::fromStdString(ossia::convert<std::string>(in->value()))
-                    .contains(files[0]);
-    });
-  if(m_blend->isChecked())
+  m_estimateMs = estimateMs(setup.plan, s);
+  const auto plan = setup.plan;
+  m_run = std::make_unique<CalibrationRun>(std::move(setup));
+  m_runDevice = deviceName;
+  m_runStartMs = QDateTime::currentMSecsSinceEpoch();
+  const bool ok = m_run->start(double(m_runStartMs));
+  for(const auto& l : m_run->takeLog())
+    log(l);
+  if(!ok)
   {
-    if(!m_blendProc)
-      if(auto* bf = findFactory(*ctx, blendUuid))
-        m_blendProc = m.createProcessInNewSlot(itv, bf->concreteKey(), {});
-    if(m_blendProc)
-      set(*m_blendProc, QStringLiteral("Calibration files"), fileList.toStdString());
-  }
-  else if(m_blendProc)
-  {
-    if(auto* parent = qobject_cast<Scenario::IntervalModel*>(m_blendProc->parent()))
-      m.removeProcess(*parent, m_blendProc->id());
-    m_blendProc = nullptr;
-  }
-  m.commit();
-
-  if(!m_session.begin(deviceName, *ws))
-  {
-    log(tr("Could not turn off the output stage of %1.").arg(deviceName));
+    m_run.reset();
+    updateButtons();
     return false;
   }
-
-  log(tr("Set up %1 projector(s) on %2; the output stage of %2 is off until the end.")
-          .arg(m_plan.projectors)
-          .arg(deviceName));
-  for(const auto& w : m_plan.warnings)
-    log(QStringLiteral("- ") + w);
-  m_phase = Phase::Ready;
-  updateButtons();
-  return true;
-}
-
-bool CalibrationWizard::pushValue(
-    Process::ProcessModel* p, const QString& inlet, ossia::value v)
-{
-  auto* ctx = context();
-  if(!ctx || !p)
-    return false;
-  auto* in = findPort(p->inlets(), inlet);
-  auto* plug = ctx->findPlugin<Execution::DocumentPlugin>();
-  if(!in || !plug || !plug->isPlaying())
-    return false;
-  auto& exec = plug->context();
-  auto it = exec.setup.inlets.find(in);
-  if(it == exec.setup.inlets.end() || !it->second.first || !it->second.second
-     || !it->second.second->target<ossia::value_port>())
-    return false;
-  std::weak_ptr<ossia::graph_node> node = it->second.first;
-  exec.executionQueue.enqueue(
-      [node = std::move(node), port = it->second.second, v = std::move(v)]() mutable {
-    if(auto n = node.lock())
-      port->target<ossia::value_port>()->write_value(std::move(v), 0);
-  });
-  return true;
-}
-
-void CalibrationWizard::requestTap(
-    Process::ProcessModel* p, const std::shared_ptr<OutletTap>& tap)
-{
-  auto* ctx = context();
-  if(!ctx || !p || !tap)
-    return;
-  auto* plug = ctx->findPlugin<Execution::DocumentPlugin>();
-  if(!plug || !plug->isPlaying())
-    return;
-  auto& exec = plug->context();
-  struct Read
-  {
-    std::weak_ptr<ossia::graph_node> node;
-    ossia::outlet* port{};
-  } reads[2];
-  int k = 0;
-  for(const char* name : {"Status", "Progress"})
-  {
-    auto* out = findPort(p->outlets(), QString::fromLatin1(name));
-    if(auto it = exec.setup.outlets.find(out);
-       out && it != exec.setup.outlets.end() && it->second.first && it->second.second)
-      reads[k] = {it->second.first, it->second.second};
-    k++;
-  }
-  if(!reads[0].port && !reads[1].port)
-    return;
-  exec.executionQueue.enqueue([tap, r0 = reads[0], r1 = reads[1]] {
-    auto last = [](const Read& r) -> ossia::value {
-      auto n = r.node.lock();
-      auto* vp = n && r.port ? r.port->target<ossia::value_port>() : nullptr;
-      if(!vp || vp->get_data().empty())
-        return {};
-      return vp->get_data().back().value;
-    };
-    const ossia::value status = last(r0), progress = last(r1);
-    if(!status.valid() && !progress.valid())
-      return;
-    std::lock_guard l{tap->mutex};
-    if(auto* s = status.target<std::string>())
-      tap->status = *s;
-    if(progress.valid())
-      tap->progress = ossia::convert<float>(progress);
-    tap->version++;
-  });
-}
-
-ossia::value
-CalibrationWizard::inletValue(Process::ProcessModel* p, const QString& inlet) const
-{
-  if(!p)
-    return {};
-  if(auto* in = qobject_cast<Process::ControlInlet*>(findPort(p->inlets(), inlet)))
-    return in->value();
-  return {};
-}
-
-double CalibrationWizard::estimateMs() const
-{
-  auto num = [&](const char* name, float def) {
-    const auto v = inletValue(m_slc, QString::fromLatin1(name));
-    return v.valid() ? ossia::convert<float>(v) : def;
-  };
-  const bool phase = num("Phase shift", 1.f) != 0.f;
-  const auto plan
-      = m_session.original()
-            ? planCalibration(
-                  *m_session.original(), m_name->text(), int(num("Min stripe px", 2.f)),
-                  phase ? int(num("Phase steps", 4.f)) : 0)
-            : m_plan;
-
-  CaptureTiming t;
-  t.settleMs = num("Settle (ms)", float(m_settle->value()));
-  t.framesToAverage = int(num("Frames to average", 2.f));
-  t.exposureSettleMs = num("Exposure settle (ms)", 1500.f);
-  const float capture = num("Capture exposure", 0.f);
-  std::vector<float> exposures;
-  const auto ev = inletValue(m_slc, QStringLiteral("Exposures"));
-  for(const auto& s : QString::fromStdString(ev.valid() ? ossia::convert<std::string>(ev) : "")
-                          .split(QRegularExpression("[\\s,;]+"), Qt::SkipEmptyParts))
-    if(const float v = s.toFloat(); v > 0.f)
-      exposures.push_back(v);
-  const int levels = int(num("Response levels", 0.f));
-  const bool comp = num("Surface compensation", 0.f) != 0.f;
-  const int mix = int(num("Colour mixing levels", 5.f));
-  for(int k = 0; k < plan.projectors; k++)
-  {
-    const auto extras
-        = StructuredLightCalibration::makeExtras(levels, comp, exposures, k, mix);
-    t.extraFrames.push_back(int(extras.size()));
-    int changes = (k == 0 && capture > 0.f) ? 1 : 0;
-    float current = capture;
-    for(const auto& e : extras)
-      if(const float x = e.exposure > 0.f ? e.exposure : capture; x != current)
-      {
-        changes++;
-        current = x;
-      }
-    if(current != capture)
-      changes++;
-    t.exposureChanges.push_back(changes);
-  }
-  return estimateCaptureMs(plan, t) + 5000.;
-}
-
-void CalibrationWizard::start()
-{
-  auto* ctx = context();
-  if(!ctx || !m_slc || m_phase != Phase::Ready)
-  {
-    log(tr("Set up first."));
-    return;
-  }
-  auto* exec = ctx->findPlugin<Execution::DocumentPlugin>();
-  if(!exec || !exec->isPlaying())
-  {
-    if(auto* engine
-       = score::GUIAppContext().findGuiApplicationPlugin<Engine::ApplicationPlugin>())
-      engine->execution().request_play_global(true);
-  }
-  m_phase = Phase::Starting;
-  m_startMs = m_runStartMs = QDateTime::currentMSecsSinceEpoch();
-  m_estimateMs = estimateMs();
-  m_slcTap = std::make_shared<OutletTap>();
-  m_blendTap = std::make_shared<OutletTap>();
-  m_seenTap = 0;
-  m_seenRunning = false;
+  log(tr("Calibrating %1 projector(s) of %2: about %3 s.")
+          .arg(plan.projectors)
+          .arg(deviceName)
+          .arg(int(m_estimateMs / 1000.)));
+  for(const auto& w : plan.warnings)
+    if(!w.contains(QStringLiteral("canvas pixels")))
+      log(QStringLiteral("- ") + w);
   m_progress->setValue(0);
   m_status->clear();
   m_timer.start();
   updateButtons();
-  log(tr("Starting: about %1 s.").arg(int(m_estimateMs / 1000.)));
-}
-
-void CalibrationWizard::stopRun(const QString& why)
-{
-  m_timer.stop();
-  const bool wasActive = m_session.active();
-  pushValue(m_slc, QStringLiteral("Abort"), ossia::impulse{});
-  const QString device = m_session.device();
-  const bool restored = m_session.restore();
-  m_phase = Phase::Idle;
-  updateButtons();
-  if(!wasActive)
-    log(why);
-  else if(restored)
-    log(tr("%1; %2 is back to its settings.").arg(why, device));
-  else
-    log(tr("%1; %2 could not be put back to its settings.").arg(why, device));
+  return true;
 }
 
 void CalibrationWizard::abort()
 {
-  if(!m_session.active() && m_phase != Phase::Starting && m_phase != Phase::Capturing
-     && m_phase != Phase::Blending)
+  if(!busy())
     return;
-  stopRun(tr("Aborted"));
+  m_run->abort(tr("Aborted"));
+  poll();
 }
 
 void CalibrationWizard::poll()
 {
-  if(!context())
+  if(!m_run)
   {
     m_timer.stop();
     return;
   }
-  if(!m_slc)
+  m_run->tick(double(QDateTime::currentMSecsSinceEpoch()));
+  for(const auto& l : m_run->takeLog())
+    log(l);
+  m_status->setText(m_run->status());
+  m_progress->setValue(int(m_run->progress() * 1000));
+  switch(m_run->state())
   {
-    stopRun(tr("The Structured Light Calibration process was removed"));
-    return;
-  }
-  const qint64 now = QDateTime::currentMSecsSinceEpoch();
-  auto readTap = [&](OutletTap& tap, std::string& status, float& progress) {
-    std::lock_guard l{tap.mutex};
-    status = tap.status;
-    progress = tap.progress;
-    return tap.version;
-  };
-  switch(m_phase)
-  {
-    case Phase::Starting:
-      if(pushValue(m_slc, QStringLiteral("Start"), ossia::impulse{}))
-      {
-        m_phase = Phase::Capturing;
-        m_startMs = m_lastChangeMs = now;
-        log(tr("Projecting the patterns."));
-      }
-      else if(now - m_startMs > 10000)
-        stopRun(tr("The score did not start playing"));
+    case CalibrationRun::State::Done:
+      finish();
       break;
-    case Phase::Capturing: {
-      requestTap(m_slc, m_slcTap);
-      std::string status;
-      float progress{};
-      const int version = readTap(*m_slcTap, status, progress);
-      if(version != m_seenTap)
-      {
-        if(QString::fromStdString(status) != m_status->text())
-        {
-          m_status->setText(QString::fromStdString(status));
-          m_lastChangeMs = now;
-        }
-        if(status.starts_with("Capturing"))
-          m_seenRunning = true;
-        m_seenTap = version;
-      }
-      if(version > 0 && stoppedStatus(status) && (m_seenRunning || now - m_startMs > 3000))
-      {
-        stopRun(tr("Structured Light Calibration stopped: %1")
-                    .arg(QString::fromStdString(status)));
-        return;
-      }
-      const double p = m_seenRunning && progress >= 0.f
-                           ? double(progress)
-                           : (now - m_startMs) / std::max(1., m_estimateMs);
-      m_progress->setValue(int(std::min(0.99, p) * 1000));
-
-      const auto r = readCalibrationResults(m_plan.names, m_runStartMs);
-      if(r.saved == m_plan.projectors)
-      {
-        m_progress->setValue(1000);
-        log(r.text);
-        if(m_blendProc && pushValue(m_blendProc, QStringLiteral("Compute"), ossia::impulse{}))
-        {
-          m_phase = Phase::Blending;
-          m_blendMs = now;
-          log(tr("Computing the blend maps."));
-        }
-        else
-          finish();
-      }
-      else if(version > 0 && now - m_lastChangeMs > 300000)
-        stopRun(tr("Structured Light Calibration made no progress for 5 minutes"));
-      else if(now - m_startMs > 3 * m_estimateMs + 300000)
-        stopRun(tr("No result: look at the Status of the Structured Light Calibration "
-                   "process (camera address, camera running, projector visible)"));
-      break;
-    }
-    case Phase::Blending: {
-      requestTap(m_blendProc, m_blendTap);
-      std::string status;
-      float progress{};
-      const int version = readTap(*m_blendTap, status, progress);
-      int ready = 0;
-      for(const auto& n : m_plan.names)
-        if(QFileInfo fi{n + QStringLiteral(".alpha.pfm")};
-           fi.isFile() && fi.lastModified().toMSecsSinceEpoch() + 1000 >= m_blendMs)
-          ready++;
-      if(ready == m_plan.projectors)
-        finish();
-      else if(!m_blendProc)
-      {
-        log(tr("The Projector Blend Maps process was removed; assigning the calibration "
-               "without blend maps."));
-        finish();
-      }
-      else if(version > 0 && status.starts_with("Failed") && now - m_blendMs > 3000)
-      {
-        log(tr("Projector Blend Maps: %1; assigning the calibration without new blend "
-               "maps.")
-                .arg(QString::fromStdString(status)));
-        finish();
-      }
-      else if(now - m_blendMs > 120000)
-      {
-        log(tr("The blend maps were not written; assigning the calibration anyway."));
-        finish();
-      }
-      break;
-    }
-    default:
+    case CalibrationRun::State::Failed:
       m_timer.stop();
+      m_run.reset();
+      updateButtons();
+      break;
+    default:
       break;
   }
 }
@@ -911,16 +512,19 @@ void CalibrationWizard::poll()
 void CalibrationWizard::finish()
 {
   m_timer.stop();
-  const QString device = m_session.device();
-  const bool ok = m_session.finish(m_plan.names, m_runStartMs);
-  m_phase = Phase::Done;
+  const auto names = m_run->setup().plan.names;
+  m_run.reset();
   updateButtons();
-  if(ok)
+  const auto r = readCalibrationResults(names, m_runStartMs);
+  if(!r.text.isEmpty())
+    log(r.text);
+  const auto ws = deviceSettings(m_runDevice);
+  if(ws && updateDevice(m_runDevice, assignCalibrations(*ws, names, m_runStartMs)))
     log(tr("Done: the outputs of %1 follow %2; a new run updates them live.")
-            .arg(device, m_plan.names.join(QStringLiteral(", "))));
+            .arg(m_runDevice, names.join(QStringLiteral(", "))));
   else
     log(tr("Done, but %1 could not be updated: assign %2 in its settings.")
-            .arg(device, m_plan.names.join(QStringLiteral(", "))));
+            .arg(m_runDevice, names.join(QStringLiteral(", "))));
 }
 
 score::GUIElements CalibrationApplicationPlugin::makeGUIElements()

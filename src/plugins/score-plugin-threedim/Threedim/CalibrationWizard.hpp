@@ -1,9 +1,9 @@
 #pragma once
+#include <Gfx/WindowDevice.hpp>
 #include <Threedim/CalibrationPlan.hpp>
+#include <Threedim/CalibrationRun.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-
-#include <ossia/network/value/value.hpp>
 
 #include <QDialog>
 #include <QPointer>
@@ -24,16 +24,19 @@ class QSpinBox;
 namespace score
 {
 class Document;
+struct DocumentContext;
 }
-namespace Process
+namespace ossia::net
 {
-class ProcessModel;
+class parameter_base;
 }
 
 namespace Threedim
 {
-//! Sets up Structured Light Calibration (and Projector Blend Maps) for a
-//! multi-window device and a camera, runs it, and assigns the result.
+//! Calibrates the projectors of a multi-window device with a camera, as a
+//! tool of its own: the patterns go straight to the device's windows and the
+//! camera is read without playing the score or adding anything to it. At the
+//! end, each output follows its calibration (and the blend maps).
 class CalibrationWizard final : public QDialog
 {
 public:
@@ -41,34 +44,33 @@ public:
   ~CalibrationWizard() override;
 
   const score::Document* document() const noexcept { return m_doc; }
-  //! Between Set up and the end of the run: the device's output stage is off.
-  bool busy() const noexcept { return m_session.active(); }
+  bool busy() const noexcept { return m_run && m_run->running(); }
 
   void refreshDevices();
-  bool setUp();
-  void start();
+  bool start();
   void abort();
   //! The document is going away: stop without touching it.
   void detach();
 
   void done(int r) override;
 
-  //! Last values of a process's outlets, read on the execution thread.
-  struct OutletTap;
+  //! The running node of a multi-window device, or null.
+  static score::gfx::MultiWindowNode*
+  multiWindowNode(const score::DocumentContext& ctx, const QString& device);
+  //! The parameter at `address` ("Device:/path"), or null.
+  static ossia::net::parameter_base*
+  parameterAt(const score::DocumentContext& ctx, const QString& address);
 
 private:
   const score::DocumentContext* context() const;
   void log(const QString& s);
   void poll();
   void finish();
-  void stopRun(const QString& why);
   void updateButtons();
+  void updatePlan();
   bool updateDevice(const QString& device, const Gfx::WindowSettings& ws);
-  bool pushValue(Process::ProcessModel* p, const QString& inlet, ossia::value v);
-  void requestTap(Process::ProcessModel* p, const std::shared_ptr<OutletTap>& tap);
-  ossia::value inletValue(Process::ProcessModel* p, const QString& inlet) const;
   std::optional<Gfx::WindowSettings> deviceSettings(const QString& name) const;
-  double estimateMs() const;
+  double estimateMs(const CalibrationPlan& plan, const StructuredLightSession::Settings& s) const;
 
   QPointer<score::Document> m_doc;
   QComboBox* m_device{};
@@ -81,33 +83,15 @@ private:
   QCheckBox* m_blend{};
   QCheckBox* m_photometric{};
   QPushButton* m_refreshBtn{};
-  QPushButton* m_setupBtn{};
   QPushButton* m_startBtn{};
   QPushButton* m_abortBtn{};
   QProgressBar* m_progress{};
   QLabel* m_status{};
   QPlainTextEdit* m_log{};
 
-  enum class Phase
-  {
-    Idle,
-    Ready,
-    Starting,
-    Capturing,
-    Blending,
-    Done
-  } m_phase{Phase::Idle};
-  QPointer<Process::ProcessModel> m_slc;
-  QPointer<Process::ProcessModel> m_blendProc;
-  CalibrationSession m_session;
-  CalibrationPlan m_plan;
-  std::shared_ptr<OutletTap> m_slcTap, m_blendTap;
-  int m_seenTap{};
-  bool m_seenRunning{};
+  std::unique_ptr<CalibrationRun> m_run;
+  QString m_runDevice;
   qint64 m_runStartMs{};
-  qint64 m_startMs{};
-  qint64 m_blendMs{};
-  qint64 m_lastChangeMs{};
   double m_estimateMs{};
   QTimer m_timer;
 };

@@ -118,6 +118,8 @@ add_library(
   Threedim/CalibrationPlan.cpp
   Threedim/CalibrationWizard.hpp
   Threedim/CalibrationWizard.cpp
+  Threedim/CalibrationRun.hpp
+  Threedim/CalibrationRun.cpp
   Threedim/ViewerFrustum.hpp
   Threedim/ViewerFrustum.cpp
   Threedim/LedWall.hpp
