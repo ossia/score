@@ -35,7 +35,8 @@ namespace Threedim
 // Geometry Out. Multiview shaders (MULTIVIEW=6) then index camera[0..5]
 // via gl_ViewIndex.
 //
-// Face convention follows the GL cubemap layout:
+// Face convention follows the GL cubemap layout, in the rig's frame (the
+// world's while Rotation is 0):
 //   camera[0] = +X, [1] = -X, [2] = +Y, [3] = -Y, [4] = +Z, [5] = -Z
 // Each face uses a 90° square FOV with aspect 1:1 — consumers should
 // render into a cube render target at any square resolution.
@@ -49,10 +50,9 @@ public:
   halp_meta(authors, "ossia team")
   halp_meta(uuid, "7a3e8d2f-1b94-4c6a-b7f5-8e2d0c1a4b93")
 
-  // Six GL-ordered cubemap faces at 90° FoV, aspect 1:1. Suitable as
-  // both a reflection probe array and a point-shadow cube array — the
-  // distinction is downstream (which render target / depth-only flag),
-  // not in the camera math here.
+  // Six GL-ordered cubemap faces at 90° FoV, aspect 1:1. With Rotation 0,
+  // suitable as both a reflection probe array and a point-shadow cube array,
+  // which sample the cube with world directions.
   struct ins
   {
     // Port-driven rebuild: each control's update() callback fires
@@ -63,7 +63,15 @@ public:
     { void update(CameraArray& n) { n.rebuild(); } } near_plane;
     struct : halp::hslider_f32<"Far", halp::range{1., 100000., 1000.}>
     { void update(CameraArray& n) { n.rebuild(); } } far_plane;
+    struct : halp::xyz_spinboxes_f32<"Rotation", halp::range{0., 359.9999999, 0.}>
+    { void update(CameraArray& n) { n.rebuild(); } } rotation;
   } inputs;
+
+  QQuaternion rigRotation() const
+  {
+    return QQuaternion::fromEulerAngles(
+        inputs.rotation.value.x, inputs.rotation.value.y, inputs.rotation.value.z);
+  }
 
   struct outs
   {
@@ -82,6 +90,25 @@ public:
     float forward[3];
     float up[3];
   };
+  static constexpr std::array<Face, 6> kFaces{{
+      {{ 1.f,  0.f,  0.f}, {0.f, -1.f,  0.f}},  // +X
+      {{-1.f,  0.f,  0.f}, {0.f, -1.f,  0.f}},  // -X
+      {{ 0.f,  1.f,  0.f}, {0.f,  0.f,  1.f}},  // +Y
+      {{ 0.f, -1.f,  0.f}, {0.f,  0.f, -1.f}},  // -Y
+      {{ 0.f,  0.f,  1.f}, {0.f, -1.f,  0.f}},  // +Z
+      {{ 0.f,  0.f, -1.f}, {0.f, -1.f,  0.f}},  // -Z
+  }};
+
+  //! Face @p i's orientation turned by @p rig: local -Z (where a GL camera
+  //! looks) along the face's forward, local +Y along its up.
+  static QQuaternion faceRotation(int i, const QQuaternion& rig)
+  {
+    const Face& f = kFaces[std::size_t(i)];
+    return rig
+           * QQuaternion::fromDirection(
+               QVector3D(-f.forward[0], -f.forward[1], -f.forward[2]),
+               QVector3D(f.up[0], f.up[1], f.up[2]));
+  }
 
   // Six deterministic ids rooted at this node's address — each face
   // needs a stable, distinct scene_node_id so merge_scenes treats them
@@ -103,21 +130,13 @@ public:
         m_ids[std::size_t(i)].value = (base ^ (std::uintptr_t(i + 1) << 1)) | 0x1u;
     }
 
-    static constexpr std::array<Face, 6> kFaces{{
-        {{ 1.f,  0.f,  0.f}, {0.f, -1.f,  0.f}},  // +X
-        {{-1.f,  0.f,  0.f}, {0.f, -1.f,  0.f}},  // -X
-        {{ 0.f,  1.f,  0.f}, {0.f,  0.f,  1.f}},  // +Y
-        {{ 0.f, -1.f,  0.f}, {0.f,  0.f, -1.f}},  // -Y
-        {{ 0.f,  0.f,  1.f}, {0.f, -1.f,  0.f}},  // +Z
-        {{ 0.f,  0.f, -1.f}, {0.f, -1.f,  0.f}},  // -Z
-    }};
-
     const float near_f = inputs.near_plane.value;
     const float far_f = inputs.far_plane.value;
     const float eye[3]
         = {inputs.origin.value.x, inputs.origin.value.y,
            inputs.origin.value.z};
 
+    const QQuaternion rig = rigRotation();
     auto roots
         = std::make_shared<std::vector<ossia::scene_node_ptr>>();
     roots->reserve(6);
@@ -143,17 +162,7 @@ public:
       xform.translation[1] = eye[1];
       xform.translation[2] = eye[2];
 
-      // Same rationale as Camera.hpp: Qt's QQuaternion::fromDirection
-      // maps local +Z to `direction`, but GL cameras look along local -Z
-      // — pass the negated forward so local -Z ends up pointing along
-      // +forward (the face-direction).
-      QVector3D fwd(
-          kFaces[std::size_t(i)].forward[0], kFaces[std::size_t(i)].forward[1],
-          kFaces[std::size_t(i)].forward[2]);
-      QVector3D up(
-          kFaces[std::size_t(i)].up[0], kFaces[std::size_t(i)].up[1],
-          kFaces[std::size_t(i)].up[2]);
-      QQuaternion q = QQuaternion::fromDirection(-fwd, up);
+      const QQuaternion q = faceRotation(i, rig);
       xform.rotation[0] = q.x();
       xform.rotation[1] = q.y();
       xform.rotation[2] = q.z();
