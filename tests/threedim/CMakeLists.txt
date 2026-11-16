@@ -749,3 +749,9 @@ score_add_test(test_threedim_immersive_processes
     "${THREEDIM_DIR}/FloatTextureIO.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_immersive_processes)
+
+# The equirectangular warp a viewer-camera calibration writes per output.
+score_add_test(test_threedim_equirect_warp
+  SOURCES EquirectWarp.cpp "${THREEDIM_DIR}/EquirectWarp.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_equirect_warp)

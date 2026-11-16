@@ -37,6 +37,10 @@ public:
     //! Projector size, count, save path and auto save come from the plan.
     StructuredLightSession::Settings settings;
     bool blend{true};
+    //! The device's canvas and the outputs' source rects: a viewer-camera run
+    //! on an equirectangular canvas also writes each output's warp map.
+    Gfx::CanvasLayout canvas;
+    std::vector<QRectF> sourceRects;
   };
 
   enum class State
