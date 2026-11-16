@@ -80,18 +80,23 @@ void CameraArray::update(
   const float znear = inputs.near_plane.value;
   const float zfar = inputs.far_plane.value;
 
+  const QQuaternion rig = rigRotation();
   score::gfx::RawCameraData raw[6]{};
   for(int i = 0; i < 6; ++i)
   {
     raw[i].eye[0] = eye[0];
     raw[i].eye[1] = eye[1];
     raw[i].eye[2] = eye[2];
-    raw[i].target[0] = eye[0] + kFaces[i].forward[0];
-    raw[i].target[1] = eye[1] + kFaces[i].forward[1];
-    raw[i].target[2] = eye[2] + kFaces[i].forward[2];
-    raw[i].up[0] = kFaces[i].up[0];
-    raw[i].up[1] = kFaces[i].up[1];
-    raw[i].up[2] = kFaces[i].up[2];
+    const QVector3D fwd = rig.rotatedVector(
+        {kFaces[i].forward[0], kFaces[i].forward[1], kFaces[i].forward[2]});
+    const QVector3D up
+        = rig.rotatedVector({kFaces[i].up[0], kFaces[i].up[1], kFaces[i].up[2]});
+    raw[i].target[0] = eye[0] + fwd.x();
+    raw[i].target[1] = eye[1] + fwd.y();
+    raw[i].target[2] = eye[2] + fwd.z();
+    raw[i].up[0] = up.x();
+    raw[i].up[1] = up.y();
+    raw[i].up[2] = up.z();
     raw[i].yfov = float(M_PI) / 2.f;  // 90° per face
     raw[i].znear = znear;
     raw[i].zfar = zfar;
@@ -115,7 +120,7 @@ void CameraArray::update(
       QVector3D fwd(
           kFaces[i].forward[0], kFaces[i].forward[1], kFaces[i].forward[2]);
       QVector3D up(kFaces[i].up[0], kFaces[i].up[1], kFaces[i].up[2]);
-      QQuaternion q = QQuaternion::fromDirection(-fwd, up);
+      const QQuaternion q = rig * QQuaternion::fromDirection(-fwd, up);
       xforms[i].rotation[0] = q.x();
       xforms[i].rotation[1] = q.y();
       xforms[i].rotation[2] = q.z();

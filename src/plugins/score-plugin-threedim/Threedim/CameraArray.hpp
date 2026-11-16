@@ -63,7 +63,15 @@ public:
     { void update(CameraArray& n) { n.rebuild(); } } near_plane;
     struct : halp::hslider_f32<"Far", halp::range{1., 100000., 1000.}>
     { void update(CameraArray& n) { n.rebuild(); } } far_plane;
+    struct : halp::xyz_spinboxes_f32<"Rotation", halp::range{-180., 180., 0.}>
+    { void update(CameraArray& n) { n.rebuild(); } } rotation;
   } inputs;
+
+  QQuaternion rigRotation() const
+  {
+    return QQuaternion::fromEulerAngles(
+        inputs.rotation.value.x, inputs.rotation.value.y, inputs.rotation.value.z);
+  }
 
   struct outs
   {
@@ -118,6 +126,7 @@ public:
         = {inputs.origin.value.x, inputs.origin.value.y,
            inputs.origin.value.z};
 
+    const QQuaternion rig = rigRotation();
     auto roots
         = std::make_shared<std::vector<ossia::scene_node_ptr>>();
     roots->reserve(6);
@@ -153,7 +162,7 @@ public:
       QVector3D up(
           kFaces[std::size_t(i)].up[0], kFaces[std::size_t(i)].up[1],
           kFaces[std::size_t(i)].up[2]);
-      QQuaternion q = QQuaternion::fromDirection(-fwd, up);
+      const QQuaternion q = rig * QQuaternion::fromDirection(-fwd, up);
       xform.rotation[0] = q.x();
       xform.rotation[1] = q.y();
       xform.rotation[2] = q.z();
