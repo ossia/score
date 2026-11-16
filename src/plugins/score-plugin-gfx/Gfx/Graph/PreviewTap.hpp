@@ -30,6 +30,9 @@ struct PreviewTap
   int port{};
   //! The largest the image may be; it keeps the aspect of the texture.
   QSize size{256, 256};
+  //! Read back at the texture's own size, as RGBA32F: a capture of the
+  //! frames for measurement (score::gfx::TextureCapture), not a thumbnail.
+  bool native{};
   std::shared_ptr<QRhiReadbackResult> readback;
 
   //! Set when the consumer has taken the latest image: the next frame of the

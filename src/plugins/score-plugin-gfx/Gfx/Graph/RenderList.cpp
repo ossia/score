@@ -1825,8 +1825,9 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
           = shape.kind == TextureKind::Texture2D
                 ? src->pixelSize()
                 : ShownTexture::of(shape, TextureLayout::Overview, 0., 0).size(4096);
-      QSize sz = in.scaled(tap->size, Qt::KeepAspectRatio);
+      QSize sz = tap->native ? in : in.scaled(tap->size, Qt::KeepAspectRatio);
       sz = sz.expandedTo({1, 1}).boundedTo(in.expandedTo({1, 1}));
+      const auto format = tap->native ? QRhiTexture::RGBA32F : QRhiTexture::RGBA8;
 
       if(!res)
         res = state.rhi->nextResourceUpdateBatch();
@@ -1835,10 +1836,12 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
 
       // The pipeline is built once per kind of texture: a target of another
       // size has the same format, so its render pass is compatible with it
-      if(!t.rt.texture || t.rt.texture->pixelSize() != sz)
+      if(!t.rt.texture || t.rt.texture->pixelSize() != sz || t.rt.texture->format() != format)
       {
+        if(t.rt.texture && t.rt.texture->format() != format)
+          t.pipeline.release();
         t.rt.release();
-        t.rt = createRenderTarget(state, QRhiTexture::RGBA8, sz, 1, false);
+        t.rt = createRenderTarget(state, format, sz, 1, false);
         if(!t.rt.texture)
           continue;
       }

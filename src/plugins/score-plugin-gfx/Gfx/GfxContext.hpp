@@ -99,6 +99,9 @@ public:
    */
   int32_t add_preview(
       port_index producer, QSize size, std::shared_ptr<QRhiReadbackResult> readback);
+  //! As add_preview, at the producer's own size and in RGBA32F, top row first:
+  //! a full-resolution capture of its frames (score::gfx::TextureCapture).
+  int32_t add_capture(port_index producer, std::shared_ptr<QRhiReadbackResult> readback);
   void set_preview_producer(int32_t id, port_index producer);
   void set_preview_size(int32_t id, QSize size);
   void remove_preview(int32_t id);

@@ -277,6 +277,23 @@ int32_t GfxContext::add_preview(
   return id;
 }
 
+int32_t GfxContext::add_capture(
+    port_index producer, std::shared_ptr<QRhiReadbackResult> readback)
+{
+  OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
+  const int32_t id = m_nextPreview++;
+  Preview p;
+  p.producer = producer;
+  p.size = QSize{max_preview_size, max_preview_size};
+  p.readback = readback;
+  p.tap = std::make_shared<score::gfx::PreviewTap>();
+  p.tap->native = true;
+  p.tap->readback = std::move(readback);
+  m_previews.emplace(id, std::move(p));
+  updatePreviews();
+  return id;
+}
+
 void GfxContext::set_preview_producer(int32_t id, port_index producer)
 {
   OSSIA_ENSURE_CURRENT_THREAD(ossia::thread_type::Ui);
