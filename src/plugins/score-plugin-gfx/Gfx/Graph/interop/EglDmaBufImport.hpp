@@ -21,7 +21,7 @@
 // and the caller manages a ring so the GPU has finished sampling first. score's
 // DRMPrimeDecoder owns one persistent GL texture id and re-targets it each frame.
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
 #include <ossia/detail/dylib_loader.hpp>
 
 #include <QOpenGLContext>

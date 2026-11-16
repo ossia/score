@@ -23,7 +23,7 @@
 // stamped into explicit-sync metadata, the same upgrade path as the Vulkan
 // output.
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
 #include <Gfx/Graph/interop/EglDmaBufImport.hpp>
 
 #include <ossia/detail/dylib_loader.hpp>
