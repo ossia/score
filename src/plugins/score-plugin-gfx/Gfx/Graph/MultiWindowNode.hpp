@@ -40,6 +40,13 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     float gamma{2.2f};
   };
 
+  //! A projector-pixel image shown as it is, top row first.
+  struct CalibrationImage
+  {
+    int width{}, height{};
+    std::vector<uint8_t> rgba;
+  };
+
   struct WindowOutput
   {
     std::shared_ptr<Window> window;
@@ -76,6 +83,8 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
 
     //! Bumped when the texture of a slot changes: MapSlot order, then the LUT.
     std::array<int, 8> mapVersions{};
+    std::shared_ptr<const CalibrationImage> calibration;
+    int calibrationVersion{};
     //! What each map field was loaded from: path, modification time and size.
     std::array<QString, 6> mapStamps;
     bool responseWithMixing{};
@@ -123,6 +132,13 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   void setMaps(int windowIndex, const Gfx::OutputMaps& maps);
   void setQuality(int windowIndex, const Gfx::OutputQuality& quality);
   void setCanvasLayout(const Gfx::CanvasLayout& layout) noexcept { m_canvasLayout = layout; }
+
+  //! While set, window i shows images[i] pixel for pixel (black without one)
+  //! instead of the canvas through its output stage: what a projector
+  //! calibration projects. Windows keep their settings.
+  void setCalibration(std::vector<std::shared_ptr<const CalibrationImage>> images);
+  void clearCalibration();
+  bool calibrating() const noexcept { return m_calibrating; }
   const Gfx::CanvasLayout& canvasLayout() const noexcept { return m_canvasLayout; }
 
   //! What the per-window blit does with a window's settings.
@@ -143,6 +159,7 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   std::pair<QRhiTexture::Format, bool> canvasSpec() const noexcept;
 
   void setSwapchainFlag(Gfx::SwapchainFlag flag);
+  Gfx::SwapchainFlag swapchainFlag() const noexcept { return m_swapchainFlag; }
   void setSwapchainFormat(Gfx::SwapchainFormat format);
 
   std::function<void(float)> onFps;
@@ -177,6 +194,8 @@ private:
   std::vector<Gfx::OutputMapping> m_mappings;
   QSize m_canvasSize;
   Gfx::CanvasLayout m_canvasLayout;
+  std::vector<std::shared_ptr<const CalibrationImage>> m_calibration;
+  bool m_calibrating{};
   std::vector<WindowOutput> m_windowOutputs;
 
   std::shared_ptr<RenderState> m_renderState;
