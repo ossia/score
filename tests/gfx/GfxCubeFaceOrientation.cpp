@@ -276,3 +276,37 @@ TEST_CASE(
   for(int f = 0; f < 6; ++f)
     CHECK(faceError[std::size_t(f)] < 0.02f);
 }
+
+TEST_CASE(
+    "a PER_CUBE_FACE FACES mask draws only the selected faces",
+    "[gfx][rawraster][cubemap][faces]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const Capture cap{
+      "ndc per-cube-face, +X +Y +Z only", "cube-dir-ndc-perface-mask.vs",
+      "cube-dir-ndc-perface-mask.fs", false, false};
+  const Outcome out = run(api, cap);
+  if(out.skipped)
+    SKIP(out.skip_reason);
+  REQUIRE(out.error.empty());
+
+  int wrong = 0;
+  std::ostringstream log;
+  for(int c = 0; c < kColumns; ++c)
+  {
+    const int face = c / 4;
+    const auto got = out.view.at(c * kCellW + kCellW / 2, out.view.height / 2);
+    const bool drawn = face % 2 == 0;
+    const bool ok = drawn ? near(got, expected(c), kTol)
+                          : (got[0] <= kTol && got[1] <= kTol && got[2] <= kTol);
+    if(!ok)
+    {
+      ++wrong;
+      log << " [" << c << " face " << face << "] got (" << int(got[0]) << ","
+          << int(got[1]) << "," << int(got[2]) << ")";
+    }
+  }
+  INFO(out.backend << ":" << log.str());
+  CHECK(wrong == 0);
+}

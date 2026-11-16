@@ -87,6 +87,7 @@ private:
   // fast path; otherwise delegate to ossia::math_expression with '$' →
   // 'var_' rewrite — same convention as CSF STRIDE / image-size
   // expressions. Returns >= 1; unparseable expressions degrade to 1.
+  int resolveCubeFaceMask() const;
   int resolveManualInvocationCount() const;
   bool outputSizeReadsBufferSizes() const noexcept;
   //! The size OUTPUTS.WIDTH / HEIGHT declare, invalid when none does.
@@ -391,6 +392,7 @@ private:
   // the target" question) and reuses the m_mipRTs vector for storage
   // — interpretation is mode-dependent (mip level vs face index).
   int m_perCubeFaceOutputIndex{-1};
+  int m_clearedFaces{0};
 
   // PerMip state. When PerMip is active the MRT target texture is
   // allocated with QRhiTexture::MipMapped and m_mipCount / m_mipRTs
