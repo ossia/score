@@ -201,3 +201,34 @@ TEST_CASE("CameraArray leaves the raw slot refs alone without a RenderList",
     CHECK_FALSE(camera_of(*node).raw_slot.valid());
   }
 }
+
+TEST_CASE("CameraArray Rotation turns the six faces as one rigid frame",
+          "[threedim][camera]")
+{
+  Threedim::CameraArray n;
+  n.inputs.rotation.value = {0.f, 90.f, 0.f};
+  n.rebuild();
+  n();
+
+  constexpr float kTurned[6][3]{
+      {0.f, 0.f, -1.f}, {0.f, 0.f, 1.f},  {0.f, 1.f, 0.f},
+      {0.f, -1.f, 0.f}, {1.f, 0.f, 0.f},  {-1.f, 0.f, 0.f}};
+  const auto& roots = *n.outputs.scene_out.scene.state->roots;
+  REQUIRE(roots.size() == 6);
+  for(int i = 0; i < 6; ++i)
+  {
+    const auto& t = xform_of(*roots[std::size_t(i)]);
+    const QQuaternion q(t.rotation[3], t.rotation[0], t.rotation[1], t.rotation[2]);
+    CHECK(q.length() == Approx(1.f).margin(1e-4));
+    const QVector3D looked = q.rotatedVector(QVector3D(0.f, 0.f, -1.f));
+    INFO("face " << i);
+    CHECK(looked.x() == Approx(kTurned[i][0]).margin(1e-4));
+    CHECK(looked.y() == Approx(kTurned[i][1]).margin(1e-4));
+    CHECK(looked.z() == Approx(kTurned[i][2]).margin(1e-4));
+  }
+
+  const auto& t0 = xform_of(*roots[0]);
+  const QQuaternion q0(t0.rotation[3], t0.rotation[0], t0.rotation[1], t0.rotation[2]);
+  const QVector3D up0 = q0.rotatedVector(QVector3D(0.f, 1.f, 0.f));
+  CHECK(up0.y() == Approx(-1.f).margin(1e-4));
+}
