@@ -342,7 +342,8 @@ int canvasRank(QRhiTexture::Format f) noexcept
 class MultiWindowRenderer final : public score::gfx::OutputNodeRenderer
 {
 public:
-  QShader m_vertexS, m_fragmentS, m_bakeFragmentS;
+  QShader m_vertexS, m_fragmentS, m_bakeFragmentS, m_calFragmentS;
+  QRhiSampler* m_calSampler{};
   score::gfx::MeshBuffers m_mesh{};
 
   struct PerWindowData
@@ -370,6 +371,12 @@ public:
     int bakedWarpVersion{-1};
     bool bakedBicubic{};
     bool bakedWrap{};
+
+    QRhiTexture* calTexture{};
+    QRhiBuffer* calUBO{};
+    score::gfx::Pipeline calPipeline;
+    int calVersion{-1};
+    std::pair<QSize, QSize> calWarnedSize;
   };
   std::vector<PerWindowData> m_perWindow;
 
@@ -848,6 +855,21 @@ public:
         renderer.state, mesh.defaultVertexShader(),
         QString::fromUtf8(bake_head) + warp_glsl + bake_main);
 
+    static const constexpr auto cal_frag = R"_(#version 450
+      layout(location = 0) in vec2 v_texcoord;
+      layout(location = 0) out vec4 fragColor;
+      layout(std140, binding = 2) uniform Calibration {
+          vec4 unused;
+      };
+      layout(binding = 3) uniform sampler2D tex;
+      void main()
+      {
+          fragColor = vec4(texture(tex, vec2(v_texcoord.x, 1.0 - v_texcoord.y)).rgb, 1.0);
+      }
+      )_";
+    std::tie(std::ignore, m_calFragmentS)
+        = score::gfx::makeShaders(renderer.state, mesh.defaultVertexShader(), cal_frag);
+
     auto& rhi = *renderer.state.rhi;
     m_mapSampler = rhi.newSampler(
         QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
@@ -869,6 +891,11 @@ public:
         QRhiSampler::Repeat, QRhiSampler::Repeat);
     m_noiseSampler->setName("MultiWindowRenderer::noiseSampler");
     m_noiseSampler->create();
+    m_calSampler = rhi.newSampler(
+        QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+        QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+    m_calSampler->setName("MultiWindowRenderer::calibrationSampler");
+    m_calSampler->create();
     m_noiseTexture
         = rhi.newTexture(QRhiTexture::R32F, QSize{blueNoiseSize, blueNoiseSize}, 1);
     m_noiseTexture->setName("MultiWindowRenderer::blueNoise");
@@ -1090,6 +1117,7 @@ public:
     pw.bakedWarp = nullptr;
     pw.bakedWarpVersion = -1;
     pw.bakeFailed = false;
+    releaseCalibration(pw);
     for(auto& s : pw.samplers)
       delete s.sampler;
     pw.samplers = {};
@@ -1124,9 +1152,9 @@ public:
     for(int i = 0; i < (int)m_perWindow.size(); ++i)
       releaseWindowPipeline(i);
     m_perWindow.clear();
-    for(auto* s : {m_mapSampler, m_warpSampler, m_lutSampler, m_noiseSampler})
+    for(auto* s : {m_mapSampler, m_warpSampler, m_lutSampler, m_noiseSampler, m_calSampler})
       delete s;
-    m_mapSampler = m_warpSampler = m_lutSampler = m_noiseSampler = nullptr;
+    m_mapSampler = m_warpSampler = m_lutSampler = m_noiseSampler = m_calSampler = nullptr;
     delete m_noiseTexture;
     m_noiseTexture = nullptr;
     m_initialized = false;
@@ -1241,6 +1269,112 @@ private:
     res->uploadTexture(pw.lutTexture, desc);
   }
 
+  static void releaseCalibration(PerWindowData& pw)
+  {
+    pw.calPipeline.release();
+    delete pw.calTexture;
+    pw.calTexture = nullptr;
+    delete pw.calUBO;
+    pw.calUBO = nullptr;
+    pw.calVersion = -1;
+    pw.calWarnedSize = {};
+  }
+
+  void renderCalibration(
+      const MultiWindowNode::WindowOutput& wo, PerWindowData& pw,
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& cb,
+      QRhiResourceUpdateBatch*& res, QRhiRenderTarget* rt)
+  {
+    auto& rhi = *renderer.state.rhi;
+    const auto& img = wo.calibration;
+    const bool show = img && img->width > 0 && img->height > 0
+                      && img->rgba.size() >= std::size_t(img->width) * img->height * 4
+                      && m_calSampler && m_calFragmentS.isValid();
+    const auto format = m_multiNode.swapchainFormat();
+    const bool decode = m_multiNode.swapchainFlag() == Gfx::SwapchainFlag::sRGB
+                        || format == Gfx::SwapchainFormat::HDRExtendedSrgbLinear
+                        || format == Gfx::SwapchainFormat::HDRExtendedDisplayP3Linear;
+    if(show)
+    {
+      const QSize sz{img->width, img->height};
+      if(pw.calTexture
+         && (pw.calTexture->pixelSize() != sz
+             || pw.calTexture->flags().testFlag(QRhiTexture::sRGB) != decode))
+      {
+        pw.calPipeline.release();
+        delete pw.calTexture;
+        pw.calTexture = nullptr;
+      }
+      if(!pw.calTexture)
+      {
+        pw.calTexture = rhi.newTexture(
+            QRhiTexture::RGBA8, sz, 1, decode ? QRhiTexture::sRGB : QRhiTexture::Flags{});
+        pw.calTexture->setName("MultiWindowRenderer::calibration");
+        if(!pw.calTexture->create())
+        {
+          delete pw.calTexture;
+          pw.calTexture = nullptr;
+        }
+        pw.calVersion = -1;
+      }
+      if(!pw.calUBO)
+      {
+        pw.calUBO = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16);
+        pw.calUBO->setName("MultiWindowRenderer::calibrationUBO");
+        pw.calUBO->create();
+      }
+      if(pw.calTexture && !pw.calPipeline.pipeline)
+      {
+        score::gfx::TextureRenderTarget prt;
+        prt.renderPass = wo.renderPassDescriptor;
+        const score::gfx::Sampler samplers[]{{m_calSampler, pw.calTexture}};
+        pw.calPipeline = score::gfx::buildPipeline(
+            renderer, renderer.defaultTriangle(), m_vertexS, m_calFragmentS, prt, nullptr,
+            pw.calUBO, samplers);
+      }
+      if(pw.calTexture && pw.calVersion != wo.calibrationVersion)
+      {
+        if(!res)
+          res = rhi.nextResourceUpdateBatch();
+        res->uploadTexture(
+            pw.calTexture,
+            QRhiTextureUploadDescription{
+                {0, 0,
+                 QRhiTextureSubresourceUploadDescription{
+                     img->rgba.data(), quint32(std::size_t(img->width) * img->height * 4)}}});
+        pw.calVersion = wo.calibrationVersion;
+      }
+      const QSize px = wo.swapChain->currentPixelSize();
+      if(sz != px && pw.calWarnedSize != std::make_pair(sz, px))
+      {
+        pw.calWarnedSize = {sz, px};
+        qWarning() << "MultiWindowNode: a" << sz << "calibration image on a" << px
+                   << "output is shown 1:1 from its top left corner";
+      }
+    }
+
+    cb.beginPass(rt, Qt::black, {1.0f, 0}, res);
+    res = nullptr;
+    if(show && pw.calPipeline.pipeline)
+    {
+      const QSize px = wo.swapChain->currentPixelSize();
+      cb.setGraphicsPipeline(pw.calPipeline.pipeline);
+      cb.setShaderResources(pw.calPipeline.srb);
+      cb.setViewport(QRhiViewport(
+          0, px.height() - img->height, img->width, img->height));
+      renderer.defaultTriangle().draw(m_mesh, cb);
+    }
+    if(pw.readbackServed != wo.readbackRequests)
+    {
+      pw.readbackServed = wo.readbackRequests;
+      auto* rb = rhi.nextResourceUpdateBatch();
+      rb->readBackTexture(QRhiReadbackDescription{}, wo.readback.get());
+      cb.endPass(rb);
+    }
+    else
+      cb.endPass();
+  }
+
   static void releaseBakeTarget(PerWindowData& pw)
   {
     pw.bakePipeline.release();
@@ -1330,6 +1464,14 @@ private:
     auto rt = wo.swapChain->currentFrameRenderTarget();
     if(!rt)
       return;
+
+    if(m_multiNode.calibrating())
+    {
+      renderCalibration(wo, pw, renderer, cb, res, rt);
+      return;
+    }
+    if(pw.calTexture || pw.calUBO)
+      releaseCalibration(pw);
 
     uploadMaps(wo, pw, renderer, res);
 
@@ -1879,6 +2021,34 @@ void MultiWindowNode::setMaps(int windowIndex, const Gfx::OutputMaps& maps)
   requestMaps(windowIndex, maps);
 }
 
+void MultiWindowNode::setCalibration(
+    std::vector<std::shared_ptr<const CalibrationImage>> images)
+{
+  m_calibrating = true;
+  m_calibration = std::move(images);
+  for(std::size_t i = 0; i < m_windowOutputs.size(); i++)
+  {
+    auto& wo = m_windowOutputs[i];
+    auto img = i < m_calibration.size() ? m_calibration[i] : nullptr;
+    if(img != wo.calibration)
+    {
+      wo.calibration = std::move(img);
+      wo.calibrationVersion++;
+    }
+  }
+}
+
+void MultiWindowNode::clearCalibration()
+{
+  m_calibrating = false;
+  m_calibration.clear();
+  for(auto& wo : m_windowOutputs)
+  {
+    wo.calibration.reset();
+    wo.calibrationVersion++;
+  }
+}
+
 void MultiWindowNode::setQuality(int windowIndex, const Gfx::OutputQuality& quality)
 {
   if(windowIndex >= 0 && windowIndex < (int)m_mappings.size())
@@ -2303,6 +2473,25 @@ void MultiWindowNode::onRendererChange()
 {
 }
 
+MultiWindowNode::RendererState MultiWindowNode::rendererState(int windowIndex) const
+{
+  RendererState st;
+  auto rl = m_renderer.lock();
+  if(!rl)
+    return st;
+  auto it = this->renderedNodes.find(rl.get());
+  if(it == this->renderedNodes.end())
+    return st;
+  if(auto* mwr = dynamic_cast<MultiWindowRenderer*>(it->second))
+    if(windowIndex >= 0 && windowIndex < (int)mwr->m_perWindow.size())
+    {
+      const auto& pw = mwr->m_perWindow[windowIndex];
+      st.bakeTarget = pw.bakeRT != nullptr;
+      st.calibration = pw.calTexture != nullptr || pw.calUBO != nullptr;
+    }
+  return st;
+}
+
 void MultiWindowNode::stopRendering()
 {
   if(onFps)
@@ -2602,6 +2791,9 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
         wo.window->setGeometry(geom);
     }
   }
+
+  if(m_calibrating)
+    setCalibration(m_calibration);
 
   // Notify the device that the QWindow objects exist (it uses this to
   // connect Qt signals like mouseMove, key, etc).
