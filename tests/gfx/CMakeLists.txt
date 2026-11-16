@@ -2384,3 +2384,20 @@ score_add_test(test_gfx_texture_port_converters
 # Crafted calibration files: truncated / CRLF PFM, oversized Bourke meshes,
 # nested MPCDI filesets, bad 1D .cube and response.json tables.
 score_add_gfx_test(calibration_file_hardening CalibrationFileHardening.cpp)
+
+# The projector calibration tool end to end: CalibrationRun on a multi-window
+# node's windows and a fake camera filming them, no process, no playing.
+score_add_gfx_test(calibration_run_end_to_end CalibrationRunEndToEnd.cpp)
+set(_calib_threedim "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+target_sources(test_gfx_calibration_run_end_to_end PRIVATE
+  "${_calib_threedim}/CalibrationRun.cpp"
+  "${_calib_threedim}/CalibrationPlan.cpp"
+  "${_calib_threedim}/StructuredLightSession.cpp"
+  "${_calib_threedim}/StructuredLightCalibration.cpp"
+  "${_calib_threedim}/StructuredLight.cpp"
+  "${_calib_threedim}/CalibrationFiles.cpp"
+  "${_calib_threedim}/ProjectorBlend.cpp"
+  "${_calib_threedim}/FloatTextureIO.cpp")
+target_include_directories(test_gfx_calibration_run_end_to_end SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+  "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim")

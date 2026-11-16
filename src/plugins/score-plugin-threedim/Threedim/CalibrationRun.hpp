@@ -1,0 +1,88 @@
+#pragma once
+#include <Gfx/GfxContext.hpp>
+#include <Gfx/Graph/MultiWindowNode.hpp>
+#include <Gfx/TextureCapture.hpp>
+#include <Threedim/CalibrationPlan.hpp>
+#include <Threedim/ProjectorBlend.hpp>
+#include <Threedim/StructuredLightSession.hpp>
+
+#include <QString>
+#include <QStringList>
+
+#include <functional>
+#include <future>
+#include <memory>
+#include <optional>
+
+namespace Threedim
+{
+//! A projector calibration of a multi-window device, outside the document:
+//! the patterns go straight to the device's windows
+//! (MultiWindowNode::setCalibration), the camera is read back through the
+//! document's GfxContext (Gfx::TextureCapture), and Projector Blend Maps runs
+//! on the results. Nothing is added to the score and it does not need to play.
+class CalibrationRun
+{
+public:
+  struct Setup
+  {
+    Gfx::GfxContext* gfx{};
+    //! The device's node, looked up again at every tick: null once it is gone.
+    std::function<score::gfx::MultiWindowNode*()> node;
+    Gfx::port_index camera{-1, -1};
+    Gfx::port_index positions{-1, -1};
+    std::function<void(float)> setExposure;
+    std::function<void(bool)> setAutoExposure;
+    CalibrationPlan plan;
+    //! Projector size, count, save path and auto save come from the plan.
+    StructuredLightSession::Settings settings;
+    bool blend{true};
+  };
+
+  enum class State
+  {
+    Idle,
+    Capturing,
+    Blending,
+    Done,
+    Failed
+  };
+
+  explicit CalibrationRun(Setup s);
+  ~CalibrationRun();
+  CalibrationRun(const CalibrationRun&) = delete;
+  CalibrationRun& operator=(const CalibrationRun&) = delete;
+
+  bool start(double nowMs);
+  void tick(double nowMs);
+  void abort(const QString& why);
+
+  State state() const noexcept { return m_state; }
+  bool running() const noexcept
+  {
+    return m_state == State::Capturing || m_state == State::Blending;
+  }
+  QString status() const;
+  float progress() const noexcept;
+  //! Lines for the log since the last call.
+  QStringList takeLog();
+  const StructuredLightSession& session() const noexcept { return m_session; }
+  const Setup& setup() const noexcept { return m_setup; }
+
+private:
+  void show(score::gfx::MultiWindowNode& node);
+  void release();
+  void fail(const QString& why);
+
+  Setup m_setup;
+  StructuredLightSession m_session;
+  std::unique_ptr<Gfx::TextureCapture> m_camera, m_positions;
+  std::vector<float> m_rgba, m_xyz;
+  int m_rgbaW{}, m_rgbaH{}, m_xyzW{}, m_xyzH{};
+  int m_shownVersion{-1};
+  State m_state{State::Idle};
+  QString m_status;
+  QStringList m_log;
+  std::future<ProjectorBlendMaps::Result> m_blend;
+};
+}
