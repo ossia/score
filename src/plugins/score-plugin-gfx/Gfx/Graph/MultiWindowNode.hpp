@@ -122,6 +122,8 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   void setReadbackSupport(bool b) noexcept { m_readbackSupport = b; }
   void setMaps(int windowIndex, const Gfx::OutputMaps& maps);
   void setQuality(int windowIndex, const Gfx::OutputQuality& quality);
+  void setCanvasLayout(const Gfx::CanvasLayout& layout) noexcept { m_canvasLayout = layout; }
+  const Gfx::CanvasLayout& canvasLayout() const noexcept { return m_canvasLayout; }
 
   //! What the per-window blit does with a window's settings.
   struct EffectiveQuality
@@ -174,6 +176,7 @@ private:
   Configuration m_conf;
   std::vector<Gfx::OutputMapping> m_mappings;
   QSize m_canvasSize;
+  Gfx::CanvasLayout m_canvasLayout;
   std::vector<WindowOutput> m_windowOutputs;
 
   std::shared_ptr<RenderState> m_renderState;

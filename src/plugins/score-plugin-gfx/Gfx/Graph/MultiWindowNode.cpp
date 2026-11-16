@@ -23,6 +23,8 @@
 
 #include <QFileInfo>
 #include <QFloat16>
+#include <QGenericMatrix>
+#include <QQuaternion>
 #include <QGuiApplication>
 #include <QScreen>
 
@@ -33,6 +35,22 @@ namespace score::gfx
 // Given 4 source points (warped corners) and 4 destination points (unit square corners),
 // this finds the inverse mapping: for screen position p, H*p gives the texture coordinate.
 // Uses the standard DLT (Direct Linear Transform) approach.
+static std::array<float, 16>
+subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas)
+{
+  std::array<float, 16> out{
+      float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height())};
+  const QMatrix3x3 m = QQuaternion::fromEulerAngles(
+                           canvas.orientation[0], canvas.orientation[1],
+                           canvas.orientation[2])
+                           .toRotationMatrix();
+  for(int c = 0; c < 3; c++)
+    for(int r = 0; r < 3; r++)
+      out[4 + 4 * c + r] = m(r, c);
+  out[7] = canvas.projection == Gfx::CanvasProjection::Equirectangular ? 1.f : 0.f;
+  return out;
+}
+
 static std::array<float, 12> computeHomographyUBO(const Gfx::CornerWarp& warp)
 {
   // Source corners (the warped quad in output UV space)
@@ -399,6 +417,9 @@ public:
 
       layout(std140, binding = 2) uniform SubRect {
           vec4 sourceRect; // x, y, width, height in canvas UV space
+          vec4 canvasRot0; // columns of the canvas orientation, canvasRot0.w = equirectangular
+          vec4 canvasRot1;
+          vec4 canvasRot2;
       };
 
       layout(std140, binding = 4) uniform BlendParams {
@@ -444,10 +465,34 @@ public:
 )_";
 
     static const constexpr auto frag_tail = R"_(
+      vec2 wrapCanvas(vec2 uv)
+      {
+          return canvasRot0.w > 0.5 ? vec2(fract(uv.x), uv.y) : uv;
+      }
+
+      vec2 orientCanvas(vec2 c)
+      {
+          const float pi = 3.14159265358979;
+          float lon = (c.x - 0.5) * 2.0 * pi;
+          float lat = (0.5 - c.y) * pi;
+          vec3 d = vec3(sin(lon) * cos(lat), sin(lat), -cos(lon) * cos(lat));
+          vec3 r = canvasRot0.xyz * d.x + canvasRot1.xyz * d.y + canvasRot2.xyz * d.z;
+          return vec2(
+              atan(r.x, -r.z) / (2.0 * pi) + 0.5,
+              0.5 - asin(clamp(r.y, -1.0, 1.0)) / pi);
+      }
+
+      vec2 orientedDelta(vec2 c, vec2 oc, vec2 d)
+      {
+          vec2 e = orientCanvas(c + d) - oc;
+          e.x -= floor(e.x + 0.5);
+          return e;
+      }
+
       vec3 sampleSource(vec2 uv, vec2 dx, vec2 dy)
       {
           if(quality.x < 0.5)
-              return textureLod(tex, uv, 0.0).rgb;
+              return textureLod(tex, wrapCanvas(uv), 0.0).rgb;
           vec2 sz = vec2(textureSize(tex, 0));
           vec2 px = dx * sz;
           vec2 py = dy * sz;
@@ -457,7 +502,7 @@ public:
           if(lx > limit) { dx *= limit / lx; lx = limit; }
           if(ly > limit) { dy *= limit / ly; ly = limit; }
           if(quality.x < 1.5)
-              return textureLod(tex, uv, max(log2(max(max(lx, ly), 1e-6)), 0.0)).rgb;
+              return textureLod(tex, wrapCanvas(uv), max(log2(max(max(lx, ly), 1e-6)), 0.0)).rgb;
           float pmax = max(lx, ly);
           float pmin = max(min(lx, ly), 1e-6);
           float n = clamp(ceil(pmax / pmin), 1.0, quality.y);
@@ -469,7 +514,7 @@ public:
           {
               if(i >= taps)
                   break;
-              acc += textureLod(tex, uv + axis * ((float(i) + 0.5) / n - 0.5), lod).rgb;
+              acc += textureLod(tex, wrapCanvas(uv + axis * ((float(i) + 0.5) / n - 0.5)), lod).rgb;
           }
           return acc / n;
       }
@@ -580,16 +625,22 @@ public:
               inside = place(tc) && m.z > 0.5;
           }
 
-          vec2 uv;
-          uv.x = sourceRect.x + tc.x * sourceRect.z;
-#if defined(QSHADER_SPIRV)
-          uv.y = sourceRect.y + (1.0 - tc.y) * sourceRect.w;
-#else
-          float texSrcY = 1.0 - sourceRect.y - sourceRect.w;
-          uv.y = texSrcY + tc.y * sourceRect.w;
-#endif
+          vec2 uv = vec2(
+              sourceRect.x + tc.x * sourceRect.z, sourceRect.y + (1.0 - tc.y) * sourceRect.w);
           vec2 uvDx = dFdx(uv);
           vec2 uvDy = dFdy(uv);
+          if(canvasRot0.w > 0.5)
+          {
+              vec2 ouv = orientCanvas(uv);
+              uvDx = orientedDelta(uv, ouv, uvDx);
+              uvDy = orientedDelta(uv, ouv, uvDy);
+              uv = ouv;
+          }
+#if !defined(QSHADER_SPIRV)
+          uv.y = 1.0 - uv.y;
+          uvDx.y = -uvDx.y;
+          uvDy.y = -uvDy.y;
+#endif
 
           vec3 rgb = vec3(0.0);
           if(inside && uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0)
@@ -849,7 +900,7 @@ public:
 
     // Create UBO for source rect
     pw.uvRectUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 4 * sizeof(float));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16 * sizeof(float));
     pw.uvRectUBO->setName(
         QByteArray("MultiWindowRenderer::uvRectUBO_") + QByteArray::number(index));
     pw.uvRectUBO->create();
@@ -914,10 +965,8 @@ public:
     // initial upload; renderSubRegion() re-uploads every frame anyway.
     if(res)
     {
-      float rectData[4] = {
-          (float)pw.sourceRect.x(), (float)pw.sourceRect.y(),
-          (float)pw.sourceRect.width(), (float)pw.sourceRect.height()};
-      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData);
+      const auto rectData = subRectUBO(pw.sourceRect, m_multiNode.canvasLayout());
+      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData.data());
 
       float blendData[8] = {
           wo.blendLeft.width,  wo.blendRight.width, wo.blendTop.width,
@@ -1227,10 +1276,8 @@ private:
       if(!res)
         res = renderer.state.rhi->nextResourceUpdateBatch();
 
-      float rectData[4] = {
-          (float)wo.sourceRect.x(), (float)wo.sourceRect.y(),
-          (float)wo.sourceRect.width(), (float)wo.sourceRect.height()};
-      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData);
+      const auto rectData = subRectUBO(wo.sourceRect, m_multiNode.canvasLayout());
+      res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData.data());
     }
 
     if(pw.blendUBO)
