@@ -32,7 +32,7 @@ namespace
 {
 std::string slModeName(int mode)
 {
-  return mode == StructuredLightCalibration::ViewerCamera ? "viewer" : "depth";
+  return mode == StructuredLightCore::ViewerCamera ? "viewer" : "depth";
 }
 
 std::array<float, 3> slMul(const Eigen::Matrix4d& m, float x, float y, float z, float w)
@@ -46,14 +46,14 @@ namespace
 {
 constexpr float clipLevel = 0.985f;
 
-void throwIfCancelled(const StructuredLightCalibration::Job& job)
+void throwIfCancelled(const StructuredLightCore::Job& job)
 {
   if(job.cancel && job.cancel->load(std::memory_order_relaxed))
     throw std::runtime_error("cancelled");
 }
 }
 
-StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
+StructuredLightCore::Result StructuredLightCore::compute(Job job)
 {
   Result r;
   r.mode = job.mode;
@@ -792,7 +792,7 @@ StructuredLightCalibration::Result StructuredLightCalibration::compute(Job job)
   return r;
 }
 
-std::vector<StructuredLightCalibration::Extra> StructuredLightCalibration::makeExtras(
+std::vector<StructuredLightCore::Extra> StructuredLightCore::makeExtras(
     int responseLevels, bool compensation, const std::vector<float>& exposures, int index,
     int mixLevels)
 {
@@ -877,7 +877,7 @@ std::vector<StructuredLightCalibration::Extra> StructuredLightCalibration::makeE
 }
 
 std::shared_ptr<score::gfx::photometric::CameraResponse>
-StructuredLightCalibration::solveCameraResponse(const Job& job, double lambda)
+StructuredLightCore::solveCameraResponse(const Job& job, double lambda)
 {
   namespace ph = score::gfx::photometric;
   std::vector<float> times;
@@ -952,7 +952,7 @@ StructuredLightCalibration::solveCameraResponse(const Job& job, double lambda)
   return res;
 }
 
-bool StructuredLightCalibration::saveCameraResponse(
+bool StructuredLightCore::saveCameraResponse(
     const std::string& path, const score::gfx::photometric::CameraResponse& crf,
     const std::vector<float>& exposures)
 {
@@ -985,7 +985,7 @@ bool StructuredLightCalibration::saveCameraResponse(
 }
 
 std::shared_ptr<score::gfx::photometric::CameraResponse>
-StructuredLightCalibration::loadCameraResponse(const std::string& path)
+StructuredLightCore::loadCameraResponse(const std::string& path)
 {
   QFile f{QString::fromStdString(path)};
   if(!f.open(QIODevice::ReadOnly))
@@ -1002,7 +1002,7 @@ StructuredLightCalibration::loadCameraResponse(const std::string& path)
   return r->valid() ? r : nullptr;
 }
 
-std::vector<float> StructuredLightCalibration::compensationScale(const Result& r)
+std::vector<float> StructuredLightCore::compensationScale(const Result& r)
 {
   const std::size_t n = std::size_t(r.width) * r.height;
   std::vector<float> scale(n, r.compScale);
@@ -1085,7 +1085,7 @@ std::vector<float> StructuredLightCalibration::compensationScale(const Result& r
   return scale;
 }
 
-score::gfx::CompensationMaps StructuredLightCalibration::compensationMaps(const Result& r)
+score::gfx::CompensationMaps StructuredLightCore::compensationMaps(const Result& r)
 {
   score::gfx::CompensationMaps m;
   const std::size_t n = std::size_t(r.width) * r.height;
@@ -1130,8 +1130,8 @@ score::gfx::CompensationMaps StructuredLightCalibration::compensationMaps(const 
   return m;
 }
 
-std::vector<StructuredLightCalibration::Result>
-StructuredLightCalibration::computeAll(std::vector<Job> jobs)
+std::vector<StructuredLightCore::Result>
+StructuredLightCore::computeAll(std::vector<Job> jobs)
 {
   std::vector<Result> out;
   if(jobs.empty())
@@ -1177,7 +1177,7 @@ StructuredLightCalibration::computeAll(std::vector<Job> jobs)
 }
 
 std::vector<std::array<float, 4>>
-StructuredLightCalibration::canvasRects(const std::string& layout, int count)
+StructuredLightCore::canvasRects(const std::string& layout, int count)
 {
   std::vector<std::array<float, 4>> out;
   const QStringList parts
@@ -1196,7 +1196,7 @@ StructuredLightCalibration::canvasRects(const std::string& layout, int count)
   return out;
 }
 
-bool StructuredLightCalibration::saveFile(const std::string& path, const Result& r)
+bool StructuredLightCore::saveFile(const std::string& path, const Result& r)
 {
   if(!r.ok || r.xyz.empty())
     return false;
@@ -1316,7 +1316,7 @@ bool StructuredLightCalibration::saveFile(const std::string& path, const Result&
   return f.commit();
 }
 
-StructuredLightCalibration::Result StructuredLightCalibration::loadFile(const std::string& path)
+StructuredLightCore::Result StructuredLightCore::loadFile(const std::string& path)
 {
   Result r;
   const QString qbase = QString::fromStdString(SaveFloatTexture::basePath(path));
@@ -1384,6 +1384,14 @@ StructuredLightCalibration::Result StructuredLightCalibration::loadFile(const st
   return r;
 }
 
+std::string
+StructuredLightCore::projectorPath(const std::string& path, int index, int count)
+{
+  if(count <= 1 || index <= 0)
+    return path;
+  return SaveFloatTexture::basePath(path) + "_p" + std::to_string(index);
+}
+
 std::function<void(StructuredLightCalibration&)>
 StructuredLightCalibration::ins::load_t::process(file_type data)
 {
@@ -1401,7 +1409,6 @@ struct StructuredLightCalibration::Shared
   int shown{-1};
   sl::GraySequence seq;
   float level{1.f};
-  std::shared_ptr<const Result> result;
   std::vector<std::shared_ptr<const Result>> results;
   int projector{};
   int projectors{1};
@@ -1427,6 +1434,16 @@ std::map<int64_t, std::weak_ptr<StructuredLightCalibration::Shared>>& slRegistry
   static std::map<int64_t, std::weak_ptr<StructuredLightCalibration::Shared>> r;
   return r;
 }
+
+std::vector<float> parseExposures(const std::string& text)
+{
+  std::vector<float> out;
+  for(const auto& t : QString::fromStdString(text).split(
+          QRegularExpression("[\\s,;]+"), Qt::SkipEmptyParts))
+    if(const float v = t.toFloat(); v > 0.f)
+      out.push_back(v);
+  return out;
+}
 }
 
 void StructuredLightCalibration::prepare(setup s)
@@ -1446,7 +1463,6 @@ void StructuredLightCalibration::prepare(setup s)
 
 StructuredLightCalibration::~StructuredLightCalibration()
 {
-  cancelComputation();
   if(m_shared)
   {
     std::lock_guard l{m_shared->mutex};
@@ -1455,57 +1471,78 @@ StructuredLightCalibration::~StructuredLightCalibration()
   }
 }
 
-void StructuredLightCalibration::cancelComputation() noexcept
+StructuredLightSession::Settings StructuredLightCalibration::settings() const
 {
-  if(m_cancel)
-    m_cancel->store(true, std::memory_order_relaxed);
-  if(!m_future.valid())
-    return;
-  try
-  {
-    std::thread([f = std::move(m_future)]() mutable { f.wait(); }).detach();
-  }
-  catch(...)
-  {
-    if(m_future.valid())
-      m_future.wait();
-  }
-  m_future = {};
+  StructuredLightSession::Settings s;
+  s.projectorWidth = inputs.projector_size.value.x;
+  s.projectorHeight = inputs.projector_size.value.y;
+  s.projectors = std::clamp(inputs.projector_count.value, 1, 16);
+  s.mode = inputs.mode.value;
+  s.fov = inputs.fov.value;
+  const auto& k = inputs.intrinsics.value;
+  s.cameraIntrinsics = {k.x, k.y, k.z, k.w};
+  s.worldFromCamera = inputs.world_from_camera.value;
+  s.level = inputs.level.value;
+  s.minStripe = inputs.min_stripe.value;
+  s.settleMs = inputs.settle.value;
+  s.frames = inputs.frames.value;
+  s.contrast = inputs.contrast.value;
+  s.minSignal = inputs.min_signal.value;
+  s.minBits = inputs.min_bits.value;
+  s.holeRadius = inputs.hole_radius.value;
+  s.depthJump = inputs.depth_jump.value;
+  s.ransac = inputs.ransac.value;
+  s.idle = inputs.idle.value;
+  s.surface = inputs.surface.value;
+  s.maxPlanes = inputs.max_planes.value;
+  s.planeThreshold = inputs.plane_threshold.value;
+  s.phaseShift = inputs.phase_shift.value;
+  s.phaseSteps = inputs.phase_steps.value;
+  s.phasePeriod = inputs.phase_period.value;
+  s.projectorGamma = inputs.projector_gamma.value;
+  s.phaseMinModulation = inputs.phase_min_modulation.value;
+  s.intrinsicsMode = inputs.intrinsics_mode.value;
+  const auto& lk = inputs.locked_intrinsics.value;
+  s.lockedIntrinsics = {lk.x, lk.y, lk.z, lk.w};
+  s.throwRatio = inputs.throw_ratio.value;
+  s.lensShift = {inputs.lens_shift.value.x, inputs.lens_shift.value.y};
+  s.accumulateIntrinsics = inputs.accumulate_intrinsics.value;
+  s.cameraGamma = inputs.camera_gamma.value;
+  s.responseLevels = inputs.response_levels.value;
+  s.compensation = inputs.compensation.value;
+  s.exposureSettleMs = inputs.exposure_settle.value;
+  s.captureExposure = inputs.capture_exposure.value;
+  s.crfFile = inputs.crf_file.value;
+  s.compGamut = inputs.comp_gamut.value;
+  s.compStrength = inputs.comp_strength.value;
+  s.compGradient = inputs.comp_gradient.value;
+  s.compBlack = inputs.comp_black.value;
+  s.mixLevels = inputs.mix_levels.value;
+  s.savePath = inputs.save_path.value;
+  s.autoSave = inputs.auto_save.value;
+  return s;
 }
 
 void StructuredLightCalibration::mirror()
 {
-  if(m_phase != Phase::Idle)
-    stop(outputs.status.value);
-  m_projectors = m_shared->projectors;
+  if(m_session.running())
+  {
+    StructuredLightSession::Events ignored;
+    m_session.abort(settings(), ignored, outputs.status.value);
+  }
   if(m_shared->shown >= 0)
-  {
-    if(m_projector != m_shared->projector)
-    {
-      m_projector = m_shared->projector;
-      m_shown = -2;
-      blankOthers(m_projector);
-    }
-    m_seq = m_shared->seq;
-    m_extraColors = m_shared->extraColors;
-    const float level = inputs.level.value;
-    inputs.level.value = m_shared->level;
-    showPattern(m_shared->shown);
-    inputs.level.value = level;
-  }
+    m_session.showPattern(
+        m_shared->seq, m_shared->projector, m_shared->projectors, m_shared->shown,
+        m_shared->level, m_shared->extraColors);
   else
-  {
-    showIdle();
-  }
-  if(m_shared->result && m_seenResult != m_shared->resultVersion)
+    m_session.showIdle(
+        inputs.projector_size.value.x, inputs.projector_size.value.y, inputs.idle.value,
+        inputs.level.value, std::clamp(inputs.projector_count.value, 1, 16));
+  if(!m_shared->results.empty() && m_seenResult != m_shared->resultVersion)
   {
     m_seenResult = m_shared->resultVersion;
-    m_results = m_shared->results;
-    m_result = m_results.empty() ? nullptr : m_results[0];
-    for(std::size_t i = m_results.size(); i-- > 0;)
-      publish(*m_results[i]);
+    m_session.mirrorResults(m_shared->results);
   }
-  outputs.status.value = m_shared->status;
   outputs.progress.value = m_shared->progress;
   if(m_seenExposure != m_shared->exposureVersion)
   {
@@ -1525,197 +1562,52 @@ void StructuredLightCalibration::operator()()
   tick(duration<double, std::milli>(steady_clock::now().time_since_epoch()).count());
 }
 
-void StructuredLightCalibration::showPattern(int k)
+void StructuredLightCalibration::syncPorts()
 {
-  const auto& seq = m_seq;
-  if(m_shown == k && m_shownLevel == inputs.level.value && m_shownW == seq.width
-     && m_shownH == seq.height)
+  const auto& d = m_session.display();
+  if(d.width <= 0 || d.height <= 0)
     return;
-  withPatternPort(m_projector, [&](auto& port) {
-    port.create(seq.width, seq.height);
-    if(k >= seq.count())
-    {
-      const std::size_t e = std::size_t(k - seq.count());
-      const auto c = e < m_extraColors.size() ? m_extraColors[e] : std::array<float, 3>{};
-      uint8_t v[3];
-      for(int i = 0; i < 3; i++)
-        v[i] = uint8_t(std::lround(std::clamp(c[i], 0.f, 1.f) * 255.f));
-      auto* px = port.texture.bytes;
-      for(std::size_t i = 0; i < std::size_t(seq.width) * seq.height; i++)
-      {
-        px[i * 4 + 0] = v[0];
-        px[i * 4 + 1] = v[1];
-        px[i * 4 + 2] = v[2];
-        px[i * 4 + 3] = 255;
-      }
-    }
-    else
-      sl::renderPattern(seq, k, inputs.level.value, port.texture.bytes);
-    port.upload();
-  });
-  m_canvasDirty = true;
-  outputs.projector_index.value = m_projector;
-  m_shown = k;
-  m_shownIdle = -1;
-  m_shownLevel = inputs.level.value;
-  m_shownW = seq.width;
-  m_shownH = seq.height;
-}
-
-void StructuredLightCalibration::showIdle()
-{
-  const int w = std::max(1, inputs.projector_size.value.x);
-  const int h = std::max(1, inputs.projector_size.value.y);
-  const int idle = inputs.idle.value;
-  if(m_shown == -1 && m_shownIdle == idle && m_shownLevel == inputs.level.value
-     && m_shownW == w && m_shownH == h)
-    return;
-  outputs.pattern.create(w, h);
-  auto* px = outputs.pattern.texture.bytes;
-  if(idle == TestGrid)
-    sl::renderTestGrid(w, h, inputs.level.value, px);
-  else
-  {
-    const uint8_t c = idle == White
-                          ? uint8_t(std::lround(std::clamp(inputs.level.value, 0.f, 1.f) * 255.f))
-                          : 0;
-    for(std::size_t i = 0; i < std::size_t(w) * h; i++)
-    {
-      px[i * 4 + 0] = px[i * 4 + 1] = px[i * 4 + 2] = c;
-      px[i * 4 + 3] = 255;
-    }
-  }
-  outputs.pattern.upload();
-  const int count = std::clamp(inputs.projector_count.value, 1, 4);
-  for(int p = 1; p < 4; p++)
-    withPatternPort(p, [&](auto& port) {
-      port.create(w, h);
-      if(p < count)
-        std::memcpy(port.texture.bytes, px, std::size_t(w) * h * 4);
-      else
-        std::memset(port.texture.bytes, 0, std::size_t(w) * h * 4);
-      port.upload();
-    });
-  m_canvasDirty = true;
-  m_shown = -1;
-  m_shownIdle = idle;
-  m_shownLevel = inputs.level.value;
-  m_shownW = w;
-  m_shownH = h;
-}
-
-std::string
-StructuredLightCalibration::projectorPath(const std::string& path, int index, int count)
-{
-  if(count <= 1 || index <= 0)
-    return path;
-  return SaveFloatTexture::basePath(path) + "_p" + std::to_string(index);
-}
-
-void StructuredLightCalibration::finishProjector(double now)
-{
-  m_pendingJobs.push_back(std::move(m_job));
-  m_job = Job{};
-  if(m_projector + 1 < m_projectors)
-  {
-    m_framesBefore += frameCount();
-    m_projector++;
-    m_job.seq = m_seq;
-    m_extras = makeExtras(
-        inputs.response_levels.value, inputs.compensation.value, {}, m_projector,
-        inputs.mix_levels.value);
-    m_extraColors.clear();
-    for(auto& e : m_extras)
-      m_extraColors.push_back(e.rgb);
-    m_camW = m_camH = 0;
-    m_k = 0;
-    m_framesTaken = 0;
-    m_frameSum.clear();
-    m_rgbSum.clear();
-    blankOthers(m_projector);
-    m_settleMs = inputs.settle.value;
-    if(inputs.capture_exposure.value > 0.f && m_exposureSent != inputs.capture_exposure.value)
-    {
-      outputs.camera_exposure.value = inputs.capture_exposure.value;
-      m_exposureSent = inputs.capture_exposure.value;
-      m_settleMs = std::max(m_settleMs, double(inputs.exposure_settle.value));
-    }
-    m_shown = -2;
-    showPattern(0);
-    m_shownAt = now;
-    m_phase = Phase::Settling;
-    inputs.camera.request_readback = true;
-    inputs.positions.request_readback = inputs.mode.value == DepthCamera;
-    outputs.status.value = "Capturing pattern 1 / " + std::to_string(frameCount())
-                           + " of projector " + std::to_string(m_projector + 1) + " / "
-                           + std::to_string(m_projectors);
-    return;
-  }
-  inputs.camera.request_readback = false;
-  inputs.positions.request_readback = false;
-  if(inputs.capture_exposure.value > 0.f && m_exposureSent != inputs.capture_exposure.value)
-  {
-    outputs.camera_exposure.value = inputs.capture_exposure.value;
-    m_exposureSent = inputs.capture_exposure.value;
-  }
-  m_cancel = std::make_shared<std::atomic_bool>(false);
-  for(auto& j : m_pendingJobs)
-    j.cancel = m_cancel;
-  try
-  {
-    m_future = std::async(
-        std::launch::async,
-        [jobs = std::move(m_pendingJobs)]() mutable -> std::vector<Result> {
-      try
-      {
-        return computeAll(std::move(jobs));
-      }
-      catch(const std::exception& e)
-      {
-        Result r;
-        r.status = std::string("Failed: ") + e.what();
-        return {std::move(r)};
-      }
-      catch(...)
-      {
-        Result r;
-        r.status = "Failed: unknown error";
-        return {std::move(r)};
-      }
-    });
-  }
-  catch(const std::exception& e)
-  {
-    m_pendingJobs.clear();
-    stop(std::string("Failed: ") + e.what());
-    return;
-  }
-  m_pendingJobs.clear();
-  m_phase = Phase::Computing;
-  outputs.status.value = "Decoding";
-  m_projector = 0;
-  showIdle();
-}
-
-void StructuredLightCalibration::blankOthers(int projector)
-{
-  const int w = std::max(1, m_seq.width), h = std::max(1, m_seq.height);
+  if(!d.idle)
+    outputs.projector_index.value = d.projector;
   for(int p = 0; p < 4; p++)
   {
-    if(p == projector)
+    const bool image = d.idle ? (p == 0 || p < d.projectors) : p == d.projector;
+    const PortState want{image ? 1 : 0, image ? d.version : 0, d.width, d.height};
+    auto& have = m_ports[p];
+    if(have.kind == want.kind && have.version == want.version && have.width == want.width
+       && have.height == want.height)
       continue;
-    withPatternPort(p, [&](auto& port) {
-      port.create(w, h);
+    have = want;
+    auto write = [&](auto& port) {
+      port.create(d.width, d.height);
       auto* px = port.texture.bytes;
-      for(std::size_t i = 0; i < std::size_t(w) * h; i++)
-      {
-        px[i * 4 + 0] = px[i * 4 + 1] = px[i * 4 + 2] = 0;
-        px[i * 4 + 3] = 255;
-      }
+      const std::size_t n = std::size_t(d.width) * d.height;
+      if(image)
+        std::memcpy(px, d.rgba.data(), n * 4);
+      else
+        for(std::size_t i = 0; i < n; i++)
+        {
+          px[i * 4 + 0] = px[i * 4 + 1] = px[i * 4 + 2] = 0;
+          px[i * 4 + 3] = 255;
+        }
       port.upload();
-    });
+    };
+    switch(p)
+    {
+      case 1:
+        write(outputs.pattern2);
+        break;
+      case 2:
+        write(outputs.pattern3);
+        break;
+      case 3:
+        write(outputs.pattern4);
+        break;
+      default:
+        write(outputs.pattern);
+        break;
+    }
   }
-  m_canvasDirty = true;
 }
 
 void StructuredLightCalibration::updateCanvas()
@@ -1723,91 +1615,29 @@ void StructuredLightCalibration::updateCanvas()
   const int W = inputs.canvas_size.value.x, H = inputs.canvas_size.value.y;
   if(W <= 0 || H <= 0)
     return;
-  if(!m_canvasDirty && m_canvasW == W && m_canvasH == H
-     && m_canvasLayout == inputs.canvas_layout.value)
+  const auto& d = m_session.display();
+  const int count = std::max(1, d.projectors);
+  if(m_canvasVersion == d.version && m_canvasW == W && m_canvasH == H
+     && m_canvasCount == count && m_canvasLayout == inputs.canvas_layout.value)
     return;
-  const int count = std::clamp(inputs.projector_count.value, 1, 4);
-  const auto rects = canvasRects(inputs.canvas_layout.value, count);
   outputs.canvas.create(W, H);
-  uint8_t* dst = outputs.canvas.texture.bytes;
-  for(std::size_t i = 0; i < std::size_t(W) * H; i++)
-  {
-    dst[i * 4 + 0] = dst[i * 4 + 1] = dst[i * 4 + 2] = 0;
-    dst[i * 4 + 3] = 255;
-  }
-  for(int p = 0; p < count; p++)
-    withPatternPort(p, [&](auto& port) {
-      const auto& t = port.texture;
-      if(!t.bytes || t.width <= 0 || t.height <= 0)
-        return;
-      const auto& r = rects[p];
-      const int x0 = std::clamp(int(std::lround(r[0] * W)), 0, W);
-      const int y0 = std::clamp(int(std::lround(r[1] * H)), 0, H);
-      const int x1 = std::clamp(int(std::lround((r[0] + r[2]) * W)), 0, W);
-      const int y1 = std::clamp(int(std::lround((r[1] + r[3]) * H)), 0, H);
-      const double fx = double(t.width) / std::max(1., std::lround(r[2] * W) * 1.);
-      const double fy = double(t.height) / std::max(1., std::lround(r[3] * H) * 1.);
-      const int ox = int(std::lround(r[0] * W)), oy = int(std::lround(r[1] * H));
-      for(int y = y0; y < y1; y++)
-      {
-        const int sy = std::clamp(int((y - oy + 0.5) * fy), 0, t.height - 1);
-        for(int x = x0; x < x1; x++)
-        {
-          const int sx = std::clamp(int((x - ox + 0.5) * fx), 0, t.width - 1);
-          std::memcpy(
-              dst + (std::size_t(y) * W + x) * 4,
-              t.bytes + (std::size_t(sy) * t.width + sx) * 4, 4);
-        }
-      }
-    });
+  m_session.renderCanvas(W, H, inputs.canvas_layout.value, count, outputs.canvas.texture.bytes);
   outputs.canvas.upload();
-  m_canvasDirty = false;
+  m_canvasVersion = d.version;
   m_canvasW = W;
   m_canvasH = H;
+  m_canvasCount = count;
   m_canvasLayout = inputs.canvas_layout.value;
 }
 
-void StructuredLightCalibration::resolveIntrinsics(Job& job) const
+void StructuredLightCalibration::writeEvents(const StructuredLightSession::Events& ev)
 {
-  job.intrinsicsMode = inputs.intrinsics_mode.value;
-  job.lockK = false;
-  job.kNote.clear();
-  if(job.intrinsicsMode == SolveIntrinsics)
-    return;
-
-  std::array<float, 4> k{};
-  if(job.intrinsicsMode == LockIntrinsics)
-  {
-    const auto& v = inputs.locked_intrinsics.value;
-    k = {v.x, v.y, v.z, v.w};
-    if(!(k[0] > 0.f && k[1] > 0.f) && inputs.throw_ratio.value > 0.f)
-    {
-      const float W = float(m_seq.width), H = float(m_seq.height);
-      const float f = inputs.throw_ratio.value * W;
-      k = {f, f, (W - 1.f) / 2.f - inputs.lens_shift.value.x * W,
-           (H - 1.f) / 2.f + inputs.lens_shift.value.y * H};
-    }
-  }
-  else
-  {
-    if(m_loadedK[0] > 0.f)
-      k = m_loadedK;
-    else if(m_lastSolvedK[0] > 0.f)
-      k = m_lastSolvedK;
-  }
-  if(k[0] > 0.f && k[1] > 0.f)
-  {
-    job.lockK = true;
-    job.lockedK = k;
-  }
-  else
-  {
-    job.kNote = job.intrinsicsMode == LockIntrinsics
-                    ? "warning: Lock without Locked intrinsics nor Throw ratio, solved "
-                      "instead"
-                    : "warning: Lock to loaded without a loaded or solved calibration, "
-                      "solved instead";
-  }
+  if(ev.exposure)
+    outputs.camera_exposure.value = ev.exposure;
+  if(ev.autoExposure)
+    outputs.auto_exposure.value = ev.autoExposure;
+  if(ev.done)
+    outputs.done.value = halp::impulse{};
 }
 
 void StructuredLightCalibration::publish(const Result& r)
@@ -1815,37 +1645,9 @@ void StructuredLightCalibration::publish(const Result& r)
   outputs.status.value = r.status;
   if(!r.ok)
     return;
-  if(r.fromFile && r.crf)
-    m_loadedCrf = r.crf;
-  if(r.response && r.projectorIndex == 0)
-    for(int c = 0; c < 3; c++)
-      outputs.measured_gamma.value[c] = float(r.response->channels[c].gamma);
-  if(r.intrinsics[0] > 0.f && r.mode == DepthCamera)
-  {
-    if(r.fromFile)
-      m_loadedK = r.intrinsics;
-    else if(!r.intrinsicsLocked)
-    {
-      m_lastSolvedK = r.intrinsics;
-      if(inputs.accumulate_intrinsics.value)
-      {
-        m_solvedKs.push_back(r.intrinsics);
-        if(m_solvedKs.size() > 8)
-          m_solvedKs.erase(m_solvedKs.begin());
-        for(int c = 0; c < 4; c++)
-        {
-          std::vector<float> v;
-          for(auto& k : m_solvedKs)
-            v.push_back(k[c]);
-          std::nth_element(v.begin(), v.begin() + v.size() / 2, v.end());
-          float med = v[v.size() / 2];
-          if(v.size() % 2 == 0)
-            med = 0.5f * (med + *std::max_element(v.begin(), v.begin() + v.size() / 2));
-          outputs.accumulated_intrinsics.value[c] = med;
-        }
-      }
-    }
-  }
+  outputs.measured_gamma.value = m_session.measuredGamma();
+  if(inputs.accumulate_intrinsics.value)
+    outputs.accumulated_intrinsics.value = m_session.accumulatedIntrinsics();
   auto xyzOut = [&](auto& port) {
     port.create(r.width, r.height);
     std::memcpy(port.texture.bytes, r.xyz.data(), r.xyz.size() * sizeof(float));
@@ -1853,6 +1655,9 @@ void StructuredLightCalibration::publish(const Result& r)
   };
   switch(r.projectorIndex)
   {
+    case 0:
+      xyzOut(outputs.xyz);
+      break;
     case 1:
       xyzOut(outputs.xyz2);
       break;
@@ -1863,7 +1668,6 @@ void StructuredLightCalibration::publish(const Result& r)
       xyzOut(outputs.xyz4);
       break;
     default:
-      xyzOut(outputs.xyz);
       break;
   }
   if(r.projectorIndex > 0)
@@ -1902,115 +1706,6 @@ void StructuredLightCalibration::publish(const Result& r)
   outputs.planes.value = r.planes;
 }
 
-void StructuredLightCalibration::saveAll()
-{
-  std::vector<std::shared_ptr<const Result>> all = m_results;
-  if(all.empty())
-    all.push_back(m_result);
-  std::string saved, failed;
-  for(std::size_t i = 0; i < all.size(); i++)
-  {
-    const auto path = projectorPath(inputs.save_path.value, int(i), int(all.size()));
-    const auto name = SaveFloatTexture::basePath(path);
-    const auto& r = all[i];
-    if(r && r->ok && !r->fromFile && saveFile(path, *r))
-      saved += (saved.empty() ? "" : ", ") + name + ".json";
-    else
-      failed += (failed.empty() ? "" : ", ") + name
-                + (!r || !r->ok    ? " (no result)"
-                   : r->fromFile ? " (loaded from a file, not re-saved)"
-                                 : " (cannot write)");
-  }
-  outputs.status.value = failed.empty() ? "Saved " + saved
-                         : saved.empty() ? "Failed: " + failed
-                                         : "Saved " + saved + "; failed: " + failed;
-}
-
-void StructuredLightCalibration::stop(const std::string& status)
-{
-  if(m_phase != Phase::Idle && inputs.capture_exposure.value > 0.f
-     && m_exposureSent != inputs.capture_exposure.value)
-  {
-    outputs.camera_exposure.value = inputs.capture_exposure.value;
-    m_exposureSent = inputs.capture_exposure.value;
-  }
-  m_phase = Phase::Idle;
-  m_pendingJobs.clear();
-  m_job = Job{};
-  inputs.camera.request_readback = false;
-  inputs.positions.request_readback = false;
-  outputs.status.value = status;
-}
-
-bool StructuredLightCalibration::captureFrame()
-{
-  const auto& t = inputs.camera.texture;
-  if(!t.bytes || t.width <= 0 || t.height <= 0)
-    return false;
-  if(m_camW == 0)
-  {
-    m_camW = t.width;
-    m_camH = t.height;
-    m_job.decoder.reset(m_camW, m_camH, m_seq);
-    m_job.decoder.setContrast(inputs.contrast.value);
-    m_job.decoder.setPhaseMinModulation(inputs.phase_min_modulation.value);
-    const std::size_t n = std::size_t(m_camW) * m_camH;
-    m_job.positions.assign(n * 3, 0.f);
-    m_job.positionCount.assign(n, 0);
-    m_job.zMin.assign(n, 1e30f);
-    m_job.zMax.assign(n, -1e30f);
-    m_job.positionFrames = 0;
-  }
-  if(t.width != m_camW || t.height != m_camH)
-  {
-    stop("Aborted: the camera size changed during the capture");
-    return false;
-  }
-  const std::size_t n = std::size_t(m_camW) * m_camH;
-  if(m_frameSum.size() != n)
-    m_frameSum.assign(n, 0.f);
-  for(std::size_t i = 0; i < n; i++)
-  {
-    const float* p = t.bytes + i * 4;
-    m_frameSum[i] += (p[0] + p[1] + p[2]) * (1.f / 3.f);
-  }
-  if(m_k <= 1 || m_k >= m_seq.count())
-  {
-    if(m_rgbSum.size() != n * 3)
-      m_rgbSum.assign(n * 3, 0.f);
-    for(std::size_t i = 0; i < n; i++)
-      for(int c = 0; c < 3; c++)
-        m_rgbSum[i * 3 + c] += t.bytes[i * 4 + c];
-  }
-
-  const auto& pt = inputs.positions.texture;
-  if(inputs.mode.value == DepthCamera && m_k <= 1 && pt.bytes && pt.width > 0
-     && pt.height > 0)
-  {
-    m_job.positionFrames++;
-    for(int y = 0; y < m_camH; y++)
-    {
-      const int py = std::min(pt.height - 1, int((y + 0.5) * pt.height / m_camH));
-      for(int x = 0; x < m_camW; x++)
-      {
-        const int px = std::min(pt.width - 1, int((x + 0.5) * pt.width / m_camW));
-        const float* p = pt.bytes + (std::size_t(py) * pt.width + px) * 4;
-        if(!(p[3] > 0.f) || !(p[2] > 0.f) || !std::isfinite(p[0]) || !std::isfinite(p[1])
-           || !std::isfinite(p[2]))
-          continue;
-        const std::size_t i = std::size_t(y) * m_camW + x;
-        m_job.positions[i * 3] += p[0];
-        m_job.positions[i * 3 + 1] += p[1];
-        m_job.positions[i * 3 + 2] += p[2];
-        m_job.positionCount[i]++;
-        m_job.zMin[i] = std::min(m_job.zMin[i], p[2]);
-        m_job.zMax[i] = std::max(m_job.zMax[i], p[2]);
-      }
-    }
-  }
-  return true;
-}
-
 void StructuredLightCalibration::tick(double now)
 {
   outputs.done.value.reset();
@@ -2027,327 +1722,101 @@ void StructuredLightCalibration::tick(double now)
       if(m_shared->running)
       {
         m_shared->running = false;
-        outputs.status.value = "Aborted: the instance running the calibration was removed";
+        m_session.setStatus("Aborted: the instance running the calibration was removed");
       }
     }
     if(m_shared->driver != this)
     {
       mirror();
+      if(m_published != m_session.resultVersion())
+      {
+        m_published = m_session.resultVersion();
+        const auto& all = m_session.results();
+        for(std::size_t i = all.size(); i-- > 0;)
+          publish(*all[i]);
+      }
+      outputs.status.value = m_shared->status;
+      syncPorts();
       updateCanvas();
       return;
     }
   }
-  struct Publish
-  {
-    StructuredLightCalibration& self;
-    ~Publish()
-    {
-      self.updateCanvas();
-      if(!self.m_shared)
-        return;
-      auto& sh = *self.m_shared;
-      sh.extraColors = self.m_extraColors;
-      if(self.outputs.camera_exposure.value)
-      {
-        sh.exposure = *self.outputs.camera_exposure.value;
-        sh.exposureVersion++;
-      }
-      if(self.outputs.auto_exposure.value)
-      {
-        sh.autoExposure = *self.outputs.auto_exposure.value;
-        sh.autoVersion++;
-      }
-      sh.running = self.m_phase != Phase::Idle;
-      sh.shown = self.m_shown;
-      sh.seq = self.m_seq;
-      sh.level = self.m_shownLevel;
-      sh.status = self.outputs.status.value;
-      sh.progress = self.outputs.progress.value;
-      sh.projector = self.m_projector;
-      sh.projectors = self.m_projectors;
-      if(self.m_result && sh.result != self.m_result)
-      {
-        sh.result = self.m_result;
-        sh.results = self.m_results;
-        if(sh.results.empty())
-          sh.results.push_back(self.m_result);
-        sh.resultVersion++;
-      }
-    }
-  } publishShared{*this};
 
+  const auto s = settings();
+  StructuredLightSession::Events ev;
   if(m_loaded)
   {
-    m_loaded->projectorIndex = 0;
-    m_result = std::move(m_loaded);
-    m_results = {m_result};
-    publish(*m_result);
+    m_session.adopt(std::move(m_loaded), s.accumulateIntrinsics);
+    m_loaded.reset();
   }
-
-  if(inputs.save && m_result)
-    saveAll();
-
-  if(inputs.abort && m_phase != Phase::Idle)
+  if(inputs.save && !m_session.results().empty())
+    m_session.setStatus(m_session.saveAll(inputs.save_path.value));
+  if(inputs.abort && m_session.running())
+    m_session.abort(s, ev);
+  if(inputs.start && !m_session.running())
   {
-    cancelComputation();
-    stop("Aborted");
+    auto first = s;
+    first.exposures = parseExposures(inputs.exposures.value);
+    m_session.start(first, now, ev);
   }
 
-  if(inputs.start && m_phase == Phase::Idle)
+  StructuredLightSession::Frame frame;
+  if(const auto& t = inputs.camera.texture; t.bytes && t.width > 0 && t.height > 0)
   {
-    m_seq = sl::GraySequence::make(
-        inputs.projector_size.value.x, inputs.projector_size.value.y,
-        inputs.min_stripe.value);
-    if(inputs.phase_shift.value)
-      m_seq.enablePhase(
-          inputs.phase_steps.value, inputs.phase_period.value,
-          inputs.projector_gamma.value);
-    m_job = Job{};
-    m_job.seq = m_seq;
-    m_pendingJobs.clear();
-    m_result.reset();
-    m_results.clear();
-    m_projectors = std::clamp(inputs.projector_count.value, 1, 4);
-    std::vector<float> exposures;
-    for(const auto& t : QString::fromStdString(inputs.exposures.value)
-                            .split(QRegularExpression("[\\s,;]+"), Qt::SkipEmptyParts))
-      if(const float v = t.toFloat(); v > 0.f)
-        exposures.push_back(v);
-    if(!exposures.empty() && !(inputs.capture_exposure.value > 0.f))
-    {
-      outputs.status.value
-          = "Failed: an exposure bracket needs a Capture exposure to return the camera to";
-      return;
-    }
-    m_extras = makeExtras(
-        inputs.response_levels.value, inputs.compensation.value, exposures, 0,
-        inputs.mix_levels.value);
-    m_extraColors.clear();
-    for(auto& e : m_extras)
-      m_extraColors.push_back(e.rgb);
-    if(inputs.crf_file.value != m_crfFileLoaded)
-    {
-      m_crfFileLoaded = inputs.crf_file.value;
-      m_loadedCrf = m_crfFileLoaded.empty() ? nullptr : loadCameraResponse(m_crfFileLoaded);
-    }
-    m_settleMs = inputs.settle.value;
-    if(inputs.capture_exposure.value > 0.f)
-    {
-      outputs.camera_exposure.value = inputs.capture_exposure.value;
-      m_exposureSent = inputs.capture_exposure.value;
-      m_settleMs = std::max(m_settleMs, double(inputs.exposure_settle.value));
-    }
-    if(inputs.capture_exposure.value > 0.f || !exposures.empty())
-      outputs.auto_exposure.value = false;
-    m_projector = 0;
-    m_rgbSum.clear();
-    m_shown = -2;
-    blankOthers(0);
-    m_camW = m_camH = 0;
-    m_k = 0;
-    m_framesTaken = 0;
-    m_frameSum.clear();
-    m_phase = Phase::Settling;
-    m_shownAt = now;
-    inputs.camera.request_readback = true;
-    inputs.positions.request_readback = inputs.mode.value == DepthCamera;
-    showPattern(0);
-    m_framesBefore = 0;
-    m_framesTotal = frameCount()
-                    + (m_projectors - 1)
-                          * (m_seq.count()
-                             + int(makeExtras(
-                                       inputs.response_levels.value,
-                                       inputs.compensation.value, {}, 1,
-                                       inputs.mix_levels.value)
-                                       .size()));
-    outputs.status.value = "Capturing pattern 1 / " + std::to_string(frameCount());
-    if(m_projectors > 1)
-      outputs.status.value += " of projector 1 / " + std::to_string(m_projectors);
-    if(m_seq.phaseSteps > 0)
-      outputs.status.value += " (phase " + std::to_string(m_seq.phaseSteps)
-                              + " steps, period " + std::to_string(m_seq.period) + " px)";
+    frame.rgba = t.bytes;
+    frame.width = t.width;
+    frame.height = t.height;
   }
-
-  switch(m_phase)
+  if(const auto& t = inputs.positions.texture; t.bytes && t.width > 0 && t.height > 0)
   {
-    case Phase::Idle:
-      showIdle();
-      outputs.progress.value = m_result ? 1.f : 0.f;
-      return;
-
-    case Phase::Settling:
-      if(now - m_shownAt >= m_settleMs)
-      {
-        m_phase = Phase::Capturing;
-        m_framesTaken = 0;
-        m_frameSum.clear();
-      }
-      break;
-
-    case Phase::Capturing:
-      if(now - m_lastFrameAt >= 30. && captureFrame())
-      {
-        m_lastFrameAt = now;
-        m_framesTaken++;
-        if(m_framesTaken >= std::max(1, inputs.frames.value))
-        {
-          for(float& v : m_frameSum)
-            v /= float(m_framesTaken);
-          if(static const bool trace = qEnvironmentVariableIsSet("SCORE_SL_TRACE"); trace)
-          {
-            double mean = 0.;
-            uint64_t hash = 1469598103934665603ull;
-            for(float v : m_frameSum)
-            {
-              mean += v;
-              uint32_t b;
-              std::memcpy(&b, &v, 4);
-              hash = (hash ^ b) * 1099511628211ull;
-            }
-            qDebug("[sl-trace] pattern %d mean %.5f hash %016llx", m_k,
-                   mean / std::max<std::size_t>(1, m_frameSum.size()),
-                   (unsigned long long)hash);
-          }
-          if(m_k == 0)
-            m_job.whiteMax = *std::max_element(m_frameSum.begin(), m_frameSum.end());
-          if(m_k == 0 && m_job.whiteMax <= 1e-6f)
-          {
-            stop("Failed: the camera image was black during the white pattern: the "
-                 "camera delivered no frame (is it streaming?)");
-            return;
-          }
-          const bool extra = m_k >= m_seq.count();
-          if((m_k <= 1 || extra) && m_rgbSum.size() == m_frameSum.size() * 3)
-          {
-            for(float& v : m_rgbSum)
-              v /= float(m_framesTaken);
-            if(!extra)
-              (m_k == 0 ? m_job.whiteRGB : m_job.blackRGB) = std::move(m_rgbSum);
-            else if(auto& e = m_extras[m_k - m_seq.count()]; e.full)
-              e.rgbCapture = std::move(m_rgbSum);
-            else
-            {
-              const int S = std::max(1, m_job.extraStride);
-              const int sw = (m_camW + S - 1) / S, shh = (m_camH + S - 1) / S;
-              e.rgbCapture.resize(std::size_t(sw) * shh * 3);
-              for(int y = 0; y < shh; y++)
-                for(int x = 0; x < sw; x++)
-                  for(int c = 0; c < 3; c++)
-                    e.rgbCapture[(std::size_t(y) * sw + x) * 3 + c]
-                        = m_rgbSum[(std::size_t(y * S) * m_camW + x * S) * 3 + c];
-            }
-          }
-          m_rgbSum.clear();
-          if(!extra)
-            m_job.decoder.add(m_k, m_frameSum);
-          m_k++;
-          if(m_k >= frameCount())
-          {
-            inputs.camera.request_readback = false;
-            inputs.positions.request_readback = false;
-            m_job.worldFromCamera = inputs.world_from_camera.value;
-            auto k = inputs.intrinsics.value;
-            m_job.cameraIntrinsics = {k.x, k.y, k.z, k.w};
-            if(!(k.x > 0.f) || !(k.y > 0.f))
-            {
-              const float f = float(
-                  m_camW / (2. * std::tan(inputs.fov.value * 0.5 * M_PI / 180.)));
-              m_job.cameraIntrinsics
-                  = {f, f, (m_camW - 1) * 0.5f, (m_camH - 1) * 0.5f};
-            }
-            m_job.mode = inputs.mode.value;
-            m_job.minSignal = inputs.min_signal.value;
-            m_job.minBits = inputs.min_bits.value;
-            m_job.holeRadius = inputs.hole_radius.value;
-            m_job.depthJump = inputs.depth_jump.value;
-            m_job.ransac = inputs.ransac.value;
-            resolveIntrinsics(m_job);
-            m_job.surface = inputs.surface.value;
-            m_job.maxPlanes = inputs.max_planes.value;
-            m_job.planeThreshold = inputs.plane_threshold.value;
-            m_job.cameraGamma = inputs.camera_gamma.value;
-            m_job.projectorIndex = m_projector;
-            m_job.extras = std::move(m_extras);
-            m_extras.clear();
-            m_job.crf = m_loadedCrf;
-            m_job.compGamut = inputs.comp_gamut.value;
-            m_job.compStrength = inputs.comp_strength.value;
-            m_job.compGradient = inputs.comp_gradient.value;
-            m_job.mixLevels = inputs.compensation.value && inputs.response_levels.value > 0
-                                  ? inputs.mix_levels.value
-                                  : 0;
-            m_job.compBlack = inputs.comp_black.value;
-            finishProjector(now);
-          }
-          else
-          {
-            showPattern(m_k);
-            m_shownAt = now;
-            m_settleMs = inputs.settle.value;
-            if(m_k >= m_seq.count())
-              if(const auto& e = m_extras[m_k - m_seq.count()];
-                 e.exposure > 0.f && e.exposure != m_exposureSent)
-              {
-                outputs.camera_exposure.value = e.exposure;
-                m_exposureSent = e.exposure;
-                m_settleMs = std::max(m_settleMs, double(inputs.exposure_settle.value));
-              }
-            m_phase = Phase::Settling;
-            inputs.positions.request_readback
-                = inputs.mode.value == DepthCamera && m_k <= 1;
-            outputs.status.value = "Capturing pattern " + std::to_string(m_k + 1) + " / "
-                                   + std::to_string(frameCount());
-            if(m_projectors > 1)
-              outputs.status.value += " of projector " + std::to_string(m_projector + 1)
-                                      + " / " + std::to_string(m_projectors);
-          }
-        }
-      }
-      break;
-
-    case Phase::Computing:
-      if(m_future.valid()
-         && m_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-      {
-        auto all = m_future.get();
-        m_results.clear();
-        for(auto& r : all)
-          m_results.push_back(std::make_shared<Result>(std::move(r)));
-        m_result = m_results.empty() ? nullptr : m_results[0];
-        std::string status;
-        bool ok = !m_results.empty();
-        for(std::size_t i = m_results.size(); i-- > 0;)
-        {
-          const auto& r = *m_results[i];
-          publish(r);
-          ok &= r.ok;
-          if(m_results.size() > 1)
-            status = "P" + std::to_string(i + 1) + ": " + r.status
-                     + (status.empty() ? "" : " | " + status);
-          else
-            status = r.status;
-        }
-        outputs.status.value = status;
-        m_phase = Phase::Idle;
-        if(ok && inputs.auto_save.value && !inputs.save_path.value.empty())
-        {
-          saveAll();
-          outputs.status.value = status + " | " + outputs.status.value;
-        }
-        if(ok)
-          outputs.done.value = halp::impulse{};
-      }
-      break;
+    frame.positions = t.bytes;
+    frame.positionsWidth = t.width;
+    frame.positionsHeight = t.height;
   }
+  m_session.tick(s, now, frame, ev);
+  inputs.camera.request_readback = m_session.wantsCamera();
+  inputs.positions.request_readback = m_session.wantsPositions();
+  writeEvents(ev);
 
-  const float within = m_phase == Phase::Capturing
-                           ? float(m_framesTaken) / std::max(1, inputs.frames.value)
-                           : 0.f;
-  outputs.progress.value
-      = m_phase == Phase::Computing
-            ? 0.99f
-            : std::min(
-                0.99f, (m_framesBefore + m_k + within) / float(std::max(1, m_framesTotal)));
+  if(m_published != m_session.resultVersion())
+  {
+    m_published = m_session.resultVersion();
+    const auto& all = m_session.results();
+    for(std::size_t i = all.size(); i-- > 0;)
+      publish(*all[i]);
+  }
+  outputs.status.value = m_session.status();
+  outputs.progress.value = m_session.progress();
+  syncPorts();
+  updateCanvas();
+
+  if(!m_shared)
+    return;
+  auto& sh = *m_shared;
+  sh.extraColors = m_session.extraColors();
+  if(outputs.camera_exposure.value)
+  {
+    sh.exposure = *outputs.camera_exposure.value;
+    sh.exposureVersion++;
+  }
+  if(outputs.auto_exposure.value)
+  {
+    sh.autoExposure = *outputs.auto_exposure.value;
+    sh.autoVersion++;
+  }
+  sh.running = m_session.running();
+  sh.shown = m_session.shown();
+  sh.seq = m_session.sequence();
+  sh.level = m_session.shownLevel();
+  sh.status = outputs.status.value;
+  sh.progress = outputs.progress.value;
+  sh.projector = m_session.projector();
+  sh.projectors = m_session.projectors();
+  if(m_seenResult != m_session.resultVersion())
+  {
+    m_seenResult = m_session.resultVersion();
+    sh.results = m_session.results();
+    sh.resultVersion++;
+  }
 }
 }
