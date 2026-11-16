@@ -21,6 +21,16 @@
 #define SCORE_PROFILER_VULKAN 1
 #endif
 
+#if defined(_WIN32) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#if __has_include(<QtGui/rhi/qrhi_platform.h>)
+#include <QtGui/rhi/qrhi_platform.h>
+#else
+#include <QtGui/private/qrhid3d12_p.h>
+#endif
+#include <d3d12.h>
+#define SCORE_PROFILER_D3D12 1
+#endif
+
 #if QT_CONFIG(opengl)
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
@@ -181,6 +191,128 @@ struct VulkanTimer final : GpuTimer
 };
 #endif
 
+#if SCORE_PROFILER_D3D12
+struct D3D12Timer final : GpuTimer
+{
+  static constexpr uint64_t kUnwritten = ~0ull;
+  QRhi& rhi;
+  ID3D12QueryHeap* heap{};
+  std::array<ID3D12Resource*, kSlots> readback{};
+  std::array<uint64_t*, kSlots> mapped{};
+  double nsPerTick{1.};
+  std::array<bool, kSlots> used{};
+
+  static std::unique_ptr<D3D12Timer> make(QRhi& rhi)
+  {
+    auto* nh = static_cast<const QRhiD3D12NativeHandles*>(rhi.nativeHandles());
+    if(!nh || !nh->dev || !nh->commandQueue)
+      return {};
+    auto* dev = static_cast<ID3D12Device*>(nh->dev);
+    auto* queue = static_cast<ID3D12CommandQueue*>(nh->commandQueue);
+    UINT64 freq = 0;
+    if(FAILED(queue->GetTimestampFrequency(&freq)) || freq == 0)
+      return {};
+
+    auto t = std::make_unique<D3D12Timer>(rhi);
+    t->nsPerTick = 1e9 / double(freq);
+
+    D3D12_QUERY_HEAP_DESC hd{};
+    hd.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+    hd.Count = kMaxStamps * kSlots;
+    if(FAILED(dev->CreateQueryHeap(&hd, __uuidof(ID3D12QueryHeap), reinterpret_cast<void**>(&t->heap))))
+      return {};
+
+    D3D12_HEAP_PROPERTIES hp{};
+    hp.Type = D3D12_HEAP_TYPE_READBACK;
+    D3D12_RESOURCE_DESC rd{};
+    rd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    rd.Width = kMaxStamps * sizeof(uint64_t);
+    rd.Height = 1;
+    rd.DepthOrArraySize = 1;
+    rd.MipLevels = 1;
+    rd.SampleDesc.Count = 1;
+    rd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    for(int i = 0; i < kSlots; i++)
+    {
+      if(FAILED(dev->CreateCommittedResource(
+             &hp, D3D12_HEAP_FLAG_NONE, &rd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+             __uuidof(ID3D12Resource), reinterpret_cast<void**>(&t->readback[i]))))
+        return {};
+      void* p{};
+      if(FAILED(t->readback[i]->Map(0, nullptr, &p)))
+        return {};
+      t->mapped[i] = static_cast<uint64_t*>(p);
+    }
+    return t;
+  }
+
+  explicit D3D12Timer(QRhi& r)
+      : rhi{r}
+  {
+  }
+
+  ~D3D12Timer() override
+  {
+    if(std::find(used.begin(), used.end(), true) != used.end())
+      rhi.finish();
+    for(int i = 0; i < kSlots; i++)
+      if(readback[i])
+      {
+        if(mapped[i])
+          readback[i]->Unmap(0, nullptr);
+        readback[i]->Release();
+      }
+    if(heap)
+      heap->Release();
+  }
+
+  static ID3D12GraphicsCommandList* native(QRhiCommandBuffer& cb)
+  {
+    auto* h = static_cast<const QRhiD3D12CommandBufferNativeHandles*>(cb.nativeHandles());
+    return h ? static_cast<ID3D12GraphicsCommandList*>(h->commandList) : nullptr;
+  }
+
+  void stampAt(QRhiCommandBuffer& cb, int slot, uint32_t index)
+  {
+    cb.beginExternal();
+    if(auto c = native(cb))
+    {
+      const UINT q = UINT(slot) * kMaxStamps + index;
+      c->EndQuery(heap, D3D12_QUERY_TYPE_TIMESTAMP, q);
+      c->ResolveQueryData(
+          heap, D3D12_QUERY_TYPE_TIMESTAMP, q, 1, readback[slot], index * sizeof(uint64_t));
+      used[slot] = true;
+    }
+    cb.endExternal();
+  }
+
+  void reset(QRhiCommandBuffer& cb, int slot) override
+  {
+    std::fill_n(mapped[slot], kMaxStamps, kUnwritten);
+    stampAt(cb, slot, 0);
+  }
+
+  void write(QRhiCommandBuffer& cb, int slot, uint32_t index) override
+  {
+    stampAt(cb, slot, index);
+  }
+
+  bool read(int slot, uint32_t count, std::vector<int64_t>& ns) override
+  {
+    used[slot] = false;
+    const uint64_t* raw = mapped[slot];
+    for(uint32_t i = 0; i < count; i++)
+      if(raw[i] == kUnwritten)
+        return false;
+    ns.resize(count);
+    const uint64_t base = raw[0];
+    for(uint32_t i = 0; i < count; i++)
+      ns[i] = int64_t(double(raw[i] - base) * nsPerTick);
+    return true;
+  }
+};
+#endif
+
 #if SCORE_PROFILER_GL
 struct GLTimer final : GpuTimer
 {
@@ -323,6 +455,11 @@ RenderListProfiler::RenderListProfiler(QRhi& rhi, const void* list)
 #if SCORE_PROFILER_VULKAN
     case QRhi::Vulkan:
       m_impl->timer = VulkanTimer::make(rhi);
+      break;
+#endif
+#if SCORE_PROFILER_D3D12
+    case QRhi::D3D12:
+      m_impl->timer = D3D12Timer::make(rhi);
       break;
 #endif
 #if SCORE_PROFILER_GL

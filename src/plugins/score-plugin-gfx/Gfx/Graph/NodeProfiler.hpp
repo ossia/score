@@ -71,7 +71,7 @@ private:
  * command recording. GPU time comes from timestamps written between passes:
  * each stamp closes the span since the previous one and gives it to the
  * nodes passed, split evenly when several nodes draw into the same pass.
- * Vulkan and desktop OpenGL have GPU time; other backends only CPU time.
+ * Vulkan, D3D12 and desktop OpenGL have GPU time; other backends only CPU time.
  */
 class SCORE_PLUGIN_GFX_EXPORT RenderListProfiler
 {
