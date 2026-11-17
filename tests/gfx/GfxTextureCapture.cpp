@@ -6,6 +6,7 @@
 #include <Gfx/Graph/BackgroundNode.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/PreviewHubNode.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 #include <Gfx/Graph/RowOrder.hpp>
 #include <Gfx/Settings/Model.hpp>
@@ -244,6 +245,8 @@ TEST_CASE(
     "[gfx][preview][capture][gui]")
 {
   const auto api = GENERATE(from_range(score::test::gfx::platform_backends()));
+  const auto publish = GENERATE(FloatSourceNode::Always, FloatSourceNode::GrabOnly);
+  CAPTURE(int(publish));
   CAPTURE(score::test::gfx::backend_name(api));
 
   std::string skip;
@@ -255,10 +258,12 @@ TEST_CASE(
     auto& g = doc->context().plugin<Gfx::DocumentPlugin>().context;
 
     auto src = std::make_unique<FloatSourceNode>();
+    src->publish = publish;
     const int32_t p = g.register_node(std::move(src));
     {
       Gfx::TexturePreview tp;
-      tp.attach(&g, Gfx::port_index{p, 0}, QSize{32, 32});
+      if(publish == FloatSourceNode::Always)
+        tp.attach(&g, Gfx::port_index{p, 0}, QSize{32, 32});
       Gfx::TextureCapture cap{g, Gfx::port_index{p, 0}};
 
       REQUIRE(pumpUntil(
@@ -283,10 +288,60 @@ TEST_CASE(
       pump(g, 4);
       CHECK(cap.frames() == 2);
 
-      pumpUntil(g, [&] { return !tp.image().isNull(); });
-      CHECK(!tp.image().isNull());
-      CHECK(tp.image().width() <= 32);
+      if(publish == FloatSourceNode::Always)
+      {
+        pumpUntil(g, [&] { return !tp.image().isNull(); });
+        CHECK(!tp.image().isNull());
+        CHECK(tp.image().width() <= 32);
+      }
     }
+    g.unregister_node(p);
+    g.updateGraph();
+  });
+  if(!skip.empty())
+    SKIP(skip);
+}
+
+TEST_CASE(
+    "a texture capture of a producer a live output renders into a smaller target "
+    "reads the producer's own texture",
+    "[gfx][preview][capture][gui]")
+{
+  const auto api = GENERATE(from_range(score::test::gfx::platform_backends()));
+  CAPTURE(score::test::gfx::backend_name(api));
+
+  std::string skip;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!useBackend(ctx, api, skip))
+      return;
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& g = doc->context().plugin<Gfx::DocumentPlugin>().context;
+
+    auto src = std::make_unique<FloatSourceNode>();
+    src->publish = FloatSourceNode::GrabOnly;
+    const int32_t p = g.register_node(std::move(src));
+    const LiveSink sink = addLiveSink(*doc, g, p, QSize{64, 48});
+    pump(g, 3);
+    if(!sink.node->renderer())
+    {
+      skip = "the live output did not come up";
+      return;
+    }
+    const auto outputsBefore = g.outputs().size();
+    {
+      Gfx::TextureCapture cap{g, Gfx::port_index{p, 0}};
+      REQUIRE(pumpUntil(
+          g, [&] { return cap.state() == Gfx::TextureCapture::State::Capturing; }));
+      CHECK(g.outputs().size() == outputsBefore);
+
+      const Frame f = capture(g, cap);
+      REQUIRE(f.got);
+      CHECK(f.w == SrcW);
+      CHECK(f.h == SrcH);
+      CHECK(exactPixels(f.rgba, f.w, f.h) == SrcW * SrcH);
+    }
+    g.unregister_node(sink.id);
     g.unregister_node(p);
     g.updateGraph();
   });
@@ -388,6 +443,36 @@ TEST_CASE(
       const Frame f = capture(g, cap);
       CHECK(f.got);
       CHECK(exactPixels(f.rgba, f.w, f.h) == SrcW * SrcH);
+      g.unregister_node(p);
+      g.updateGraph();
+    }
+
+    SECTION("more captures than the hub has inputs for")
+    {
+      auto src = std::make_unique<FloatSourceNode>();
+      const int32_t p = g.register_node(std::move(src));
+      {
+        std::vector<std::unique_ptr<Gfx::TextureCapture>> caps;
+        for(int i = 0; i < score::gfx::PreviewHubNode::capture_inputs + 1; i++)
+          caps.push_back(std::make_unique<Gfx::TextureCapture>(g, Gfx::port_index{p, 0}));
+        pump(g, 2);
+        for(int i = 0; i < score::gfx::PreviewHubNode::capture_inputs; i++)
+        {
+          CAPTURE(i);
+          CHECK(caps[i]->state() == State::Capturing);
+        }
+        CHECK(caps.back()->state() == State::Unavailable);
+        CHECK(!caps.back()->reason().isEmpty());
+
+        const Frame a = capture(g, *caps[0]);
+        const Frame b = capture(g, *caps[1]);
+        CHECK(exactPixels(a.rgba, a.w, a.h) == SrcW * SrcH);
+        CHECK(exactPixels(b.rgba, b.w, b.h) == SrcW * SrcH);
+
+        caps.erase(caps.begin());
+        REQUIRE(pumpUntil(g, [&] { return caps.back()->state() == State::Capturing; }));
+        CHECK(capture(g, *caps.back()).got);
+      }
       g.unregister_node(p);
       g.updateGraph();
     }

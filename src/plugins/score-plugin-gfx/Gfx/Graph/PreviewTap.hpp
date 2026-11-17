@@ -49,7 +49,9 @@ struct PreviewTap
   QSize size{256, 256};
   //! Read back at the texture's own size, as RGBA32F, from the texture the
   //! producer publishes (NodeRenderer::textureForOutput) only: a capture of
-  //! the frames for measurement (Gfx::TextureCapture), not a thumbnail.
+  //! the frames for measurement (Gfx::TextureCapture), not a thumbnail. The
+  //! producer publishes one while such a tap is on the port
+  //! (outputGrabbedBySink).
   bool native{};
   //! Set by the render list that renders the producer, for a native tap.
   std::atomic<CaptureProblem> problem{CaptureProblem::None};

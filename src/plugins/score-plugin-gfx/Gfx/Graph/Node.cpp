@@ -1,5 +1,6 @@
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
+#include <Gfx/Graph/PreviewTap.hpp>
 #include <Gfx/Graph/RenderList.hpp>
 
 #include <score/tools/Debug.hpp>
@@ -8,8 +9,26 @@
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
+#include <algorithm>
+
 namespace score::gfx
 {
+bool outputGrabbedBySink(const Port& output) noexcept
+{
+  for(const Edge* e : output.edges)
+    if(e && e->sink && (e->sink->flags & Flag::GrabsFromSource) == Flag::GrabsFromSource)
+      return true;
+  if(const Node* n = output.node; n && !n->previewTaps.empty())
+  {
+    const auto it = std::find(n->output.begin(), n->output.end(), &output);
+    const int port = int(it - n->output.begin());
+    for(const auto& tap : n->previewTaps)
+      if(tap && tap->native && tap->port == port)
+        return true;
+  }
+  return false;
+}
+
 Node::Node() { }
 
 void Node::update() { }

@@ -327,7 +327,7 @@ void GfxContext::set_preview_size(int32_t id, QSize size)
     auto& p = it->second;
     p.size = size;
     p.tap->size = size;
-    if(p.hubInput >= 0 && m_previewHub)
+    if(p.hubInput >= 0 && m_previewHub && !p.tap->native)
       m_previewHub->setInputSize(p.hubInput, size);
     if(p.fallback)
       p.fallback->setSize(size);
@@ -388,10 +388,11 @@ bool GfxContext::joinPreviewHub(Preview& p)
   }
   if(p.hubInput < 0)
   {
-    p.hubInput = m_previewHub->acquireInput();
+    p.hubInput = m_previewHub->acquireInput(p.tap->native);
     if(p.hubInput < 0)
       return false;
-    m_previewHub->setInputSize(p.hubInput, p.size);
+    if(!p.tap->native)
+      m_previewHub->setInputSize(p.hubInput, p.size);
   }
   if(p.hubProducer != p.producer)
   {
@@ -537,7 +538,8 @@ void GfxContext::updatePreviews()
     else if(p.tap->native)
     {
       // Read where its own texture is: on the hub when nothing else renders
-      // it, else by the output that renders it when it publishes one there
+      // it, else by the output that renders it once the producer publishes
+      // one there (outputGrabbedBySink)
       stopPreviewFallback(p);
       if(!renderedLive && joinPreviewHub(p))
         p.tap->active = true;
