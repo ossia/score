@@ -126,7 +126,7 @@ public:
   virtual bool connected() const;
   W_INVOKABLE(connected)
 
-  void updateSettings(const Device::DeviceSettings&);
+  virtual void updateSettings(const Device::DeviceSettings&);
 
   // Asks, and returns all the new addresses if the device can refresh itself
   // Minuit-like.

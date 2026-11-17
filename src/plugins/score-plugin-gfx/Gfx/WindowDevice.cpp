@@ -392,6 +392,37 @@ void WindowDevice::setPointer(int slot, double x, double y, double pressure) con
   }
 }
 
+void WindowDevice::updateSettings(const Device::DeviceSettings& s)
+{
+  auto* mw = dynamic_cast<multiwindow_device*>(m_dev.get());
+  const auto& cur = settings();
+  if(mw && s.name == cur.name && s.protocol == cur.protocol
+     && cur.deviceSpecificSettings.canConvert<WindowSettings>()
+     && s.deviceSpecificSettings.canConvert<WindowSettings>())
+  {
+    const auto a = cur.deviceSpecificSettings.value<WindowSettings>();
+    const auto b = s.deviceSpecificSettings.value<WindowSettings>();
+    bool same = a.mode == WindowMode::MultiWindow && b.mode == a.mode && a.flag == b.flag
+                && a.format == b.format && a.inputWidth == b.inputWidth
+                && a.inputHeight == b.inputHeight && a.outputs.size() == b.outputs.size();
+    for(std::size_t i = 0; same && i < a.outputs.size(); i++)
+    {
+      const auto& x = a.outputs[i];
+      const auto& y = b.outputs[i];
+      same = x.screenIndex == y.screenIndex && x.windowPosition == y.windowPosition
+             && x.windowSize == y.windowSize && x.fullscreen == y.fullscreen
+             && x.lockMode == y.lockMode;
+    }
+    if(same)
+    {
+      m_settings = s;
+      mw->applyProcessing(b.outputs, b.canvas);
+      return;
+    }
+  }
+  GfxOutputDevice::updateSettings(s);
+}
+
 bool WindowDevice::reconnect()
 {
   disconnect();
