@@ -122,6 +122,8 @@ add_library(
   Threedim/CalibrationRun.cpp
   Threedim/EquirectWarp.hpp
   Threedim/EquirectWarp.cpp
+  Threedim/PlaneCompletion.hpp
+  Threedim/PlaneCompletion.cpp
   Threedim/ViewerFrustum.hpp
   Threedim/ViewerFrustum.cpp
   Threedim/LedWall.hpp

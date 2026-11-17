@@ -92,6 +92,8 @@ private:
   QSpinBox* m_frames{};
   QDoubleSpinBox* m_exposure{};
   QCheckBox* m_blend{};
+  QComboBox* m_display{};
+  QCheckBox* m_flat{};
   QCheckBox* m_photometric{};
   QPushButton* m_refreshBtn{};
   QPushButton* m_startBtn{};

@@ -2373,6 +2373,7 @@ set(_calib_threedim "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/
 target_sources(test_gfx_calibration_run_end_to_end PRIVATE
   "${_calib_threedim}/CalibrationRun.cpp"
   "${_calib_threedim}/EquirectWarp.cpp"
+  "${_calib_threedim}/PlaneCompletion.cpp"
   "${_calib_threedim}/CalibrationPlan.cpp"
   "${_calib_threedim}/StructuredLightSession.cpp"
   "${_calib_threedim}/StructuredLightCalibration.cpp"
