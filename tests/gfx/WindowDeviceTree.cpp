@@ -792,3 +792,81 @@ TEST_CASE("Multi-window device canvas projection and orientation", "[gfx][window
   CHECK(pushed.projection == CanvasProjection::None);
   CHECK(pushed.orientation == std::array<float, 3>{0.f, 90.f, -5.f});
 }
+
+TEST_CASE(
+    "Multi-window device takes processing changes without a reconnect",
+    "[gfx][window][device]")
+{
+  Outcome o;
+  bool connected{};
+  score::gfx::MultiWindowNode *before{}, *afterProcessing{}, *afterResize{};
+  float gain{};
+  bool linear{};
+  Gfx::CanvasProjection projection{};
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {192, 144};
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m, m};
+    ws.outputs[1].windowPosition = {240, 40};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinLive"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    pump_for(300);
+    before = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice());
+
+    auto ws2 = ws;
+    ws2.outputs[1].color.gain = {0.25f, 0.25f, 0.25f};
+    ws2.outputs[1].color.linearBlend = true;
+    ws2.outputs[0].blendRight = {0.2f, 2.2f};
+    ws2.canvas.projection = CanvasProjection::Equirectangular;
+    dev.updateSettings(makeSettings(ws2, "MultiWinLive"));
+    pump_for(100);
+    afterProcessing = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice());
+    if(afterProcessing)
+    {
+      gain = afterProcessing->windowOutputs()[1].color.gain[0];
+      linear = afterProcessing->mappings()[1].color.linearBlend;
+      projection = afterProcessing->canvasLayout().projection;
+    }
+
+    auto ws3 = ws2;
+    ws3.outputs[0].windowSize = {160, 120};
+    dev.updateSettings(makeSettings(ws3, "MultiWinLive"));
+    pump_for(300);
+    afterResize = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice());
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  REQUIRE(before);
+  CHECK(afterProcessing == before);
+  CHECK(gain == Approx(0.25f));
+  CHECK(linear);
+  CHECK(projection == CanvasProjection::Equirectangular);
+  CHECK(afterResize);
+  CHECK(afterResize != before);
+}

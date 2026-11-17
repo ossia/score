@@ -851,6 +851,32 @@ public:
     watchCalibrations();
   }
 
+  //! Applies the per-output processing of `outputs` (same count and windows)
+  //! and the canvas layout to the running node.
+  void applyProcessing(const std::vector<OutputMapping>& outputs, const CanvasLayout& canvas)
+  {
+    const int n = std::min<int>((int)outputs.size(), (int)m_node->mappings().size());
+    for(int i = 0; i < n; i++)
+    {
+      const auto& o = outputs[i];
+      m_node->setSourceRect(i, o.sourceRect);
+      const EdgeBlend* sides[4]{&o.blendLeft, &o.blendRight, &o.blendTop, &o.blendBottom};
+      for(int k = 0; k < 4; k++)
+        m_node->setEdgeBlend(i, k, sides[k]->width, sides[k]->gamma);
+      m_node->setCornerWarp(i, o.cornerWarp);
+      m_node->setTransform(i, o.rotation, o.mirrorX, o.mirrorY);
+      m_node->setColor(i, o.color);
+      m_node->setQuality(i, o.quality);
+      auto maps = locatedMaps(o.maps, m_roots);
+      refreshCalibration(maps);
+      if(i < (int)m_mapSignatures.size())
+        setOutputMaps(i, maps);
+      else
+        m_node->setMaps(i, maps);
+    }
+    m_node->setCanvasLayout(canvas);
+  }
+
   // Called after windows are created by createOutput() to connect Qt signals
   void connectWindowSignals()
   {
