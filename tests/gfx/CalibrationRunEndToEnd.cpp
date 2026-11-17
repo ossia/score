@@ -137,6 +137,7 @@ TEST_CASE(
   std::string skip, failure;
   bool loggedCamera = false;
   int onePlane = 0;
+  int meetRoom = 0;
   Gfx::WindowSettings assigned;
   bool done = false, clearedAfter = false, calibratingDuring = false;
   int resultsOk = 0;
@@ -177,6 +178,8 @@ TEST_CASE(
       setup.canvas.projection = Gfx::CanvasProjection::Equirectangular;
       setup.sourceRects.assign(Outputs, QRectF{0, 0, 1, 1});
       setup.completePlanes = true;
+      setup.geometry = Threedim::CalibrationRun::Setup::Geometry::Box;
+      setup.box = {5.f, 5.f, 5.f, 5.f, 3.f, 3.f};
       Threedim::CalibrationRun run{std::move(setup)};
 
       const auto now = [] { return double(QDateTime::currentMSecsSinceEpoch()); };
@@ -204,6 +207,7 @@ TEST_CASE(
         failure += " | " + l.toStdString();
         loggedCamera |= l == QStringLiteral("Camera: 360x100");
         onePlane += l.contains(QStringLiteral(": 1 plane(s)"));
+        meetRoom += l.contains(QStringLiteral("100.0% of the directions meet the room"));
       }
       for(const auto& r : run.session().results())
       {
@@ -223,6 +227,7 @@ TEST_CASE(
   CHECK(calibratingDuring);
   CHECK(loggedCamera);
   CHECK(onePlane == Outputs);
+  CHECK(meetRoom == Outputs);
   REQUIRE(done);
   CHECK(clearedAfter);
   CHECK(resultsOk == Outputs);
@@ -237,6 +242,7 @@ TEST_CASE(
     CHECK(QFile::exists(n + ".warp.pfm"));
     CHECK(QFile::exists(n + ".warp.valid.pfm"));
     CHECK(QFile::exists(n + ".measured.xyz.pfm"));
+    CHECK(QFile::exists(n + ".points.pfm"));
     CHECK_FALSE(QFile::exists(n + ".beta.pfm"));
     CHECK_FALSE(Threedim::CalibrationRun::isScreen(n + ".json"));
     QFile j{n + ".json"};
@@ -247,6 +253,7 @@ TEST_CASE(
   CHECK(assigned.outputs[0].maps.warp == base + ".warp.pfm");
   CHECK(assigned.outputs[2].maps.warp == base + "_p2.warp.pfm");
   CHECK(assigned.outputs[1].maps.alpha == base + "_p1.alpha.pfm");
+  CHECK(assigned.outputs[1].maps.points == base + "_p1.points.pfm");
 }
 
 TEST_CASE("CalibrationRun stops when the camera freezes", "[threedim][calibrationwizard][gui]")

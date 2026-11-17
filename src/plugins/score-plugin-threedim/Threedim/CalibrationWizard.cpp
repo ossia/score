@@ -171,6 +171,86 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
          "map is rebuilt from its planes, which fills what the camera did not see and "
          "removes the measurement noise. Turn off for a curved screen"));
   form->addRow(tr("Flat surfaces"), m_flat);
+  m_geometry = new QComboBox;
+  m_geometry->addItem(tr("Directions only"));
+  m_geometry->addItem(tr("Room box"));
+  m_geometry->addItem(tr("Room model"));
+  m_geometry->setToolTip(
+      tr("Viewer camera: where each projector pixel lands in the room. Directions only "
+         "ties the warp to the camera's position; Room box (measured distances) and "
+         "Room model (.obj, .ply) give each output a points map, so the viewer "
+         "position of the Window device can move afterwards"));
+  form->addRow(tr("Surface geometry"), m_geometry);
+  {
+    m_boxRow = new QWidget;
+    auto* l = new QHBoxLayout{m_boxRow};
+    l->setContentsMargins(0, 0, 0, 0);
+    const QString names[6]{tr("front"), tr("back"), tr("left"), tr("right"), tr("floor"),
+                           tr("ceiling")};
+    for(int i = 0; i < 6; i++)
+    {
+      auto* sb = new QDoubleSpinBox;
+      sb->setRange(0., 1000.);
+      sb->setDecimals(3);
+      sb->setSingleStep(0.05);
+      sb->setSuffix(tr(" m"));
+      sb->setToolTip(tr("Distance from the camera to the %1 (0 = open)").arg(names[i]));
+      m_box[i] = sb;
+      l->addWidget(sb);
+    }
+    form->addRow(tr("Room (front back left right floor ceiling)"), m_boxRow);
+  }
+  {
+    m_modelRow = new QWidget;
+    auto* l = new QHBoxLayout{m_modelRow};
+    l->setContentsMargins(0, 0, 0, 0);
+    m_model = new QLineEdit;
+    m_model->setToolTip(tr("Room mesh in metres, +Y up: Wavefront .obj or .ply"));
+    auto* b = new QPushButton{tr("...")};
+    b->setMaximumWidth(30);
+    l->addWidget(m_model, 1);
+    l->addWidget(b);
+    connect(b, &QPushButton::clicked, this, [this] {
+      const auto f = QFileDialog::getOpenFileName(
+          this, tr("Room model"), m_model->text(), tr("Meshes (*.obj *.ply)"));
+      if(!f.isEmpty())
+        m_model->setText(f);
+    });
+    form->addRow(tr("Room model"), m_modelRow);
+  }
+  {
+    m_poseRow = new QWidget;
+    auto* l = new QHBoxLayout{m_poseRow};
+    l->setContentsMargins(0, 0, 0, 0);
+    const QString pos[3]{QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("z")};
+    for(int i = 0; i < 3; i++)
+    {
+      auto* sb = new QDoubleSpinBox;
+      sb->setRange(-1000., 1000.);
+      sb->setDecimals(3);
+      sb->setSingleStep(0.05);
+      sb->setSuffix(tr(" m"));
+      sb->setToolTip(tr("Camera %1 in the room's frame").arg(pos[i]));
+      m_camPos[i] = sb;
+      l->addWidget(sb);
+    }
+    const QString rot[3]{tr("pitch"), tr("yaw"), tr("roll")};
+    for(int i = 0; i < 3; i++)
+    {
+      auto* sb = new QDoubleSpinBox;
+      sb->setRange(-180., 180.);
+      sb->setDecimals(2);
+      sb->setSuffix(QStringLiteral("°"));
+      sb->setToolTip(tr("Camera %1 in the room's frame (0 0 0: level, facing -Z)").arg(rot[i]));
+      m_camRot[i] = sb;
+      l->addWidget(sb);
+    }
+    form->addRow(tr("Camera pose (position, rotation)"), m_poseRow);
+  }
+  connect(m_geometry, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+    updateGeometryRows();
+  });
+
   m_black = new QCheckBox;
   m_black->setToolTip(
       tr("Raise every projector's black to the brightest one, so that the overlaps do "
@@ -212,6 +292,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   connect(m_mode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
     m_positions->setEnabled(i == 0);
     m_flat->setEnabled(i == 1);
+    updateGeometryRows();
     updatePlan();
   });
   connect(m_display, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
@@ -226,6 +307,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   loadOptions();
   m_positions->setEnabled(m_mode->currentIndex() == 0);
   m_flat->setEnabled(m_mode->currentIndex() == 1);
+  updateGeometryRows();
   m_blend->setEnabled(m_display->currentIndex() == 0);
   m_black->setEnabled(m_display->currentIndex() == 0);
   m_timer.setInterval(15);
@@ -241,6 +323,16 @@ CalibrationWizard::~CalibrationWizard()
     m_run->abort(tr("The calibration window was closed"));
   m_run.reset();
   closeCameras();
+}
+
+void CalibrationWizard::updateGeometryRows()
+{
+  const bool viewer = m_mode->currentIndex() == 1;
+  const int g = m_geometry->currentIndex();
+  m_geometry->setEnabled(viewer);
+  m_boxRow->setEnabled(viewer && g == 1);
+  m_modelRow->setEnabled(viewer && g == 2);
+  m_poseRow->setEnabled(viewer && g != 0);
 }
 
 void CalibrationWizard::closeCameras()
@@ -434,6 +526,15 @@ void CalibrationWizard::loadOptions()
   m_display->setCurrentIndex(std::clamp(q.value("Display", 0).toInt(), 0, 1));
   m_flat->setChecked(q.value("FlatSurfaces", m_flat->isChecked()).toBool());
   m_black->setChecked(q.value("EvenBlack", false).toBool());
+  m_geometry->setCurrentIndex(std::clamp(q.value("Geometry", 0).toInt(), 0, 2));
+  for(int i = 0; i < 6; i++)
+    m_box[i]->setValue(q.value(QStringLiteral("Box%1").arg(i), 0.).toDouble());
+  m_model->setText(q.value("Model").toString());
+  for(int i = 0; i < 3; i++)
+  {
+    m_camPos[i]->setValue(q.value(QStringLiteral("CameraPos%1").arg(i), 0.).toDouble());
+    m_camRot[i]->setValue(q.value(QStringLiteral("CameraRot%1").arg(i), 0.).toDouble());
+  }
   m_photometric->setChecked(q.value("Photometric", m_photometric->isChecked()).toBool());
   if(q.contains("Camera"))
     m_camera->setCurrentText(q.value("Camera").toString());
@@ -460,6 +561,15 @@ void CalibrationWizard::saveOptions() const
   q.setValue("Display", m_display->currentIndex());
   q.setValue("FlatSurfaces", m_flat->isChecked());
   q.setValue("EvenBlack", m_black->isChecked());
+  q.setValue("Geometry", m_geometry->currentIndex());
+  for(int i = 0; i < 6; i++)
+    q.setValue(QStringLiteral("Box%1").arg(i), m_box[i]->value());
+  q.setValue("Model", m_model->text());
+  for(int i = 0; i < 3; i++)
+  {
+    q.setValue(QStringLiteral("CameraPos%1").arg(i), m_camPos[i]->value());
+    q.setValue(QStringLiteral("CameraRot%1").arg(i), m_camRot[i]->value());
+  }
   q.setValue("Photometric", m_photometric->isChecked());
   q.setValue("Camera", m_camera->currentText());
   q.setValue("Positions", m_positions->currentText());
@@ -725,6 +835,29 @@ bool CalibrationWizard::start()
   setup.completePlanes = !depth && m_flat->isChecked();
   setup.blackCompensation = setup.blend && m_black->isChecked();
   setup.screens = m_display->currentIndex() == 1;
+  if(!depth)
+  {
+    setup.geometry = CalibrationRun::Setup::Geometry(m_geometry->currentIndex());
+    for(int i = 0; i < 6; i++)
+      setup.box[i] = float(m_box[i]->value());
+    setup.model = m_model->text();
+    for(int i = 0; i < 3; i++)
+    {
+      setup.cameraPosition[i] = float(m_camPos[i]->value());
+      setup.cameraRotation[i] = float(m_camRot[i]->value());
+    }
+    if(setup.geometry == CalibrationRun::Setup::Geometry::Box
+       && std::all_of(setup.box.begin(), setup.box.end(), [](float d) { return d <= 0.f; }))
+    {
+      log(tr("Room box: give the distances from the camera to the walls and the floor."));
+      return false;
+    }
+    if(setup.geometry == CalibrationRun::Setup::Geometry::Model && setup.model.isEmpty())
+    {
+      log(tr("Room model: pick an .obj or .ply file."));
+      return false;
+    }
+  }
   setup.canvas = ws->canvas;
   for(int k = 0; k < (int)setup.plan.outputs.size(); k++)
     setup.sourceRects.push_back(ws->outputs[setup.plan.outputs[k]].sourceRect);
@@ -821,13 +954,28 @@ void CalibrationWizard::finish()
   m_timer.stop();
   const auto names = m_run->setup().plan.names;
   const auto outputs = m_run->setup().plan.outputs;
+  const bool geometry = m_run->setup().geometry != CalibrationRun::Setup::Geometry::Directions
+                        && m_run->setup().settings.mode == StructuredLightSession::ViewerCamera;
+  const auto cameraPosition = m_run->setup().cameraPosition;
   m_run.reset();
   updateButtons();
   const auto r = readCalibrationResults(names, m_runStartMs, outputs);
   if(!r.text.isEmpty())
     log(r.text);
   const auto ws = deviceSettings(m_runDevice);
-  if(ws && updateDevice(m_runDevice, assignCalibrations(*ws, names, m_runStartMs, outputs)))
+  auto assigned = ws ? assignCalibrations(*ws, names, m_runStartMs, outputs) : Gfx::WindowSettings{};
+  if(ws && geometry && assigned.canvas.viewer == std::array<float, 3>{0.f, 0.f, 0.f})
+  {
+    assigned.canvas.viewer = cameraPosition;
+    log(tr("Viewer position set to the camera's (%1, %2, %3): move it in the device's "
+           "settings or on its /canvas/viewer.")
+            .arg(cameraPosition[0])
+            .arg(cameraPosition[1])
+            .arg(cameraPosition[2]));
+  }
+  if(ws && geometry && assigned.canvas.projection != Gfx::CanvasProjection::Equirectangular)
+    log(tr("The points maps are only used with an Equirectangular canvas projection."));
+  if(ws && updateDevice(m_runDevice, assigned))
     log(tr("Done: the outputs of %1 follow %2; a new run updates them live.")
             .arg(m_runDevice, names.join(QStringLiteral(", "))));
   else

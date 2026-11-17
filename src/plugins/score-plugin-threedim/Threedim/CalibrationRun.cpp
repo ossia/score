@@ -3,6 +3,7 @@
 #include <Threedim/CalibrationFiles.hpp>
 #include <Threedim/EquirectWarp.hpp>
 #include <Threedim/PlaneCompletion.hpp>
+#include <Threedim/RoomGeometry.hpp>
 
 #include <QDir>
 #include <QFile>
@@ -377,6 +378,22 @@ void CalibrationRun::tick(double now)
       };
       const bool viewer = setup.settings.mode == StructuredLightSession::ViewerCamera;
       const int n = std::min<int>(int(results.size()), int(setup.plan.names.size()));
+      using Geometry = Setup::Geometry;
+      RoomGeometry room;
+      if(viewer && setup.geometry == Geometry::Box)
+      {
+        const auto& b = setup.box;
+        room = RoomGeometry::box(b[0], b[1], b[2], b[3], b[4], b[5]);
+      }
+      else if(viewer && setup.geometry == Geometry::Model)
+      {
+        QString err;
+        room = RoomGeometry::load(setup.model, &err);
+        if(room.empty())
+          out.log.push_back(QObject::tr("Room model: %1").arg(err));
+        else
+          out.log.push_back(QObject::tr("Room model: %1 triangles").arg(room.triangleCount()));
+      }
       for(int i = 0; i < n; i++)
       {
         const auto& r = results[i];
@@ -423,6 +440,19 @@ void CalibrationRun::tick(double now)
             out.log.push_back(QObject::tr("Output %1: not completed from planes (%2)")
                                   .arg(label(i))
                                   .arg(QString::fromStdString(c.status)));
+        }
+        if(viewer && !room.empty())
+        {
+          const auto cast = castDirections(
+              directions, r->width, r->height, room, setup.cameraPosition,
+              setup.cameraRotation);
+          QString err;
+          if(savePointsMap(base, cast.points, r->width, r->height, &err))
+            out.log.push_back(QObject::tr("Output %1: %2% of the directions meet the room")
+                                  .arg(label(i))
+                                  .arg(cast.hitFraction * 100., 0, 'f', 1));
+          else
+            out.log.push_back(QObject::tr("Output %1: points map not written (%2)").arg(label(i)).arg(err));
         }
         if(!viewer)
         {

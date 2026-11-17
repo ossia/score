@@ -62,6 +62,20 @@ public:
     //! The calibrations Projector Blend Maps runs on: those of this run, and
     //! of the outputs it does not measure; empty = this run's.
     QStringList blendCalibrations;
+    //! Viewer camera: where the surface points come from, for a viewpoint that
+    //! can move afterwards (MultiWindowNode points maps).
+    enum class Geometry
+    {
+      Directions,
+      Box,
+      Model
+    } geometry{Geometry::Directions};
+    //! Front, back, left, right, floor, ceiling distances from the camera (m).
+    std::array<float, 6> box{};
+    QString model;
+    //! The camera in the room's frame: position, and Euler degrees.
+    std::array<float, 3> cameraPosition{};
+    std::array<float, 3> cameraRotation{};
     double planeThresholdArcmin{6.};
     //! Camera frames read back after a pattern change before one is used: the
     //! capture and decoding pipeline of a webcam holds a few frames.
