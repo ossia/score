@@ -1706,14 +1706,27 @@ void RenderList::PreviewTapTarget::release()
   sampler = nullptr;
   rt.release();
   source = nullptr;
-  readback.reset();
+  staging.reset();
+}
+
+void RenderList::previewReadbackDropped(const std::weak_ptr<PreviewTap>& tap) const noexcept
+{
+  if(auto t = tap.lock())
+  {
+    uint64_t mine = m_previewListId;
+    if(t->pendingIn.compare_exchange_strong(mine, 0))
+      t->wanted.store(true, std::memory_order_relaxed);
+  }
 }
 
 void RenderList::retirePreviewTap(PreviewTapTarget& t)
 {
-  if(t.readback && state.rhi)
+  if(t.staging && state.rhi)
     m_retiredPreviewReadbacks.push_back(
-        {t.readback, frame + state.rhi->resourceLimit(QRhi::FramesInFlight) + 1});
+        {std::move(t.staging), t.tap,
+         frame + state.rhi->resourceLimit(QRhi::FramesInFlight) + 1});
+  else
+    previewReadbackDropped(t.tap);
   t.release();
 }
 
@@ -1724,13 +1737,18 @@ void RenderList::releasePreviewTaps()
   const bool pending
       = !m_retiredPreviewReadbacks.empty()
         || std::any_of(m_previewTaps.begin(), m_previewTaps.end(), [](const auto& t) {
-             return t.readback != nullptr;
+             return t.staging != nullptr;
            });
   if(pending && state.rhi)
     state.rhi->finish();
   for(auto& t : m_previewTaps)
+  {
+    previewReadbackDropped(t.tap);
     t.release();
+  }
   m_previewTaps.clear();
+  for(auto& r : m_retiredPreviewReadbacks)
+    previewReadbackDropped(r.tap);
   m_retiredPreviewReadbacks.clear();
 }
 
@@ -1790,7 +1808,12 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
     return;
   }
 
-  std::erase_if(m_retiredPreviewReadbacks, [this](const auto& r) { return r.until <= frame; });
+  std::erase_if(m_retiredPreviewReadbacks, [this](const auto& r) {
+    if(r.until > frame)
+      return false;
+    previewReadbackDropped(r.tap);
+    return true;
+  });
 
   bool tapsTookBatch = false;
 
@@ -1842,9 +1865,14 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
       auto& t = *it;
       t.visited = frame;
 
-      // Read back only once the consumer took the previous image
+      // Read back only once the consumer took the previous image. One recorded
+      // by another list, which has not completed it, is asked again here.
       if(!tap->wanted.load(std::memory_order_relaxed))
-        continue;
+      {
+        const uint64_t in = tap->pendingIn.load(std::memory_order_relaxed);
+        if(in == 0 || in == m_previewListId)
+          continue;
+      }
 
       // As large as asked, with the aspect of the texture; a texture of
       // several images shows them all, tiled as the views' Overview does
@@ -1928,16 +1956,25 @@ void RenderList::renderPreviewTaps(QRhiCommandBuffer& commands, QRhiResourceUpda
       auto* rb = state.rhi->nextResourceUpdateBatch();
       if(rb)
       {
-        rb->readBackTexture(QRhiReadbackDescription{t.rt.texture}, tap->readback.get());
-        // Kept alive until the frame completes the readback
-        if(t.readback != tap->readback)
+        if(!t.staging)
         {
-          if(t.readback)
-            m_retiredPreviewReadbacks.push_back(
-                {std::move(t.readback),
-                 frame + state.rhi->resourceLimit(QRhi::FramesInFlight) + 1});
-          t.readback = tap->readback;
+          t.staging = std::make_shared<QRhiReadbackResult>();
+          t.staging->completed = [s = t.staging.get(), w = t.tap] {
+            auto tap = w.lock();
+            if(!tap || !tap->readback)
+              return;
+            auto& out = *tap->readback;
+            out.format = s->format;
+            out.pixelSize = s->pixelSize;
+            out.data.swap(s->data);
+            tap->pendingIn.store(0, std::memory_order_relaxed);
+            if(out.completed)
+              out.completed();
+          };
         }
+        if(!dropPreviewReadbacks.load(std::memory_order_relaxed))
+          rb->readBackTexture(QRhiReadbackDescription{t.rt.texture}, t.staging.get());
+        tap->pendingIn.store(m_previewListId, std::memory_order_relaxed);
         tap->wanted.store(false, std::memory_order_relaxed);
         tap->frames++;
       }

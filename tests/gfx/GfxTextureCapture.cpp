@@ -482,6 +482,60 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "a capture readback dropped by its render list is asked again",
+    "[gfx][preview][capture][gui]")
+{
+  const auto api = GENERATE(from_range(score::test::gfx::platform_backends()));
+  CAPTURE(score::test::gfx::backend_name(api));
+
+  std::string skip;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!useBackend(ctx, api, skip))
+      return;
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& g = doc->context().plugin<Gfx::DocumentPlugin>().context;
+    using State = Gfx::TextureCapture::State;
+
+    auto src = std::make_unique<FloatSourceNode>();
+    src->publish = FloatSourceNode::GrabOnly;
+    const int32_t p = g.register_node(std::move(src));
+    {
+      Gfx::TextureCapture cap{g, Gfx::port_index{p, 0}};
+      REQUIRE(pumpUntil(g, [&] { return cap.state() == State::Capturing; }));
+
+      score::gfx::RenderList::dropPreviewReadbacks = true;
+      cap.request();
+      pump(g, 3);
+      score::gfx::RenderList::dropPreviewReadbacks = false;
+      pump(g, 3);
+      REQUIRE(cap.frames() == 0);
+
+      SECTION("its list is rebuilt")
+      {
+        g.recompute_graph();
+        CHECK(pumpUntil(g, [&] { return cap.frames() == 1; }));
+      }
+      SECTION("another list reads the capture back")
+      {
+        const LiveSink sink = addLiveSink(*doc, g, p, QSize{64, 48});
+        CHECK(pumpUntil(g, [&] { return cap.frames() == 1; }));
+        g.unregister_node(sink.id);
+      }
+      std::vector<float> rgba;
+      int w{}, h{};
+      CHECK(cap.take(rgba, w, h));
+      CHECK(exactPixels(rgba, w, h) == SrcW * SrcH);
+    }
+    g.unregister_node(p);
+    g.updateGraph();
+  });
+  score::gfx::RenderList::dropPreviewReadbacks = false;
+  if(!skip.empty())
+    SKIP(skip);
+}
+
+TEST_CASE(
     "a texture capture or its context destroyed while a readback is pending",
     "[gfx][preview][capture][gui]")
 {
@@ -512,6 +566,22 @@ TEST_CASE(
       pump(g, 2);
     }
 
+    SECTION("the capture, with the readback recorded and not completed")
+    {
+      auto cap = std::make_unique<Gfx::TextureCapture>(g, Gfx::port_index{p, 0});
+      REQUIRE(pumpUntil(g, [&] { return cap->state() == State::Capturing; }));
+      score::gfx::RenderList::dropPreviewReadbacks = true;
+      cap->request();
+      pump(g, 2);
+      score::gfx::RenderList::dropPreviewReadbacks = false;
+      cap.reset();
+      g.recompute_graph();
+      pump(g, 3);
+      g.unregister_node(p);
+      g.updateGraph();
+      pump(g, 2);
+    }
+
     SECTION("the document")
     {
       auto cap = std::make_unique<Gfx::TextureCapture>(g, Gfx::port_index{p, 0});
@@ -530,6 +600,7 @@ TEST_CASE(
       cap.reset();
     }
   });
+  score::gfx::RenderList::dropPreviewReadbacks = false;
   if(!skip.empty())
     SKIP(skip);
 }

@@ -62,6 +62,10 @@ struct PreviewTap
   //! asks again. A readback costs a pass and, on OpenGL, a synchronous
   //! glReadPixels: the views repaint far less often than the outputs render.
   std::atomic_bool wanted{true};
+  //! The render list a readback is recorded in and not completed yet, 0 when
+  //! none: a list that drops it, or another that hosts the tap meanwhile, asks
+  //! again.
+  std::atomic<uint64_t> pendingIn{};
 
   //! False while the hub, hosting the tap, cannot read the port (no texture it
   //! could sample): the preview then renders it on an output of its own.
