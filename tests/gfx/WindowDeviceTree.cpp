@@ -776,6 +776,7 @@ TEST_CASE("Multi-window device canvas projection and orientation", "[gfx][window
     }
 
     push(param(*d, "/canvas/orientation"), ossia::vec3f{0.f, 90.f, -5.f});
+    push(param(*d, "/canvas/viewer"), ossia::vec3f{0.5f, 1.6f, 0.f});
     push(param(*d, "/canvas/projection"), 0);
     pushed = node->canvasLayout();
 
@@ -791,6 +792,7 @@ TEST_CASE("Multi-window device canvas projection and orientation", "[gfx][window
   CHECK(initialParam == std::vector<float>{10.f, 20.f, 30.f});
   CHECK(pushed.projection == CanvasProjection::None);
   CHECK(pushed.orientation == std::array<float, 3>{0.f, 90.f, -5.f});
+  CHECK(pushed.viewer == std::array<float, 3>{0.5f, 1.6f, 0.f});
 }
 
 TEST_CASE(

@@ -21,7 +21,7 @@ namespace Gfx
 inline OutputMaps locatedMaps(OutputMaps m, const score::PathRoots& roots)
 {
   for(QString* f : {&m.warp, &m.alpha, &m.beta, &m.lut, &m.response, &m.compensation,
-                    &m.calibration})
+                    &m.points, &m.calibration})
     if(!f->isEmpty())
       *f = score::locateFilePath(*f, roots);
   return m;
@@ -253,6 +253,22 @@ public:
             onGui([this, x = *val] {
               auto c = m_node->canvasLayout();
               c.orientation = {x[0], x[1], x[2]};
+              m_node->setCanvasLayout(c);
+            });
+        });
+        canvas_node->add_child(std::move(n));
+      }
+      {
+        auto n = std::make_unique<ossia::net::generic_node>("viewer", *this, *canvas_node);
+        ossia::net::set_description(
+            *n, "Viewer position, in the frame of the outputs' points maps (metres)");
+        auto p = n->create_parameter(ossia::val_type::VEC3F);
+        p->push_value(ossia::vec3f{canvas.viewer[0], canvas.viewer[1], canvas.viewer[2]});
+        p->add_callback([this](const ossia::value& v) {
+          if(auto val = v.target<ossia::vec3f>())
+            onGui([this, x = *val] {
+              auto c = m_node->canvasLayout();
+              c.viewer = {x[0], x[1], x[2]};
               m_node->setCanvasLayout(c);
             });
         });
@@ -701,7 +717,9 @@ public:
             {"response", "Measured projector response (.response.json, 1D .cube)",
              &Gfx::OutputMaps::response},
             {"compensation", "Radiometric compensation (.comp.json)",
-             &Gfx::OutputMaps::compensation}};
+             &Gfx::OutputMaps::compensation},
+            {"points", "World point per pixel (.points.pfm), looked up from the viewer",
+             &Gfx::OutputMaps::points}};
         for(const auto& [fname, fdesc, member] : fields)
         {
           auto f_node

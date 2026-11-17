@@ -343,3 +343,59 @@ TEST_CASE("multi-window equirectangular canvas pitch looks up", "[gfx][window][m
   CHECK(std::abs(g1 - u8(0.75)) <= 4);
   CHECK(std::abs(g2 - u8(0.25)) <= 4);
 }
+
+TEST_CASE("multi-window points map: the canvas is looked up from the viewer position", "[gfx][window][multiwindow][canvas][points]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString path = dir.filePath("wall.points.pfm");
+  constexpr int W = 128, H = 64;
+  {
+    score::gfx::FloatImage img;
+    img.width = W;
+    img.height = H;
+    img.channels = 3;
+    img.data.resize(std::size_t(W) * H * 3);
+    for(int y = 0; y < H; y++)
+      for(int x = 0; x < W; x++)
+      {
+        float* p = img.row(y) + x * 3;
+        p[0] = (x + 0.5f) / W * 4.f - 2.f;
+        p[1] = 1.f - (y + 0.5f) / H * 2.f;
+        p[2] = -2.f;
+      }
+    REQUIRE(score::gfx::writePFM(path, img));
+  }
+  auto m = single();
+  m.windowSize = {W, H};
+  m.maps.points = path;
+  Frame atOrigin, moved, noProjection;
+  bool ok1{}, ok2{}, ok3{};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {}, {0.f, 0.f, 0.f}});
+    ok1 = grab(rig, atOrigin);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {}, {1.f, 0.f, 0.f}});
+    ok2 = grab(rig, moved);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::None, {}, {1.f, 0.f, 0.f}});
+    ok3 = grab(rig, noProjection);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  REQUIRE(ok3);
+  auto expected = [](float X, float vx) {
+    return float(std::atan2(X - vx, 2.f) / (2. * M_PI) + 0.5);
+  };
+  for(int x : {8, 40, 64, 90, 120})
+  {
+    const float X = (x + 0.5f) / W * 4.f - 2.f;
+    INFO("x " << x);
+    CHECK(std::abs(atOrigin.px(x, H / 2)[0] - u8(expected(X, 0.f))) <= 3);
+    CHECK(std::abs(moved.px(x, H / 2)[0] - u8(expected(X, 1.f))) <= 3);
+    CHECK(std::abs(noProjection.px(x, H / 2)[0] - u8((x + 0.5f) / W)) <= 3);
+  }
+}

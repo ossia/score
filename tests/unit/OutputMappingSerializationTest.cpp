@@ -346,6 +346,8 @@ TEST_CASE("WindowSettings canvas layout round-trip", "[gfx][window][canvas]")
   ws.outputs = {fullyPopulated()};
   ws.canvas.projection = Gfx::CanvasProjection::Equirectangular;
   ws.canvas.orientation = {12.5f, -90.f, 3.f};
+  ws.canvas.viewer = {0.5f, 1.6f, -0.25f};
+  ws.outputs[0].maps.points = "/cal/room.points.pfm";
 
   SECTION("JSON")
   {
@@ -353,6 +355,7 @@ TEST_CASE("WindowSettings canvas layout round-trip", "[gfx][window][canvas]")
     CHECK(back.canvas == ws.canvas);
     REQUIRE(back.outputs.size() == 1);
     CHECK(back.outputs[0].sourceRect == ws.outputs[0].sourceRect);
+    CHECK(back.outputs[0].maps.points == ws.outputs[0].maps.points);
   }
   SECTION("JSON omits the default layout and reads it back as default")
   {
@@ -367,5 +370,6 @@ TEST_CASE("WindowSettings canvas layout round-trip", "[gfx][window][canvas]")
         = score::unmarshall<Gfx::WindowSettings>(score::marshall<DataStream>(ws));
     CHECK(back.canvas == ws.canvas);
     CHECK(back.outputs.size() == 1);
+    CHECK(back.outputs[0].maps.points == ws.outputs[0].maps.points);
   }
 }

@@ -30,4 +30,11 @@ EquirectWarp equirectWarp(
 //! Writes base.warp.pfm and base.warp.valid.pfm, and lists both in
 //! base.json's "files" so that the outputs following the calibration take them.
 bool saveEquirectWarp(const QString& base, const EquirectWarp& w, QString* error = nullptr);
+
+//! Writes base.points.pfm and base.points.valid.pfm from a world-point map
+//! (RGBA, w = valid, top row first) and lists them in base.json: the outputs
+//! that follow the calibration then look the canvas up from the viewer.
+bool savePointsMap(
+    const QString& base, const std::vector<float>& points, int width, int height,
+    QString* error = nullptr);
 }

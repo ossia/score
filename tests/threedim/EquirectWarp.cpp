@@ -95,3 +95,27 @@ TEST_CASE("A saved equirect warp is the calibration's warp map", "[threedim][cal
   CHECK(img.data[3] == 1.f);
   CHECK(img.data[11] == 0.f);
 }
+
+TEST_CASE("A saved points map is the calibration's points map", "[threedim][calibration][points]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("floor");
+  {
+    QFile f{base + ".json"};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(R"({"files": ["floor.xyz.pfm"]})");
+  }
+  const std::vector<float> pts{1, 2, 3, 1, 4, 5, 6, 0};
+  REQUIRE(savePointsMap(base, pts, 2, 1));
+  Gfx::OutputMaps maps;
+  Gfx::applyCalibration(maps, base + ".json");
+  CHECK(maps.points == base + ".points.pfm");
+  CHECK(Gfx::calibrationBase(base + ".points.valid.pfm") == base);
+  const auto img = score::gfx::loadFloatImageRGBA(base + ".points.pfm");
+  REQUIRE(img.width == 2);
+  CHECK(img.data[0] == 1.f);
+  CHECK(img.data[2] == 3.f);
+  CHECK(img.data[3] == 1.f);
+  CHECK(img.data[7] == 0.f);
+}

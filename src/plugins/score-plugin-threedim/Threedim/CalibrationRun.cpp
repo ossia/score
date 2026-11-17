@@ -424,6 +424,12 @@ void CalibrationRun::tick(double now)
                                   .arg(label(i))
                                   .arg(QString::fromStdString(c.status)));
         }
+        if(!viewer)
+        {
+          QString err;
+          if(!savePointsMap(base, r->xyz, r->width, r->height, &err))
+            out.log.push_back(QObject::tr("Output %1: points map not written (%2)").arg(label(i)).arg(err));
+        }
         if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
         {
           const QRectF src
