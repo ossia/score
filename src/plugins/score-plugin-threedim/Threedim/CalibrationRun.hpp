@@ -79,6 +79,8 @@ public:
     //! The camera in the room's frame: position, and Euler degrees.
     std::array<float, 3> cameraPosition{};
     std::array<float, 3> cameraRotation{};
+    //! Refine the camera pose against the room before casting.
+    bool refinePose{};
     double planeThresholdArcmin{6.};
     //! Camera frames read back after a pattern change before one is used: the
     //! capture and decoding pipeline of a webcam holds a few frames.
@@ -165,12 +167,16 @@ private:
     QStringList log;
     QString status;
     std::optional<CameraLens> lens;
+    std::optional<std::array<float, 6>> pose;
   };
+  std::optional<std::array<float, 6>> m_refinedPose;
   std::optional<CameraLens> m_estimatedLens;
 
 public:
   //! The lens the last run estimated, if it did.
   const std::optional<CameraLens>& estimatedLens() const noexcept { return m_estimatedLens; }
+  //! The camera pose the last run refined (position, Euler degrees), if it did.
+  const std::optional<std::array<float, 6>>& refinedPose() const noexcept { return m_refinedPose; }
 
 private:
   std::future<Finish> m_blend;

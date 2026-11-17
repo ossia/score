@@ -106,6 +106,7 @@ private:
   QLineEdit* m_model{};
   std::array<QDoubleSpinBox*, 3> m_camPos{};
   std::array<QDoubleSpinBox*, 3> m_camRot{};
+  QCheckBox* m_refinePose{};
   QWidget* m_boxRow{};
   QWidget* m_modelRow{};
   QWidget* m_poseRow{};
