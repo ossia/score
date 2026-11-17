@@ -762,3 +762,11 @@ score_add_test(test_threedim_plane_completion
   SOURCES PlaneCompletion.cpp "${THREEDIM_DIR}/PlaneCompletion.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_plane_completion)
+
+# Room geometry for the calibration tool: a measured box or a mesh, and the
+# viewer-camera directions cast into it.
+score_add_test(test_threedim_room_geometry
+  SOURCES RoomGeometry.cpp "${THREEDIM_DIR}/RoomGeometry.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_room_geometry)
+target_link_libraries(test_threedim_room_geometry PRIVATE miniply)

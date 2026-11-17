@@ -9,6 +9,7 @@
 #include <QPointer>
 #include <QTimer>
 
+#include <array>
 #include <memory>
 #include <optional>
 
@@ -96,6 +97,15 @@ private:
   QComboBox* m_display{};
   QCheckBox* m_flat{};
   QCheckBox* m_black{};
+  QComboBox* m_geometry{};
+  std::array<QDoubleSpinBox*, 6> m_box{};
+  QLineEdit* m_model{};
+  std::array<QDoubleSpinBox*, 3> m_camPos{};
+  std::array<QDoubleSpinBox*, 3> m_camRot{};
+  QWidget* m_boxRow{};
+  QWidget* m_modelRow{};
+  QWidget* m_poseRow{};
+  void updateGeometryRows();
   QCheckBox* m_photometric{};
   QPushButton* m_refreshBtn{};
   QPushButton* m_startBtn{};
