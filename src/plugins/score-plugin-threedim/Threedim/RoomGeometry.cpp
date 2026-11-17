@@ -35,7 +35,10 @@ RoomGeometry RoomGeometry::box(
     float front, float back, float left, float right, float floor, float ceiling)
 {
   RoomGeometry g;
-  const float x0 = -left, x1 = right, y0 = -floor, y1 = ceiling, z0 = -front, z1 = back;
+  constexpr float far = 1000.f;
+  auto ext = [](float d) { return d > 0.f ? d : far; };
+  const float x0 = -ext(left), x1 = ext(right), y0 = -ext(floor), y1 = ext(ceiling),
+              z0 = -ext(front), z1 = ext(back);
   auto quad = [&](std::array<float, 3> a, std::array<float, 3> b, std::array<float, 3> c,
                   std::array<float, 3> d) {
     g.addTriangle({a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]});

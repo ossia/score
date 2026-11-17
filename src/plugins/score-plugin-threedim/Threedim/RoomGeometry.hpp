@@ -20,7 +20,8 @@ public:
 
   //! An axis-aligned box around the origin: the distances from the origin to
   //! the front (-Z), back (+Z), left (-X), right (+X) walls, floor (-Y) and
-  //! ceiling (+Y). A distance of 0 leaves that side open.
+  //! ceiling (+Y). A distance of 0 leaves that side open: the sides next to it
+  //! go on, and a ray through it meets nothing.
   static RoomGeometry box(
       float front, float back, float left, float right, float floor, float ceiling);
   //! A Wavefront OBJ or a PLY mesh; empty with `error` set when it cannot be read.

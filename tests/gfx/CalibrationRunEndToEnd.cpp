@@ -7,6 +7,7 @@
 #include <score_test/Document.hpp>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/Graph/FloatImageIO.hpp>
 #include <Gfx/Graph/Node.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/RenderList.hpp>
@@ -139,6 +140,8 @@ TEST_CASE(
   int onePlane = 0;
   int meetRoom = 0;
   Gfx::WindowSettings assigned;
+  bool recomputed = false, recomputeDone = false;
+  double recomputeSeconds{};
   bool done = false, clearedAfter = false, calibratingDuring = false;
   int resultsOk = 0;
   std::vector<float> coverage;
@@ -216,6 +219,19 @@ TEST_CASE(
       }
       clearedAfter = !rig.node->calibrating();
       assigned = Threedim::assignCalibrations(ws, run.setup().plan.names, 0);
+
+      auto again = run.setup();
+      again.box = {7.f, 5.f, 5.f, 5.f, 3.f, 3.f};
+      Threedim::CalibrationRun re{std::move(again)};
+      const double t0 = now();
+      recomputed = re.recompute(t0);
+      while(re.running() && now() < t0 + 120000.)
+      {
+        re.tick(now());
+        std::this_thread::sleep_for(std::chrono::milliseconds{5});
+      }
+      recomputeDone = re.state() == Threedim::CalibrationRun::State::Done;
+      recomputeSeconds = (now() - t0) / 1000.;
     }
     g.unregister_node(camId);
     g.updateGraph();
@@ -254,6 +270,16 @@ TEST_CASE(
   CHECK(assigned.outputs[2].maps.warp == base + "_p2.warp.pfm");
   CHECK(assigned.outputs[1].maps.alpha == base + "_p1.alpha.pfm");
   CHECK(assigned.outputs[1].maps.points == base + "_p1.points.pfm");
+  CHECK(recomputed);
+  CHECK(recomputeDone);
+  CHECK(recomputeSeconds < 30.);
+  {
+    const auto pts = score::gfx::loadFloatImageRGBA(base + "_p1.points.pfm");
+    REQUIRE(pts.width == PW);
+    const float* c = &pts.data[(std::size_t(PH / 2) * PW + PW / 2) * 4];
+    CHECK(c[3] == 1.f);
+    CHECK(std::abs(c[2] + 7.f) < 1e-3f);
+  }
 }
 
 TEST_CASE("CalibrationRun stops when the camera freezes", "[threedim][calibrationwizard][gui]")

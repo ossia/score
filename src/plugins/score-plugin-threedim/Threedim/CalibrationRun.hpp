@@ -103,6 +103,11 @@ public:
   CalibrationRun& operator=(const CalibrationRun&) = delete;
 
   bool start(double nowMs);
+  //! Redoes what follows a capture (plane completion, room cast, warp, points
+  //! and blend maps) from the saved calibrations of the plan, from their
+  //! measured maps when there are: for another room, camera pose or option,
+  //! without projecting the patterns again.
+  bool recompute(double nowMs);
   void tick(double nowMs);
   void abort(const QString& why);
 
@@ -127,6 +132,8 @@ private:
   void release();
   void fail(const QString& why);
   void pullCamera();
+  void launchMaps(
+      std::vector<std::shared_ptr<const StructuredLightCore::Result>> results, bool fresh);
   //! Writes each decoded result under its output's name.
   void saveResults();
   bool m_cameraOpened{};

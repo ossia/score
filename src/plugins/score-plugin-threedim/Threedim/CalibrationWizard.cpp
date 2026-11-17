@@ -195,6 +195,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
       sb->setSingleStep(0.05);
       sb->setSuffix(tr(" m"));
       sb->setToolTip(tr("Distance from the camera to the %1 (0 = open)").arg(names[i]));
+      sb->setAccessibleName(tr("Room %1").arg(names[i]));
       m_box[i] = sb;
       l->addWidget(sb);
     }
@@ -231,6 +232,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
       sb->setSingleStep(0.05);
       sb->setSuffix(tr(" m"));
       sb->setToolTip(tr("Camera %1 in the room's frame").arg(pos[i]));
+      sb->setAccessibleName(tr("Camera position %1").arg(pos[i]));
       m_camPos[i] = sb;
       l->addWidget(sb);
     }
@@ -242,6 +244,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
       sb->setDecimals(2);
       sb->setSuffix(QStringLiteral("°"));
       sb->setToolTip(tr("Camera %1 in the room's frame (0 0 0: level, facing -Z)").arg(rot[i]));
+      sb->setAccessibleName(tr("Camera %1").arg(rot[i]));
       m_camRot[i] = sb;
       l->addWidget(sb);
     }
@@ -267,9 +270,15 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   m_refreshBtn = new QPushButton{tr("Refresh")};
   m_startBtn = new QPushButton{tr("Start")};
   m_abortBtn = new QPushButton{tr("Abort")};
+  m_recomputeBtn = new QPushButton{tr("Recompute")};
+  m_recomputeBtn->setToolTip(
+      tr("Redo the maps from the last measurement of these outputs (plane completion, "
+         "room, warp, points and blend) with the current options, without projecting "
+         "the patterns again"));
   buttons->addWidget(m_refreshBtn);
   buttons->addWidget(m_startBtn);
   buttons->addWidget(m_abortBtn);
+  buttons->addWidget(m_recomputeBtn);
   lay->addLayout(buttons);
   m_progress = new QProgressBar;
   m_progress->setRange(0, 1000);
@@ -284,6 +293,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
 
   connect(m_refreshBtn, &QPushButton::clicked, this, &CalibrationWizard::refreshDevices);
   connect(m_startBtn, &QPushButton::clicked, this, [this] { start(); });
+  connect(m_recomputeBtn, &QPushButton::clicked, this, [this] { start(true); });
   connect(m_abortBtn, &QPushButton::clicked, this, &CalibrationWizard::abort);
   connect(m_device, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
     updatePlan();
@@ -389,6 +399,7 @@ void CalibrationWizard::updateButtons()
 {
   const bool active = busy();
   m_startBtn->setEnabled(!active && m_doc && m_device->count() > 0);
+  m_recomputeBtn->setEnabled(!active && m_doc && m_device->count() > 0);
   m_device->setEnabled(!active);
   m_abortBtn->setEnabled(active);
 }
@@ -712,7 +723,7 @@ double CalibrationWizard::estimateMs(
   return estimateCaptureMs(plan, t) + post + 5000.;
 }
 
-bool CalibrationWizard::start()
+bool CalibrationWizard::start(bool recompute)
 {
   auto* ctx = context();
   if(!ctx || busy())
@@ -746,7 +757,7 @@ bool CalibrationWizard::start()
   if(auto* p = parameterAt(*ctx, cam))
     if(auto port = Gfx::textureProducer(*p))
       setup.camera = *port;
-  if(setup.camera.node < 0)
+  if(setup.camera.node < 0 && !recompute)
   {
     log(tr("%1 is not the texture of a camera device.").arg(cam));
     return false;
@@ -890,7 +901,9 @@ bool CalibrationWizard::start()
   m_run = std::make_unique<CalibrationRun>(std::move(setup));
   m_runDevice = deviceName;
   m_runStartMs = QDateTime::currentMSecsSinceEpoch();
-  const bool ok = m_run->start(double(m_runStartMs));
+  const bool ok = recompute ? m_run->recompute(double(m_runStartMs))
+                            : m_run->start(double(m_runStartMs));
+  m_recomputing = recompute;
   for(const auto& l : m_run->takeLog())
     log(l);
   if(!ok)
@@ -959,11 +972,12 @@ void CalibrationWizard::finish()
   const auto cameraPosition = m_run->setup().cameraPosition;
   m_run.reset();
   updateButtons();
-  const auto r = readCalibrationResults(names, m_runStartMs, outputs);
+  const auto r = readCalibrationResults(names, m_recomputing ? 0 : m_runStartMs, outputs);
   if(!r.text.isEmpty())
     log(r.text);
   const auto ws = deviceSettings(m_runDevice);
-  auto assigned = ws ? assignCalibrations(*ws, names, m_runStartMs, outputs) : Gfx::WindowSettings{};
+  auto assigned = ws ? assignCalibrations(*ws, names, m_recomputing ? 0 : m_runStartMs, outputs)
+                     : Gfx::WindowSettings{};
   if(ws && geometry && assigned.canvas.viewer == std::array<float, 3>{0.f, 0.f, 0.f})
   {
     assigned.canvas.viewer = cameraPosition;
