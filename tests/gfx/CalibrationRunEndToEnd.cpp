@@ -136,6 +136,7 @@ TEST_CASE(
 
   std::string skip, failure;
   bool loggedCamera = false;
+  int onePlane = 0;
   Gfx::WindowSettings assigned;
   bool done = false, clearedAfter = false, calibratingDuring = false;
   int resultsOk = 0;
@@ -175,6 +176,7 @@ TEST_CASE(
       setup.blend = true;
       setup.canvas.projection = Gfx::CanvasProjection::Equirectangular;
       setup.sourceRects.assign(Outputs, QRectF{0, 0, 1, 1});
+      setup.completePlanes = true;
       Threedim::CalibrationRun run{std::move(setup)};
 
       const auto now = [] { return double(QDateTime::currentMSecsSinceEpoch()); };
@@ -201,6 +203,7 @@ TEST_CASE(
       {
         failure += " | " + l.toStdString();
         loggedCamera |= l == QStringLiteral("Camera: 360x100");
+        onePlane += l.contains(QStringLiteral(": 1 plane(s)"));
       }
       for(const auto& r : run.session().results())
       {
@@ -219,6 +222,7 @@ TEST_CASE(
   INFO(failure);
   CHECK(calibratingDuring);
   CHECK(loggedCamera);
+  CHECK(onePlane == Outputs);
   REQUIRE(done);
   CHECK(clearedAfter);
   CHECK(resultsOk == Outputs);
@@ -232,6 +236,7 @@ TEST_CASE(
     CHECK(QFile::exists(n + ".alpha.pfm"));
     CHECK(QFile::exists(n + ".warp.pfm"));
     CHECK(QFile::exists(n + ".warp.valid.pfm"));
+    CHECK(QFile::exists(n + ".measured.xyz.pfm"));
   }
   REQUIRE(assigned.outputs.size() == std::size_t(Outputs));
   CHECK(assigned.outputs[0].maps.warp == base + ".warp.pfm");

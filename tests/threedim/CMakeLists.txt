@@ -755,3 +755,10 @@ score_add_test(test_threedim_equirect_warp
   SOURCES EquirectWarp.cpp "${THREEDIM_DIR}/EquirectWarp.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_equirect_warp)
+
+# Viewer-camera direction maps completed from their flat surfaces (holes,
+# noise and the room corner), as the CAVE's hfill / hcorner scripts did.
+score_add_test(test_threedim_plane_completion
+  SOURCES PlaneCompletion.cpp "${THREEDIM_DIR}/PlaneCompletion.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_plane_completion)

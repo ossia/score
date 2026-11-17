@@ -40,6 +40,10 @@ public:
     //! Projector size, count, save path and auto save come from the plan.
     StructuredLightSession::Settings settings;
     bool blend{true};
+    //! Viewer camera on flat walls and floor: rebuild each direction map from
+    //! its planes (PlaneCompletion), filling what the camera did not see.
+    bool completePlanes{};
+    double planeThresholdArcmin{6.};
     //! Camera frames read back after a pattern change before one is used: the
     //! capture and decoding pipeline of a webcam holds a few frames.
     int latencyFrames{3};
@@ -104,6 +108,11 @@ private:
   State m_state{State::Idle};
   QString m_status;
   QStringList m_log;
-  std::future<ProjectorBlendMaps::Result> m_blend;
+  struct Finish
+  {
+    QStringList log;
+    QString status;
+  };
+  std::future<Finish> m_blend;
 };
 }

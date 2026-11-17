@@ -2,8 +2,10 @@
 
 #include <Threedim/CalibrationFiles.hpp>
 #include <Threedim/EquirectWarp.hpp>
+#include <Threedim/PlaneCompletion.hpp>
 
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QObject>
 
@@ -191,9 +193,9 @@ void CalibrationRun::tick(double now)
     if(m_blend.valid()
        && m_blend.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
     {
-      const auto r = m_blend.get();
-      m_log.push_back(QObject::tr("Projector Blend Maps: %1").arg(QString::fromStdString(r.status)));
-      m_status = QObject::tr("Done");
+      auto r = m_blend.get();
+      m_log.append(r.log);
+      m_status = r.status;
       m_state = State::Done;
       release();
     }
@@ -257,49 +259,84 @@ void CalibrationRun::tick(double now)
   if(ev.done)
   {
     m_log.push_back(QString::fromStdString(m_session.status()));
-    if(m_setup.canvas.projection == Gfx::CanvasProjection::Equirectangular
-       && m_setup.settings.mode == StructuredLightSession::ViewerCamera)
-    {
-      const auto& results = m_session.results();
-      int written = 0;
-      for(std::size_t i = 0; i < results.size() && i < std::size_t(m_setup.plan.names.size()); i++)
-      {
-        const auto& r = results[i];
-        if(!r || !r->ok)
-          continue;
-        const QRectF src = i < m_setup.sourceRects.size() ? m_setup.sourceRects[i]
-                                                          : QRectF{0, 0, 1, 1};
-        QString err;
-        if(saveEquirectWarp(
-               m_setup.plan.names[int(i)], equirectWarp(r->xyz, r->width, r->height, src),
-               &err))
-          written++;
-        else
-          m_log.push_back(QObject::tr("Warp map of %1: %2").arg(m_setup.plan.names[int(i)], err));
-      }
-      m_log.push_back(QObject::tr("Equirectangular warp maps written for %1 output(s)").arg(written));
-    }
-    if(!m_setup.blend)
-    {
-      m_status = QObject::tr("Done");
-      m_state = State::Done;
-      release();
-      return;
-    }
-    std::vector<std::string> paths;
-    for(const auto& n : m_setup.plan.names)
-      paths.push_back(QString(n + QStringLiteral(".json")).toStdString());
-    m_status = QObject::tr("Computing the blend maps");
+    m_status = m_setup.blend ? QObject::tr("Computing the warp and blend maps")
+                             : QObject::tr("Computing the maps");
     m_log.push_back(m_status);
     m_state = State::Blending;
     m_camera.reset();
     m_positions.reset();
-    m_blend = std::async(std::launch::async, [paths] {
+    m_blend = std::async(
+        std::launch::async,
+        [results = m_session.results(), setup = m_setup]() -> Finish {
+      Finish out;
+      const bool viewer = setup.settings.mode == StructuredLightSession::ViewerCamera;
+      const int n = std::min<int>(int(results.size()), int(setup.plan.names.size()));
+      for(int i = 0; i < n; i++)
+      {
+        const auto& r = results[i];
+        if(!r || !r->ok)
+          continue;
+        const QString base = setup.plan.names[i];
+        std::vector<float> directions = r->xyz;
+        if(viewer && setup.completePlanes)
+        {
+          const auto c = completeFromPlanes(
+              r->xyz, r->width, r->height, setup.planeThresholdArcmin, 2);
+          if(c.ok)
+          {
+            QStringList residuals;
+            for(std::size_t k = 0; k < c.medianArcmin.size(); k++)
+              residuals.push_back(QStringLiteral("%1'").arg(c.medianArcmin[k], 0, 'f', 1));
+            out.log.push_back(QObject::tr("Output %1: %2 plane(s), median residual %3, %4% "
+                                          "of the measured pixels explained")
+                                  .arg(i + 1)
+                                  .arg(int(c.homographies.size()))
+                                  .arg(residuals.join(QStringLiteral(" / ")))
+                                  .arg(c.explained * 100., 0, 'f', 1));
+            for(const char* ext : {".xyz.pfm", ".valid.pfm"})
+            {
+              const QString from = base + QString::fromLatin1(ext);
+              const QString to = base + QStringLiteral(".measured") + QString::fromLatin1(ext);
+              QFile::remove(to);
+              QFile::copy(from, to);
+            }
+            auto completed = *r;
+            completed.xyz = c.directions;
+            completed.coverage = 100.f;
+            completed.status = r->status + " | completed from " + c.status;
+            if(StructuredLightCore::saveFile(
+                   QString(base + QStringLiteral(".json")).toStdString(), completed))
+              directions = std::move(completed.xyz);
+            else
+              out.log.push_back(QObject::tr("Output %1: cannot write the completed map").arg(i + 1));
+          }
+          else
+            out.log.push_back(QObject::tr("Output %1: not completed from planes (%2)")
+                                  .arg(i + 1)
+                                  .arg(QString::fromStdString(c.status)));
+        }
+        if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
+        {
+          const QRectF src
+              = i < int(setup.sourceRects.size()) ? setup.sourceRects[i] : QRectF{0, 0, 1, 1};
+          QString err;
+          if(!saveEquirectWarp(base, equirectWarp(directions, r->width, r->height, src), &err))
+            out.log.push_back(QObject::tr("Output %1: warp map not written (%2)").arg(i + 1).arg(err));
+        }
+      }
+      if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
+        out.log.push_back(QObject::tr("Equirectangular warp maps written"));
+
+      if(!setup.blend)
+      {
+        out.status = QObject::tr("Done");
+        return out;
+      }
       std::vector<CalibrationFile> cals;
       std::string failed;
-      for(const auto& p : paths)
+      for(int i = 0; i < n; i++)
       {
-        auto c = loadCalibration(p);
+        auto c = loadCalibration(QString(setup.plan.names[i] + QStringLiteral(".json")).toStdString());
         if(c.ok())
           cals.push_back(std::move(c));
         else
@@ -307,14 +344,17 @@ void CalibrationRun::tick(double now)
       }
       if(cals.empty())
       {
-        ProjectorBlendMaps::Result r;
-        r.status = "Failed: " + failed;
-        return r;
+        out.log.push_back(QObject::tr("Projector Blend Maps: Failed: %1").arg(QString::fromStdString(failed)));
+        out.status = QObject::tr("Done");
+        return out;
       }
-      ProjectorBlendMaps::Settings s;
-      s.ramp = {0.f};
-      s.exponent = {1.f};
-      return ProjectorBlendMaps::compute(std::move(cals), s);
+      ProjectorBlendMaps::Settings bs;
+      bs.ramp = {0.f};
+      bs.exponent = {1.f};
+      const auto b = ProjectorBlendMaps::compute(std::move(cals), bs);
+      out.log.push_back(QObject::tr("Projector Blend Maps: %1").arg(QString::fromStdString(b.status)));
+      out.status = QObject::tr("Done");
+      return out;
     });
     return;
   }

@@ -147,6 +147,20 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   m_blend->setChecked(true);
   m_blend->setToolTip(tr("Compute the blend (alpha) and black-level (beta) maps afterwards"));
   form->addRow(tr("Blend maps"), m_blend);
+  m_display = new QComboBox;
+  m_display->addItem(tr("Projectors"));
+  m_display->addItem(tr("Screens"));
+  m_display->setToolTip(
+      tr("Projectors: their overlaps are blended and the black level evened out. "
+         "Screens (LED walls, monitors): emissive, side by side, nothing blended"));
+  form->addRow(tr("Display"), m_display);
+  m_flat = new QCheckBox;
+  m_flat->setChecked(true);
+  m_flat->setToolTip(
+      tr("Viewer camera on flat walls and floor (at most two per output): each output's "
+         "map is rebuilt from its planes, which fills what the camera did not see and "
+         "removes the measurement noise. Turn off for a curved screen"));
+  form->addRow(tr("Flat surfaces"), m_flat);
   m_photometric = new QCheckBox;
   m_photometric->setToolTip(
       tr("Also measure the projector response and the surface colour, with a colour "
@@ -181,7 +195,11 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   connect(m_name, &QLineEdit::editingFinished, this, [this] { updatePlan(); });
   connect(m_mode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
     m_positions->setEnabled(i == 0);
+    m_flat->setEnabled(i == 1);
     updatePlan();
+  });
+  connect(m_display, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
+    m_blend->setEnabled(i == 0);
   });
   for(auto* sb : {m_settle, m_stripe, m_frames})
     connect(sb, qOverload<int>(&QSpinBox::valueChanged), this, [this] { updatePlan(); });
@@ -190,6 +208,8 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   m_mode->setCurrentIndex(1);
   loadOptions();
   m_positions->setEnabled(m_mode->currentIndex() == 0);
+  m_flat->setEnabled(m_mode->currentIndex() == 1);
+  m_blend->setEnabled(m_display->currentIndex() == 0);
   m_timer.setInterval(15);
   m_timer.setTimerType(Qt::PreciseTimer);
   connect(&m_timer, &QTimer::timeout, this, &CalibrationWizard::poll);
@@ -372,6 +392,8 @@ void CalibrationWizard::loadOptions()
   m_frames->setValue(q.value("Frames", m_frames->value()).toInt());
   m_exposure->setValue(q.value("Exposure", m_exposure->value()).toDouble());
   m_blend->setChecked(q.value("Blend", m_blend->isChecked()).toBool());
+  m_display->setCurrentIndex(std::clamp(q.value("Display", 0).toInt(), 0, 1));
+  m_flat->setChecked(q.value("FlatSurfaces", m_flat->isChecked()).toBool());
   m_photometric->setChecked(q.value("Photometric", m_photometric->isChecked()).toBool());
   if(q.contains("Camera"))
     m_camera->setCurrentText(q.value("Camera").toString());
@@ -394,6 +416,8 @@ void CalibrationWizard::saveOptions() const
   q.setValue("Frames", m_frames->value());
   q.setValue("Exposure", m_exposure->value());
   q.setValue("Blend", m_blend->isChecked());
+  q.setValue("Display", m_display->currentIndex());
+  q.setValue("FlatSurfaces", m_flat->isChecked());
   q.setValue("Photometric", m_photometric->isChecked());
   q.setValue("Camera", m_camera->currentText());
   q.setValue("Positions", m_positions->currentText());
@@ -637,7 +661,8 @@ bool CalibrationWizard::start()
              "off.")
               .arg(dev, exposure));
   }
-  setup.blend = m_blend->isChecked();
+  setup.blend = m_blend->isChecked() && m_display->currentIndex() == 0;
+  setup.completePlanes = !depth && m_flat->isChecked();
   setup.canvas = ws->canvas;
   for(const auto& o : ws->outputs)
     setup.sourceRects.push_back(o.sourceRect);
