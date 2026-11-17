@@ -356,7 +356,7 @@ TEST_CASE("CalibrationRun stops when the camera freezes", "[threedim][calibratio
     SKIP(skip);
   INFO(status.toStdString());
   CHECK(failed);
-  CHECK(status.contains("no frame"));
+  CHECK(status.contains("no new image"));
   CHECK(elapsed < 10000.);
 }
 
