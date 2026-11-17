@@ -912,6 +912,12 @@ bool CalibrationWizard::start(bool recompute)
     updateButtons();
     return false;
   }
+  if(recompute)
+    log(tr("Recomputing %1 %2 of %3 from their measurements.")
+            .arg(plan.projectors)
+            .arg(m_display->currentIndex() == 1 ? tr("screen(s)") : tr("projector(s)"))
+            .arg(deviceName));
+  else
   log(tr("Calibrating %1 %2 of %3: about %4 s.")
           .arg(plan.projectors)
           .arg(m_display->currentIndex() == 1 ? tr("screen(s)") : tr("projector(s)"))
