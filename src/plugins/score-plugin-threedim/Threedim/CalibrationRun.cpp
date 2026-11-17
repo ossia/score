@@ -5,6 +5,7 @@
 #include <Threedim/EquirectWarp.hpp>
 #include <Threedim/LensConversion.hpp>
 #include <Threedim/PlaneCompletion.hpp>
+#include <Threedim/PoseRefinement.hpp>
 #include <Threedim/RoomGeometry.hpp>
 
 #include <QDir>
@@ -362,13 +363,15 @@ void CalibrationRun::launchMaps(
         rs[i].lens = to.lens;
       }
 
+      std::vector<std::vector<float>> finalDirections(n);
       for(int i = 0; i < n; i++)
       {
         const auto* r = &rs[i];
         if(!r->ok)
           continue;
         const QString base = setup.plan.names[i];
-        std::vector<float> directions = r->xyz;
+        std::vector<float>& directions = finalDirections[i];
+        directions = r->xyz;
         if(viewer && setup.completePlanes)
         {
           const auto c = completeFromPlanes(
@@ -402,16 +405,57 @@ void CalibrationRun::launchMaps(
                                   .arg(label(i))
                                   .arg(QString::fromStdString(c.status)));
         }
+      }
+
+      std::array<float, 3> camPos = setup.cameraPosition, camRot = setup.cameraRotation;
+      if(viewer && !room.empty() && setup.refinePose)
+      {
+        std::vector<DirectionMap> dm;
+        for(int i = 0; i < n; i++)
+          if(rs[i].ok)
+            dm.push_back({&finalDirections[i], rs[i].width, rs[i].height});
+        const auto fit = refineCameraPose(dm, room, camPos, camRot, true);
+        if(fit.ok && fit.outputsUsed > 0)
+        {
+          camPos = fit.position;
+          camRot = fit.rotation;
+          out.pose = std::array<float, 6>{camPos[0], camPos[1], camPos[2],
+                                          camRot[0], camRot[1], camRot[2]};
+          out.log.push_back(
+              QObject::tr("Camera pose refined over %1 output(s): position %2 %3 %4 m, "
+                          "rotation %5 %6 %7 deg; projector fit %8 -> %9 px")
+                  .arg(fit.outputsUsed)
+                  .arg(camPos[0], 0, 'f', 3)
+                  .arg(camPos[1], 0, 'f', 3)
+                  .arg(camPos[2], 0, 'f', 3)
+                  .arg(camRot[0], 0, 'f', 2)
+                  .arg(camRot[1], 0, 'f', 2)
+                  .arg(camRot[2], 0, 'f', 2)
+                  .arg(fit.residualBefore, 0, 'f', 2)
+                  .arg(fit.residualAfter, 0, 'f', 2));
+        }
+        else
+          out.log.push_back(QObject::tr("Camera pose not refined: the outputs do not constrain it"));
+      }
+
+      for(int i = 0; i < n; i++)
+      {
+        const auto* r = &rs[i];
+        if(!r->ok)
+          continue;
+        const QString base = setup.plan.names[i];
+        const std::vector<float>& directions = finalDirections[i];
         if(viewer && !room.empty())
         {
           const auto cast = castDirections(
-              directions, r->width, r->height, room, setup.cameraPosition,
-              setup.cameraRotation);
+              directions, r->width, r->height, room, camPos, camRot);
           QString err;
           if(savePointsMap(base, cast.points, r->width, r->height, &err))
-            out.log.push_back(QObject::tr("Output %1: %2% of the directions meet the room")
+            out.log.push_back(QObject::tr("Output %1: %2% of the directions meet the room, "
+                                          "projector fit %3 px")
                                   .arg(label(i))
-                                  .arg(cast.hitFraction * 100., 0, 'f', 1));
+                                  .arg(cast.hitFraction * 100., 0, 'f', 1)
+                                  .arg(projectorFitResidual(cast.points, r->width, r->height), 0, 'f', 2));
           else
             out.log.push_back(QObject::tr("Output %1: points map not written (%2)").arg(label(i)).arg(err));
         }
@@ -526,6 +570,7 @@ void CalibrationRun::tick(double now)
       auto r = m_blend.get();
       m_log.append(r.log);
       m_estimatedLens = r.lens;
+      m_refinedPose = r.pose;
       m_status = r.status;
       m_state = State::Done;
       release();

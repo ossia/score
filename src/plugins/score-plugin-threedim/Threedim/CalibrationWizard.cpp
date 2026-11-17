@@ -269,6 +269,12 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
       l->addWidget(sb);
     }
     form->addRow(tr("Camera pose (position, rotation)"), m_poseRow);
+    m_refinePose = new QCheckBox;
+    m_refinePose->setToolTip(
+        tr("Starting from the pose above, find the camera's pose in the room for which "
+           "each output's surface points are those of one projector; the pose fields "
+           "then take it. Works with Recompute"));
+    form->addRow(tr("Refine the camera pose"), m_refinePose);
   }
   connect(m_geometry, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
     updateGeometryRows();
@@ -363,6 +369,7 @@ void CalibrationWizard::updateGeometryRows()
   m_boxRow->setEnabled(viewer && g == 1);
   m_modelRow->setEnabled(viewer && g == 2);
   m_poseRow->setEnabled(viewer && g != 0);
+  m_refinePose->setEnabled(viewer && g != 0);
 }
 
 void CalibrationWizard::closeCameras()
@@ -570,6 +577,7 @@ void CalibrationWizard::loadOptions()
   for(int i = 0; i < 6; i++)
     m_box[i]->setValue(q.value(QStringLiteral("Box%1").arg(i), 0.).toDouble());
   m_model->setText(q.value("Model").toString());
+  m_refinePose->setChecked(q.value("RefinePose", false).toBool());
   for(int i = 0; i < 3; i++)
   {
     m_camPos[i]->setValue(q.value(QStringLiteral("CameraPos%1").arg(i), 0.).toDouble());
@@ -608,6 +616,7 @@ void CalibrationWizard::saveOptions() const
   for(int i = 0; i < 6; i++)
     q.setValue(QStringLiteral("Box%1").arg(i), m_box[i]->value());
   q.setValue("Model", m_model->text());
+  q.setValue("RefinePose", m_refinePose->isChecked());
   for(int i = 0; i < 3; i++)
   {
     q.setValue(QStringLiteral("CameraPos%1").arg(i), m_camPos[i]->value());
@@ -890,6 +899,7 @@ bool CalibrationWizard::start(bool recompute)
       setup.cameraPosition[i] = float(m_camPos[i]->value());
       setup.cameraRotation[i] = float(m_camRot[i]->value());
     }
+    setup.refinePose = m_refinePose->isChecked();
     if(setup.geometry == CalibrationRun::Setup::Geometry::Box
        && std::all_of(setup.box.begin(), setup.box.end(), [](float d) { return d <= 0.f; }))
     {
@@ -1009,6 +1019,18 @@ void CalibrationWizard::finish()
   const bool geometry = m_run->setup().geometry != CalibrationRun::Setup::Geometry::Directions
                         && m_run->setup().settings.mode == StructuredLightSession::ViewerCamera;
   const auto cameraPosition = m_run->setup().cameraPosition;
+  auto cameraPositionUsed = cameraPosition;
+  if(const auto& pose = m_run->refinedPose())
+  {
+    for(int i = 0; i < 3; i++)
+    {
+      m_camPos[i]->setValue((*pose)[i]);
+      m_camRot[i]->setValue((*pose)[i + 3]);
+      cameraPositionUsed[i] = (*pose)[i];
+    }
+    log(tr("The refined camera pose is now in the pose fields."));
+    saveOptions();
+  }
   if(const auto& lens = m_run->estimatedLens())
   {
     m_lens->setCurrentIndex(int(lens->model));
@@ -1030,12 +1052,12 @@ void CalibrationWizard::finish()
                      : Gfx::WindowSettings{};
   if(ws && geometry && assigned.canvas.viewer == std::array<float, 3>{0.f, 0.f, 0.f})
   {
-    assigned.canvas.viewer = cameraPosition;
+    assigned.canvas.viewer = cameraPositionUsed;
     log(tr("Viewer position set to the camera's (%1, %2, %3): move it in the device's "
            "settings or on its /canvas/viewer.")
-            .arg(cameraPosition[0])
-            .arg(cameraPosition[1])
-            .arg(cameraPosition[2]));
+            .arg(cameraPositionUsed[0])
+            .arg(cameraPositionUsed[1])
+            .arg(cameraPositionUsed[2]));
   }
   if(ws && geometry && assigned.canvas.projection != Gfx::CanvasProjection::Equirectangular)
     log(tr("The points maps are only used with an Equirectangular canvas projection."));

@@ -2376,6 +2376,7 @@ target_sources(test_gfx_calibration_run_end_to_end PRIVATE
   "${_calib_threedim}/PlaneCompletion.cpp"
   "${_calib_threedim}/RoomGeometry.cpp"
   "${_calib_threedim}/LensConversion.cpp"
+  "${_calib_threedim}/PoseRefinement.cpp"
   "${_calib_threedim}/CalibrationPlan.cpp"
   "${_calib_threedim}/StructuredLightSession.cpp"
   "${_calib_threedim}/StructuredLightCalibration.cpp"

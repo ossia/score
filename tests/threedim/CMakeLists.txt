@@ -777,3 +777,10 @@ score_add_test(test_threedim_camera_lens
   SOURCES CameraLens.cpp "${THREEDIM_DIR}/LensConversion.cpp" "${THREEDIM_DIR}/PlaneCompletion.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_lens)
+
+# Camera pose in the room found from the outputs' projector consistency.
+score_add_test(test_threedim_pose_refinement
+  SOURCES PoseRefinement.cpp "${THREEDIM_DIR}/PoseRefinement.cpp" "${THREEDIM_DIR}/RoomGeometry.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_pose_refinement)
+target_link_libraries(test_threedim_pose_refinement PRIVATE miniply)

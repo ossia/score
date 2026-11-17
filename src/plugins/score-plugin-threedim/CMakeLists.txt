@@ -129,6 +129,8 @@ add_library(
   Threedim/CameraLens.hpp
   Threedim/LensConversion.hpp
   Threedim/LensConversion.cpp
+  Threedim/PoseRefinement.hpp
+  Threedim/PoseRefinement.cpp
   Threedim/ViewerFrustum.hpp
   Threedim/ViewerFrustum.cpp
   Threedim/LedWall.hpp
