@@ -30,10 +30,24 @@ CalibrationRun::~CalibrationRun()
   release();
 }
 
+void CalibrationRun::pullCamera()
+{
+  for(const auto& p : {m_setup.camera, m_setup.positions})
+    if(p.node >= 0 && m_setup.gfx)
+    {
+      score::gfx::Message m;
+      m.node_id = p.node;
+      m_setup.gfx->send_message(std::move(m));
+    }
+}
+
 void CalibrationRun::release()
 {
   m_camera.reset();
   m_positions.reset();
+  if(m_cameraOpened && m_setup.cameraActive)
+    m_setup.cameraActive(false);
+  m_cameraOpened = false;
   if(m_setup.node)
     if(auto* n = m_setup.node(); n && n->calibrating())
       n->clearCalibration();
@@ -94,6 +108,12 @@ bool CalibrationRun::start(double now)
   }
   QDir{}.mkpath(QFileInfo{m_setup.plan.names[0]}.absolutePath());
 
+  if(m_setup.cameraActive)
+  {
+    m_setup.cameraActive(true);
+    m_cameraOpened = true;
+  }
+  pullCamera();
   m_camera = std::make_unique<Gfx::TextureCapture>(*m_setup.gfx, m_setup.camera);
   if(m_setup.settings.mode == StructuredLightSession::DepthCamera
      && m_setup.positions.node >= 0)
@@ -175,6 +195,7 @@ void CalibrationRun::tick(double now)
     return;
   }
 
+  pullCamera();
   if(m_camera)
     m_camera->take(m_rgba, m_rgbaW, m_rgbaH);
   if(m_positions)

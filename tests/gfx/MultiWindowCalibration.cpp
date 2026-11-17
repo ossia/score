@@ -638,3 +638,41 @@ TEST_CASE(
     CHECK(std::abs(normal.px(cx, normal.height / 2)[c] - before.px(cx, before.height / 2)[c]) <= 2);
   CHECK(normal.px(cx, normal.height / 2)[1] < 60);
 }
+
+TEST_CASE(
+    "multi-window calibration override shows the images with nothing connected",
+    "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  auto img = std::make_shared<score::gfx::MultiWindowNode::CalibrationImage>();
+  img->width = m.windowSize.width();
+  img->height = m.windowSize.height();
+  img->rgba.assign(std::size_t(img->width) * img->height * 4, 255);
+  for(std::size_t i = 0; i < img->rgba.size(); i += 4)
+    img->rgba[i + 2] = 0;
+
+  Frame cal;
+  bool ok2{};
+  Outcome o;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    MultiWindowRig rig;
+    if(!rig.build(
+           api, {m}, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+           QSize{1280, 720}, false))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    rig.node->setCalibration({img});
+    ok2 = grab(rig, cal);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok2);
+  CHECK(cal.px(cal.width / 2, cal.height / 2) == std::array<int, 3>{255, 255, 0});
+  CHECK(cal.px(2, 2) == std::array<int, 3>{255, 255, 0});
+}
