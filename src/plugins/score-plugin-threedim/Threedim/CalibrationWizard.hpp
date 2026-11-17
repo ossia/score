@@ -88,6 +88,7 @@ private:
   QComboBox* m_mode{};
   QLineEdit* m_name{};
   QLineEdit* m_outputs{};
+  QLineEdit* m_alignTo{};
   QSpinBox* m_settle{};
   QDoubleSpinBox* m_fov{};
   QComboBox* m_lens{};

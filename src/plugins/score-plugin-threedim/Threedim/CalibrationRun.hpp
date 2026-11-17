@@ -81,6 +81,16 @@ public:
     std::array<float, 3> cameraRotation{};
     //! Refine the camera pose against the room before casting.
     bool refinePose{};
+    //! Viewer camera turned since another run: outputs of this run whose
+    //! previous direction map is given define the frame; the rotation that
+    //! takes this run's maps of them onto those is applied to all its maps.
+    struct Anchor
+    {
+      int projector{};
+      std::vector<float> directions;
+      int width{}, height{};
+    };
+    std::vector<Anchor> anchors;
     double planeThresholdArcmin{6.};
     //! Camera frames read back after a pattern change before one is used: the
     //! capture and decoding pipeline of a webcam holds a few frames.

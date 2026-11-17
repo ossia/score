@@ -363,6 +363,36 @@ void CalibrationRun::launchMaps(
         rs[i].lens = to.lens;
       }
 
+      if(viewer && !setup.anchors.empty())
+      {
+        std::vector<std::pair<const std::vector<float>*, const std::vector<float>*>> pairs;
+        QStringList used;
+        for(const auto& a : setup.anchors)
+          if(a.projector >= 0 && a.projector < n && rs[a.projector].ok
+             && rs[a.projector].width == a.width && rs[a.projector].height == a.height)
+          {
+            pairs.push_back({&rs[a.projector].xyz, &a.directions});
+            used.push_back(label(a.projector));
+          }
+        const auto al = alignDirections(pairs);
+        if(al.ok)
+        {
+          for(int i = 0; i < n; i++)
+            if(rs[i].ok)
+              rotateDirections(rs[i].xyz, al.rotation);
+          out.log.push_back(QObject::tr("Aligned to the previous calibration of output(s) %1: "
+                                        "camera turned %2 deg, %3' left (median over %4 "
+                                        "pixels)")
+                                .arg(used.join(QStringLiteral(", ")))
+                                .arg(al.angleDeg, 0, 'f', 2)
+                                .arg(al.residualArcmin, 0, 'f', 2)
+                                .arg(al.pairs));
+        }
+        else
+          out.log.push_back(QObject::tr("Not aligned: the outputs to align to share too few "
+                                        "measured pixels with this run"));
+      }
+
       std::vector<std::vector<float>> finalDirections(n);
       for(int i = 0; i < n; i++)
       {

@@ -34,6 +34,23 @@ PoseFit refineCameraPose(
     const std::array<float, 3>& position, const std::array<float, 3>& rotation,
     bool refinePosition = true);
 
+//! The rotation taking the directions of one measurement of an output onto
+//! another of the same output (RGBA maps of the same size, w = valid): the
+//! camera turned between two runs from one place. Kabsch over the pixels
+//! valid in both; median angle left after it, in arcmin.
+struct DirectionAlignment
+{
+  bool ok{};
+  //! Row major.
+  std::array<double, 9> rotation{1, 0, 0, 0, 1, 0, 0, 0, 1};
+  double angleDeg{};
+  double residualArcmin{};
+  int pairs{};
+};
+DirectionAlignment alignDirections(
+    const std::vector<std::pair<const std::vector<float>*, const std::vector<float>*>>& maps);
+void rotateDirections(std::vector<float>& map, const std::array<double, 9>& R);
+
 //! The projector fit residual of one output's points (RGBA world points per
 //! output pixel, w = valid), in output pixels; negative without enough points.
 double projectorFitResidual(const std::vector<float>& points, int width, int height);
