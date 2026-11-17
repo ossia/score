@@ -573,3 +573,13 @@ void JSONWriter::write(Gfx::CameraSettings& n)
   score::parseJsonField(obj, "ColorRange", n.colorRange);
   score::parseJsonField(obj, "Custom", n.custom);
 }
+
+namespace Gfx
+{
+QSize cameraDeviceSize(const QVariant& v)
+{
+  if(v.canConvert<CameraSettings>())
+    return v.value<CameraSettings>().size;
+  return {};
+}
+}

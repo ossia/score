@@ -676,9 +676,7 @@ bool CalibrationWizard::start()
         }
     };
     if(auto* d = ctx->plugin<Explorer::DeviceDocumentPlugin>().list().findDevice(devices[0]))
-      if(const auto& ds = d->settings().deviceSpecificSettings;
-         ds.canConvert<Gfx::CameraSettings>())
-        setup.expectedCameraSize = ds.value<Gfx::CameraSettings>().size;
+      setup.expectedCameraSize = Gfx::cameraDeviceSize(d->settings().deviceSpecificSettings);
   }
 
   setup.settings = sessionSettings();
