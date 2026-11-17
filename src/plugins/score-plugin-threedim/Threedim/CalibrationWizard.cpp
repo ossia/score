@@ -115,6 +115,13 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
          "computed over every output's"));
   form->addRow(tr("Outputs"), m_outputs);
   connect(m_outputs, &QLineEdit::textChanged, this, [this] { updatePlan(); });
+  m_alignTo = new QLineEdit;
+  m_alignTo->setPlaceholderText(tr("none"));
+  m_alignTo->setToolTip(
+      tr("Viewer camera turned since a previous run (e.g. tilted down for the floor): "
+         "outputs measured in both runs, whose current calibration this run is aligned "
+         "to. They must be among the outputs of this run"));
+  form->addRow(tr("Align to outputs"), m_alignTo);
 
   m_settle = new QSpinBox;
   m_settle->setRange(0, 10000);
@@ -560,6 +567,7 @@ void CalibrationWizard::loadOptions()
   if(q.contains("Name"))
     m_name->setText(q.value("Name").toString());
   m_outputs->setText(q.value("Outputs").toString());
+  m_alignTo->setText(q.value("AlignTo").toString());
   m_settle->setValue(q.value("Settle", m_settle->value()).toInt());
   m_fov->setValue(q.value("Fov", m_fov->value()).toDouble());
   m_lens->setCurrentIndex(std::clamp(q.value("Lens", 0).toInt(), 0, 2));
@@ -599,6 +607,7 @@ void CalibrationWizard::saveOptions() const
   q.setValue("Mode", m_mode->currentIndex());
   q.setValue("Name", m_name->text());
   q.setValue("Outputs", m_outputs->text());
+  q.setValue("AlignTo", m_alignTo->text());
   q.setValue("Settle", m_settle->value());
   q.setValue("Fov", m_fov->value());
   q.setValue("Lens", m_lens->currentIndex());
@@ -900,6 +909,31 @@ bool CalibrationWizard::start(bool recompute)
       setup.cameraRotation[i] = float(m_camRot[i]->value());
     }
     setup.refinePose = m_refinePose->isChecked();
+    if(!m_alignTo->text().trimmed().isEmpty())
+      for(int out : parseOutputSelection(m_alignTo->text(), int(ws->outputs.size())))
+      {
+        const auto it = std::find(setup.plan.outputs.begin(), setup.plan.outputs.end(), out);
+        if(it == setup.plan.outputs.end())
+        {
+          log(tr("- output %1 is not measured in this run: it cannot be aligned to").arg(out + 1));
+          continue;
+        }
+        const QString prev = ws->outputs[out].maps.calibration;
+        if(prev.isEmpty())
+        {
+          log(tr("- output %1 has no calibration to align to").arg(out + 1));
+          continue;
+        }
+        const auto r = StructuredLightCore::loadFile(prev.toStdString());
+        if(!r.ok)
+        {
+          log(tr("- output %1: %2").arg(out + 1).arg(QString::fromStdString(r.status)));
+          continue;
+        }
+        setup.anchors.push_back(
+            {int(it - setup.plan.outputs.begin()), r.xyz, r.width, r.height});
+        log(tr("- aligning to the previous calibration of output %1 (%2)").arg(out + 1).arg(prev));
+      }
     if(setup.geometry == CalibrationRun::Setup::Geometry::Box
        && std::all_of(setup.box.begin(), setup.box.end(), [](float d) { return d <= 0.f; }))
     {

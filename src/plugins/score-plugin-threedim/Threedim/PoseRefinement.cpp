@@ -72,6 +72,67 @@ struct Sampled
 };
 }
 
+DirectionAlignment alignDirections(
+    const std::vector<std::pair<const std::vector<float>*, const std::vector<float>*>>& maps)
+{
+  DirectionAlignment a;
+  Eigen::Matrix3d Hm = Eigen::Matrix3d::Zero();
+  std::vector<std::pair<Eigen::Vector3d, Eigen::Vector3d>> pairs;
+  for(const auto& [from, to] : maps)
+  {
+    if(!from || !to || from->size() != to->size())
+      continue;
+    const std::size_t n = from->size() / 4;
+    const std::size_t step = std::max<std::size_t>(1, n / 20000);
+    for(std::size_t i = 0; i < n; i += step)
+    {
+      const float* p = &(*from)[i * 4];
+      const float* q = &(*to)[i * 4];
+      if(!(p[3] > 0.5f) || !(q[3] > 0.5f))
+        continue;
+      Eigen::Vector3d u(p[0], p[1], p[2]), v(q[0], q[1], q[2]);
+      if(u.norm() < 1e-9 || v.norm() < 1e-9)
+        continue;
+      u.normalize();
+      v.normalize();
+      pairs.emplace_back(u, v);
+      Hm += u * v.transpose();
+    }
+  }
+  a.pairs = int(pairs.size());
+  if(pairs.size() < 10)
+    return a;
+  Eigen::JacobiSVD<Eigen::Matrix3d> svd(Hm, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  Eigen::Matrix3d D = Eigen::Matrix3d::Identity();
+  D(2, 2) = (svd.matrixV() * svd.matrixU().transpose()).determinant() < 0 ? -1. : 1.;
+  const Eigen::Matrix3d R = svd.matrixV() * D * svd.matrixU().transpose();
+  std::vector<double> err;
+  err.reserve(pairs.size());
+  for(const auto& [u, v] : pairs)
+    err.push_back(std::atan2((R * u).cross(v).norm(), (R * u).dot(v)));
+  std::nth_element(err.begin(), err.begin() + err.size() / 2, err.end());
+  a.residualArcmin = err[err.size() / 2] * 180. / M_PI * 60.;
+  a.angleDeg = Eigen::AngleAxisd(R).angle() * 180. / M_PI;
+  for(int r = 0; r < 3; r++)
+    for(int c = 0; c < 3; c++)
+      a.rotation[r * 3 + c] = R(r, c);
+  a.ok = true;
+  return a;
+}
+
+void rotateDirections(std::vector<float>& m, const std::array<double, 9>& R)
+{
+  for(std::size_t i = 0; i + 3 < m.size(); i += 4)
+  {
+    if(!(m[i + 3] > 0.5f))
+      continue;
+    const double x = m[i], y = m[i + 1], z = m[i + 2];
+    m[i] = float(R[0] * x + R[1] * y + R[2] * z);
+    m[i + 1] = float(R[3] * x + R[4] * y + R[5] * z);
+    m[i + 2] = float(R[6] * x + R[7] * y + R[8] * z);
+  }
+}
+
 double projectorFitResidual(const std::vector<float>& points, int W, int H)
 {
   std::vector<Corr> c;

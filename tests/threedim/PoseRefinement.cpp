@@ -83,3 +83,27 @@ TEST_CASE("The camera pose is found from the outputs' projector consistency", "[
     CHECK(std::abs(fit.rotation[i] - trueRot[i]) < 0.3f);
   }
 }
+
+TEST_CASE("Two runs of one output are aligned by the camera's rotation", "[threedim][pose]")
+{
+  const auto room = RoomGeometry::box(3.f, 2.f, 2.5f, 2.5f, 1.4f, 1.6f);
+  const std::array<float, 3> rot{4.f, 9.f, -2.f};
+  auto first = measure(room, {0.0, 1.2, 1.0}, {0.0, -0.7, -1.0}, {0, 0, 0}, {0, 0, 0});
+  auto turned = measure(room, {0.0, 1.2, 1.0}, {0.0, -0.7, -1.0}, {0, 0, 0}, rot);
+  for(std::size_t i = 0; i < turned.size(); i += 4 * 7)
+    turned[i + 3] = 0.f;
+  const auto a = alignDirections({{&turned, &first}});
+  REQUIRE(a.ok);
+  CHECK(a.residualArcmin < 0.05);
+  CHECK(a.angleDeg > 5.);
+  rotateDirections(turned, a.rotation);
+  double worst = 0.;
+  for(std::size_t i = 0; i < turned.size(); i += 4)
+    if(turned[i + 3] > 0.5f && first[i + 3] > 0.5f)
+    {
+      const Eigen::Vector3d u(turned[i], turned[i + 1], turned[i + 2]),
+          v(first[i], first[i + 1], first[i + 2]);
+      worst = std::max(worst, std::atan2(u.cross(v).norm(), u.dot(v)) * 180. / M_PI * 60.);
+    }
+  CHECK(worst < 0.05);
+}
