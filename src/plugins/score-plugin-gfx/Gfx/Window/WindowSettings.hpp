@@ -101,13 +101,18 @@ struct OutputMaps
   //! Radiometric compensation (.comp.json): per pixel 3x3 matrix and offset
   //! applied to the linear content before the alpha.
   QString compensation;
+  //! World position (RGB, w = valid) of the surface point each output pixel
+  //! lights. With an Equirectangular canvas it replaces the warp: each pixel
+  //! looks the canvas up in the direction from the canvas's viewer position
+  //! to that point, so the viewpoint can move after the calibration.
+  QString points;
   //! name.json of the calibration the files above follow (CalibrationSet.hpp).
   QString calibration;
 
   bool empty() const noexcept
   {
     return warp.isEmpty() && alpha.isEmpty() && beta.isEmpty() && lut.isEmpty()
-           && response.isEmpty() && compensation.isEmpty();
+           && response.isEmpty() && compensation.isEmpty() && points.isEmpty();
   }
 };
 
@@ -168,6 +173,9 @@ struct CanvasLayout
   //! Euler degrees (x pitch, y yaw, z roll), QQuaternion::fromEulerAngles as
   //! in Transform 3D: an output pixel facing direction d shows the content at R d.
   std::array<float, 3> orientation{0.f, 0.f, 0.f};
+  //! Where the audience stands, in the frame of the outputs' points maps: the
+  //! origin of the directions an output with a points map looks up.
+  std::array<float, 3> viewer{0.f, 0.f, 0.f};
 
   bool rotates() const noexcept
   {

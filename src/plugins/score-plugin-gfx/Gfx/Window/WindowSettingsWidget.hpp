@@ -77,6 +77,7 @@ private:
   QSpinBox* m_inputHeight{};
   QComboBox* m_canvasProjection{};
   std::array<QDoubleSpinBox*, 3> m_canvasOrientation{};
+  std::array<QDoubleSpinBox*, 3> m_canvasViewer{};
 
   // Soft-edge blending controls
   QDoubleSpinBox* m_blendLeftW{};
@@ -96,6 +97,7 @@ private:
   QLineEdit* m_lutEdit{};
   QLineEdit* m_responseEdit{};
   QLineEdit* m_compensationEdit{};
+  QLineEdit* m_pointsEdit{};
 
   QComboBox* m_samplingCombo{};
   QComboBox* m_warpInterpCombo{};

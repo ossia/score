@@ -66,6 +66,66 @@ EquirectWarp equirectWarp(
   return w;
 }
 
+namespace
+{
+bool listInJson(const QString& base, const QStringList& names, QString* error)
+{
+  QFile f{base + QStringLiteral(".json")};
+  if(!f.open(QIODevice::ReadOnly))
+    return true;
+  auto obj = QJsonDocument::fromJson(f.readAll()).object();
+  f.close();
+  auto files = obj.value(QStringLiteral("files")).toArray();
+  for(const QString& name : names)
+    if(!files.contains(name))
+      files.append(name);
+  obj.insert(QStringLiteral("files"), files);
+  QSaveFile out{base + QStringLiteral(".json")};
+  if(!out.open(QIODevice::WriteOnly))
+  {
+    if(error)
+      *error = QStringLiteral("cannot write %1.json").arg(base);
+    return false;
+  }
+  out.write(QJsonDocument{obj}.toJson());
+  return out.commit();
+}
+}
+
+bool savePointsMap(
+    const QString& base, const std::vector<float>& points, int width, int height,
+    QString* error)
+{
+  const std::size_t n = std::size_t(width) * height;
+  if(width <= 0 || height <= 0 || points.size() < n * 4)
+  {
+    if(error)
+      *error = QStringLiteral("empty points map");
+    return false;
+  }
+  score::gfx::FloatImage xyz, valid;
+  xyz.width = valid.width = width;
+  xyz.height = valid.height = height;
+  xyz.channels = 3;
+  valid.channels = 1;
+  xyz.data.resize(n * 3);
+  valid.data.resize(n);
+  for(std::size_t i = 0; i < n; i++)
+  {
+    const float* p = &points[i * 4];
+    const bool ok = p[3] > 0.5f && std::isfinite(p[0]) && std::isfinite(p[1])
+                    && std::isfinite(p[2]);
+    for(int c = 0; c < 3; c++)
+      xyz.data[i * 3 + c] = ok ? p[c] : 0.f;
+    valid.data[i] = ok ? 1.f : 0.f;
+  }
+  const QString map = base + QStringLiteral(".points.pfm");
+  const QString mask = score::gfx::validMapPath(map);
+  if(!score::gfx::writePFM(map, xyz, error) || !score::gfx::writePFM(mask, valid, error))
+    return false;
+  return listInJson(base, {QFileInfo{map}.fileName(), QFileInfo{mask}.fileName()}, error);
+}
+
 bool saveEquirectWarp(const QString& base, const EquirectWarp& w, QString* error)
 {
   const std::size_t n = std::size_t(w.width) * w.height;

@@ -35,10 +35,10 @@ namespace score::gfx
 // Given 4 source points (warped corners) and 4 destination points (unit square corners),
 // this finds the inverse mapping: for screen position p, H*p gives the texture coordinate.
 // Uses the standard DLT (Direct Linear Transform) approach.
-static std::array<float, 16>
-subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas)
+static std::array<float, 20>
+subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas, bool points = false)
 {
-  std::array<float, 16> out{
+  std::array<float, 20> out{
       float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height())};
   const QMatrix3x3 m = QQuaternion::fromEulerAngles(
                            canvas.orientation[0], canvas.orientation[1],
@@ -48,6 +48,10 @@ subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas)
     for(int r = 0; r < 3; r++)
       out[4 + 4 * c + r] = m(r, c);
   out[7] = canvas.projection == Gfx::CanvasProjection::Equirectangular ? 1.f : 0.f;
+  out[16] = canvas.viewer[0];
+  out[17] = canvas.viewer[1];
+  out[18] = canvas.viewer[2];
+  out[19] = points && out[7] > 0.5f ? 1.f : 0.f;
   return out;
 }
 
@@ -306,10 +310,15 @@ outputMaps(const MultiWindowNode::WindowOutput& wo) noexcept
 {
   return {&wo.warpMap,           &wo.alphaMap,          &wo.betaMap,
           &wo.responseMap,       &wo.compensationMaps[0], &wo.compensationMaps[1],
-          &wo.compensationMaps[2]};
+          &wo.compensationMaps[2], &wo.pointsMap};
 }
 
-constexpr int mapBindings[MultiWindowNode::MapSlotCount]{7, 8, 9, 13, 14, 15, 16};
+constexpr int mapBindings[MultiWindowNode::MapSlotCount]{7, 8, 9, 13, 14, 15, 16, 18};
+
+constexpr bool rawMapSlot(int m) noexcept
+{
+  return m == MultiWindowNode::WarpSlot || m == MultiWindowNode::PointsSlot;
+}
 
 std::array<float, 12> packOutputColorUBO(
     const Gfx::OutputColor& c, bool warpMap, bool alphaMap, bool betaMap,
@@ -358,7 +367,7 @@ public:
     std::array<bool, MultiWindowNode::MapSlotCount> mapOk{};
     QRhiTexture* lutTexture{};
     bool lutOk{};
-    std::array<int, 8> uploadedVersions{};
+    std::array<int, MultiWindowNode::MapSlotCount + 1> uploadedVersions{};
     int readbackServed{};
     std::array<score::gfx::Sampler, 1> samplers{};
     QRectF sourceRect{0, 0, 1, 1};
@@ -426,6 +435,7 @@ public:
           vec4 canvasRot0; // columns of the canvas orientation, canvasRot0.w = equirectangular
           vec4 canvasRot1;
           vec4 canvasRot2;
+          vec4 viewerPos; // xyz = viewer, w = the points map gives the lookup
       };
 
       layout(std140, binding = 4) uniform BlendParams {
@@ -460,6 +470,7 @@ public:
       layout(binding = 15) uniform sampler2D compMap1;
       layout(binding = 16) uniform sampler2D compMap2;
       layout(binding = 17) uniform sampler2D bakedWarp;
+      layout(binding = 18) uniform sampler2D pointsMap;
 
       layout(std140, binding = 12) uniform QualityParams {
           vec4 quality;  // x = sampling (0 linear, 1 trilinear, 2 anisotropic), y = max taps, z = bicubic warp, w = dither levels
@@ -486,6 +497,34 @@ public:
           return vec2(
               atan(r.x, -r.z) / (2.0 * pi) + 0.5,
               0.5 - asin(clamp(r.y, -1.0, 1.0)) / pi);
+      }
+
+      vec2 directionToCanvas(vec3 d)
+      {
+          const float pi = 3.14159265358979;
+          return vec2(
+              atan(d.x, -d.z) / (2.0 * pi) + 0.5,
+              0.5 - asin(clamp(d.y / max(length(d), 1e-9), -1.0, 1.0)) / pi);
+      }
+
+      // xyz = world point, w = 1 when valid; bilinear over the valid texels.
+      vec4 samplePoints(vec2 uv)
+      {
+          ivec2 size = textureSize(pointsMap, 0);
+          vec2 f = uv * vec2(size) - 0.5;
+          vec2 fl = floor(f);
+          vec2 t = f - fl;
+          ivec2 b = ivec2(fl);
+          vec4 acc = vec4(0.0);
+          for(int j = 0; j < 2; j++)
+              for(int i = 0; i < 2; i++)
+              {
+                  vec4 p = texelFetch(pointsMap, clamp(b + ivec2(i, j), ivec2(0), size - 1), 0);
+                  float w = (i == 0 ? 1.0 - t.x : t.x) * (j == 0 ? 1.0 - t.y : t.y)
+                            * (p.w > 0.5 ? 1.0 : 0.0);
+                  acc += vec4(p.xyz * w, w);
+              }
+          return acc.w > 1e-6 ? vec4(acc.xyz / acc.w, 1.0) : vec4(0.0);
       }
 
       vec2 orientedDelta(vec2 c, vec2 oc, vec2 d)
@@ -633,8 +672,20 @@ public:
 
           vec2 uv = vec2(
               sourceRect.x + tc.x * sourceRect.z, sourceRect.y + (1.0 - tc.y) * sourceRect.w);
+          vec4 point = vec4(0.0);
+          if(viewerPos.w > 0.5)
+          {
+              point = samplePoints(screenUv);
+              uv = directionToCanvas(point.xyz - viewerPos.xyz);
+              inside = point.w > 0.5;
+          }
           vec2 uvDx = dFdx(uv);
           vec2 uvDy = dFdy(uv);
+          if(viewerPos.w > 0.5)
+          {
+              uvDx.x -= floor(uvDx.x + 0.5);
+              uvDy.x -= floor(uvDy.x + 0.5);
+          }
           if(canvasRot0.w > 0.5)
           {
               vec2 ouv = orientCanvas(uv);
@@ -929,7 +980,7 @@ public:
 
     // Create UBO for source rect
     pw.uvRectUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16 * sizeof(float));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 20 * sizeof(float));
     pw.uvRectUBO->setName(
         QByteArray("MultiWindowRenderer::uvRectUBO_") + QByteArray::number(index));
     pw.uvRectUBO->create();
@@ -959,7 +1010,7 @@ public:
       for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
       {
         auto tex = rhi.newTexture(
-            m == MultiWindowNode::WarpSlot ? QRhiTexture::RGBA32F : QRhiTexture::RGBA16F,
+            rawMapSlot(m) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA16F,
             QSize{1, 1}, 1);
         tex->setName(
             QByteArray("MultiWindowRenderer::map_") + QByteArray::number(index) + '_'
@@ -1046,7 +1097,7 @@ public:
       for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
         extraBindings.push_back(B::sampledTexture(
             mapBindings[m], F, pw.mapTextures[m],
-            m == MultiWindowNode::WarpSlot ? m_warpSampler : m_mapSampler));
+            rawMapSlot(m) ? m_warpSampler : m_mapSampler));
 
       const auto& mesh = renderer.defaultTriangle();
       pw.pipeline = score::gfx::buildPipeline(
@@ -1406,7 +1457,8 @@ private:
       if(!res)
         res = renderer.state.rhi->nextResourceUpdateBatch();
 
-      const auto rectData = subRectUBO(wo.sourceRect, m_multiNode.canvasLayout());
+      const auto rectData = subRectUBO(
+          wo.sourceRect, m_multiNode.canvasLayout(), pw.mapOk[MultiWindowNode::PointsSlot]);
       res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData.data());
     }
 
@@ -1725,14 +1777,17 @@ void MultiWindowNode::loadMaps(int windowIndex, const Gfx::OutputMaps& maps)
     Beta,
     Lut,
     Response,
-    Compensation
+    Compensation,
+    Points
   };
-  const QString* paths[6]{&maps.warp,     &maps.alpha,    &maps.beta,
-                          &maps.lut,      &maps.response, &maps.compensation};
-  static const char* const names[6]{"warp map", "alpha map", "beta map",
-                                    "LUT",      "response",  "compensation"};
-  std::array<QString, 6> stamps;
-  for(int k = 0; k < 6; k++)
+  const QString* paths[7]{&maps.warp,     &maps.alpha,    &maps.beta,
+                          &maps.lut,      &maps.response, &maps.compensation,
+                          &maps.points};
+  static const char* const names[7]{"warp map", "alpha map", "beta map",
+                                    "LUT",      "response",  "compensation",
+                                    "points map"};
+  std::array<QString, 7> stamps;
+  for(int k = 0; k < 7; k++)
     stamps[k] = fileStamp(*paths[k]);
 
   auto update = [&](int k, auto& field, auto&& load, bool force = false) -> bool {
@@ -1776,6 +1831,12 @@ void MultiWindowNode::loadMaps(int windowIndex, const Gfx::OutputMaps& maps)
     wo.mapVersions[AlphaSlot]++;
   if(update(Beta, wo.betaMap, image(WarpMapKind::Beta)))
     wo.mapVersions[BetaSlot]++;
+  if(update(Points, wo.pointsMap, [](const QString& p, QString& e) {
+       auto img = std::make_shared<FloatImage>(loadFloatImageRGBA(p, &e));
+       return img->valid() ? std::shared_ptr<const FloatImage>(std::move(img))
+                           : std::shared_ptr<const FloatImage>{};
+     }))
+    wo.mapVersions[PointsSlot]++;
   if(update(Lut, wo.lut, [](const QString& p, QString& e) { return MapLoader::lut(p, e); }))
     wo.mapVersions[LutSlot]++;
   if(update(Compensation, wo.compensationMaps, [&](const QString& p, QString& e) {

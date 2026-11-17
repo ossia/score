@@ -40,7 +40,8 @@ inline const std::vector<CalibrationFileSlot>& calibrationFileSlots()
       {&OutputMaps::lut, {QStringLiteral(".cube"), QStringLiteral(".lut.cube")}, false},
       {&OutputMaps::response, {QStringLiteral(".response.json")}},
       {&OutputMaps::compensation, {QStringLiteral(".comp.json")}},
-      {&OutputMaps::warp, {QStringLiteral(".warp.pfm")}}};
+      {&OutputMaps::warp, {QStringLiteral(".warp.pfm")}},
+      {&OutputMaps::points, {QStringLiteral(".points.pfm")}}};
   return slots;
 }
 
@@ -52,6 +53,7 @@ inline QString calibrationBase(const QString& path)
     return {};
   static const QString suffixes[]{
       QStringLiteral(".warp.valid.pfm"), QStringLiteral(".warp.pfm"),
+      QStringLiteral(".points.valid.pfm"), QStringLiteral(".points.pfm"),
       QStringLiteral(".blend.json"), QStringLiteral(".response.json"),
       QStringLiteral(".comp.json"),  QStringLiteral(".json"),
       QStringLiteral(".xyz.pfm"),    QStringLiteral(".valid.pfm"),

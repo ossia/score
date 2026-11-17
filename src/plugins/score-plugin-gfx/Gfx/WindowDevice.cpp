@@ -597,6 +597,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamReader::read(const Gfx::WindowSettin
   m_stream << (int32_t)n.flag << (int32_t)n.format;
   m_stream << (int32_t)n.canvas.projection << n.canvas.orientation[0]
            << n.canvas.orientation[1] << n.canvas.orientation[2];
+  m_stream << n.canvas.viewer[0] << n.canvas.viewer[1] << n.canvas.viewer[2];
   insertDelimiter();
 }
 
@@ -623,6 +624,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamWriter::write(Gfx::WindowSettings& n
   m_stream >> projection >> n.canvas.orientation[0] >> n.canvas.orientation[1]
       >> n.canvas.orientation[2];
   n.canvas.projection = (Gfx::CanvasProjection)projection;
+  m_stream >> n.canvas.viewer[0] >> n.canvas.viewer[1] >> n.canvas.viewer[2];
   checkDelimiter();
 }
 
@@ -641,6 +643,11 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONReader::read(const Gfx::WindowSettings& n)
     stream.Key("CanvasOrientation");
     stream.StartArray();
     for(float v : n.canvas.orientation)
+      stream.Double(v);
+    stream.EndArray();
+    stream.Key("CanvasViewer");
+    stream.StartArray();
+    for(float v : n.canvas.viewer)
       stream.Double(v);
     stream.EndArray();
   }
@@ -683,6 +690,13 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONWriter::write(Gfx::WindowSettings& n)
     for(rapidjson::SizeType i = 0; i < arr.Size() && i < 3; i++)
       if(arr[i].IsNumber())
         n.canvas.orientation[i] = arr[i].GetFloat();
+  }
+  if(auto v = obj.tryGet("CanvasViewer"); v && v->obj.IsArray())
+  {
+    const auto arr = v->obj.GetArray();
+    for(rapidjson::SizeType i = 0; i < arr.Size() && i < 3; i++)
+      if(arr[i].IsNumber())
+        n.canvas.viewer[i] = arr[i].GetFloat();
   }
 }
 

@@ -80,13 +80,14 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     std::shared_ptr<const FloatImage> responseMap;
     //! Rows of the compensation matrix, rgba = (M_k0, M_k1, M_k2, o_k).
     std::array<std::shared_ptr<const FloatImage>, 3> compensationMaps;
+    std::shared_ptr<const FloatImage> pointsMap;
 
     //! Bumped when the texture of a slot changes: MapSlot order, then the LUT.
-    std::array<int, 8> mapVersions{};
+    std::array<int, 9> mapVersions{};
     std::shared_ptr<const CalibrationImage> calibration;
     int calibrationVersion{};
     //! What each map field was loaded from: path, modification time and size.
-    std::array<QString, 6> mapStamps;
+    std::array<QString, 7> mapStamps;
     bool responseWithMixing{};
   };
 
@@ -99,6 +100,7 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     Comp0Slot,
     Comp1Slot,
     Comp2Slot,
+    PointsSlot,
     MapSlotCount,
     LutSlot = MapSlotCount
   };
