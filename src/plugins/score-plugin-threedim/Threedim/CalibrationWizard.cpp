@@ -595,7 +595,7 @@ double CalibrationWizard::estimateMs(
   double post = 0.;
   const double px = double(plan.projectorSize.width()) * plan.projectorSize.height();
   if(m_display->currentIndex() == 0 && m_blend->isChecked())
-    post += 12000. * plan.projectors * px / (3840. * 2160.);
+    post += (m_black->isChecked() ? 12000. : 1700.) * plan.projectors * px / (3840. * 2160.);
   if(s.mode == StructuredLightSession::ViewerCamera && m_flat->isChecked())
     post += 2000. * plan.projectors * px / (3840. * 2160.);
   return estimateCaptureMs(plan, t) + post + 5000.;
@@ -725,6 +725,7 @@ bool CalibrationWizard::start()
   setup.blend = m_blend->isChecked() && m_display->currentIndex() == 0;
   setup.completePlanes = !depth && m_flat->isChecked();
   setup.blackCompensation = setup.blend && m_black->isChecked();
+  setup.screens = m_display->currentIndex() == 1;
   setup.canvas = ws->canvas;
   for(int k = 0; k < (int)setup.plan.outputs.size(); k++)
     setup.sourceRects.push_back(ws->outputs[setup.plan.outputs[k]].sourceRect);
@@ -736,8 +737,13 @@ bool CalibrationWizard::start()
       if(it != setup.plan.outputs.end())
         setup.blendCalibrations.push_back(
             setup.plan.names[int(it - setup.plan.outputs.begin())] + QStringLiteral(".json"));
-      else if(!ws->outputs[i].maps.calibration.isEmpty())
-        setup.blendCalibrations.push_back(ws->outputs[i].maps.calibration);
+      else if(const auto& c = ws->outputs[i].maps.calibration; !c.isEmpty())
+      {
+        if(CalibrationRun::isScreen(c))
+          log(tr("- output %1 is calibrated as a screen: the blend leaves it out").arg(i + 1));
+        else
+          setup.blendCalibrations.push_back(c);
+      }
       else
         log(tr("- output %1 has no calibration: the blend leaves it out").arg(i + 1));
     }

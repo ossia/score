@@ -45,6 +45,9 @@ public:
     //! Even out the black level (beta maps raised to the brightest black);
     //! off, the blend only writes the alpha maps' weights.
     bool blackCompensation{};
+    //! Emissive screens: written into name.json ("display": "screen") so that
+    //! a later projector run leaves them out of its blend.
+    bool screens{};
     std::function<void(float)> setExposure;
     std::function<void(bool)> setAutoExposure;
     //! Put back on setExposure when the run ends, however it ends.
@@ -90,6 +93,10 @@ public:
   void abort(const QString& why);
 
   State state() const noexcept { return m_state; }
+  //! Whether the calibration name.json was made for emissive screens.
+  static bool isScreen(const QString& json);
+  static void markDisplay(const QString& json, bool screens);
+
   bool running() const noexcept
   {
     return m_state == State::Capturing || m_state == State::Blending;
