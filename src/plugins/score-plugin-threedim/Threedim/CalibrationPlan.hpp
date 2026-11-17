@@ -22,7 +22,20 @@ struct CalibrationPlan
   QStringList names;
   int patternsPerProjector{};
   QStringList warnings;
+  //! The device output each projector of the plan is (names[k] belongs to
+  //! outputs[k]); empty means outputs 0, 1, ...
+  std::vector<int> outputs;
 };
+
+//! "1-4, 6" (1 based) -> {0, 1, 2, 3, 5}; empty -> every output. Indices past
+//! `count` are dropped.
+std::vector<int> parseOutputSelection(const QString& text, int count);
+
+//! The plan of the selected outputs only, named after their output index
+//! (base, base_p1, ... of the whole device).
+CalibrationPlan planCalibration(
+    const Gfx::WindowSettings& ws, const QString& base, const std::vector<int>& outputs,
+    int minStripe, int phaseSteps);
 
 CalibrationPlan planCalibration(
     const Gfx::WindowSettings& ws, const QString& base, int minStripe = 2,
@@ -37,6 +50,10 @@ Gfx::WindowSettings neutralOutputs(Gfx::WindowSettings ws);
 //! since epoch) are left out.
 Gfx::WindowSettings
 assignCalibrations(Gfx::WindowSettings ws, const QStringList& names, qint64 sinceMs = 0);
+//! Output outputs[k] follows names[k]; the other outputs are left as they are.
+Gfx::WindowSettings assignCalibrations(
+    Gfx::WindowSettings ws, const QStringList& names, qint64 sinceMs,
+    const std::vector<int>& outputs);
 
 //! What a capture of the plan takes, for each projector: the frames after the
 //! Gray code and the camera exposure changes among them.

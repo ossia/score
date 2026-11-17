@@ -106,6 +106,15 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
       m_name->setText(Gfx::calibrationBase(f));
   });
 
+  m_outputs = new QLineEdit;
+  m_outputs->setPlaceholderText(tr("all"));
+  m_outputs->setToolTip(
+      tr("The outputs to measure in this run, e.g. 1-4 or 5, 6 when the camera sees "
+         "some of them only: the others keep their calibration, and the blend is "
+         "computed over every output's"));
+  form->addRow(tr("Outputs"), m_outputs);
+  connect(m_outputs, &QLineEdit::editingFinished, this, [this] { updatePlan(); });
+
   m_settle = new QSpinBox;
   m_settle->setRange(0, 10000);
   m_settle->setValue(400);
@@ -351,7 +360,8 @@ CalibrationWizard::livePlan(const Gfx::WindowSettings& ws, QStringList* notes) c
                            .arg(physical.outputs[0].windowSize.width())
                            .arg(physical.outputs[0].windowSize.height()));
   }
-  auto p = planCalibration(physical, m_name->text(), m_stripe->value(), 4);
+  const auto sel = parseOutputSelection(m_outputs->text(), int(physical.outputs.size()));
+  auto p = planCalibration(physical, m_name->text(), sel, m_stripe->value(), 4);
   p.warnings.removeIf(
       [](const QString& w) { return w.contains(QStringLiteral("canvas pixels")); });
   return p;
@@ -385,6 +395,7 @@ void CalibrationWizard::loadOptions()
     m_mode->setCurrentIndex(std::clamp(q.value("Mode").toInt(), 0, 1));
   if(q.contains("Name"))
     m_name->setText(q.value("Name").toString());
+  m_outputs->setText(q.value("Outputs").toString());
   m_settle->setValue(q.value("Settle", m_settle->value()).toInt());
   m_fov->setValue(q.value("Fov", m_fov->value()).toDouble());
   m_level->setValue(q.value("Level", m_level->value()).toDouble());
@@ -409,6 +420,7 @@ void CalibrationWizard::saveOptions() const
   q.beginGroup(QStringLiteral("Threedim/ProjectorCalibration"));
   q.setValue("Mode", m_mode->currentIndex());
   q.setValue("Name", m_name->text());
+  q.setValue("Outputs", m_outputs->text());
   q.setValue("Settle", m_settle->value());
   q.setValue("Fov", m_fov->value());
   q.setValue("Level", m_level->value());
@@ -644,6 +656,8 @@ bool CalibrationWizard::start()
     }
     if(e)
     {
+      if(s.captureExposure > 0.f)
+        setup.originalExposure = ossia::convert<float>(e->value());
       setup.setExposure = [doc, exposure](float v) {
         if(doc)
           if(auto* p = parameterAt(doc->context(), exposure))
@@ -664,8 +678,20 @@ bool CalibrationWizard::start()
   setup.blend = m_blend->isChecked() && m_display->currentIndex() == 0;
   setup.completePlanes = !depth && m_flat->isChecked();
   setup.canvas = ws->canvas;
-  for(const auto& o : ws->outputs)
-    setup.sourceRects.push_back(o.sourceRect);
+  for(int k = 0; k < (int)setup.plan.outputs.size(); k++)
+    setup.sourceRects.push_back(ws->outputs[setup.plan.outputs[k]].sourceRect);
+  if(setup.blend)
+  {
+    for(int i = 0; i < (int)ws->outputs.size(); i++)
+    {
+      const auto it = std::find(setup.plan.outputs.begin(), setup.plan.outputs.end(), i);
+      if(it != setup.plan.outputs.end())
+        setup.blendCalibrations.push_back(
+            setup.plan.names[int(it - setup.plan.outputs.begin())] + QStringLiteral(".json"));
+      else if(!ws->outputs[i].maps.calibration.isEmpty())
+        setup.blendCalibrations.push_back(ws->outputs[i].maps.calibration);
+    }
+  }
   if(!depth && ws->canvas.projection != Gfx::CanvasProjection::Equirectangular)
     log(tr("The canvas projection of %1 is not Equirectangular: no warp maps are made "
            "from the viewing directions.")
@@ -738,13 +764,14 @@ void CalibrationWizard::finish()
 {
   m_timer.stop();
   const auto names = m_run->setup().plan.names;
+  const auto outputs = m_run->setup().plan.outputs;
   m_run.reset();
   updateButtons();
   const auto r = readCalibrationResults(names, m_runStartMs);
   if(!r.text.isEmpty())
     log(r.text);
   const auto ws = deviceSettings(m_runDevice);
-  if(ws && updateDevice(m_runDevice, assignCalibrations(*ws, names, m_runStartMs)))
+  if(ws && updateDevice(m_runDevice, assignCalibrations(*ws, names, m_runStartMs, outputs)))
     log(tr("Done: the outputs of %1 follow %2; a new run updates them live.")
             .arg(m_runDevice, names.join(QStringLiteral(", "))));
   else

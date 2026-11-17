@@ -321,3 +321,94 @@ TEST_CASE("CalibrationRun stops when the camera freezes", "[threedim][calibratio
   CHECK(status.contains("no frame"));
   CHECK(elapsed < 10000.);
 }
+
+TEST_CASE(
+    "CalibrationRun measures only the selected outputs",
+    "[threedim][calibrationwizard][gui]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("hall");
+  std::vector<Gfx::OutputMapping> mappings;
+  for(int i = 0; i < Outputs; i++)
+  {
+    Gfx::OutputMapping m;
+    m.windowPosition = {20 + i * 110, 40};
+    m.windowSize = {PW, PH};
+    mappings.push_back(m);
+  }
+  std::string skip, failure;
+  bool done = false, window0Lit = false;
+  std::vector<float> exposures;
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    MultiWindowRig rig;
+    if(!rig.build(score::gfx::OpenGL, mappings))
+    {
+      skip = rig.skipped() ? rig.skipReason() : rig.error();
+      return;
+    }
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& g = doc->context().plugin<Gfx::DocumentPlugin>().context;
+    auto cam = std::make_unique<FakeCameraNode>();
+    cam->windows = rig.node.get();
+    const int32_t camId = g.register_node(std::move(cam));
+    Gfx::WindowSettings ws;
+    ws.mode = Gfx::WindowMode::MultiWindow;
+    ws.outputs = mappings;
+    ws.inputWidth = PW;
+    ws.inputHeight = PH;
+    {
+      Threedim::CalibrationRun::Setup setup;
+      setup.gfx = &g;
+      auto* node = rig.node.get();
+      setup.node = [node] { return node; };
+      setup.camera = Gfx::port_index{camId, 0};
+      setup.plan = Threedim::planCalibration(ws, base, std::vector<int>{1, 2}, 2, 4);
+      setup.settings.mode = Threedim::StructuredLightSession::ViewerCamera;
+      setup.settings.settleMs = 60;
+      setup.settings.frames = 1;
+      setup.blend = false;
+      setup.settings.captureExposure = 3.f;
+      setup.originalExposure = 7.f;
+      setup.setExposure = [&](float v) { exposures.push_back(v); };
+      Threedim::CalibrationRun run{std::move(setup)};
+      const auto now = [] { return double(QDateTime::currentMSecsSinceEpoch()); };
+      REQUIRE(run.start(now()));
+      const double deadline = now() + 240000.;
+      while(run.running() && now() < deadline)
+      {
+        rig.render(1);
+        g.updateGraph();
+        for(auto* out : g.outputs())
+        {
+          out->render();
+          if(auto rs = out->renderState(); rs && rs->rhi)
+            rs->rhi->finish();
+        }
+        run.tick(now());
+        if(const auto& img = rig.node->windowOutputs()[0].calibration; img)
+          window0Lit = true;
+        if(run.state() == Threedim::CalibrationRun::State::Blending)
+          std::this_thread::sleep_for(std::chrono::milliseconds{5});
+      }
+      done = run.state() == Threedim::CalibrationRun::State::Done;
+      failure = run.status().toStdString();
+      for(const auto& l : run.takeLog())
+        failure += " | " + l.toStdString();
+    }
+    g.unregister_node(camId);
+    g.updateGraph();
+  });
+  if(!skip.empty())
+    SKIP(skip);
+  INFO(failure);
+  REQUIRE(done);
+  CHECK_FALSE(window0Lit);
+  REQUIRE(!exposures.empty());
+  CHECK(exposures.front() == 3.f);
+  CHECK(exposures.back() == 7.f);
+  CHECK_FALSE(QFile::exists(base + ".json"));
+  CHECK(QFile::exists(base + "_p1.json"));
+  CHECK(QFile::exists(base + "_p2.json"));
+}

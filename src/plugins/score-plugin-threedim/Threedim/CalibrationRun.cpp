@@ -22,9 +22,7 @@ CalibrationRun::CalibrationRun(Setup s)
   st.projectorWidth = std::max(1, m_setup.plan.projectorSize.width());
   st.projectorHeight = std::max(1, m_setup.plan.projectorSize.height());
   st.projectors = std::max(1, m_setup.plan.projectors);
-  if(!m_setup.plan.names.isEmpty())
-    st.savePath = QString(m_setup.plan.names[0] + QStringLiteral(".json")).toStdString();
-  st.autoSave = true;
+  st.autoSave = false;
 }
 
 CalibrationRun::~CalibrationRun()
@@ -44,6 +42,18 @@ void CalibrationRun::pullCamera()
     }
 }
 
+void CalibrationRun::saveResults()
+{
+  const auto& results = m_session.results();
+  for(int i = 0; i < (int)results.size() && i < m_setup.plan.names.size(); i++)
+    if(const auto& r = results[i]; r && r->ok && !r->fromFile)
+      if(!StructuredLightCore::saveFile(
+             QString(m_setup.plan.names[i] + QStringLiteral(".json")).toStdString(), *r))
+        m_log.push_back(QObject::tr("Output %1: cannot write %2.json")
+                            .arg(i + 1)
+                            .arg(m_setup.plan.names[i]));
+}
+
 void CalibrationRun::release()
 {
   m_camera.reset();
@@ -51,6 +61,8 @@ void CalibrationRun::release()
   if(m_cameraOpened && m_setup.cameraActive)
     m_setup.cameraActive(false);
   m_cameraOpened = false;
+  if(m_setup.originalExposure && m_setup.setExposure)
+    m_setup.setExposure(*std::exchange(m_setup.originalExposure, std::nullopt));
   if(m_setup.node)
     if(auto* n = m_setup.node(); n && n->calibrating())
       n->clearCalibration();
@@ -158,9 +170,13 @@ void CalibrationRun::show(score::gfx::MultiWindowNode& node)
   const int windows = int(node.windowOutputs().size());
   std::vector<std::shared_ptr<const score::gfx::MultiWindowNode::CalibrationImage>> images(
       windows);
-  for(int i = 0; i < windows; i++)
-    if(d.idle ? i < m_setup.plan.projectors : i == d.projector)
+  const auto& sel = m_setup.plan.outputs;
+  for(int k = 0; k < m_setup.plan.projectors; k++)
+  {
+    const int i = k < (int)sel.size() ? sel[k] : k;
+    if(i >= 0 && i < windows && (d.idle || k == d.projector))
       images[i] = img;
+  }
   node.setCalibration(std::move(images));
 }
 
@@ -259,6 +275,7 @@ void CalibrationRun::tick(double now)
   if(ev.done)
   {
     m_log.push_back(QString::fromStdString(m_session.status()));
+    saveResults();
     m_status = m_setup.blend ? QObject::tr("Computing the warp and blend maps")
                              : QObject::tr("Computing the maps");
     m_log.push_back(m_status);
@@ -334,9 +351,13 @@ void CalibrationRun::tick(double now)
       }
       std::vector<CalibrationFile> cals;
       std::string failed;
-      for(int i = 0; i < n; i++)
+      QStringList blendSet = setup.blendCalibrations;
+      if(blendSet.isEmpty())
+        for(int i = 0; i < n; i++)
+          blendSet.push_back(setup.plan.names[i] + QStringLiteral(".json"));
+      for(const auto& path : blendSet)
       {
-        auto c = loadCalibration(QString(setup.plan.names[i] + QStringLiteral(".json")).toStdString());
+        auto c = loadCalibration(path.toStdString());
         if(c.ok())
           cals.push_back(std::move(c));
         else
@@ -365,6 +386,7 @@ void CalibrationRun::tick(double now)
       fail(QString::fromStdString(m_session.status()));
     else
     {
+      saveResults();
       int ok = 0;
       for(std::size_t i = 0; i < results.size(); i++)
       {
