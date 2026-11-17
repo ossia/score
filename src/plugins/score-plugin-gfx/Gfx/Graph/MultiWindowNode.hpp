@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <Gfx/Graph/FloatImageIO.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/OutputQuality.hpp>
@@ -193,6 +194,8 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   };
   RendererState rendererState(int windowIndex) const;
 
+  //! Distinct for every node made in the process.
+  const uint64_t instance{++s_instances};
   void setSwapchainFormat(Gfx::SwapchainFormat format);
 
   std::function<void(float)> onFps;
@@ -202,6 +205,7 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   std::function<void()> onWindowsCreated;
 
 private:
+  static inline std::atomic<uint64_t> s_instances{};
   void renderBlack();
   // Per-window swap chain init / release. Idempotent and safe to call
   // multiple times (e.g. on window re-expose after a close).

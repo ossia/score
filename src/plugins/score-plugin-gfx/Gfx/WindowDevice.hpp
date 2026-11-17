@@ -75,6 +75,10 @@ public:
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
   void disconnect() override;
   bool reconnect() override;
+  //! A multi-window device whose windows, screens and canvas stay as they are
+  //! takes the rest (maps, colour, blend, warps, quality, source rects,
+  //! canvas layout) on its running outputs, without a reconnect.
+  void updateSettings(const Device::DeviceSettings& s) override;
 
   //! Write the current frame to @p path. On an offscreen device this reads the
   //! render target back directly, which is what makes headless pixel testing
