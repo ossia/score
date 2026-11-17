@@ -32,6 +32,9 @@ constexpr int SrcW = 300, SrcH = 200;
 //! Like a camera: its own float texture at its own size, whoever reads it.
 struct FloatSourceNode final : score::gfx::ProcessNode
 {
+  //! Like the video node: its own texture only for a sink that grabs it,
+  //! otherwise it would draw into the consumer's target.
+  bool grabOnly{};
   FloatSourceNode()
   {
     output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}});
@@ -76,7 +79,11 @@ struct FloatSourceNode final : score::gfx::ProcessNode
       void update(score::gfx::RenderList&, QRhiResourceUpdateBatch&, score::gfx::Edge*) override
       {
       }
-      QRhiTexture* textureForOutput(const score::gfx::Port&) override { return m_tex; }
+      QRhiTexture* textureForOutput(const score::gfx::Port& p) override
+      {
+        const bool grabOnly = static_cast<const FloatSourceNode&>(node).grabOnly;
+        return !grabOnly || score::gfx::outputGrabbedBySink(p) ? m_tex : nullptr;
+      }
       void removeOutputPass(score::gfx::RenderList&, score::gfx::Edge&) override { }
       void release(score::gfx::RenderList&) override
       {
@@ -113,6 +120,8 @@ TEST_CASE(
     "[gfx][preview][capture][gui]")
 {
   const auto api = GENERATE(from_range(score::test::gfx::platform_backends()));
+  const bool grabOnly = GENERATE(false, true);
+  CAPTURE(grabOnly);
   CAPTURE(score::test::gfx::backend_name(api));
 
   std::string skip;
@@ -142,7 +151,9 @@ TEST_CASE(
     REQUIRE(doc != nullptr);
     auto& g = doc->context().plugin<Gfx::DocumentPlugin>().context;
 
-    const int32_t p = g.register_node(std::make_unique<FloatSourceNode>());
+    auto src = std::make_unique<FloatSourceNode>();
+    src->grabOnly = grabOnly;
+    const int32_t p = g.register_node(std::move(src));
 
     const auto renderAll = [&] {
       for(int i = 0; i < 4; i++)
@@ -160,7 +171,8 @@ TEST_CASE(
 
     {
       Gfx::TexturePreview tp;
-      tp.attach(&g, Gfx::port_index{p, 0}, QSize{32, 32});
+      if(!grabOnly)
+        tp.attach(&g, Gfx::port_index{p, 0}, QSize{32, 32});
       Gfx::TextureCapture cap{g, Gfx::port_index{p, 0}};
       for(int i = 0; i < 10 && !got; i++)
       {
@@ -182,7 +194,8 @@ TEST_CASE(
     SKIP(skip);
   REQUIRE(got);
   INFO(w << "x" << h << ", thumbnail " << thumb.width() << "x" << thumb.height());
-  CHECK(thumb.width() <= 32);
+  if(!grabOnly)
+    CHECK(thumb.width() <= 32);
   CHECK(w == SrcW);
   CHECK(h == SrcH);
   REQUIRE(frame.size() == std::size_t(w) * h * 4);
