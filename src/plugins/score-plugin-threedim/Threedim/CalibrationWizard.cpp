@@ -6,6 +6,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
+#include <Gfx/Graph/Window.hpp>
 #include <Gfx/TextureCapture.hpp>
 #include <Gfx/Window/CalibrationSet.hpp>
 
@@ -24,6 +25,8 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QSettings>
 #include <QDateTime>
 #include <QDir>
 #include <QFileDialog>
@@ -107,7 +110,39 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   m_settle->setRange(0, 10000);
   m_settle->setValue(400);
   m_settle->setSuffix(tr(" ms"));
+  m_settle->setToolTip(tr("Time each pattern is shown before the camera frames are taken"));
   form->addRow(tr("Settle"), m_settle);
+  m_fov = new QDoubleSpinBox;
+  m_fov->setRange(5., 175.);
+  m_fov->setValue(60.);
+  m_fov->setSuffix(QStringLiteral("°"));
+  m_fov->setToolTip(tr("Horizontal field of view of the camera (a Logitech C930e is "
+                       "about 82°): the viewing directions, hence the warp, scale with it"));
+  form->addRow(tr("Camera FOV"), m_fov);
+  m_level = new QDoubleSpinBox;
+  m_level->setRange(0.05, 1.);
+  m_level->setSingleStep(0.05);
+  m_level->setValue(1.);
+  m_level->setToolTip(tr("Brightness of the patterns: lower it when the camera saturates"));
+  form->addRow(tr("Pattern level"), m_level);
+  m_stripe = new QSpinBox;
+  m_stripe->setRange(1, 128);
+  m_stripe->setValue(2);
+  m_stripe->setSuffix(tr(" px"));
+  m_stripe->setToolTip(tr("Finest Gray-code stripe, in projector pixels: raise it when the "
+                          "camera cannot resolve the projector pixels"));
+  form->addRow(tr("Min stripe"), m_stripe);
+  m_frames = new QSpinBox;
+  m_frames->setRange(1, 32);
+  m_frames->setValue(2);
+  m_frames->setToolTip(tr("Camera frames averaged per pattern, against noise"));
+  form->addRow(tr("Frames to average"), m_frames);
+  m_exposure = new QDoubleSpinBox;
+  m_exposure->setRange(0., 10000000.);
+  m_exposure->setDecimals(2);
+  m_exposure->setToolTip(tr("Exposure set on the camera's controls/color/exposure for the "
+                            "run, in its own units; 0 leaves it as it is"));
+  form->addRow(tr("Camera exposure"), m_exposure);
   m_blend = new QCheckBox;
   m_blend->setChecked(true);
   m_blend->setToolTip(tr("Compute the blend (alpha) and black-level (beta) maps afterwards"));
@@ -144,7 +179,17 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
     updatePlan();
   });
   connect(m_name, &QLineEdit::editingFinished, this, [this] { updatePlan(); });
+  connect(m_mode, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
+    m_positions->setEnabled(i == 0);
+    updatePlan();
+  });
+  for(auto* sb : {m_settle, m_stripe, m_frames})
+    connect(sb, qOverload<int>(&QSpinBox::valueChanged), this, [this] { updatePlan(); });
+  connect(m_photometric, &QCheckBox::toggled, this, [this] { updatePlan(); });
 
+  m_mode->setCurrentIndex(1);
+  loadOptions();
+  m_positions->setEnabled(m_mode->currentIndex() == 0);
   m_timer.setInterval(15);
   m_timer.setTimerType(Qt::PreciseTimer);
   connect(&m_timer, &QTimer::timeout, this, &CalibrationWizard::poll);
@@ -161,6 +206,7 @@ CalibrationWizard::~CalibrationWizard()
 
 void CalibrationWizard::done(int r)
 {
+  saveOptions();
   if(busy())
   {
     m_run->abort(tr("The calibration window was closed"));
@@ -247,21 +293,136 @@ CalibrationWizard::parameterAt(const score::DocumentContext& ctx, const QString&
   return n ? n->get_parameter() : nullptr;
 }
 
+namespace
+{
+QSize physicalSize(const score::gfx::MultiWindowNode::WindowOutput& wo)
+{
+  if(wo.swapChain && !wo.swapChain->surfacePixelSize().isEmpty())
+    return wo.swapChain->surfacePixelSize();
+  if(wo.window)
+    return wo.window->size() * wo.window->devicePixelRatio();
+  return {};
+}
+}
+
+CalibrationPlan
+CalibrationWizard::livePlan(const Gfx::WindowSettings& ws, QStringList* notes) const
+{
+  auto physical = ws;
+  auto* ctx = context();
+  auto* node = ctx ? multiWindowNode(*ctx, m_device->currentText()) : nullptr;
+  if(!node)
+  {
+    if(notes)
+      notes->push_back(tr("the device is not connected: its windows must be open"));
+  }
+  else
+  {
+    const auto& outs = node->windowOutputs();
+    for(int i = 0; i < (int)outs.size() && i < (int)physical.outputs.size(); i++)
+      if(const QSize px = physicalSize(outs[i]); !px.isEmpty())
+        physical.outputs[i].windowSize = px;
+    if(notes && !outs.empty() && !physical.outputs.empty() && !ws.outputs.empty()
+       && physical.outputs[0].windowSize != ws.outputs[0].windowSize)
+      notes->push_back(tr("windows of %1x%2 points are %3x%4 pixels: the patterns use "
+                          "the pixels")
+                           .arg(ws.outputs[0].windowSize.width())
+                           .arg(ws.outputs[0].windowSize.height())
+                           .arg(physical.outputs[0].windowSize.width())
+                           .arg(physical.outputs[0].windowSize.height()));
+  }
+  auto p = planCalibration(physical, m_name->text(), m_stripe->value(), 4);
+  p.warnings.removeIf(
+      [](const QString& w) { return w.contains(QStringLiteral("canvas pixels")); });
+  return p;
+}
+
+StructuredLightSession::Settings CalibrationWizard::sessionSettings() const
+{
+  StructuredLightSession::Settings s;
+  const bool depth = m_mode->currentIndex() == 0;
+  s.mode = depth ? StructuredLightSession::DepthCamera : StructuredLightSession::ViewerCamera;
+  s.settleMs = m_settle->value();
+  s.fov = float(m_fov->value());
+  s.level = float(m_level->value());
+  s.minStripe = m_stripe->value();
+  s.frames = m_frames->value();
+  const bool photometric = m_photometric->isChecked();
+  s.responseLevels = photometric ? 8 : 0;
+  s.compensation = photometric;
+  s.captureExposure = float(m_exposure->value());
+  if(photometric && s.captureExposure > 0.f)
+    for(float f : {0.125f, 0.25f, 0.5f, 1.f, 2.f, 4.f})
+      s.exposures.push_back(s.captureExposure * f);
+  return s;
+}
+
+void CalibrationWizard::loadOptions()
+{
+  QSettings q;
+  q.beginGroup(QStringLiteral("Threedim/ProjectorCalibration"));
+  if(q.contains("Mode"))
+    m_mode->setCurrentIndex(std::clamp(q.value("Mode").toInt(), 0, 1));
+  if(q.contains("Name"))
+    m_name->setText(q.value("Name").toString());
+  m_settle->setValue(q.value("Settle", m_settle->value()).toInt());
+  m_fov->setValue(q.value("Fov", m_fov->value()).toDouble());
+  m_level->setValue(q.value("Level", m_level->value()).toDouble());
+  m_stripe->setValue(q.value("MinStripe", m_stripe->value()).toInt());
+  m_frames->setValue(q.value("Frames", m_frames->value()).toInt());
+  m_exposure->setValue(q.value("Exposure", m_exposure->value()).toDouble());
+  m_blend->setChecked(q.value("Blend", m_blend->isChecked()).toBool());
+  m_photometric->setChecked(q.value("Photometric", m_photometric->isChecked()).toBool());
+  if(q.contains("Camera"))
+    m_camera->setCurrentText(q.value("Camera").toString());
+  if(q.contains("Positions"))
+    m_positions->setCurrentText(q.value("Positions").toString());
+  if(const auto d = q.value("Device").toString(); m_device->findText(d) >= 0)
+    m_device->setCurrentText(d);
+}
+
+void CalibrationWizard::saveOptions() const
+{
+  QSettings q;
+  q.beginGroup(QStringLiteral("Threedim/ProjectorCalibration"));
+  q.setValue("Mode", m_mode->currentIndex());
+  q.setValue("Name", m_name->text());
+  q.setValue("Settle", m_settle->value());
+  q.setValue("Fov", m_fov->value());
+  q.setValue("Level", m_level->value());
+  q.setValue("MinStripe", m_stripe->value());
+  q.setValue("Frames", m_frames->value());
+  q.setValue("Exposure", m_exposure->value());
+  q.setValue("Blend", m_blend->isChecked());
+  q.setValue("Photometric", m_photometric->isChecked());
+  q.setValue("Camera", m_camera->currentText());
+  q.setValue("Positions", m_positions->currentText());
+  q.setValue("Device", m_device->currentText());
+}
+
 void CalibrationWizard::updatePlan()
 {
+  if(!m_stripe)
+    return;
   if(auto ws = deviceSettings(m_device->currentText()))
   {
-    const auto p = planCalibration(*ws, m_name->text());
-    QString s = tr("%1 projector(s) of %2x%3, %4 patterns each")
+    QStringList notes;
+    const auto p = livePlan(*ws, &notes);
+    const auto st = sessionSettings();
+    const int extras = int(StructuredLightCore::makeExtras(
+                               st.responseLevels, st.compensation, st.exposures, 0,
+                               st.mixLevels)
+                               .size());
+    QString s = tr("%1 projector(s) of %2x%3, %4 patterns each, about %5 s")
                     .arg(p.projectors)
                     .arg(p.projectorSize.width())
                     .arg(p.projectorSize.height())
-                    .arg(p.patternsPerProjector);
+                    .arg(p.patternsPerProjector + extras)
+                    .arg(int(estimateMs(p, st) / 1000.));
     for(const auto& w : p.warnings)
-      if(!w.contains(QStringLiteral("canvas pixels")))
-        s += QStringLiteral("\n- ") + w;
-    if(auto* ctx = context(); ctx && !multiWindowNode(*ctx, m_device->currentText()))
-      s += QStringLiteral("\n- ") + tr("the device is not connected: its windows must be open");
+      s += QStringLiteral("\n- ") + w;
+    for(const auto& w : notes)
+      s += QStringLiteral("\n- ") + w;
     m_info->setText(s);
   }
   else
@@ -380,8 +541,12 @@ bool CalibrationWizard::start()
     log(tr("Pick a multi-window output device."));
     return false;
   }
+  saveOptions();
   CalibrationRun::Setup setup;
-  setup.plan = planCalibration(*ws, m_name->text());
+  QStringList notes;
+  setup.plan = livePlan(*ws, &notes);
+  for(const auto& n : notes)
+    log(QStringLiteral("- ") + n);
   if(setup.plan.projectors == 0)
   {
     for(const auto& w : setup.plan.warnings)
@@ -433,26 +598,28 @@ bool CalibrationWizard::start()
     };
   }
 
+  setup.settings = sessionSettings();
   auto& s = setup.settings;
-  s.mode = depth ? StructuredLightSession::DepthCamera : StructuredLightSession::ViewerCamera;
-  s.settleMs = m_settle->value();
   const bool photometric = m_photometric->isChecked();
-  s.responseLevels = photometric ? 8 : 0;
-  s.compensation = photometric;
-  if(photometric)
   {
     const QString dev = cam.section(':', 0, 0);
-    if(cam.endsWith(QStringLiteral(":/ir")))
-      log(tr("Photometric calibration needs a colour camera, e.g. %1:/rgb.").arg(dev));
     const QString exposure = dev + QStringLiteral(":/controls/color/exposure");
     const QString autoExposure = dev + QStringLiteral(":/controls/color/auto_exposure");
     auto* e = parameterAt(*ctx, exposure);
-    const float current = e ? ossia::convert<float>(e->value()) : 0.f;
-    if(current > 0.f)
+    if(photometric && cam.endsWith(QStringLiteral(":/ir")))
+      log(tr("Photometric calibration needs a colour camera, e.g. %1:/rgb.").arg(dev));
+    if(photometric && e && !(s.captureExposure > 0.f))
     {
-      for(float f : {0.125f, 0.25f, 0.5f, 1.f, 2.f, 4.f})
-        s.exposures.push_back(current * f);
-      s.captureExposure = current;
+      const float current = ossia::convert<float>(e->value());
+      if(current > 0.f)
+      {
+        s.captureExposure = current;
+        for(float f : {0.125f, 0.25f, 0.5f, 1.f, 2.f, 4.f})
+          s.exposures.push_back(current * f);
+      }
+    }
+    if(e)
+    {
       setup.setExposure = [doc, exposure](float v) {
         if(doc)
           if(auto* p = parameterAt(doc->context(), exposure))
@@ -464,10 +631,11 @@ bool CalibrationWizard::start()
             p->push_value(v);
       };
     }
-    else
-      log(tr("No colour exposure control on %1: the camera is assumed linear. Turn "
-             "its auto exposure and auto white balance off.")
-              .arg(dev));
+    else if(s.captureExposure > 0.f || photometric)
+      log(tr("No colour exposure control on %1 (%2): the exposure is not set, and the "
+             "camera is assumed linear. Turn its auto exposure and auto white balance "
+             "off.")
+              .arg(dev, exposure));
   }
   setup.blend = m_blend->isChecked();
   setup.canvas = ws->canvas;

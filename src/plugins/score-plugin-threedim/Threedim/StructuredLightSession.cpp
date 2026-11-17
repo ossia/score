@@ -660,7 +660,9 @@ void StructuredLightSession::tick(
         }
         m_status = status;
         m_phase = Phase::Idle;
-        if(ok && s.autoSave && !s.savePath.empty())
+        const bool any = std::any_of(
+            m_results.begin(), m_results.end(), [](const auto& r) { return r && r->ok; });
+        if(any && s.autoSave && !s.savePath.empty())
           m_status = status + " | " + saveAll(s.savePath);
         if(ok)
           ev.done = true;
