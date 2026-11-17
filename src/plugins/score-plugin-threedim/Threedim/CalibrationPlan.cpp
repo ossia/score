@@ -1,5 +1,7 @@
 #include "CalibrationPlan.hpp"
 
+#include <QRegularExpression>
+
 #include <Gfx/Window/CalibrationSet.hpp>
 #include <Threedim/StructuredLight.hpp>
 
@@ -85,6 +87,51 @@ CalibrationPlan planCalibration(
   return p;
 }
 
+std::vector<int> parseOutputSelection(const QString& text, int count)
+{
+  std::vector<int> out;
+  for(const auto& part : text.split(QRegularExpression(QStringLiteral("[\\s,;]+")), Qt::SkipEmptyParts))
+  {
+    const auto range = part.split('-');
+    bool ok1 = false, ok2 = true;
+    const int a = range[0].toInt(&ok1);
+    const int b = range.size() > 1 ? range[1].toInt(&ok2) : a;
+    if(!ok1 || !ok2)
+      continue;
+    for(int i = std::min(a, b); i <= std::max(a, b); i++)
+      if(i >= 1 && i <= count && std::find(out.begin(), out.end(), i - 1) == out.end())
+        out.push_back(i - 1);
+  }
+  if(out.empty())
+    for(int i = 0; i < count; i++)
+      out.push_back(i);
+  std::sort(out.begin(), out.end());
+  return out;
+}
+
+CalibrationPlan planCalibration(
+    const Gfx::WindowSettings& ws, const QString& base, const std::vector<int>& outputs,
+    int minStripe, int phaseSteps)
+{
+  auto sub = ws;
+  sub.outputs.clear();
+  for(int i : outputs)
+    if(i >= 0 && i < (int)ws.outputs.size())
+      sub.outputs.push_back(ws.outputs[i]);
+  auto p = planCalibration(sub, base, minStripe, phaseSteps);
+  const QString setBase = Gfx::calibrationSetBase(base);
+  p.outputs.clear();
+  for(int k = 0; k < p.projectors && k < (int)outputs.size(); k++)
+  {
+    p.outputs.push_back(outputs[k]);
+    if(k < p.names.size())
+      p.names[k] = Gfx::calibrationSetName(setBase, outputs[k]);
+  }
+  for(auto& w : p.warnings)
+    w.replace(QRegularExpression(QStringLiteral("^output (\\d+)")), QStringLiteral("output \\1 of the selection"));
+  return p;
+}
+
 Gfx::WindowSettings neutralOutputs(Gfx::WindowSettings ws)
 {
   for(auto& o : ws.outputs)
@@ -113,6 +160,23 @@ assignCalibrations(Gfx::WindowSettings ws, const QStringList& names, qint64 sinc
         f.clear();
     }
     ws.outputs[k].color.linearBlend = true;
+  }
+  return ws;
+}
+
+Gfx::WindowSettings assignCalibrations(
+    Gfx::WindowSettings ws, const QStringList& names, qint64 sinceMs,
+    const std::vector<int>& outputs)
+{
+  for(int k = 0; k < (int)outputs.size() && k < names.size(); k++)
+  {
+    const int i = outputs[k];
+    if(i < 0 || i >= (int)ws.outputs.size())
+      continue;
+    Gfx::WindowSettings one;
+    one.outputs = {ws.outputs[i]};
+    one = assignCalibrations(std::move(one), QStringList{names[k]}, sinceMs);
+    ws.outputs[i] = one.outputs[0];
   }
   return ws;
 }

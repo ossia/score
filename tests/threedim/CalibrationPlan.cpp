@@ -209,3 +209,42 @@ TEST_CASE("The wizard keeps a device's settings until the end of the run", "[cal
   CHECK_FALSE(s.active());
   CHECK(s.restore());
 }
+
+TEST_CASE("Calibration of some outputs only", "[calibrationwizard]")
+{
+  CHECK(parseOutputSelection("", 3) == std::vector<int>{0, 1, 2});
+  CHECK(parseOutputSelection("2-3", 6) == std::vector<int>{1, 2});
+  CHECK(parseOutputSelection("5, 6 1", 6) == std::vector<int>{0, 4, 5});
+  CHECK(parseOutputSelection("4-2;9", 6) == std::vector<int>{1, 2, 3});
+  CHECK(parseOutputSelection("x", 2) == std::vector<int>{0, 1});
+
+  Gfx::WindowSettings ws;
+  ws.mode = Gfx::WindowMode::MultiWindow;
+  ws.inputWidth = 3 * 1920;
+  ws.inputHeight = 1080;
+  for(int i = 0; i < 3; i++)
+    ws.outputs.push_back(output({i / 3., 0, 1. / 3., 1}, {1920, 1080}));
+  const auto p = planCalibration(ws, "/cal/hall", std::vector<int>{1, 2}, 2, 4);
+  CHECK(p.projectors == 2);
+  CHECK(p.outputs == std::vector<int>{1, 2});
+  CHECK(p.names == QStringList{"/cal/hall_p1", "/cal/hall_p2"});
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("hall");
+  for(const QString& n : QStringList{base + "_p1", base + "_p2"})
+    for(const char* ext : {".json", ".alpha.pfm"})
+    {
+      QFile f{n + ext};
+      REQUIRE(f.open(QIODevice::WriteOnly));
+      f.write(ext == std::string_view{".json"} ? "{}" : "x");
+    }
+  ws.outputs[0].maps.alpha = "/elsewhere/keep.alpha.pfm";
+  ws.outputs[0].color.gain = {0.5f, 0.5f, 0.5f};
+  const auto a = assignCalibrations(ws, {base + "_p1", base + "_p2"}, 0, {1, 2});
+  CHECK(a.outputs[0].maps.alpha == "/elsewhere/keep.alpha.pfm");
+  CHECK(a.outputs[0].color.gain[0] == 0.5f);
+  CHECK(a.outputs[1].maps.alpha == base + "_p1.alpha.pfm");
+  CHECK(a.outputs[2].maps.alpha == base + "_p2.alpha.pfm");
+  CHECK(a.outputs[2].color.linearBlend);
+}
