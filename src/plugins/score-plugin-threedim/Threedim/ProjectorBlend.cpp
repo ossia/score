@@ -135,7 +135,8 @@ ProjectorBlendMaps::compute(std::vector<CalibrationFile> cals, const Settings& s
             = QJsonArray{res.whiteChroma[0], res.whiteChroma[1], res.whiteChroma[2]};
       o["projectorIndex"] = int(i);
       o["projectorCount"] = int(P.size());
-      o["blackTarget"] = res.blackTarget;
+      if(s.blackCompensation)
+        o["blackTarget"] = res.blackTarget;
       o["luminanceUniformity"] = s.uniformity;
       o["luminanceGradientPerRadian"] = s.gradient;
       o["rampWidth"] = P[i].rampWidth;
@@ -144,7 +145,7 @@ ProjectorBlendMaps::compute(std::vector<CalibrationFile> cals, const Settings& s
       QFile f{qbase + ".blend.json"};
       if(f.open(QIODevice::WriteOnly | QIODevice::Truncate))
         f.write(QJsonDocument(o).toJson());
-      written += !af.empty() && !bf.empty();
+      written += !af.empty() && (!s.blackCompensation || !bf.empty());
     }
     r.alphaFiles.push_back(af);
     r.betaFiles.push_back(bf);
@@ -155,11 +156,11 @@ ProjectorBlendMaps::compute(std::vector<CalibrationFile> cals, const Settings& s
   r.ok = true;
   char buf[200];
   std::snprintf(
-      buf, sizeof(buf), "Done: %d projectors in %.2f s, %d map pairs written, overlap",
-      int(P.size()), secs, written);
+      buf, sizeof(buf), "Done: %d projectors in %.2f s, %d %s written, overlap",
+      int(P.size()), secs, written,
+      s.blackCompensation ? (res.channels == 3 ? "RGB map pairs" : "map pairs")
+                          : (res.channels == 3 ? "RGB alpha maps" : "alpha maps"));
   r.status = buf;
-  if(res.channels == 3)
-    r.status.insert(r.status.find(" map pairs"), " RGB");
   for(float o : r.overlap)
   {
     std::snprintf(buf, sizeof(buf), " %.0f%%", 100.f * o);

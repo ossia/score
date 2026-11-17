@@ -479,8 +479,9 @@ void CalibrationWizard::updatePlan()
                                st.responseLevels, st.compensation, st.exposures, 0,
                                st.mixLevels)
                                .size());
-    QString s = tr("%1 projector(s) of %2x%3, %4 patterns each, about %5 s")
+    QString s = tr("%1 %2 of %3x%4, %5 patterns each, about %6 s")
                     .arg(p.projectors)
+                    .arg(m_display->currentIndex() == 1 ? tr("screen(s)") : tr("projector(s)"))
                     .arg(p.projectorSize.width())
                     .arg(p.projectorSize.height())
                     .arg(p.patternsPerProjector + extras)
@@ -765,8 +766,9 @@ bool CalibrationWizard::start()
     updateButtons();
     return false;
   }
-  log(tr("Calibrating %1 projector(s) of %2: about %3 s.")
+  log(tr("Calibrating %1 %2 of %3: about %4 s.")
           .arg(plan.projectors)
+          .arg(m_display->currentIndex() == 1 ? tr("screen(s)") : tr("projector(s)"))
           .arg(deviceName)
           .arg(int(m_estimateMs / 1000.)));
   for(const auto& w : plan.warnings)
