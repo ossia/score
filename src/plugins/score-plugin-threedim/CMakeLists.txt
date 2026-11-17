@@ -126,6 +126,9 @@ add_library(
   Threedim/PlaneCompletion.cpp
   Threedim/RoomGeometry.hpp
   Threedim/RoomGeometry.cpp
+  Threedim/CameraLens.hpp
+  Threedim/LensConversion.hpp
+  Threedim/LensConversion.cpp
   Threedim/ViewerFrustum.hpp
   Threedim/ViewerFrustum.cpp
   Threedim/LedWall.hpp

@@ -582,11 +582,11 @@ void StructuredLightSession::tick(
             m_job.worldFromCamera = s.worldFromCamera;
             const auto k = s.cameraIntrinsics;
             m_job.cameraIntrinsics = k;
+            m_job.lens = s.lens;
             if(!(k[0] > 0.f) || !(k[1] > 0.f))
             {
-              const float f
-                  = float(m_camW / (2. * std::tan(s.fov * 0.5 * M_PI / 180.)));
-              m_job.cameraIntrinsics = {f, f, (m_camW - 1) * 0.5f, (m_camH - 1) * 0.5f};
+              const auto K = CameraLens::intrinsicsFromFov(s.lens.model, s.fov, m_camW, m_camH);
+              m_job.cameraIntrinsics = {float(K[0]), float(K[1]), float(K[2]), float(K[3])};
             }
             m_job.mode = s.mode;
             m_job.minSignal = s.minSignal;

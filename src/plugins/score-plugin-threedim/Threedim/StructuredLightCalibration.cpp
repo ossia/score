@@ -290,13 +290,17 @@ StructuredLightCore::Result StructuredLightCore::compute(Job job)
   else
   {
     const auto& k = job.cameraIntrinsics;
+    const std::array<double, 4> K{k[0], k[1], k[2], k[3]};
+    r.cameraIntrinsics = k;
+    r.lens = job.lens;
     const Eigen::Matrix3d R = M.topLeftCorner<3, 3>();
     for(std::size_t i = 0; i < dec.size(); i++)
     {
       if(!dec[i].valid)
         continue;
       const int px = int(i % cw), py = int(i / cw);
-      Eigen::Vector3d d((px - k[2]) / k[0], (py - k[3]) / k[1], 1.);
+      const auto u = job.lens.unproject(K, px, py);
+      Eigen::Vector3d d(u[0], u[1], u[2]);
       d = (R * d).normalized();
       map.splat(dec[i].u, dec[i].v, {float(d.x()), float(d.y()), float(d.z())}, 1.f);
     }
@@ -1233,6 +1237,21 @@ bool StructuredLightCore::saveFile(const std::string& path, const Result& r)
                                                                  : "solve";
   o["intrinsicsLocked"] = r.intrinsicsLocked;
   o["viewer"] = QJsonArray{0., 0., 0.};
+  if(r.cameraIntrinsics[0] > 0.f)
+  {
+    QJsonObject cam;
+    cam["intrinsics"] = QJsonArray{
+        r.cameraIntrinsics[0], r.cameraIntrinsics[1], r.cameraIntrinsics[2],
+        r.cameraIntrinsics[3]};
+    cam["width"] = r.camWidth;
+    cam["height"] = r.camHeight;
+    cam["lens"] = QString::fromLatin1(CameraLens::name(r.lens.model));
+    QJsonArray lk;
+    for(double v : r.lens.k)
+      lk.append(v);
+    cam["k"] = lk;
+    o["camera"] = cam;
+  }
   QJsonArray planes;
   for(const auto& pl : r.planes)
     planes.append(QJsonArray{pl[0], pl[1], pl[2], pl[3]});
@@ -1345,6 +1364,18 @@ StructuredLightCore::Result StructuredLightCore::loadFile(const std::string& pat
     const auto km = o["intrinsicsMode"].toString();
     r.intrinsicsMode = km == "lock" ? LockIntrinsics : km == "lockToLoaded" ? LockToLoaded : SolveIntrinsics;
     r.intrinsicsLocked = o["intrinsicsLocked"].toBool();
+    if(const auto cam = o["camera"].toObject(); !cam.isEmpty())
+    {
+      const auto ck = cam["intrinsics"].toArray();
+      for(int i = 0; i < 4 && i < ck.size(); i++)
+        r.cameraIntrinsics[i] = float(ck[i].toDouble());
+      r.camWidth = cam["width"].toInt(r.camWidth);
+      r.camHeight = cam["height"].toInt(r.camHeight);
+      r.lens.model = CameraLens::fromName(cam["lens"].toString().toStdString());
+      const auto lk = cam["k"].toArray();
+      for(int i = 0; i < 5 && i < lk.size(); i++)
+        r.lens.k[i] = lk[i].toDouble();
+    }
     for(const auto& pl : o["planes"].toArray())
     {
       const auto a = pl.toArray();

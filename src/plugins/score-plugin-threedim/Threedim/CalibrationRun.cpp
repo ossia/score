@@ -3,6 +3,7 @@
 #include <Gfx/Graph/FloatImageIO.hpp>
 #include <Threedim/CalibrationFiles.hpp>
 #include <Threedim/EquirectWarp.hpp>
+#include <Threedim/LensConversion.hpp>
 #include <Threedim/PlaneCompletion.hpp>
 #include <Threedim/RoomGeometry.hpp>
 
@@ -268,10 +269,103 @@ void CalibrationRun::launchMaps(
         else
           out.log.push_back(QObject::tr("Room model: %1 triangles").arg(room.triangleCount()));
       }
+      // The viewing directions in the lens asked for: a fresh capture keeps its
+      // measurement and the camera it was made with; a recompute starts from
+      // that measurement and re-expresses it through the current lens.
+      std::vector<StructuredLightCore::Result> rs(n);
+      std::vector<std::optional<MeasuredCamera>> measuredCam(n);
       for(int i = 0; i < n; i++)
       {
-        const auto& r = results[i];
-        if(!r || !r->ok)
+        if(!results[i] || !results[i]->ok)
+          continue;
+        rs[i] = *results[i];
+        if(!viewer)
+          continue;
+        const QString base = setup.plan.names[i];
+        if(fresh)
+        {
+          for(const char* ext : {".xyz.pfm", ".valid.pfm"})
+          {
+            const QString to = base + QStringLiteral(".measured") + QString::fromLatin1(ext);
+            QFile::remove(to);
+            QFile::copy(base + QString::fromLatin1(ext), to);
+          }
+          MeasuredCamera mc;
+          for(int k = 0; k < 4; k++)
+            mc.intrinsics[k] = rs[i].cameraIntrinsics[k];
+          mc.lens = rs[i].lens;
+          mc.width = rs[i].camWidth;
+          mc.height = rs[i].camHeight;
+          saveMeasuredCamera(base, mc);
+          measuredCam[i] = mc;
+        }
+        else
+          measuredCam[i] = loadMeasuredCamera(base);
+      }
+      auto target = [&](int i, const CameraLens& lens) {
+        MeasuredCamera t;
+        t.lens = lens;
+        t.width = measuredCam[i]->width;
+        t.height = measuredCam[i]->height;
+        const auto& k = setup.settings.cameraIntrinsics;
+        if(k[0] > 0.f && k[1] > 0.f)
+          t.intrinsics = {k[0], k[1], k[2], k[3]};
+        else
+          t.intrinsics = CameraLens::intrinsicsFromFov(lens.model, setup.settings.fov, t.width, t.height);
+        return t;
+      };
+      CameraLens lens = setup.settings.lens;
+      if(viewer && setup.estimateLens && setup.completePlanes)
+      {
+        std::vector<std::vector<float>> maps;
+        std::vector<std::array<int, 2>> sizes;
+        int ref = -1;
+        for(int i = 0; i < n; i++)
+          if(measuredCam[i] && rs[i].ok)
+          {
+            maps.push_back(rs[i].xyz);
+            sizes.push_back({rs[i].width, rs[i].height});
+            if(ref < 0)
+              ref = i;
+          }
+        if(ref >= 0)
+        {
+          const auto model = lens.model == CameraLens::Pinhole ? CameraLens::Distorted : lens.model;
+          CameraLens probe;
+          probe.model = model;
+          const auto e = estimateRadialDistortion(
+              maps, sizes, *measuredCam[ref], model, target(ref, probe).intrinsics,
+              setup.settings.worldFromCamera);
+          if(e.ok)
+          {
+            lens.model = model;
+            lens.k = {};
+            lens.k[0] = e.k1;
+            out.log.push_back(QObject::tr("Lens: %1 k1 = %2 (plane residual %3' instead of %4')")
+                                  .arg(QString::fromLatin1(CameraLens::name(model)))
+                                  .arg(e.k1, 0, 'f', 4)
+                                  .arg(e.residualArcmin, 0, 'f', 2)
+                                  .arg(e.residualAtZero, 0, 'f', 2));
+            out.lens = lens;
+          }
+        }
+      }
+      for(int i = 0; i < n; i++)
+      {
+        if(!rs[i].ok || !measuredCam[i])
+          continue;
+        const auto to = target(i, lens);
+        if(!(to.lens == measuredCam[i]->lens) || to.intrinsics != measuredCam[i]->intrinsics)
+          rs[i].xyz = convertLens(rs[i].xyz, *measuredCam[i], to, setup.settings.worldFromCamera);
+        for(int k = 0; k < 4; k++)
+          rs[i].cameraIntrinsics[k] = float(to.intrinsics[k]);
+        rs[i].lens = to.lens;
+      }
+
+      for(int i = 0; i < n; i++)
+      {
+        const auto* r = &rs[i];
+        if(!r->ok)
           continue;
         const QString base = setup.plan.names[i];
         std::vector<float> directions = r->xyz;
@@ -290,14 +384,6 @@ void CalibrationRun::launchMaps(
                                   .arg(int(c.homographies.size()))
                                   .arg(residuals.join(QStringLiteral(" / ")))
                                   .arg(c.explained * 100., 0, 'f', 1));
-            for(const char* ext : {".xyz.pfm", ".valid.pfm"})
-              if(fresh)
-            {
-              const QString from = base + QString::fromLatin1(ext);
-              const QString to = base + QStringLiteral(".measured") + QString::fromLatin1(ext);
-              QFile::remove(to);
-              QFile::copy(from, to);
-            }
             auto completed = *r;
             completed.xyz = c.directions;
             completed.coverage = 100.f;
@@ -439,6 +525,7 @@ void CalibrationRun::tick(double now)
     {
       auto r = m_blend.get();
       m_log.append(r.log);
+      m_estimatedLens = r.lens;
       m_status = r.status;
       m_state = State::Done;
       release();

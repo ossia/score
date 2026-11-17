@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Calibration/Photometric.hpp>
 #include <Gfx/Graph/PhotometricMaps.hpp>
+#include <Threedim/CameraLens.hpp>
 #include <Threedim/StructuredLight.hpp>
 
 #include <array>
@@ -49,6 +50,9 @@ struct StructuredLightCore
     int width{}, height{};
     std::vector<float> xyz;
     int camWidth{}, camHeight{};
+    //! The camera's intrinsics and lens the viewing directions were made with.
+    std::array<float, 4> cameraIntrinsics{};
+    CameraLens lens;
     std::vector<uint8_t> decoded;
     std::array<float, 4> intrinsics{};
     std::array<float, 16> pose{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
@@ -120,6 +124,7 @@ struct StructuredLightCore
     int positionFrames{};
     std::array<float, 16> worldFromCamera{};
     std::array<float, 4> cameraIntrinsics{};
+    CameraLens lens;
     int mode{};
     float minSignal{}, depthJump{}, ransac{}, planeThreshold{0.02f};
     float phaseMinModulation{0.1f};

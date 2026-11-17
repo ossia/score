@@ -90,6 +90,9 @@ private:
   QLineEdit* m_outputs{};
   QSpinBox* m_settle{};
   QDoubleSpinBox* m_fov{};
+  QComboBox* m_lens{};
+  QLineEdit* m_lensK{};
+  QCheckBox* m_estimateLens{};
   QDoubleSpinBox* m_level{};
   QSpinBox* m_stripe{};
   QSpinBox* m_frames{};
