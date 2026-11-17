@@ -95,6 +95,7 @@ private:
   QCheckBox* m_blend{};
   QComboBox* m_display{};
   QCheckBox* m_flat{};
+  QCheckBox* m_black{};
   QCheckBox* m_photometric{};
   QPushButton* m_refreshBtn{};
   QPushButton* m_startBtn{};
@@ -108,6 +109,10 @@ private:
   qint64 m_runStartMs{};
   double m_estimateMs{};
   QTimer m_timer;
+  //! Camera devices this dialog opened while the score was stopped: kept
+  //! open between runs, closed with the dialog.
+  QStringList m_openedCameras;
+  void closeCameras();
 };
 
 class CalibrationApplicationPlugin final : public score::GUIApplicationPlugin

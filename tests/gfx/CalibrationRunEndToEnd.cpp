@@ -412,3 +412,76 @@ TEST_CASE(
   CHECK(QFile::exists(base + "_p1.json"));
   CHECK(QFile::exists(base + "_p2.json"));
 }
+
+TEST_CASE("CalibrationRun reopens a camera that delivers the wrong size, then fails", "[threedim][calibrationwizard][gui]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  Gfx::OutputMapping m;
+  m.windowPosition = {20, 40};
+  m.windowSize = {PW, PH};
+  std::string skip;
+  bool failed = false;
+  std::vector<bool> calls;
+  QString status;
+  double elapsed{};
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    MultiWindowRig rig;
+    if(!rig.build(score::gfx::OpenGL, {m}))
+    {
+      skip = rig.skipped() ? rig.skipReason() : rig.error();
+      return;
+    }
+    auto* doc = score::test::new_document(score::GUIAppContext());
+    REQUIRE(doc);
+    auto& g = doc->context().plugin<Gfx::DocumentPlugin>().context;
+    auto cam = std::make_unique<FakeCameraNode>();
+    cam->windows = rig.node.get();
+    const int32_t camId = g.register_node(std::move(cam));
+    Gfx::WindowSettings ws;
+    ws.mode = Gfx::WindowMode::MultiWindow;
+    ws.outputs = {m};
+    ws.inputWidth = PW;
+    ws.inputHeight = PH;
+    {
+      Threedim::CalibrationRun::Setup setup;
+      setup.gfx = &g;
+      auto* node = rig.node.get();
+      setup.node = [node] { return node; };
+      setup.camera = Gfx::port_index{camId, 0};
+      setup.plan = Threedim::planCalibration(ws, dir.filePath("frozen"));
+      setup.settings.mode = Threedim::StructuredLightSession::ViewerCamera;
+      setup.settings.settleMs = 60;
+      setup.settings.frames = 1;
+      setup.expectedCameraSize = QSize{640, 480};
+      setup.cameraActive = [&](bool on) { calls.push_back(on); };
+      Threedim::CalibrationRun run{std::move(setup)};
+      const auto now = [] { return double(QDateTime::currentMSecsSinceEpoch()); };
+      REQUIRE(run.start(now()));
+      const double t0 = now();
+      while(run.running() && now() < t0 + 60000.)
+      {
+        rig.render(1);
+        g.updateGraph();
+        for(auto* out : g.outputs())
+        {
+          out->render();
+          if(auto rs = out->renderState(); rs && rs->rhi)
+            rs->rhi->finish();
+        }
+        run.tick(now());
+      }
+      elapsed = now() - t0;
+      failed = run.state() == Threedim::CalibrationRun::State::Failed;
+      status = run.status();
+    }
+    g.unregister_node(camId);
+    g.updateGraph();
+  });
+  if(!skip.empty())
+    SKIP(skip);
+  INFO(status.toStdString());
+  CHECK(failed);
+  CHECK(status.contains("did not open in its mode"));
+  CHECK(calls == std::vector<bool>{true, false, true, false, true});
+}

@@ -105,6 +105,7 @@ struct CalibrationReport
   QString text;
 };
 //! Reads the name.json written since `sinceMs` (ms since epoch) for each name.
-CalibrationReport readCalibrationResults(const QStringList& names, qint64 sinceMs);
+CalibrationReport readCalibrationResults(
+    const QStringList& names, qint64 sinceMs, const std::vector<int>& outputs = {});
 
 }
