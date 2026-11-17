@@ -4,6 +4,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
+#include <Gfx/CameraDevice.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/Graph/Window.hpp>
@@ -113,7 +114,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
          "some of them only: the others keep their calibration, and the blend is "
          "computed over every output's"));
   form->addRow(tr("Outputs"), m_outputs);
-  connect(m_outputs, &QLineEdit::editingFinished, this, [this] { updatePlan(); });
+  connect(m_outputs, &QLineEdit::textChanged, this, [this] { updatePlan(); });
 
   m_settle = new QSpinBox;
   m_settle->setRange(0, 10000);
@@ -170,6 +171,12 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
          "map is rebuilt from its planes, which fills what the camera did not see and "
          "removes the measurement noise. Turn off for a curved screen"));
   form->addRow(tr("Flat surfaces"), m_flat);
+  m_black = new QCheckBox;
+  m_black->setToolTip(
+      tr("Raise every projector's black to the brightest one, so that the overlaps do "
+         "not show darker: the whole picture loses contrast. Off, only the blend "
+         "weights are applied"));
+  form->addRow(tr("Even out the black"), m_black);
   m_photometric = new QCheckBox;
   m_photometric->setToolTip(
       tr("Also measure the projector response and the surface colour, with a colour "
@@ -209,6 +216,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   });
   connect(m_display, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int i) {
     m_blend->setEnabled(i == 0);
+    m_black->setEnabled(i == 0);
   });
   for(auto* sb : {m_settle, m_stripe, m_frames})
     connect(sb, qOverload<int>(&QSpinBox::valueChanged), this, [this] { updatePlan(); });
@@ -219,6 +227,7 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   m_positions->setEnabled(m_mode->currentIndex() == 0);
   m_flat->setEnabled(m_mode->currentIndex() == 1);
   m_blend->setEnabled(m_display->currentIndex() == 0);
+  m_black->setEnabled(m_display->currentIndex() == 0);
   m_timer.setInterval(15);
   m_timer.setTimerType(Qt::PreciseTimer);
   connect(&m_timer, &QTimer::timeout, this, &CalibrationWizard::poll);
@@ -231,6 +240,24 @@ CalibrationWizard::~CalibrationWizard()
   if(busy())
     m_run->abort(tr("The calibration window was closed"));
   m_run.reset();
+  closeCameras();
+}
+
+void CalibrationWizard::closeCameras()
+{
+  auto* ctx = context();
+  if(ctx)
+  {
+    auto* exec = ctx->findPlugin<Execution::DocumentPlugin>();
+    if(!exec || !exec->isPlaying())
+    {
+      auto& plug = ctx->plugin<Explorer::DeviceDocumentPlugin>();
+      for(const auto& name : m_openedCameras)
+        if(auto* d = plug.list().findDevice(name); d && d->getDevice())
+          d->getDevice()->get_protocol().stop_execution();
+    }
+  }
+  m_openedCameras.clear();
 }
 
 void CalibrationWizard::done(int r)
@@ -244,6 +271,7 @@ void CalibrationWizard::done(int r)
   }
   m_run.reset();
   m_timer.stop();
+  closeCameras();
   QDialog::done(r);
 }
 
@@ -405,6 +433,7 @@ void CalibrationWizard::loadOptions()
   m_blend->setChecked(q.value("Blend", m_blend->isChecked()).toBool());
   m_display->setCurrentIndex(std::clamp(q.value("Display", 0).toInt(), 0, 1));
   m_flat->setChecked(q.value("FlatSurfaces", m_flat->isChecked()).toBool());
+  m_black->setChecked(q.value("EvenBlack", false).toBool());
   m_photometric->setChecked(q.value("Photometric", m_photometric->isChecked()).toBool());
   if(q.contains("Camera"))
     m_camera->setCurrentText(q.value("Camera").toString());
@@ -430,6 +459,7 @@ void CalibrationWizard::saveOptions() const
   q.setValue("Blend", m_blend->isChecked());
   q.setValue("Display", m_display->currentIndex());
   q.setValue("FlatSurfaces", m_flat->isChecked());
+  q.setValue("EvenBlack", m_black->isChecked());
   q.setValue("Photometric", m_photometric->isChecked());
   q.setValue("Camera", m_camera->currentText());
   q.setValue("Positions", m_positions->currentText());
@@ -562,7 +592,13 @@ double CalibrationWizard::estimateMs(
       changes++;
     t.exposureChanges.push_back(changes);
   }
-  return estimateCaptureMs(plan, t) + 5000.;
+  double post = 0.;
+  const double px = double(plan.projectorSize.width()) * plan.projectorSize.height();
+  if(m_display->currentIndex() == 0 && m_blend->isChecked())
+    post += 12000. * plan.projectors * px / (3840. * 2160.);
+  if(s.mode == StructuredLightSession::ViewerCamera && m_flat->isChecked())
+    post += 2000. * plan.projectors * px / (3840. * 2160.);
+  return estimateCaptureMs(plan, t) + post + 5000.;
 }
 
 bool CalibrationWizard::start()
@@ -615,8 +651,9 @@ bool CalibrationWizard::start()
     if(depth && !m_positions->currentText().isEmpty())
       if(const QString d = m_positions->currentText().section(':', 0, 0); !devices.contains(d))
         devices.push_back(d);
-    setup.cameraActive = [doc, devices](bool on) {
-      if(!doc)
+    QPointer<CalibrationWizard> self = this;
+    setup.cameraActive = [doc, devices, self](bool on) {
+      if(!doc || !self)
         return;
       const auto& c = doc->context();
       if(auto* exec = c.findPlugin<Execution::DocumentPlugin>(); exec && exec->isPlaying())
@@ -626,12 +663,22 @@ bool CalibrationWizard::start()
         if(auto* d = plug.list().findDevice(name); d && d->getDevice())
         {
           auto& proto = d->getDevice()->get_protocol();
-          if(on)
+          if(on && !self->m_openedCameras.contains(name))
+          {
             proto.start_execution();
-          else
+            self->m_openedCameras.push_back(name);
+          }
+          else if(!on && self->m_openedCameras.contains(name))
+          {
             proto.stop_execution();
+            self->m_openedCameras.removeAll(name);
+          }
         }
     };
+    if(auto* d = ctx->plugin<Explorer::DeviceDocumentPlugin>().list().findDevice(devices[0]))
+      if(const auto& ds = d->settings().deviceSpecificSettings;
+         ds.canConvert<Gfx::CameraSettings>())
+        setup.expectedCameraSize = ds.value<Gfx::CameraSettings>().size;
   }
 
   setup.settings = sessionSettings();
@@ -677,6 +724,7 @@ bool CalibrationWizard::start()
   }
   setup.blend = m_blend->isChecked() && m_display->currentIndex() == 0;
   setup.completePlanes = !depth && m_flat->isChecked();
+  setup.blackCompensation = setup.blend && m_black->isChecked();
   setup.canvas = ws->canvas;
   for(int k = 0; k < (int)setup.plan.outputs.size(); k++)
     setup.sourceRects.push_back(ws->outputs[setup.plan.outputs[k]].sourceRect);
@@ -690,6 +738,8 @@ bool CalibrationWizard::start()
             setup.plan.names[int(it - setup.plan.outputs.begin())] + QStringLiteral(".json"));
       else if(!ws->outputs[i].maps.calibration.isEmpty())
         setup.blendCalibrations.push_back(ws->outputs[i].maps.calibration);
+      else
+        log(tr("- output %1 has no calibration: the blend leaves it out").arg(i + 1));
     }
   }
   if(!depth && ws->canvas.projection != Gfx::CanvasProjection::Equirectangular)
@@ -767,7 +817,7 @@ void CalibrationWizard::finish()
   const auto outputs = m_run->setup().plan.outputs;
   m_run.reset();
   updateButtons();
-  const auto r = readCalibrationResults(names, m_runStartMs);
+  const auto r = readCalibrationResults(names, m_runStartMs, outputs);
   if(!r.text.isEmpty())
     log(r.text);
   const auto ws = deviceSettings(m_runDevice);

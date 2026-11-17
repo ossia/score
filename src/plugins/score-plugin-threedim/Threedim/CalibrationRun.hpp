@@ -32,8 +32,19 @@ public:
     Gfx::port_index camera{-1, -1};
     Gfx::port_index positions{-1, -1};
     //! Opens (true) or closes (false) the camera devices when the score does
-    //! not play: their capture only runs during execution otherwise.
+    //! not play: their capture only runs during execution otherwise. The run
+    //! opens them at its start and closes them only to reopen them; closing
+    //! them for good is the caller's (a camera reopened right after it was
+    //! closed may not get its mode back).
     std::function<void(bool)> cameraActive;
+    //! The frame size the camera device is set to; a camera delivering another
+    //! one did not open in its mode (seen on Windows when reopened right after
+    //! a close): it is closed, reopened after a pause, and the run fails if it
+    //! still does not.
+    QSize expectedCameraSize;
+    //! Even out the black level (beta maps raised to the brightest black);
+    //! off, the blend only writes the alpha maps' weights.
+    bool blackCompensation{};
     std::function<void(float)> setExposure;
     std::function<void(bool)> setAutoExposure;
     //! Put back on setExposure when the run ends, however it ends.
@@ -105,6 +116,9 @@ private:
   int64_t m_framesAtChange{};
   double m_lastFrameAt{};
   bool m_frameSizeLogged{};
+  int m_reopens{};
+  double m_reopenAt{-1.};
+  QString outputLabel(int k) const;
 
   Setup m_setup;
   StructuredLightSession m_session;

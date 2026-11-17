@@ -42,6 +42,12 @@ void CalibrationRun::pullCamera()
     }
 }
 
+QString CalibrationRun::outputLabel(int k) const
+{
+  const auto& sel = m_setup.plan.outputs;
+  return QString::number((k < (int)sel.size() ? sel[k] : k) + 1);
+}
+
 void CalibrationRun::saveResults()
 {
   const auto& results = m_session.results();
@@ -50,7 +56,7 @@ void CalibrationRun::saveResults()
       if(!StructuredLightCore::saveFile(
              QString(m_setup.plan.names[i] + QStringLiteral(".json")).toStdString(), *r))
         m_log.push_back(QObject::tr("Output %1: cannot write %2.json")
-                            .arg(i + 1)
+                            .arg(outputLabel(i))
                             .arg(m_setup.plan.names[i]));
 }
 
@@ -58,8 +64,6 @@ void CalibrationRun::release()
 {
   m_camera.reset();
   m_positions.reset();
-  if(m_cameraOpened && m_setup.cameraActive)
-    m_setup.cameraActive(false);
   m_cameraOpened = false;
   if(m_setup.originalExposure && m_setup.setExposure)
     m_setup.setExposure(*std::exchange(m_setup.originalExposure, std::nullopt));
@@ -218,12 +222,47 @@ void CalibrationRun::tick(double now)
     return;
   }
 
+  if(m_reopenAt >= 0.)
+  {
+    if(now < m_reopenAt)
+      return;
+    m_reopenAt = -1.;
+    if(m_setup.cameraActive)
+      m_setup.cameraActive(true);
+    m_camera = std::make_unique<Gfx::TextureCapture>(*m_setup.gfx, m_setup.camera);
+    m_rgba.clear();
+    m_lastFrameAt = now;
+  }
   pullCamera();
   if(m_camera)
   {
     m_camera->take(m_rgba, m_rgbaW, m_rgbaH);
     if(!m_frameSizeLogged && !m_rgba.empty())
     {
+      const QSize want = m_setup.expectedCameraSize;
+      if(want.isValid() && !want.isEmpty() && QSize(m_rgbaW, m_rgbaH) != want)
+      {
+        if(m_reopens++ < 2 && m_setup.cameraActive)
+        {
+          m_log.push_back(QObject::tr("Camera: %1x%2 instead of %3x%4, reopening it")
+                              .arg(m_rgbaW)
+                              .arg(m_rgbaH)
+                              .arg(want.width())
+                              .arg(want.height()));
+          m_camera.reset();
+          m_rgba.clear();
+          m_setup.cameraActive(false);
+          m_reopenAt = now + 2000.;
+          return;
+        }
+        abort(QObject::tr("The camera delivers %1x%2 and its device is set to %3x%4: it did "
+                          "not open in its mode. Close what else uses it, or reconnect it.")
+                  .arg(m_rgbaW)
+                  .arg(m_rgbaH)
+                  .arg(want.width())
+                  .arg(want.height()));
+        return;
+      }
       m_frameSizeLogged = true;
       m_log.push_back(QObject::tr("Camera: %1x%2").arg(m_rgbaW).arg(m_rgbaH));
     }
@@ -286,6 +325,10 @@ void CalibrationRun::tick(double now)
         std::launch::async,
         [results = m_session.results(), setup = m_setup]() -> Finish {
       Finish out;
+      const auto label = [&](int k) {
+        const auto& sel = setup.plan.outputs;
+        return QString::number((k < (int)sel.size() ? sel[k] : k) + 1);
+      };
       const bool viewer = setup.settings.mode == StructuredLightSession::ViewerCamera;
       const int n = std::min<int>(int(results.size()), int(setup.plan.names.size()));
       for(int i = 0; i < n; i++)
@@ -306,7 +349,7 @@ void CalibrationRun::tick(double now)
               residuals.push_back(QStringLiteral("%1'").arg(c.medianArcmin[k], 0, 'f', 1));
             out.log.push_back(QObject::tr("Output %1: %2 plane(s), median residual %3, %4% "
                                           "of the measured pixels explained")
-                                  .arg(i + 1)
+                                  .arg(label(i))
                                   .arg(int(c.homographies.size()))
                                   .arg(residuals.join(QStringLiteral(" / ")))
                                   .arg(c.explained * 100., 0, 'f', 1));
@@ -325,11 +368,11 @@ void CalibrationRun::tick(double now)
                    QString(base + QStringLiteral(".json")).toStdString(), completed))
               directions = std::move(completed.xyz);
             else
-              out.log.push_back(QObject::tr("Output %1: cannot write the completed map").arg(i + 1));
+              out.log.push_back(QObject::tr("Output %1: cannot write the completed map").arg(label(i)));
           }
           else
             out.log.push_back(QObject::tr("Output %1: not completed from planes (%2)")
-                                  .arg(i + 1)
+                                  .arg(label(i))
                                   .arg(QString::fromStdString(c.status)));
         }
         if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
@@ -338,7 +381,7 @@ void CalibrationRun::tick(double now)
               = i < int(setup.sourceRects.size()) ? setup.sourceRects[i] : QRectF{0, 0, 1, 1};
           QString err;
           if(!saveEquirectWarp(base, equirectWarp(directions, r->width, r->height, src), &err))
-            out.log.push_back(QObject::tr("Output %1: warp map not written (%2)").arg(i + 1).arg(err));
+            out.log.push_back(QObject::tr("Output %1: warp map not written (%2)").arg(label(i)).arg(err));
         }
       }
       if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
@@ -372,6 +415,7 @@ void CalibrationRun::tick(double now)
       ProjectorBlendMaps::Settings bs;
       bs.ramp = {0.f};
       bs.exponent = {1.f};
+      bs.blackCompensation = setup.blackCompensation;
       const auto b = ProjectorBlendMaps::compute(std::move(cals), bs);
       out.log.push_back(QObject::tr("Projector Blend Maps: %1").arg(QString::fromStdString(b.status)));
       out.status = QObject::tr("Done");
@@ -393,7 +437,7 @@ void CalibrationRun::tick(double now)
         const auto& r = results[i];
         ok += r && r->ok;
         m_log.push_back(QObject::tr("Output %1: %2")
-                            .arg(int(i) + 1)
+                            .arg(outputLabel(int(i)))
                             .arg(r ? QString::fromStdString(r->status) : QString{}));
       }
       fail(QObject::tr("%1 of %2 outputs calibrated; the others failed, nothing was "
