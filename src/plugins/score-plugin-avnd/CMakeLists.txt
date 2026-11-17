@@ -491,15 +491,22 @@ function(avnd_make_score)
     endif()
   endif()
 
-  if(NOT MSVC AND NOT SCORE_DEPLOYMENT_BUILD)
-    if(AVND_OPTIMIZED)
+  if(AVND_OPTIMIZED)
+    # An optimized object takes several GB to compile on its own: in a unity
+    # file with other objects it needs more memory than the CI runners have.
+    set_source_files_properties(
+        ${AVND_SOURCES}
+        "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
+      PROPERTIES
+        SKIP_UNITY_BUILD_INCLUSION ON
+    )
+    if(NOT MSVC AND NOT SCORE_DEPLOYMENT_BUILD)
       set_source_files_properties(
           ${AVND_SOURCES}
           "${CMAKE_BINARY_DIR}/${AVND_TARGET}_avnd.cpp"
         PROPERTIES
           COMPILE_OPTIONS "${SCORE_AVND_OPT_FLAGS}"
           SKIP_PRECOMPILE_HEADERS ON
-          SKIP_UNITY_BUILD_INCLUSION ON
       )
     endif()
   endif()
