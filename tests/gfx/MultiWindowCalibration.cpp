@@ -912,6 +912,44 @@ TEST_CASE(
   CHECK(normal.px(cx, normal.height / 2)[1] < 60);
 }
 
+TEST_CASE(
+    "multi-window calibration override shows the images with nothing connected",
+    "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  auto img = std::make_shared<score::gfx::MultiWindowNode::CalibrationImage>();
+  img->width = m.windowSize.width();
+  img->height = m.windowSize.height();
+  img->rgba.assign(std::size_t(img->width) * img->height * 4, 255);
+  for(std::size_t i = 0; i < img->rgba.size(); i += 4)
+    img->rgba[i + 2] = 0;
+
+  Frame cal;
+  bool ok2{};
+  Outcome o;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    MultiWindowRig rig;
+    if(!rig.build(
+           api, {m}, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+           QSize{1280, 720}, false))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    rig.node->setCalibration({img});
+    ok2 = grab(rig, cal);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok2);
+  CHECK(cal.px(cal.width / 2, cal.height / 2) == std::array<int, 3>{255, 255, 0});
+  CHECK(cal.px(2, 2) == std::array<int, 3>{255, 255, 0});
+}
+
 namespace
 {
 std::shared_ptr<score::gfx::MultiWindowNode::CalibrationImage>
@@ -933,6 +971,38 @@ calibrationImage(int w, int h, const std::function<std::array<uint8_t, 3>(int, i
     }
   return img;
 }
+}
+
+TEST_CASE("multi-window calibration override stops rendering the scene", "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto img = calibrationImage(128, 64, [](int, int) { return std::array<uint8_t, 3>{10, 20, 30}; });
+  int64_t during{-1}, after{-1};
+  bool heldResources{}, released{true};
+  auto o = runRig(api, single(), [&](MultiWindowRig& rig, Outcome&) {
+    Frame f;
+    grab(rig, f);
+    auto* rl = rig.node->renderer();
+    REQUIRE(rl);
+    rig.node->setCalibration({img});
+    grab(rig, f);
+    heldResources = rig.node->rendererState(0).calibration;
+    const int64_t before = rl->frame;
+    rig.render(5);
+    during = rl->frame - before;
+    rig.node->clearCalibration();
+    grab(rig, f);
+    after = rl->frame - before;
+    released = rig.node->rendererState(0).calibration;
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  CHECK(during == 0);
+  CHECK(after > 0);
+  CHECK(heldResources);
+  CHECK_FALSE(released);
 }
 
 TEST_CASE("multi-window calibration image of another size is shown 1:1 from the top left", "[gfx][window][multiwindow][calibration]")

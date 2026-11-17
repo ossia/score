@@ -1455,23 +1455,23 @@ private:
     if(!wo.swapChain || !wo.hasSwapChain)
       return;
 
-    // Skip windows whose pipeline hasn't been built yet (e.g. window
-    // became ready after the initial renderer init and we haven't had a
-    // chance to lazily build it).
-    if(!pw.pipeline.pipeline || !pw.pipeline.srb)
-      return;
-
     auto rt = wo.swapChain->currentFrameRenderTarget();
     if(!rt)
       return;
 
-    if(m_multiNode.calibrating())
+    if(m_multiNode.calibrating() && wo.renderPassDescriptor)
     {
       renderCalibration(wo, pw, renderer, cb, res, rt);
       return;
     }
     if(pw.calTexture || pw.calUBO)
       releaseCalibration(pw);
+
+    // Skip windows whose pipeline hasn't been built yet (e.g. window
+    // became ready after the initial renderer init and we haven't had a
+    // chance to lazily build it).
+    if(!pw.pipeline.pipeline || !pw.pipeline.srb)
+      return;
 
     uploadMaps(wo, pw, renderer, res);
 
@@ -2297,7 +2297,8 @@ void MultiWindowNode::render()
   }
 
   auto rl = m_renderer.lock();
-  if(!rl || rl->renderers.size() <= 1)
+  const bool sceneless = rl && rl->renderers.size() <= 1;
+  if(!rl || (sceneless && !m_calibrating))
   {
     // No active render graph — just clear every live window to black.
     renderBlack();
@@ -2361,9 +2362,16 @@ void MultiWindowNode::render()
       return;
     }
 
-    rl->render(frame.commands());
+    const auto own = this->renderedNodes.find(rl.get());
+    auto* initialised = own == this->renderedNodes.end()
+                            ? nullptr
+                            : dynamic_cast<MultiWindowRenderer*>(own->second);
+    const bool sceneHidden = m_calibrating && !sceneless && initialised
+                             && initialised->m_initialized && rl->frame > 1;
+    if(!sceneHidden)
+      rl->render(frame.commands(), sceneless);
 
-    if(m_canvasMips && m_offscreenTarget.texture)
+    if(m_canvasMips && m_offscreenTarget.texture && !sceneHidden)
     {
       auto* mipBatch = rhi->nextResourceUpdateBatch();
       mipBatch->generateMips(m_offscreenTarget.texture);

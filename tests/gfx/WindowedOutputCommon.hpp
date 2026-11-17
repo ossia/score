@@ -421,7 +421,7 @@ struct MultiWindowRig
   bool build(
       score::gfx::GraphicsApi api, std::vector<Gfx::OutputMapping> mappings,
       const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
-      QSize canvasSize = QSize{1280, 720})
+      QSize canvasSize = QSize{1280, 720}, bool connectSource = true)
   {
     m_backend = backend_name(api);
 
@@ -481,7 +481,8 @@ struct MultiWindowRig
       m_error = "ISF node has no image output";
       return false;
     }
-    graph.addEdge(out, node->input[0], Process::CableType::ImmediateGlutton);
+    if(connectSource)
+      graph.addEdge(out, node->input[0], Process::CableType::ImmediateGlutton);
 
     graph.createAllRenderLists(api);
 
