@@ -4,6 +4,7 @@
 #include <score_plugin_gfx_export.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -49,5 +50,8 @@ private:
   std::shared_ptr<QRhiReadbackResult> m_readback;
   std::shared_ptr<std::atomic<int64_t>> m_completed;
   int64_t m_taken{};
+  //! When a frame was last asked for: a request the render list dropped (it
+  //! was rebuilt while the readback was pending) is asked again.
+  std::chrono::steady_clock::time_point m_askedAt{};
 };
 }

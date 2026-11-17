@@ -1,5 +1,6 @@
 #include "CalibrationRun.hpp"
 
+#include <Gfx/Graph/FloatImageIO.hpp>
 #include <Threedim/CalibrationFiles.hpp>
 #include <Threedim/EquirectWarp.hpp>
 #include <Threedim/PlaneCompletion.hpp>
@@ -232,6 +233,194 @@ void CalibrationRun::abort(const QString& why)
     fail(why);
 }
 
+void CalibrationRun::launchMaps(
+    std::vector<std::shared_ptr<const StructuredLightCore::Result>> results, bool fresh)
+{
+    m_status = m_setup.blend ? QObject::tr("Computing the warp and blend maps")
+                             : QObject::tr("Computing the maps");
+    m_log.push_back(m_status);
+    m_state = State::Blending;
+    m_camera.reset();
+    m_positions.reset();
+    m_blend = std::async(
+        std::launch::async,
+        [results = std::move(results), setup = m_setup, fresh]() -> Finish {
+      Finish out;
+      const auto label = [&](int k) {
+        const auto& sel = setup.plan.outputs;
+        return QString::number((k < (int)sel.size() ? sel[k] : k) + 1);
+      };
+      const bool viewer = setup.settings.mode == StructuredLightSession::ViewerCamera;
+      const int n = std::min<int>(int(results.size()), int(setup.plan.names.size()));
+      using Geometry = Setup::Geometry;
+      RoomGeometry room;
+      if(viewer && setup.geometry == Geometry::Box)
+      {
+        const auto& b = setup.box;
+        room = RoomGeometry::box(b[0], b[1], b[2], b[3], b[4], b[5]);
+      }
+      else if(viewer && setup.geometry == Geometry::Model)
+      {
+        QString err;
+        room = RoomGeometry::load(setup.model, &err);
+        if(room.empty())
+          out.log.push_back(QObject::tr("Room model: %1").arg(err));
+        else
+          out.log.push_back(QObject::tr("Room model: %1 triangles").arg(room.triangleCount()));
+      }
+      for(int i = 0; i < n; i++)
+      {
+        const auto& r = results[i];
+        if(!r || !r->ok)
+          continue;
+        const QString base = setup.plan.names[i];
+        std::vector<float> directions = r->xyz;
+        if(viewer && setup.completePlanes)
+        {
+          const auto c = completeFromPlanes(
+              r->xyz, r->width, r->height, setup.planeThresholdArcmin, 2);
+          if(c.ok)
+          {
+            QStringList residuals;
+            for(std::size_t k = 0; k < c.medianArcmin.size(); k++)
+              residuals.push_back(QStringLiteral("%1'").arg(c.medianArcmin[k], 0, 'f', 1));
+            out.log.push_back(QObject::tr("Output %1: %2 plane(s), median residual %3, %4% "
+                                          "of the measured pixels explained")
+                                  .arg(label(i))
+                                  .arg(int(c.homographies.size()))
+                                  .arg(residuals.join(QStringLiteral(" / ")))
+                                  .arg(c.explained * 100., 0, 'f', 1));
+            for(const char* ext : {".xyz.pfm", ".valid.pfm"})
+              if(fresh)
+            {
+              const QString from = base + QString::fromLatin1(ext);
+              const QString to = base + QStringLiteral(".measured") + QString::fromLatin1(ext);
+              QFile::remove(to);
+              QFile::copy(from, to);
+            }
+            auto completed = *r;
+            completed.xyz = c.directions;
+            completed.coverage = 100.f;
+            completed.status = r->status + " | completed from " + c.status;
+            if(StructuredLightCore::saveFile(
+                   QString(base + QStringLiteral(".json")).toStdString(), completed))
+            {
+              markDisplay(base + QStringLiteral(".json"), setup.screens);
+              directions = std::move(completed.xyz);
+            }
+            else
+              out.log.push_back(QObject::tr("Output %1: cannot write the completed map").arg(label(i)));
+          }
+          else
+            out.log.push_back(QObject::tr("Output %1: not completed from planes (%2)")
+                                  .arg(label(i))
+                                  .arg(QString::fromStdString(c.status)));
+        }
+        if(viewer && !room.empty())
+        {
+          const auto cast = castDirections(
+              directions, r->width, r->height, room, setup.cameraPosition,
+              setup.cameraRotation);
+          QString err;
+          if(savePointsMap(base, cast.points, r->width, r->height, &err))
+            out.log.push_back(QObject::tr("Output %1: %2% of the directions meet the room")
+                                  .arg(label(i))
+                                  .arg(cast.hitFraction * 100., 0, 'f', 1));
+          else
+            out.log.push_back(QObject::tr("Output %1: points map not written (%2)").arg(label(i)).arg(err));
+        }
+        if(!viewer)
+        {
+          QString err;
+          if(!savePointsMap(base, r->xyz, r->width, r->height, &err))
+            out.log.push_back(QObject::tr("Output %1: points map not written (%2)").arg(label(i)).arg(err));
+        }
+        if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
+        {
+          const QRectF src
+              = i < int(setup.sourceRects.size()) ? setup.sourceRects[i] : QRectF{0, 0, 1, 1};
+          QString err;
+          if(!saveEquirectWarp(base, equirectWarp(directions, r->width, r->height, src), &err))
+            out.log.push_back(QObject::tr("Output %1: warp map not written (%2)").arg(label(i)).arg(err));
+        }
+      }
+      if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
+        out.log.push_back(QObject::tr("Equirectangular warp maps written"));
+
+      if(!setup.blend)
+      {
+        out.status = QObject::tr("Done");
+        return out;
+      }
+      std::vector<CalibrationFile> cals;
+      std::string failed;
+      QStringList blendSet = setup.blendCalibrations;
+      if(blendSet.isEmpty())
+        for(int i = 0; i < n; i++)
+          blendSet.push_back(setup.plan.names[i] + QStringLiteral(".json"));
+      for(const auto& path : blendSet)
+      {
+        auto c = loadCalibration(path.toStdString());
+        if(c.ok())
+          cals.push_back(std::move(c));
+        else
+          failed += (failed.empty() ? "" : ", ") + c.error;
+      }
+      if(cals.empty())
+      {
+        out.log.push_back(QObject::tr("Projector Blend Maps: Failed: %1").arg(QString::fromStdString(failed)));
+        out.status = QObject::tr("Done");
+        return out;
+      }
+      ProjectorBlendMaps::Settings bs;
+      bs.ramp = {0.f};
+      bs.exponent = {1.f};
+      bs.blackCompensation = setup.blackCompensation;
+      const auto b = ProjectorBlendMaps::compute(std::move(cals), bs);
+      out.log.push_back(QObject::tr("Projector Blend Maps: %1").arg(QString::fromStdString(b.status)));
+      out.status = QObject::tr("Done");
+      return out;
+    });
+}
+
+bool CalibrationRun::recompute(double now)
+{
+  if(running())
+    return false;
+  std::vector<std::shared_ptr<const StructuredLightCore::Result>> results;
+  int loaded = 0;
+  for(int i = 0; i < m_setup.plan.names.size(); i++)
+  {
+    const QString base = m_setup.plan.names[i];
+    auto r = std::make_shared<StructuredLightCore::Result>(
+        StructuredLightCore::loadFile(QString(base + QStringLiteral(".json")).toStdString()));
+    if(r->ok)
+    {
+      const QString measured = base + QStringLiteral(".measured.xyz.pfm");
+      if(QFile::exists(measured))
+      {
+        const auto img = score::gfx::loadFloatImageRGBA(measured);
+        if(img.valid() && img.width == r->width && img.height == r->height)
+          r->xyz = img.data;
+      }
+      r->fromFile = false;
+      r->projectorIndex = i;
+      loaded++;
+    }
+    else
+      m_log.push_back(QObject::tr("Output %1: %2").arg(outputLabel(i)).arg(QString::fromStdString(r->status)));
+    results.push_back(std::move(r));
+  }
+  if(loaded == 0)
+  {
+    fail(QObject::tr("Nothing to recompute: no calibration under %1").arg(m_setup.plan.names.value(0)));
+    return false;
+  }
+  m_log.push_back(QObject::tr("Recomputing %1 output(s) from their measured maps").arg(loaded));
+  launchMaps(std::move(results), false);
+  return true;
+}
+
 void CalibrationRun::tick(double now)
 {
   if(!running())
@@ -362,150 +551,7 @@ void CalibrationRun::tick(double now)
   {
     m_log.push_back(QString::fromStdString(m_session.status()));
     saveResults();
-    m_status = m_setup.blend ? QObject::tr("Computing the warp and blend maps")
-                             : QObject::tr("Computing the maps");
-    m_log.push_back(m_status);
-    m_state = State::Blending;
-    m_camera.reset();
-    m_positions.reset();
-    m_blend = std::async(
-        std::launch::async,
-        [results = m_session.results(), setup = m_setup]() -> Finish {
-      Finish out;
-      const auto label = [&](int k) {
-        const auto& sel = setup.plan.outputs;
-        return QString::number((k < (int)sel.size() ? sel[k] : k) + 1);
-      };
-      const bool viewer = setup.settings.mode == StructuredLightSession::ViewerCamera;
-      const int n = std::min<int>(int(results.size()), int(setup.plan.names.size()));
-      using Geometry = Setup::Geometry;
-      RoomGeometry room;
-      if(viewer && setup.geometry == Geometry::Box)
-      {
-        const auto& b = setup.box;
-        room = RoomGeometry::box(b[0], b[1], b[2], b[3], b[4], b[5]);
-      }
-      else if(viewer && setup.geometry == Geometry::Model)
-      {
-        QString err;
-        room = RoomGeometry::load(setup.model, &err);
-        if(room.empty())
-          out.log.push_back(QObject::tr("Room model: %1").arg(err));
-        else
-          out.log.push_back(QObject::tr("Room model: %1 triangles").arg(room.triangleCount()));
-      }
-      for(int i = 0; i < n; i++)
-      {
-        const auto& r = results[i];
-        if(!r || !r->ok)
-          continue;
-        const QString base = setup.plan.names[i];
-        std::vector<float> directions = r->xyz;
-        if(viewer && setup.completePlanes)
-        {
-          const auto c = completeFromPlanes(
-              r->xyz, r->width, r->height, setup.planeThresholdArcmin, 2);
-          if(c.ok)
-          {
-            QStringList residuals;
-            for(std::size_t k = 0; k < c.medianArcmin.size(); k++)
-              residuals.push_back(QStringLiteral("%1'").arg(c.medianArcmin[k], 0, 'f', 1));
-            out.log.push_back(QObject::tr("Output %1: %2 plane(s), median residual %3, %4% "
-                                          "of the measured pixels explained")
-                                  .arg(label(i))
-                                  .arg(int(c.homographies.size()))
-                                  .arg(residuals.join(QStringLiteral(" / ")))
-                                  .arg(c.explained * 100., 0, 'f', 1));
-            for(const char* ext : {".xyz.pfm", ".valid.pfm"})
-            {
-              const QString from = base + QString::fromLatin1(ext);
-              const QString to = base + QStringLiteral(".measured") + QString::fromLatin1(ext);
-              QFile::remove(to);
-              QFile::copy(from, to);
-            }
-            auto completed = *r;
-            completed.xyz = c.directions;
-            completed.coverage = 100.f;
-            completed.status = r->status + " | completed from " + c.status;
-            if(StructuredLightCore::saveFile(
-                   QString(base + QStringLiteral(".json")).toStdString(), completed))
-            {
-              markDisplay(base + QStringLiteral(".json"), setup.screens);
-              directions = std::move(completed.xyz);
-            }
-            else
-              out.log.push_back(QObject::tr("Output %1: cannot write the completed map").arg(label(i)));
-          }
-          else
-            out.log.push_back(QObject::tr("Output %1: not completed from planes (%2)")
-                                  .arg(label(i))
-                                  .arg(QString::fromStdString(c.status)));
-        }
-        if(viewer && !room.empty())
-        {
-          const auto cast = castDirections(
-              directions, r->width, r->height, room, setup.cameraPosition,
-              setup.cameraRotation);
-          QString err;
-          if(savePointsMap(base, cast.points, r->width, r->height, &err))
-            out.log.push_back(QObject::tr("Output %1: %2% of the directions meet the room")
-                                  .arg(label(i))
-                                  .arg(cast.hitFraction * 100., 0, 'f', 1));
-          else
-            out.log.push_back(QObject::tr("Output %1: points map not written (%2)").arg(label(i)).arg(err));
-        }
-        if(!viewer)
-        {
-          QString err;
-          if(!savePointsMap(base, r->xyz, r->width, r->height, &err))
-            out.log.push_back(QObject::tr("Output %1: points map not written (%2)").arg(label(i)).arg(err));
-        }
-        if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
-        {
-          const QRectF src
-              = i < int(setup.sourceRects.size()) ? setup.sourceRects[i] : QRectF{0, 0, 1, 1};
-          QString err;
-          if(!saveEquirectWarp(base, equirectWarp(directions, r->width, r->height, src), &err))
-            out.log.push_back(QObject::tr("Output %1: warp map not written (%2)").arg(label(i)).arg(err));
-        }
-      }
-      if(viewer && setup.canvas.projection == Gfx::CanvasProjection::Equirectangular)
-        out.log.push_back(QObject::tr("Equirectangular warp maps written"));
-
-      if(!setup.blend)
-      {
-        out.status = QObject::tr("Done");
-        return out;
-      }
-      std::vector<CalibrationFile> cals;
-      std::string failed;
-      QStringList blendSet = setup.blendCalibrations;
-      if(blendSet.isEmpty())
-        for(int i = 0; i < n; i++)
-          blendSet.push_back(setup.plan.names[i] + QStringLiteral(".json"));
-      for(const auto& path : blendSet)
-      {
-        auto c = loadCalibration(path.toStdString());
-        if(c.ok())
-          cals.push_back(std::move(c));
-        else
-          failed += (failed.empty() ? "" : ", ") + c.error;
-      }
-      if(cals.empty())
-      {
-        out.log.push_back(QObject::tr("Projector Blend Maps: Failed: %1").arg(QString::fromStdString(failed)));
-        out.status = QObject::tr("Done");
-        return out;
-      }
-      ProjectorBlendMaps::Settings bs;
-      bs.ramp = {0.f};
-      bs.exponent = {1.f};
-      bs.blackCompensation = setup.blackCompensation;
-      const auto b = ProjectorBlendMaps::compute(std::move(cals), bs);
-      out.log.push_back(QObject::tr("Projector Blend Maps: %1").arg(QString::fromStdString(b.status)));
-      out.status = QObject::tr("Done");
-      return out;
-    });
+    launchMaps(m_session.results(), true);
     return;
   }
   if(!m_session.running())

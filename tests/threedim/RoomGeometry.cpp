@@ -115,3 +115,12 @@ TEST_CASE("Directions cast from a camera pose", "[threedim][room]")
   CHECK(r.points[0] == Approx(-2.f));
   CHECK(r.points[2] == Approx(0.f).margin(1e-5));
 }
+
+TEST_CASE("Room box: an open ceiling leaves the walls unbounded upward", "[threedim][room]")
+{
+  const auto room = RoomGeometry::box(3.f, 0.f, 3.f, 3.f, 1.3f, 0.f);
+  const float s = std::sqrt(0.5f);
+  CHECK(room.cast({0, 0, 0}, {0, s, -s}) == Approx(3.f / s));
+  CHECK(room.cast({0, 0, 0}, {0, 1, 0}) < 0.f);
+  CHECK(room.cast({0, 0, 0}, {0, 0, 1}) < 0.f);
+}

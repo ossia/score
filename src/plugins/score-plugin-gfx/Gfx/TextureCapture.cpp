@@ -44,10 +44,19 @@ int64_t TextureCapture::frames() const noexcept
 bool TextureCapture::take(std::vector<float>& rgba, int& width, int& height)
 {
   const int64_t done = frames();
+  const auto now = std::chrono::steady_clock::now();
   if(done == m_taken)
+  {
+    if(now - m_askedAt > std::chrono::milliseconds(500))
+    {
+      m_ctx->want_preview_frame(m_id);
+      m_askedAt = now;
+    }
     return false;
+  }
   m_taken = done;
   m_ctx->want_preview_frame(m_id);
+  m_askedAt = now;
 
   const auto& rb = *m_readback;
   const int w = rb.pixelSize.width(), h = rb.pixelSize.height();

@@ -49,7 +49,8 @@ public:
   bool busy() const noexcept { return m_run && m_run->running(); }
 
   void refreshDevices();
-  bool start();
+  //! recompute: from the saved measurements, without capturing.
+  bool start(bool recompute = false);
   void abort();
   //! The document is going away: stop without touching it.
   void detach();
@@ -110,6 +111,7 @@ private:
   QPushButton* m_refreshBtn{};
   QPushButton* m_startBtn{};
   QPushButton* m_abortBtn{};
+  QPushButton* m_recomputeBtn{};
   QProgressBar* m_progress{};
   QLabel* m_status{};
   QPlainTextEdit* m_log{};
@@ -117,6 +119,7 @@ private:
   std::unique_ptr<CalibrationRun> m_run;
   QString m_runDevice;
   qint64 m_runStartMs{};
+  bool m_recomputing{};
   double m_estimateMs{};
   QTimer m_timer;
   //! Camera devices this dialog opened while the score was stopped: kept
