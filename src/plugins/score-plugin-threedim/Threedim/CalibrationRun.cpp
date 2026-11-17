@@ -8,6 +8,7 @@
 #include <QObject>
 
 #include <chrono>
+#include <cstring>
 #include <utility>
 
 namespace Threedim
@@ -133,6 +134,9 @@ bool CalibrationRun::start(double now)
   if(ev.autoExposure && m_setup.setAutoExposure)
     m_setup.setAutoExposure(*ev.autoExposure);
   m_shownVersion = -1;
+  m_cameraFrames = 0;
+  m_lastHash = 0;
+  m_lastFrameAt = now;
   m_state = State::Capturing;
   show(*node);
   return true;
@@ -144,6 +148,7 @@ void CalibrationRun::show(score::gfx::MultiWindowNode& node)
   if(d.version == m_shownVersion && node.calibrating())
     return;
   m_shownVersion = d.version;
+  m_framesAtChange = m_cameraFrames;
   auto img = std::make_shared<score::gfx::MultiWindowNode::CalibrationImage>();
   img->width = d.width;
   img->height = d.height;
@@ -197,17 +202,44 @@ void CalibrationRun::tick(double now)
 
   pullCamera();
   if(m_camera)
+  {
     m_camera->take(m_rgba, m_rgbaW, m_rgbaH);
+    if(!m_frameSizeLogged && !m_rgba.empty())
+    {
+      m_frameSizeLogged = true;
+      m_log.push_back(QObject::tr("Camera: %1x%2").arg(m_rgbaW).arg(m_rgbaH));
+    }
+    uint64_t h = 1469598103934665603ull;
+    for(std::size_t i = 0; i < m_rgba.size(); i += 97)
+    {
+      uint32_t b;
+      std::memcpy(&b, &m_rgba[i], 4);
+      h = (h ^ b) * 1099511628211ull;
+    }
+    if(!m_rgba.empty() && h != m_lastHash)
+    {
+      m_lastHash = h;
+      m_cameraFrames++;
+      m_lastFrameAt = now;
+    }
+    else if(m_session.capturing() && now - m_lastFrameAt > m_setup.stallMs)
+    {
+      abort(QObject::tr("The camera delivered no frame for %1 s: is it streaming?")
+                .arg(int(m_setup.stallMs / 1000.)));
+      return;
+    }
+  }
   if(m_positions)
     m_positions->take(m_xyz, m_xyzW, m_xyzH);
+  const bool fresh = !m_camera || m_cameraFrames >= m_framesAtChange + m_setup.latencyFrames;
   StructuredLightSession::Frame f;
-  if(m_session.wantsCamera() && !m_rgba.empty())
+  if(m_session.wantsCamera() && !m_rgba.empty() && fresh)
   {
     f.rgba = m_rgba.data();
     f.width = m_rgbaW;
     f.height = m_rgbaH;
   }
-  if(m_session.wantsPositions() && !m_xyz.empty())
+  if(m_session.wantsPositions() && !m_xyz.empty() && fresh)
   {
     f.positions = m_xyz.data();
     f.positionsWidth = m_xyzW;
@@ -287,6 +319,26 @@ void CalibrationRun::tick(double now)
     return;
   }
   if(!m_session.running())
-    fail(QString::fromStdString(m_session.status()));
+  {
+    const auto& results = m_session.results();
+    if(results.empty())
+      fail(QString::fromStdString(m_session.status()));
+    else
+    {
+      int ok = 0;
+      for(std::size_t i = 0; i < results.size(); i++)
+      {
+        const auto& r = results[i];
+        ok += r && r->ok;
+        m_log.push_back(QObject::tr("Output %1: %2")
+                            .arg(int(i) + 1)
+                            .arg(r ? QString::fromStdString(r->status) : QString{}));
+      }
+      fail(QObject::tr("%1 of %2 outputs calibrated; the others failed, nothing was "
+                       "assigned (the calibrated ones are saved)")
+               .arg(ok)
+               .arg(int(results.size())));
+    }
+  }
 }
 }

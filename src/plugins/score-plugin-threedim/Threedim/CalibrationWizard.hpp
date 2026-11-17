@@ -15,6 +15,7 @@
 class QAction;
 class QCheckBox;
 class QComboBox;
+class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QPlainTextEdit;
@@ -71,6 +72,11 @@ private:
   bool updateDevice(const QString& device, const Gfx::WindowSettings& ws);
   std::optional<Gfx::WindowSettings> deviceSettings(const QString& name) const;
   double estimateMs(const CalibrationPlan& plan, const StructuredLightSession::Settings& s) const;
+  //! The plan of the device at its windows' physical pixel size.
+  CalibrationPlan livePlan(const Gfx::WindowSettings& ws, QStringList* notes = nullptr) const;
+  StructuredLightSession::Settings sessionSettings() const;
+  void loadOptions();
+  void saveOptions() const;
 
   QPointer<score::Document> m_doc;
   QComboBox* m_device{};
@@ -80,6 +86,11 @@ private:
   QComboBox* m_mode{};
   QLineEdit* m_name{};
   QSpinBox* m_settle{};
+  QDoubleSpinBox* m_fov{};
+  QDoubleSpinBox* m_level{};
+  QSpinBox* m_stripe{};
+  QSpinBox* m_frames{};
+  QDoubleSpinBox* m_exposure{};
   QCheckBox* m_blend{};
   QCheckBox* m_photometric{};
   QPushButton* m_refreshBtn{};

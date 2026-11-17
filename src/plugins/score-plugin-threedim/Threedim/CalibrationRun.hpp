@@ -40,6 +40,11 @@ public:
     //! Projector size, count, save path and auto save come from the plan.
     StructuredLightSession::Settings settings;
     bool blend{true};
+    //! Camera frames read back after a pattern change before one is used: the
+    //! capture and decoding pipeline of a webcam holds a few frames.
+    int latencyFrames{3};
+    //! No new camera frame for this long while capturing fails the run.
+    double stallMs{8000.};
     //! The device's canvas and the outputs' source rects: a viewer-camera run
     //! on an equirectangular canvas also writes each output's warp map.
     Gfx::CanvasLayout canvas;
@@ -82,6 +87,13 @@ private:
   void fail(const QString& why);
   void pullCamera();
   bool m_cameraOpened{};
+  //! Distinct camera images seen: a readback of the frame already read back
+  //! (the hub renders faster than a webcam delivers) does not count.
+  int64_t m_cameraFrames{};
+  uint64_t m_lastHash{};
+  int64_t m_framesAtChange{};
+  double m_lastFrameAt{};
+  bool m_frameSizeLogged{};
 
   Setup m_setup;
   StructuredLightSession m_session;

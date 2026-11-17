@@ -41,6 +41,8 @@ constexpr int CW = 3 * 120, CH = 100;
 struct FakeCameraNode final : score::gfx::ProcessNode
 {
   score::gfx::MultiWindowNode* windows{};
+  //! Stops delivering new images, as a camera that froze.
+  bool frozen{};
   FakeCameraNode() { output.push_back(new score::gfx::Port{this, {}, score::gfx::Types::Image, {}}); }
 
   score::gfx::NodeRenderer*
@@ -51,6 +53,7 @@ struct FakeCameraNode final : score::gfx::ProcessNode
       using NodeRenderer::NodeRenderer;
       QRhiTexture* m_tex{};
       std::vector<float> m_img, m_up;
+      int m_tick{};
 
       void init(score::gfx::RenderList& r, QRhiResourceUpdateBatch&) override
       {
@@ -62,16 +65,18 @@ struct FakeCameraNode final : score::gfx::ProcessNode
       }
       void update(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res, score::gfx::Edge*) override
       {
-        const auto* w = static_cast<const FakeCameraNode&>(node).windows;
-        if(!w)
+        const auto& self = static_cast<const FakeCameraNode&>(node);
+        const auto* w = self.windows;
+        if(!w || self.frozen)
           return;
+        m_tick++;
         const auto& outs = w->windowOutputs();
         const int panel = CW / Outputs;
         for(int y = 0; y < CH; y++)
           for(int x = 0; x < CW; x++)
           {
             const int k = x / panel;
-            float v = 0.02f;
+            float v = 0.02f + 0.001f * float((x * 7 + y * 13 + m_tick) % 5);
             if(k < int(outs.size()) && w->calibrating())
               if(const auto& img = outs[k].calibration; img && img->width > 0)
               {
@@ -130,6 +135,7 @@ TEST_CASE(
   }
 
   std::string skip, failure;
+  bool loggedCamera = false;
   Gfx::WindowSettings assigned;
   bool done = false, clearedAfter = false, calibratingDuring = false;
   int resultsOk = 0;
@@ -192,7 +198,10 @@ TEST_CASE(
       done = run.state() == Threedim::CalibrationRun::State::Done;
       failure = run.status().toStdString();
       for(const auto& l : run.takeLog())
+      {
         failure += " | " + l.toStdString();
+        loggedCamera |= l == QStringLiteral("Camera: 360x100");
+      }
       for(const auto& r : run.session().results())
       {
         resultsOk += r && r->ok;
@@ -209,6 +218,7 @@ TEST_CASE(
     SKIP(skip);
   INFO(failure);
   CHECK(calibratingDuring);
+  CHECK(loggedCamera);
   REQUIRE(done);
   CHECK(clearedAfter);
   CHECK(resultsOk == Outputs);
@@ -227,4 +237,82 @@ TEST_CASE(
   CHECK(assigned.outputs[0].maps.warp == base + ".warp.pfm");
   CHECK(assigned.outputs[2].maps.warp == base + "_p2.warp.pfm");
   CHECK(assigned.outputs[1].maps.alpha == base + "_p1.alpha.pfm");
+}
+
+TEST_CASE("CalibrationRun stops when the camera freezes", "[threedim][calibrationwizard][gui]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  Gfx::OutputMapping m;
+  m.windowPosition = {20, 40};
+  m.windowSize = {PW, PH};
+  std::string skip;
+  bool failed = false;
+  QString status;
+  double elapsed{};
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    MultiWindowRig rig;
+    if(!rig.build(score::gfx::OpenGL, {m}))
+    {
+      skip = rig.skipped() ? rig.skipReason() : rig.error();
+      return;
+    }
+    auto* doc = score::test::new_document(score::GUIAppContext());
+    REQUIRE(doc);
+    auto& g = doc->context().plugin<Gfx::DocumentPlugin>().context;
+    auto cam = std::make_unique<FakeCameraNode>();
+    cam->windows = rig.node.get();
+    auto* camPtr = cam.get();
+    const int32_t camId = g.register_node(std::move(cam));
+    Gfx::WindowSettings ws;
+    ws.mode = Gfx::WindowMode::MultiWindow;
+    ws.outputs = {m};
+    ws.inputWidth = PW;
+    ws.inputHeight = PH;
+    {
+      Threedim::CalibrationRun::Setup setup;
+      setup.gfx = &g;
+      auto* node = rig.node.get();
+      setup.node = [node] { return node; };
+      setup.camera = Gfx::port_index{camId, 0};
+      setup.plan = Threedim::planCalibration(ws, dir.filePath("frozen"));
+      setup.settings.mode = Threedim::StructuredLightSession::ViewerCamera;
+      setup.settings.settleMs = 60;
+      setup.settings.frames = 1;
+      setup.stallMs = 1500;
+      Threedim::CalibrationRun run{std::move(setup)};
+      const auto now = [] { return double(QDateTime::currentMSecsSinceEpoch()); };
+      REQUIRE(run.start(now()));
+      const double t0 = now();
+      bool froze = false;
+      while(run.running() && now() < t0 + 60000.)
+      {
+        if(!froze && now() > t0 + 1500.)
+        {
+          camPtr->frozen = true;
+          froze = true;
+        }
+        rig.render(1);
+        g.updateGraph();
+        for(auto* out : g.outputs())
+        {
+          out->render();
+          if(auto rs = out->renderState(); rs && rs->rhi)
+            rs->rhi->finish();
+        }
+        run.tick(now());
+      }
+      elapsed = now() - t0;
+      failed = run.state() == Threedim::CalibrationRun::State::Failed;
+      status = run.status();
+    }
+    g.unregister_node(camId);
+    g.updateGraph();
+  });
+  if(!skip.empty())
+    SKIP(skip);
+  INFO(status.toStdString());
+  CHECK(failed);
+  CHECK(status.contains("no frame"));
+  CHECK(elapsed < 10000.);
 }

@@ -192,11 +192,17 @@ CalibrationReport readCalibrationResults(const QStringList& names, qint64 sinceM
     r.saved++;
     r.rms.push_back(o["rms"].toDouble());
     r.coverage.push_back(o["coverage"].toDouble());
-    lines.push_back(QObject::tr("output %1: %2, RMS %3 px, coverage %4%")
-                        .arg(k + 1)
-                        .arg(fi.fileName())
-                        .arg(r.rms.back(), 0, 'f', 2)
-                        .arg(r.coverage.back(), 0, 'f', 1));
+    if(o["mode"].toString() == QStringLiteral("viewer"))
+      lines.push_back(QObject::tr("output %1: %2, coverage %3%")
+                          .arg(k + 1)
+                          .arg(fi.fileName())
+                          .arg(r.coverage.back(), 0, 'f', 1));
+    else
+      lines.push_back(QObject::tr("output %1: %2, RMS %3 px, coverage %4%")
+                          .arg(k + 1)
+                          .arg(fi.fileName())
+                          .arg(r.rms.back(), 0, 'f', 2)
+                          .arg(r.coverage.back(), 0, 'f', 1));
   }
   r.text = lines.join('\n');
   return r;
