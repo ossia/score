@@ -770,3 +770,10 @@ score_add_test(test_threedim_room_geometry
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_room_geometry)
 target_link_libraries(test_threedim_room_geometry PRIVATE miniply)
+
+# Camera lens models of the calibration tool, conversion between them and the
+# radial distortion found from flat surfaces.
+score_add_test(test_threedim_camera_lens
+  SOURCES CameraLens.cpp "${THREEDIM_DIR}/LensConversion.cpp" "${THREEDIM_DIR}/PlaneCompletion.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_camera_lens)

@@ -23,6 +23,7 @@ public:
     int projectors{1};
     int mode{DepthCamera};
     float fov{60.f};
+    CameraLens lens;
     std::array<float, 4> cameraIntrinsics{};
     std::array<float, 16> worldFromCamera{1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1};
     float level{1.f};

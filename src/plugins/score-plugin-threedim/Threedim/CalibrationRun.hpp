@@ -59,6 +59,9 @@ public:
     //! Viewer camera on flat walls and floor: rebuild each direction map from
     //! its planes (PlaneCompletion), filling what the camera did not see.
     bool completePlanes{};
+    //! Fit the lens's radial distortion so that the flat surfaces come out
+    //! flat (with completePlanes); the result is in the log and lens().
+    bool estimateLens{};
     //! The calibrations Projector Blend Maps runs on: those of this run, and
     //! of the outputs it does not measure; empty = this run's.
     QStringList blendCalibrations;
@@ -161,7 +164,15 @@ private:
   {
     QStringList log;
     QString status;
+    std::optional<CameraLens> lens;
   };
+  std::optional<CameraLens> m_estimatedLens;
+
+public:
+  //! The lens the last run estimated, if it did.
+  const std::optional<CameraLens>& estimatedLens() const noexcept { return m_estimatedLens; }
+
+private:
   std::future<Finish> m_blend;
 };
 }

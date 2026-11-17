@@ -129,6 +129,26 @@ CalibrationWizard::CalibrationWizard(score::Document& doc, QWidget* parent)
   m_fov->setToolTip(tr("Horizontal field of view of the camera (a Logitech C930e is "
                        "about 82°): the viewing directions, hence the warp, scale with it"));
   form->addRow(tr("Camera FOV"), m_fov);
+  m_lens = new QComboBox;
+  m_lens->addItem(tr("Pinhole"));
+  m_lens->addItem(tr("Distorted (k1 k2 p1 p2 k3)"));
+  m_lens->addItem(tr("Fisheye (k1 k2 k3 k4)"));
+  m_lens->setToolTip(
+      tr("How the camera's lens bends the view: Pinhole for a webcam without "
+         "distortion; Distorted with OpenCV's radial and tangential coefficients; "
+         "Fisheye (equidistant, OpenCV's fisheye model) for wide lenses and domes, "
+         "with the FOV across the image width"));
+  form->addRow(tr("Lens"), m_lens);
+  m_lensK = new QLineEdit;
+  m_lensK->setPlaceholderText(QStringLiteral("0 0 0 0 0"));
+  m_lensK->setToolTip(tr("The lens coefficients, separated by spaces, in OpenCV's order"));
+  form->addRow(tr("Lens coefficients"), m_lensK);
+  m_estimateLens = new QCheckBox;
+  m_estimateLens->setToolTip(
+      tr("With Flat surfaces: find the radial distortion (k1) for which the walls and "
+         "floor come out flat, and use it; the coefficients above are then updated. "
+         "Works with Recompute, without capturing again"));
+  form->addRow(tr("Estimate lens distortion"), m_estimateLens);
   m_level = new QDoubleSpinBox;
   m_level->setRange(0.05, 1.);
   m_level->setSingleStep(0.05);
@@ -505,6 +525,12 @@ StructuredLightSession::Settings CalibrationWizard::sessionSettings() const
   s.mode = depth ? StructuredLightSession::DepthCamera : StructuredLightSession::ViewerCamera;
   s.settleMs = m_settle->value();
   s.fov = float(m_fov->value());
+  s.lens.model = CameraLens::Model(m_lens->currentIndex());
+  {
+    const auto parts = m_lensK->text().split(QRegularExpression(QStringLiteral("[\\s,;]+")), Qt::SkipEmptyParts);
+    for(int i = 0; i < 5 && i < parts.size(); i++)
+      s.lens.k[i] = parts[i].toDouble();
+  }
   s.level = float(m_level->value());
   s.minStripe = m_stripe->value();
   s.frames = m_frames->value();
@@ -529,6 +555,9 @@ void CalibrationWizard::loadOptions()
   m_outputs->setText(q.value("Outputs").toString());
   m_settle->setValue(q.value("Settle", m_settle->value()).toInt());
   m_fov->setValue(q.value("Fov", m_fov->value()).toDouble());
+  m_lens->setCurrentIndex(std::clamp(q.value("Lens", 0).toInt(), 0, 2));
+  m_lensK->setText(q.value("LensK").toString());
+  m_estimateLens->setChecked(q.value("EstimateLens", false).toBool());
   m_level->setValue(q.value("Level", m_level->value()).toDouble());
   m_stripe->setValue(q.value("MinStripe", m_stripe->value()).toInt());
   m_frames->setValue(q.value("Frames", m_frames->value()).toInt());
@@ -564,6 +593,9 @@ void CalibrationWizard::saveOptions() const
   q.setValue("Outputs", m_outputs->text());
   q.setValue("Settle", m_settle->value());
   q.setValue("Fov", m_fov->value());
+  q.setValue("Lens", m_lens->currentIndex());
+  q.setValue("LensK", m_lensK->text());
+  q.setValue("EstimateLens", m_estimateLens->isChecked());
   q.setValue("Level", m_level->value());
   q.setValue("MinStripe", m_stripe->value());
   q.setValue("Frames", m_frames->value());
@@ -844,6 +876,7 @@ bool CalibrationWizard::start(bool recompute)
   }
   setup.blend = m_blend->isChecked() && m_display->currentIndex() == 0;
   setup.completePlanes = !depth && m_flat->isChecked();
+  setup.estimateLens = setup.completePlanes && m_estimateLens->isChecked();
   setup.blackCompensation = setup.blend && m_black->isChecked();
   setup.screens = m_display->currentIndex() == 1;
   if(!depth)
@@ -976,6 +1009,17 @@ void CalibrationWizard::finish()
   const bool geometry = m_run->setup().geometry != CalibrationRun::Setup::Geometry::Directions
                         && m_run->setup().settings.mode == StructuredLightSession::ViewerCamera;
   const auto cameraPosition = m_run->setup().cameraPosition;
+  if(const auto& lens = m_run->estimatedLens())
+  {
+    m_lens->setCurrentIndex(int(lens->model));
+    QStringList k;
+    for(double v : lens->k)
+      k.push_back(QString::number(v, 'g', 6));
+    m_lensK->setText(k.join(' '));
+    m_estimateLens->setChecked(false);
+    log(tr("The estimated lens is now in the Lens fields."));
+    saveOptions();
+  }
   m_run.reset();
   updateButtons();
   const auto r = readCalibrationResults(names, m_recomputing ? 0 : m_runStartMs, outputs);
