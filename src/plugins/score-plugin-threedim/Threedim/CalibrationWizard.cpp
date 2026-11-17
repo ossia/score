@@ -3,6 +3,7 @@
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Execution/DocumentPlugin.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/TextureCapture.hpp>
@@ -407,6 +408,30 @@ bool CalibrationWizard::start()
     if(auto* p = parameterAt(*ctx, m_positions->currentText()))
       if(auto port = Gfx::textureProducer(*p))
         setup.positions = *port;
+
+  {
+    QStringList devices{cam.section(':', 0, 0)};
+    if(depth && !m_positions->currentText().isEmpty())
+      if(const QString d = m_positions->currentText().section(':', 0, 0); !devices.contains(d))
+        devices.push_back(d);
+    setup.cameraActive = [doc, devices](bool on) {
+      if(!doc)
+        return;
+      const auto& c = doc->context();
+      if(auto* exec = c.findPlugin<Execution::DocumentPlugin>(); exec && exec->isPlaying())
+        return;
+      auto& plug = c.plugin<Explorer::DeviceDocumentPlugin>();
+      for(const auto& name : devices)
+        if(auto* d = plug.list().findDevice(name); d && d->getDevice())
+        {
+          auto& proto = d->getDevice()->get_protocol();
+          if(on)
+            proto.start_execution();
+          else
+            proto.stop_execution();
+        }
+    };
+  }
 
   auto& s = setup.settings;
   s.mode = depth ? StructuredLightSession::DepthCamera : StructuredLightSession::ViewerCamera;

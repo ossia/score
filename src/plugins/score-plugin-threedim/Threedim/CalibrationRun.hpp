@@ -31,6 +31,9 @@ public:
     std::function<score::gfx::MultiWindowNode*()> node;
     Gfx::port_index camera{-1, -1};
     Gfx::port_index positions{-1, -1};
+    //! Opens (true) or closes (false) the camera devices when the score does
+    //! not play: their capture only runs during execution otherwise.
+    std::function<void(bool)> cameraActive;
     std::function<void(float)> setExposure;
     std::function<void(bool)> setAutoExposure;
     CalibrationPlan plan;
@@ -77,6 +80,8 @@ private:
   void show(score::gfx::MultiWindowNode& node);
   void release();
   void fail(const QString& why);
+  void pullCamera();
+  bool m_cameraOpened{};
 
   Setup m_setup;
   StructuredLightSession m_session;
