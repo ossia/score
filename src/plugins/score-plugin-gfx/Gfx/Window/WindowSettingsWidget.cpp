@@ -143,10 +143,27 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
         orientLayout->addWidget(sb);
       }
       globalLayout->addRow(tr("Canvas orientation"), orientLayout);
+      auto* viewerLayout = new QHBoxLayout;
+      const QString coords[3]{QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("z")};
+      for(int i = 0; i < 3; i++)
+      {
+        auto* sb = new QDoubleSpinBox;
+        sb->setRange(-1000., 1000.);
+        sb->setDecimals(3);
+        sb->setSingleStep(0.05);
+        sb->setSuffix(tr(" m"));
+        sb->setToolTip(tr("Viewer %1, in the frame of the outputs' points maps").arg(coords[i]));
+        sb->setEnabled(false);
+        m_canvasViewer[i] = sb;
+        viewerLayout->addWidget(sb);
+      }
+      globalLayout->addRow(tr("Viewer position"), viewerLayout);
       connect(
           m_canvasProjection, qOverload<int>(&QComboBox::currentIndexChanged), this,
           [this](int idx) {
         for(auto* sb : m_canvasOrientation)
+          sb->setEnabled(idx == 1);
+        for(auto* sb : m_canvasViewer)
           sb->setEnabled(idx == 1);
       });
 
@@ -530,6 +547,12 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
           tr("Radiometric compensation of the surface colour (.comp.json), applied to "
              "the linear content before the alpha"),
           tr("Compensations (*.comp.json *.json)"), m_compensationEdit);
+      makeFileRow(
+          tr("Points"),
+          tr("World point lit by each pixel (.points.pfm): with an Equirectangular "
+             "canvas, the output looks the canvas up from the Viewer position, "
+             "instead of through the warp map"),
+          tr("Points maps (*.points.pfm *.pfm)"), m_pointsEdit);
 
       m_blendSpaceCombo = new QComboBox;
       m_blendSpaceCombo->addItems({tr("Auto"), tr("Linear light"), tr("Signal")});
@@ -604,9 +627,9 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
       m_samplingCombo->addItems(
           {tr("Auto"), tr("Linear"), tr("Mipmapped"), tr("Anisotropic")});
       m_samplingCombo->setToolTip(
-          tr("How the output reads the canvas. Auto: anisotropic where a warp map "
-             "shrinks the canvas onto the output, linear otherwise (a corner warp "
-             "included)"));
+          tr("How the output reads the canvas. Auto: anisotropic under a points map "
+             "on an equirectangular canvas, or where a warp map shrinks the canvas "
+             "onto the output; linear otherwise (a corner warp included)"));
       qualityLayout->addRow(tr("Sampling"), m_samplingCombo);
 
       m_maxAnisotropy = new QSpinBox;
@@ -822,7 +845,7 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
     connect(m_mirrorXCheck, &QCheckBox::toggled, this, applyProps);
     connect(m_mirrorYCheck, &QCheckBox::toggled, this, applyProps);
     for(auto* e : {m_warpMapEdit, m_alphaMapEdit, m_betaMapEdit, m_lutEdit, m_responseEdit,
-                   m_compensationEdit})
+                   m_compensationEdit, m_pointsEdit})
       connect(e, &QLineEdit::editingFinished, this, applyProps);
     for(auto* c : {m_samplingCombo, m_warpInterpCombo, m_ditherCombo, m_blendSpaceCombo})
       connect(c, qOverload<int>(&QComboBox::currentIndexChanged), this, applyProps);
@@ -1049,9 +1072,11 @@ void WindowSettingsWidget::updatePropertiesFromSelection()
           m_responseEdit->setText(mi->maps.response);
           const QSignalBlocker b27(m_compensationEdit);
           m_compensationEdit->setText(mi->maps.compensation);
+          const QSignalBlocker b29(m_pointsEdit);
+          m_pointsEdit->setText(mi->maps.points);
           const QSignalBlocker b28(m_calibrationEdit);
           m_calibrationEdit->setText(mi->maps.calibration);
-          const QSignalBlocker b29(m_blendSpaceCombo);
+          const QSignalBlocker b30(m_blendSpaceCombo);
           m_blendSpaceCombo->setCurrentIndex(int(mi->maps.blendSpace));
           updateMapsStatus(mi->maps);
         }
@@ -1185,6 +1210,7 @@ void WindowSettingsWidget::applyPropertiesToSelection()
         mi->maps.lut = m_lutEdit->text();
         mi->maps.response = m_responseEdit->text();
         mi->maps.compensation = m_compensationEdit->text();
+        mi->maps.points = m_pointsEdit->text();
         mi->maps.blendSpace = Gfx::BlendMapSpace(m_blendSpaceCombo->currentIndex());
         mi->maps = relativizedMaps(mi->maps, pathRoots());
         updateMapsStatus(mi->maps);
@@ -1555,7 +1581,10 @@ Device::DeviceSettings WindowSettingsWidget::getSettings() const
                                 ? CanvasProjection::Equirectangular
                                 : CanvasProjection::None;
     for(int i = 0; i < 3; i++)
+    {
       set.canvas.orientation[i] = float(m_canvasOrientation[i]->value());
+      set.canvas.viewer[i] = float(m_canvasViewer[i]->value());
+    }
   }
 
   s.deviceSpecificSettings = QVariant::fromValue(set);
@@ -1582,7 +1611,10 @@ void WindowSettingsWidget::setSettings(const Device::DeviceSettings& settings)
     {
       m_canvasProjection->setCurrentIndex(int(set.canvas.projection));
       for(int i = 0; i < 3; i++)
+      {
         m_canvasOrientation[i]->setValue(std::remainder(set.canvas.orientation[i], 360.f));
+        m_canvasViewer[i]->setValue(set.canvas.viewer[i]);
+      }
     }
 
     if(this->m_modeCombo->currentIndex() == (int)WindowMode::MultiWindow)

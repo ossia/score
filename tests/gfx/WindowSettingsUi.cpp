@@ -1001,6 +1001,31 @@ TEST_CASE("WindowSettingsWidget stores map files relative to the project", "[gfx
   });
 }
 
+TEST_CASE("the warp and points slots of a calibration", "[gfx][window][calibration]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("dome");
+  touch(base + ".json");
+  touch(base + ".warp.pfm");
+
+  OutputMaps m;
+  CHECK(applyCalibration(m, base + ".json") == 1);
+  CHECK(m.warp == base + ".warp.pfm");
+  CHECK(m.points.isEmpty());
+
+  touch(base + ".points.pfm");
+  CHECK(refreshCalibration(m));
+  CHECK(m.points == base + ".points.pfm");
+  CHECK(mapFiles(m).contains(base + ".points.pfm"));
+  CHECK(watchedCalibrationFiles({m}).contains(base + ".points.pfm"));
+
+  QFile::remove(base + ".warp.pfm");
+  CHECK(refreshCalibration(m));
+  CHECK(m.warp.isEmpty());
+  CHECK(m.points == base + ".points.pfm");
+}
+
 TEST_CASE("WindowSettingsWidget wraps a canvas orientation outside ±180°", "[gfx][window][settingswidget][canvas]")
 {
   score::test::run_in_app([&](const score::GUIApplicationContext&) {

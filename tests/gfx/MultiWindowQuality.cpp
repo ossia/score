@@ -504,6 +504,62 @@ TEST_CASE("multi-window equirectangular canvas pitch looks up", "[gfx][window][m
   CHECK(std::abs(g2 - u8(0.25)) <= 4);
 }
 
+TEST_CASE("multi-window points map: the canvas is looked up from the viewer position", "[gfx][window][multiwindow][canvas][points]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString path = dir.filePath("wall.points.pfm");
+  constexpr int W = 128, H = 64;
+  {
+    score::gfx::FloatImage img;
+    img.width = W;
+    img.height = H;
+    img.channels = 3;
+    img.data.resize(std::size_t(W) * H * 3);
+    for(int y = 0; y < H; y++)
+      for(int x = 0; x < W; x++)
+      {
+        float* p = img.row(y) + x * 3;
+        p[0] = (x + 0.5f) / W * 4.f - 2.f;
+        p[1] = 1.f - (y + 0.5f) / H * 2.f;
+        p[2] = -2.f;
+      }
+    REQUIRE(score::gfx::writePFM(path, img));
+  }
+  auto m = single();
+  m.windowSize = {W, H};
+  m.maps.points = path;
+  Frame atOrigin, moved, noProjection;
+  bool ok1{}, ok2{}, ok3{};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {}, {0.f, 0.f, 0.f}});
+    ok1 = grab(rig, atOrigin);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, {}, {1.f, 0.f, 0.f}});
+    ok2 = grab(rig, moved);
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::None, {}, {1.f, 0.f, 0.f}});
+    ok3 = grab(rig, noProjection);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  REQUIRE(ok3);
+  auto expected = [](float X, float vx) {
+    return float(std::atan2(X - vx, 2.f) / (2. * M_PI) + 0.5);
+  };
+  for(int x : {8, 40, 64, 90, 120})
+  {
+    const float X = (x + 0.5f) / W * 4.f - 2.f;
+    INFO("x " << x);
+    CHECK(std::abs(atOrigin.px(x, H / 2)[0] - u8(expected(X, 0.f))) <= 3);
+    CHECK(std::abs(moved.px(x, H / 2)[0] - u8(expected(X, 1.f))) <= 3);
+    CHECK(std::abs(noProjection.px(x, H / 2)[0] - u8((x + 0.5f) / W)) <= 3);
+  }
+}
+
 namespace
 {
 //! W x H texels, u = fract((x + 0.5) / W + 0.5), v = (y + 0.5) / H: the
@@ -525,6 +581,33 @@ void writeSeamWarp(const QString& base, int W, int H)
       p[2] = 0.f;
     }
   REQUIRE(score::gfx::writePFM(base + ".xyz.pfm", uv));
+}
+
+void writePointsMap(
+    const QString& path, int W, int H, const std::function<bool(int, int)>& valid = {})
+{
+  score::gfx::FloatImage img;
+  img.width = W;
+  img.height = H;
+  img.channels = 3;
+  img.data.resize(std::size_t(W) * H * 3);
+  score::gfx::FloatImage mask;
+  mask.width = W;
+  mask.height = H;
+  mask.channels = 1;
+  mask.data.resize(std::size_t(W) * H);
+  for(int y = 0; y < H; y++)
+    for(int x = 0; x < W; x++)
+    {
+      float* p = img.row(y) + x * 3;
+      p[0] = (x + 0.5f) / W * 4.f - 2.f;
+      p[1] = 1.f - (y + 0.5f) / H * 2.f;
+      p[2] = -2.f;
+      mask.row(y)[x] = !valid || valid(x, y) ? 1.f : 0.f;
+    }
+  REQUIRE(score::gfx::writePFM(path, img));
+  if(valid)
+    REQUIRE(score::gfx::writePFM(score::gfx::validMapPath(path), mask));
 }
 }
 
@@ -645,4 +728,82 @@ TEST_CASE("multi-window equirectangular orientation: pitch, yaw and roll togethe
       checked++;
     }
   CHECK(checked > 16);
+}
+
+TEST_CASE("multi-window points map overrides the warp map, which is neither sampled nor baked", "[gfx][window][multiwindow][canvas][points]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  constexpr int W = 128, H = 64;
+  writePointsMap(dir.filePath("wall.points.pfm"), W, H, [](int x, int) { return x < 96; });
+  writeSeamWarp(dir.filePath("seam"), 16, 8);
+  auto m = single();
+  m.windowSize = {W, H};
+  m.maps.points = dir.filePath("wall.points.pfm");
+  Frame pointsOnly, both;
+  bool ok1{}, ok2{}, bake{true};
+  int sampling{-1}, plainSampling{-1};
+  auto o = runRig(api, m, [&](MultiWindowRig& rig, Outcome&) {
+    plainSampling = rig.node->effectiveQuality(rig.node->windowOutputs()[0]).sampling;
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular});
+    ok1 = grab(rig, pointsOnly);
+    sampling = rig.node->effectiveQuality(rig.node->windowOutputs()[0]).sampling;
+    auto maps = m.maps;
+    maps.warp = dir.filePath("seam.xyz.pfm");
+    setMaps(rig, 0, maps);
+    ok2 = grab(rig, both);
+    bake = rig.node->rendererState(0).bakeTarget;
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  CHECK_FALSE(bake);
+  CHECK(plainSampling == 0);
+  CHECK(sampling == 2);
+  int diff = 0;
+  for(int x = 0; x < W; x += 4)
+    diff = std::max(diff, std::abs(pointsOnly.px(x, H / 2)[0] - both.px(x, H / 2)[0]));
+  CHECK(diff <= 3);
+  // The .valid.pfm next to the points masks the right quarter.
+  CHECK(pointsOnly.px(110, H / 2)[0] <= 2);
+  CHECK(pointsOnly.px(110, H / 2)[1] <= 2);
+}
+
+TEST_CASE("multi-window points map with an orientation, at a latitude", "[gfx][window][multiwindow][canvas][points]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  constexpr int W = 128, H = 64;
+  writePointsMap(dir.filePath("wall.points.pfm"), W, H);
+  auto m = single();
+  m.windowSize = {W, H};
+  m.maps.points = dir.filePath("wall.points.pfm");
+  Frame f;
+  bool ok{};
+  const std::array<float, 3> euler{0.f, 30.f, 0.f};
+  auto o = runRig(
+      api, m,
+      [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCanvasLayout({Gfx::CanvasProjection::Equirectangular, euler});
+    ok = grab(rig, f);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-y.fs"));
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok);
+  // A yaw keeps latitudes: point (X, Y, -2) is at asin(Y / |p|) above the horizon.
+  for(int y : {6, 20, 44, 58})
+  {
+    const double X = 0.5 / W * 4. + 64. / W * 4. - 2., Y = 1. - (y + 0.5) / H * 2.;
+    const double lat = std::asin(Y / std::sqrt(X * X + Y * Y + 4.));
+    INFO("row " << y << " latitude " << lat);
+    CHECK(std::abs(f.top(64, y)[1] - u8(0.5 + lat / M_PI)) <= 4);
+  }
 }

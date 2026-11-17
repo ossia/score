@@ -598,6 +598,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamReader::read(const Gfx::WindowSettin
   m_stream << (int32_t)n.flag << (int32_t)n.format;
   m_stream << (int32_t)n.canvas.projection << n.canvas.orientation[0]
            << n.canvas.orientation[1] << n.canvas.orientation[2];
+  m_stream << n.canvas.viewer[0] << n.canvas.viewer[1] << n.canvas.viewer[2];
   insertDelimiter();
 }
 
@@ -624,6 +625,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamWriter::write(Gfx::WindowSettings& n
   m_stream >> projection >> n.canvas.orientation[0] >> n.canvas.orientation[1]
       >> n.canvas.orientation[2];
   n.canvas.projection = (Gfx::CanvasProjection)projection;
+  m_stream >> n.canvas.viewer[0] >> n.canvas.viewer[1] >> n.canvas.viewer[2];
   checkDelimiter();
 }
 
@@ -639,11 +641,15 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONReader::read(const Gfx::WindowSettings& n)
   if(n.canvas != Gfx::CanvasLayout{})
   {
     obj["CanvasProjection"] = (int)n.canvas.projection;
-    stream.Key("CanvasOrientation");
-    stream.StartArray();
-    for(float v : n.canvas.orientation)
-      stream.Double(v);
-    stream.EndArray();
+    auto writeVec3 = [&](const char* key, const std::array<float, 3>& a) {
+      stream.Key(key);
+      stream.StartArray();
+      for(float v : a)
+        stream.Double(v);
+      stream.EndArray();
+    };
+    writeVec3("CanvasOrientation", n.canvas.orientation);
+    writeVec3("CanvasViewer", n.canvas.viewer);
   }
 }
 
@@ -678,13 +684,17 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONWriter::write(Gfx::WindowSettings& n)
   score::parseJsonField(obj, "CanvasProjection", projection);
   n.canvas.projection = projection == 1 ? Gfx::CanvasProjection::Equirectangular
                                         : Gfx::CanvasProjection::None;
-  if(auto v = obj.tryGet("CanvasOrientation"); v && v->obj.IsArray())
-  {
-    const auto arr = v->obj.GetArray();
-    for(rapidjson::SizeType i = 0; i < arr.Size() && i < 3; i++)
-      if(arr[i].IsNumber())
-        n.canvas.orientation[i] = arr[i].GetFloat();
-  }
+  auto readVec3 = [&](const char* key, std::array<float, 3>& out) {
+    if(auto v = obj.tryGet(std::string{key}); v && v->obj.IsArray())
+    {
+      const auto arr = v->obj.GetArray();
+      for(rapidjson::SizeType i = 0; i < arr.Size() && i < 3; i++)
+        if(arr[i].IsNumber())
+          out[i] = arr[i].GetFloat();
+    }
+  };
+  readVec3("CanvasOrientation", n.canvas.orientation);
+  readVec3("CanvasViewer", n.canvas.viewer);
 }
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::WindowSettings);

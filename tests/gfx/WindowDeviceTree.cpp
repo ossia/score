@@ -784,6 +784,7 @@ TEST_CASE("Multi-window device canvas projection and orientation", "[gfx][window
     }
 
     push(param(*d, "/canvas/orientation"), ossia::vec3f{0.f, 90.f, -5.f});
+    push(param(*d, "/canvas/viewer"), ossia::vec3f{0.5f, 1.6f, 0.f});
     push(param(*d, "/canvas/projection"), 0);
     pushed = node->canvasLayout();
 
@@ -799,6 +800,7 @@ TEST_CASE("Multi-window device canvas projection and orientation", "[gfx][window
   CHECK(initialParam == std::vector<float>{10.f, 20.f, 30.f});
   CHECK(pushed.projection == CanvasProjection::None);
   CHECK(pushed.orientation == std::array<float, 3>{0.f, 90.f, -5.f});
+  CHECK(pushed.viewer == std::array<float, 3>{0.5f, 1.6f, 0.f});
 }
 
 TEST_CASE(
@@ -1000,4 +1002,70 @@ TEST_CASE(
   CHECK(alphaRedone == 4);
   CHECK(paramRedone == paramAssigned);
   CHECK(gainRedone == Approx(0.5f));
+}
+
+TEST_CASE("Multi-window device follows its points map on disk", "[gfx][window][device][points]")
+{
+  Outcome o;
+  bool connected{};
+  int atStart{}, afterRewrite{};
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString path = dir.filePath("wall.points.pfm");
+  auto write = [&](int size) {
+    score::gfx::FloatImage img;
+    img.width = img.height = size;
+    img.channels = 3;
+    img.data.assign(std::size_t(size) * size * 3, -1.f);
+    REQUIRE(score::gfx::writePFM(path, img));
+  };
+  write(4);
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {160, 120};
+    m.maps.points = path;
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+    WindowDevice dev{makeSettings(ws, "MultiWinPoints"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    pump_for(400);
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice());
+    REQUIRE(node);
+    auto width = [&] {
+      const auto& p = node->windowOutputs()[0].pointsMap;
+      return p ? p->width : 0;
+    };
+    atStart = width();
+    QFile::remove(path);
+    pump_for(50);
+    write(8);
+    pump_until([&] { return width() == 8; }, 5000);
+    afterRewrite = width();
+    dev.disconnect();
+    pump_for(200);
+  });
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  CHECK(atStart == 4);
+  CHECK(afterRewrite == 8);
 }

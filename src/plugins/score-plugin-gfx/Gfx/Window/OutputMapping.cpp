@@ -1210,6 +1210,11 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONReader::read(const Gfx::OutputMapping& n)
     stream.Key("CompensationFile");
     stream.String(n.maps.compensation.toStdString());
   }
+  if(!n.maps.points.isEmpty())
+  {
+    stream.Key("PointsMap");
+    stream.String(n.maps.points.toStdString());
+  }
   if(!n.maps.calibration.isEmpty())
   {
     stream.Key("Calibration");
@@ -1282,6 +1287,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamReader::read(const Gfx::OutputMappin
            << int(n.quality.dither) << n.quality.maxAnisotropy;
   m_stream << n.maps.response << n.maps.compensation;
   m_stream << n.maps.calibration << int(n.maps.blendSpace);
+  m_stream << n.maps.points;
   insertDelimiter();
 }
 
@@ -1318,6 +1324,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamWriter::write(Gfx::OutputMapping& n)
     n.maps.blendSpace = space >= 0 && space <= 2 ? Gfx::BlendMapSpace(space)
                                                  : Gfx::BlendMapSpace::Auto;
   }
+  m_stream >> n.maps.points;
   checkDelimiter();
 }
 namespace
@@ -1403,6 +1410,7 @@ SCORE_PLUGIN_GFX_TEST_EXPORT void JSONWriter::write(Gfx::OutputMapping& n)
   score::parseJsonField(obj, "Calibration", n.maps.calibration);
   if(int v{}; score::parseJsonField(obj, "BlendMapSpace", v) && v >= 0 && v <= 2)
     n.maps.blendSpace = Gfx::BlendMapSpace(v);
+  score::parseJsonField(obj, "PointsMap", n.maps.points);
 
   if(auto q = obj.tryGet("Quality"); q && q->obj.IsObject())
   {

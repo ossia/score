@@ -34,10 +34,10 @@
 namespace score::gfx
 {
 
-static std::array<float, 16>
-subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas)
+static std::array<float, 20>
+subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas, bool points = false)
 {
-  std::array<float, 16> out{
+  std::array<float, 20> out{
       float(rect.x()), float(rect.y()), float(rect.width()), float(rect.height())};
   const QMatrix3x3 m = QQuaternion::fromEulerAngles(
                            canvas.orientation[0], canvas.orientation[1],
@@ -48,6 +48,10 @@ subRectUBO(const QRectF& rect, const Gfx::CanvasLayout& canvas)
       out[4 + 4 * c + r] = m(r, c);
   out[7] = canvas.projection == Gfx::CanvasProjection::Equirectangular ? 1.f : 0.f;
   out[11] = canvas.rotates() ? 1.f : 0.f;
+  out[16] = canvas.viewer[0];
+  out[17] = canvas.viewer[1];
+  out[18] = canvas.viewer[2];
+  out[19] = points && out[7] > 0.5f ? 1.f : 0.f;
   return out;
 }
 
@@ -299,10 +303,15 @@ outputMaps(const MultiWindowNode::WindowOutput& wo) noexcept
 {
   return {&wo.warpMap,           &wo.alphaMap,          &wo.betaMap,
           &wo.responseMap,       &wo.compensationMaps[0], &wo.compensationMaps[1],
-          &wo.compensationMaps[2]};
+          &wo.compensationMaps[2], &wo.pointsMap};
 }
 
-constexpr int mapBindings[MultiWindowNode::MapSlotCount]{7, 8, 9, 13, 14, 15, 16};
+constexpr int mapBindings[MultiWindowNode::MapSlotCount]{7, 8, 9, 13, 14, 15, 16, 18};
+
+constexpr bool rawMapSlot(int m) noexcept
+{
+  return m == MultiWindowNode::WarpSlot || m == MultiWindowNode::PointsSlot;
+}
 
 std::array<float, 16> packOutputColorUBO(
     const Gfx::OutputColor& c, bool warpMap, bool alphaMap, bool betaMap,
@@ -358,7 +367,7 @@ public:
     std::array<bool, MultiWindowNode::MapSlotCount> mapOk{};
     QRhiTexture* lutTexture{};
     bool lutOk{};
-    std::array<int, 8> uploadedVersions{};
+    std::array<int, MultiWindowNode::MapSlotCount + 1> uploadedVersions{};
     int readbackServed{};
     std::array<score::gfx::Sampler, 1> samplers{};
     QRectF sourceRect{0, 0, 1, 1};
@@ -428,6 +437,7 @@ public:
           vec4 canvasRot0; // columns of the canvas orientation, canvasRot0.w = equirectangular
           vec4 canvasRot1; // w = the orientation is not the identity
           vec4 canvasRot2;
+          vec4 viewerPos; // xyz = viewer, w = the points map gives the lookup
       };
 
       layout(std140, binding = 4) uniform BlendParams {
@@ -463,6 +473,7 @@ public:
       layout(binding = 15) uniform sampler2D compMap1;
       layout(binding = 16) uniform sampler2D compMap2;
       layout(binding = 17) uniform sampler2D bakedWarp;
+      layout(binding = 18) uniform sampler2D pointsMap;
 
       layout(std140, binding = 12) uniform QualityParams {
           vec4 quality;  // x = sampling (0 linear, 1 trilinear, 2 anisotropic), y = max taps, z = bicubic warp, w = dither levels
@@ -493,6 +504,26 @@ public:
           return vec2(
               atan(d.x, -d.z) / (2.0 * pi) + 0.5,
               0.5 - asin(clamp(d.y / max(length(d), 1e-9), -1.0, 1.0)) / pi);
+      }
+
+      // xyz = world point, w = 1 when valid; bilinear over the valid texels.
+      vec4 samplePoints(vec2 uv)
+      {
+          ivec2 size = textureSize(pointsMap, 0);
+          vec2 f = uv * vec2(size) - 0.5;
+          vec2 fl = floor(f);
+          vec2 t = f - fl;
+          ivec2 b = ivec2(fl);
+          vec4 acc = vec4(0.0);
+          for(int j = 0; j < 2; j++)
+              for(int i = 0; i < 2; i++)
+              {
+                  vec4 p = texelFetch(pointsMap, clamp(b + ivec2(i, j), ivec2(0), size - 1), 0);
+                  float w = (i == 0 ? 1.0 - t.x : t.x) * (j == 0 ? 1.0 - t.y : t.y)
+                            * (p.w > 0.5 ? 1.0 : 0.0);
+                  acc += vec4(p.xyz * w, w);
+              }
+          return acc.w > 1e-6 ? vec4(acc.xyz / acc.w, 1.0) : vec4(0.0);
       }
 
       vec3 sampleSource(vec2 uv, vec2 dx, vec2 dy)
@@ -623,7 +654,8 @@ public:
           bool inside = place(rampTc);
           vec2 tc = rampTc;
 
-          if(mapFlags.x > 0.5)
+          bool pointLookup = viewerPos.w > 0.5;
+          if(mapFlags.x > 0.5 && !pointLookup)
           {
               vec3 m = quality.z > 1.5 ? texelFetch(bakedWarp, ivec2(gl_FragCoord.xy), 0).xyz
                                        : sampleWarp(screenUv);
@@ -635,10 +667,19 @@ public:
               sourceRect.x + tc.x * sourceRect.z, sourceRect.y + (1.0 - tc.y) * sourceRect.w);
           if(canvasRot0.w > 0.5)
           {
-              if(canvasRot1.w > 0.5)
+              if(pointLookup || canvasRot1.w > 0.5)
               {
-                  vec3 d = canvasDirection(uv);
-                  d = canvasRot0.xyz * d.x + canvasRot1.xyz * d.y + canvasRot2.xyz * d.z;
+                  vec3 d;
+                  if(pointLookup)
+                  {
+                      vec4 point = samplePoints(screenUv);
+                      d = point.xyz - viewerPos.xyz;
+                      inside = inside && point.w > 0.5;
+                  }
+                  else
+                      d = canvasDirection(uv);
+                  if(canvasRot1.w > 0.5)
+                      d = canvasRot0.xyz * d.x + canvasRot1.xyz * d.y + canvasRot2.xyz * d.z;
                   uv = directionToCanvas(d);
               }
               else
@@ -831,6 +872,7 @@ public:
           vec4 canvasRot0;
           vec4 canvasRot1;
           vec4 canvasRot2;
+          vec4 viewerPos;
       };
 
       layout(std140, binding = 12) uniform QualityParams {
@@ -972,7 +1014,7 @@ public:
 
     // Create UBO for source rect
     pw.uvRectUBO = rhi.newBuffer(
-        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16 * sizeof(float));
+        QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 20 * sizeof(float));
     pw.uvRectUBO->setName(
         QByteArray("MultiWindowRenderer::uvRectUBO_") + QByteArray::number(index));
     pw.uvRectUBO->create();
@@ -1002,7 +1044,7 @@ public:
       for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
       {
         auto tex = rhi.newTexture(
-            m == MultiWindowNode::WarpSlot ? QRhiTexture::RGBA32F : QRhiTexture::RGBA16F,
+            rawMapSlot(m) ? QRhiTexture::RGBA32F : QRhiTexture::RGBA16F,
             QSize{1, 1}, 1);
         tex->setName(
             QByteArray("MultiWindowRenderer::map_") + QByteArray::number(index) + '_'
@@ -1091,7 +1133,7 @@ public:
       for(int m = 0; m < MultiWindowNode::MapSlotCount; m++)
         extraBindings.push_back(B::sampledTexture(
             mapBindings[m], F, pw.mapTextures[m],
-            m == MultiWindowNode::WarpSlot ? m_warpSampler : m_mapSampler));
+            rawMapSlot(m) ? m_warpSampler : m_mapSampler));
 
       const auto& mesh = renderer.defaultTriangle();
       pw.pipeline = score::gfx::buildPipeline(
@@ -1480,7 +1522,8 @@ private:
     static const bool noBake = qEnvironmentVariableIntValue("SCORE_MW_NO_WARP_BAKE") != 0;
     const bool equirect
         = m_multiNode.canvasLayout().projection == Gfx::CanvasProjection::Equirectangular;
-    const bool warpLookup = pw.mapOk[MultiWindowNode::WarpSlot];
+    const bool pointLookup = equirect && pw.mapOk[MultiWindowNode::PointsSlot];
+    const bool warpLookup = pw.mapOk[MultiWindowNode::WarpSlot] && !pointLookup;
     const bool useBaked = warpLookup && !noBake && ensureBakeTarget(pw, renderer, pixelSize);
     if(!warpLookup && pw.bakeRT)
       releaseBakeTarget(pw);
@@ -1503,7 +1546,8 @@ private:
       if(!res)
         res = renderer.state.rhi->nextResourceUpdateBatch();
 
-      const auto rectData = subRectUBO(wo.sourceRect, m_multiNode.canvasLayout());
+      const auto rectData = subRectUBO(
+          wo.sourceRect, m_multiNode.canvasLayout(), pw.mapOk[MultiWindowNode::PointsSlot]);
       res->updateDynamicBuffer(pw.uvRectUBO, 0, sizeof(rectData), rectData.data());
     }
 
@@ -1841,14 +1885,16 @@ void loadInto(
     Beta,
     Lut,
     Response,
-    Compensation
+    Compensation,
+    Points
   };
-  const QString* paths[6]{&maps.warp,     &maps.alpha,    &maps.beta,
-                          &maps.lut,      &maps.response, &maps.compensation};
-  static const char* const names[6]{"warp map", "alpha map", "beta map",
-                                    "LUT",      "response",  "compensation"};
-  std::array<QString, 6> stamps;
-  for(int k = 0; k < 6; k++)
+  constexpr int N = MultiWindowNode::MapFileCount;
+  const QString* paths[N]{&maps.warp,     &maps.alpha,    &maps.beta, &maps.lut,
+                          &maps.response, &maps.compensation, &maps.points};
+  static const char* const names[N]{"warp map", "alpha map",    "beta map",  "LUT",
+                                    "response", "compensation", "points map"};
+  std::array<QString, N> stamps;
+  for(int k = 0; k < N; k++)
     stamps[k] = mapFileStamp(*paths[k]);
 
   auto update = [&](int k, auto& field, auto&& load, bool force = false) -> bool {
@@ -1900,6 +1946,12 @@ void loadInto(
     wo.betaLinear = wo.betaMap && loader.linear(maps.beta, WarpMapKind::Beta);
     warnStretched(names[Beta], maps.beta, wo.betaMap.get(), output);
   }
+  if(update(Points, wo.pointsMap, [](const QString& p, QString& e) {
+       auto img = std::make_shared<FloatImage>(loadFloatImageRGBA(p, &e));
+       return img->valid() ? std::shared_ptr<const FloatImage>(std::move(img))
+                           : std::shared_ptr<const FloatImage>{};
+     }))
+    wo.changed[M::PointsSlot] = true;
   if(update(Lut, wo.lut, [](const QString& p, QString& e) { return MapLoader::lut(p, e); }))
     wo.changed[M::LutSlot] = true;
   if(update(Compensation, wo.compensationMaps, [&](const QString& p, QString& e) {
@@ -1927,6 +1979,7 @@ MultiWindowNode::LoadedMaps loadedMaps(const MultiWindowNode::WindowOutput& wo)
   m.alphaMap = wo.alphaMap;
   m.betaMap = wo.betaMap;
   m.responseMap = wo.responseMap;
+  m.pointsMap = wo.pointsMap;
   m.lut = wo.lut;
   m.compensationMaps = wo.compensationMaps;
   m.warpStep = wo.warpStep;
@@ -1943,6 +1996,7 @@ void assignMaps(MultiWindowNode::WindowOutput& wo, MultiWindowNode::LoadedMaps&&
   wo.alphaMap = std::move(m.alphaMap);
   wo.betaMap = std::move(m.betaMap);
   wo.responseMap = std::move(m.responseMap);
+  wo.pointsMap = std::move(m.pointsMap);
   wo.lut = std::move(m.lut);
   wo.compensationMaps = std::move(m.compensationMaps);
   wo.warpStep = m.warpStep;
@@ -2082,7 +2136,10 @@ MultiWindowNode::effectiveQuality(const WindowOutput& wo) const noexcept
   switch(wo.quality.sampling)
   {
     case Gfx::OutputSampling::Auto:
-      q.sampling = wo.warpMap && warpMinifies(wo) ? 2 : 0;
+      if(wo.pointsMap && m_canvasLayout.projection == Gfx::CanvasProjection::Equirectangular)
+        q.sampling = 2;
+      else
+        q.sampling = wo.warpMap && warpMinifies(wo) ? 2 : 0;
       break;
     case Gfx::OutputSampling::Linear:
       q.sampling = 0;

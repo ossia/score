@@ -114,6 +114,13 @@ struct OutputMaps
   //! Radiometric compensation (.comp.json): per pixel 3x3 matrix and offset
   //! applied to the linear content before the alpha.
   QString compensation;
+  //! World position (RGB, w = valid) of the surface point each output pixel
+  //! lights. With an Equirectangular canvas it replaces the warp map and the
+  //! corner warp's lookup (the warp map is then neither sampled nor baked; the
+  //! corner warp still masks): each pixel looks the canvas up in the direction
+  //! from the canvas's viewer position to that point, so the viewpoint can move
+  //! after the calibration. Auto sampling is then anisotropic.
+  QString points;
   //! name.json of the calibration the files above follow (CalibrationSet.hpp).
   QString calibration;
   BlendMapSpace blendSpace{BlendMapSpace::Auto};
@@ -121,16 +128,17 @@ struct OutputMaps
   bool empty() const noexcept
   {
     return warp.isEmpty() && alpha.isEmpty() && beta.isEmpty() && lut.isEmpty()
-           && response.isEmpty() && compensation.isEmpty();
+           && response.isEmpty() && compensation.isEmpty() && points.isEmpty();
   }
 };
 
 //! How the output reads the canvas.
 enum class OutputSampling : int
 {
-  //! Anisotropic when a warp map samples the canvas at more than 1.5 canvas
-  //! texels per output pixel, measured on the map for the output's size; Linear
-  //! otherwise, a corner warp included.
+  //! Anisotropic under a points map on an Equirectangular canvas, or when a
+  //! warp map samples the canvas at more than 1.5 canvas texels per output
+  //! pixel, measured on the map for the output's size; Linear otherwise, a
+  //! corner warp included.
   Auto = 0,
   Linear = 1,
   //! Trilinear, at the level of detail of the warp's screen-space Jacobian.
@@ -185,6 +193,9 @@ struct CanvasLayout
   //! Euler degrees (x pitch, y yaw, z roll), QQuaternion::fromEulerAngles as
   //! in Transform 3D: an output pixel facing direction d shows the content at R d.
   std::array<float, 3> orientation{0.f, 0.f, 0.f};
+  //! Where the audience stands, in the frame of the outputs' points maps: the
+  //! origin of the directions an output with a points map looks up.
+  std::array<float, 3> viewer{0.f, 0.f, 0.f};
 
   bool rotates() const noexcept
   {

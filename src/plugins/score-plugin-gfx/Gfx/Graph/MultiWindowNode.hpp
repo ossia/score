@@ -48,6 +48,24 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     std::vector<uint8_t> rgba;
   };
 
+  enum MapSlot
+  {
+    WarpSlot,
+    AlphaSlot,
+    BetaSlot,
+    ResponseSlot,
+    Comp0Slot,
+    Comp1Slot,
+    Comp2Slot,
+    PointsSlot,
+    MapSlotCount,
+    LutSlot = MapSlotCount
+  };
+
+  //! The files of OutputMaps an output loads: warp, alpha, beta, LUT, response,
+  //! compensation, points.
+  static constexpr int MapFileCount = 7;
+
   struct WindowOutput
   {
     std::shared_ptr<Window> window;
@@ -81,13 +99,14 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     std::shared_ptr<const FloatImage> responseMap;
     //! Rows of the compensation matrix, rgba = (M_k0, M_k1, M_k2, o_k).
     std::array<std::shared_ptr<const FloatImage>, 3> compensationMaps;
+    std::shared_ptr<const FloatImage> pointsMap;
 
     //! Bumped when the texture of a slot changes: MapSlot order, then the LUT.
-    std::array<int, 8> mapVersions{};
+    std::array<int, MapSlotCount + 1> mapVersions{};
     std::shared_ptr<const CalibrationImage> calibration;
     int calibrationVersion{};
     //! What each map field was loaded from: path, modification time and size.
-    std::array<QString, 6> mapStamps;
+    std::array<QString, MapFileCount> mapStamps;
     bool responseWithMixing{};
     //! The map load whose result this output takes.
     uint64_t mapRequest{};
@@ -100,28 +119,15 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   //! The map fields of a WindowOutput, as a load produces them.
   struct LoadedMaps
   {
-    std::shared_ptr<const FloatImage> warpMap, alphaMap, betaMap, responseMap;
+    std::shared_ptr<const FloatImage> warpMap, alphaMap, betaMap, responseMap, pointsMap;
     std::shared_ptr<const CubeLut> lut;
     std::array<std::shared_ptr<const FloatImage>, 3> compensationMaps;
     std::array<float, 4> warpStep{};
-    std::array<QString, 6> mapStamps;
+    std::array<QString, MapFileCount> mapStamps;
     bool responseWithMixing{};
     bool alphaLinear{}, betaLinear{};
     //! The MapSlot and LutSlot textures that changed.
-    std::array<bool, 8> changed{};
-  };
-
-  enum MapSlot
-  {
-    WarpSlot,
-    AlphaSlot,
-    BetaSlot,
-    ResponseSlot,
-    Comp0Slot,
-    Comp1Slot,
-    Comp2Slot,
-    MapSlotCount,
-    LutSlot = MapSlotCount
+    std::array<bool, MapSlotCount + 1> changed{};
   };
 
   const std::vector<WindowOutput>& windowOutputs() const noexcept

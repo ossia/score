@@ -276,6 +276,17 @@ public:
           c.orientation = {(*x)[0], (*x)[1], (*x)[2]};
         return bool(x);
       });
+      addCanvasParam(
+          *canvas_node, "viewer",
+          "Viewer position, in the frame of the outputs' points maps (metres)",
+          ossia::val_type::VEC3F, ossia::domain{}, ossia::bounding_mode::FREE,
+          [vec3](const CanvasLayout& c) { return ossia::value{vec3(c.viewer)}; },
+          [](CanvasLayout& c, const ossia::value& v) {
+        auto x = v.target<ossia::vec3f>();
+        if(x)
+          c.viewer = {(*x)[0], (*x)[1], (*x)[2]};
+        return bool(x);
+      });
       m_root.add_child(std::move(canvas_node));
     }
 
@@ -744,7 +755,9 @@ public:
             {"response", "Measured projector response (.response.json, 1D .cube)",
              &Gfx::OutputMaps::response},
             {"compensation", "Radiometric compensation (.comp.json)",
-             &Gfx::OutputMaps::compensation}};
+             &Gfx::OutputMaps::compensation},
+            {"points", "World point per pixel (.points.pfm), looked up from the viewer",
+             &Gfx::OutputMaps::points}};
         for(const auto& [fname, fdesc, member] : fields)
         {
           auto f_node
