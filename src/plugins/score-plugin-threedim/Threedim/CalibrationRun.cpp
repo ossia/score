@@ -478,18 +478,26 @@ void CalibrationRun::tick(double now)
     {
       if(m_reopens++ < 2 && m_setup.cameraActive)
       {
-        m_log.push_back(QObject::tr("The camera delivered no frame for %1 s, reopening it")
-                            .arg(int(m_setup.stallMs / 1000.)));
+        const int64_t readbacks = m_camera->frames();
+        m_log.push_back(
+            QObject::tr("The camera delivered no new image for %1 s (%2 read back, %3 "
+                        "distinct), reopening it")
+                .arg(int(m_setup.stallMs / 1000.))
+                .arg(readbacks)
+                .arg(m_cameraFrames));
         m_camera.reset();
         m_rgba.clear();
         m_frameSizeLogged = false;
         m_setup.cameraActive(false);
-        m_reopenAt = now + 2000.;
+        m_reopenAt = now + (m_reopens == 1 ? 3000. : 8000.);
         return;
       }
-      abort(QObject::tr("The camera delivered no frame for %1 s: is it streaming, or held "
-                        "by another program?")
-                .arg(int(m_setup.stallMs / 1000.)));
+      abort(QObject::tr("The camera delivered no new image for %1 s (%2 read back, %3 "
+                        "distinct): is it streaming, or held by another program? A "
+                        "program that just released it may need a few seconds more.")
+                .arg(int(m_setup.stallMs / 1000.))
+                .arg(m_camera->frames())
+                .arg(m_cameraFrames));
       return;
     }
     if(!m_frameSizeLogged && !m_rgba.empty() && m_cameraFrames >= 2)
@@ -507,7 +515,7 @@ void CalibrationRun::tick(double now)
           m_camera.reset();
           m_rgba.clear();
           m_setup.cameraActive(false);
-          m_reopenAt = now + 2000.;
+          m_reopenAt = now + (m_reopens == 1 ? 3000. : 8000.);
           return;
         }
         abort(QObject::tr("The camera delivers %1x%2 and its device is set to %3x%4: it did "
