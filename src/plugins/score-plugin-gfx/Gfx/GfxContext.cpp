@@ -376,10 +376,11 @@ bool GfxContext::joinPreviewHub(Preview& p)
   }
   if(p.hubInput < 0)
   {
-    p.hubInput = m_previewHub->acquireInput();
+    p.hubInput = m_previewHub->acquireInput(p.tap->native);
     if(p.hubInput < 0)
       return false;
-    m_previewHub->setInputSize(p.hubInput, p.size);
+    if(!p.tap->native)
+      m_previewHub->setInputSize(p.hubInput, p.size);
   }
   if(p.hubProducer != p.producer)
   {

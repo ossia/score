@@ -64,10 +64,12 @@ private:
 }
 
 PreviewHubNode::PreviewHubNode()
-    : m_sizes(max_inputs)
+    : m_sizes(max_inputs + capture_inputs)
 {
   for(int i = 0; i < max_inputs; i++)
     input.push_back(new Port{this, {}, Types::Image, {}});
+  for(int i = 0; i < capture_inputs; i++)
+    input.push_back(new Port{this, {}, Types::Image, Flag::GrabsFromSource});
   m_conf = {.manualRenderingRate = 1000. / Gfx::Settings::renderRateForCurrentApplication()};
   previewHub = true;
 }
@@ -77,9 +79,11 @@ PreviewHubNode::~PreviewHubNode()
   destroyOutput();
 }
 
-int PreviewHubNode::acquireInput()
+int PreviewHubNode::acquireInput(bool capture)
 {
-  for(int k = 0; k < max_inputs; k++)
+  const int first = capture ? max_inputs : 0;
+  const int last = capture ? max_inputs + capture_inputs : max_inputs;
+  for(int k = first; k < last; k++)
     if(m_sizes[k].isEmpty())
     {
       // Taken from now on; the preview gives the size it wants next
@@ -92,7 +96,7 @@ int PreviewHubNode::acquireInput()
 
 void PreviewHubNode::releaseInput(int k)
 {
-  if(k >= 0 && k < max_inputs && !m_sizes[k].isEmpty())
+  if(k >= 0 && k < (int)m_sizes.size() && !m_sizes[k].isEmpty())
   {
     m_sizes[k] = {};
     inputsChanged();
