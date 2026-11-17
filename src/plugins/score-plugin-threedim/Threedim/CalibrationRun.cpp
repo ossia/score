@@ -6,6 +6,9 @@
 
 #include <QDir>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSaveFile>
 #include <QFileInfo>
 #include <QObject>
 
@@ -42,6 +45,31 @@ void CalibrationRun::pullCamera()
     }
 }
 
+void CalibrationRun::markDisplay(const QString& json, bool screens)
+{
+  QFile f{json};
+  if(!f.open(QIODevice::ReadOnly))
+    return;
+  auto o = QJsonDocument::fromJson(f.readAll()).object();
+  f.close();
+  o.insert(QStringLiteral("display"), screens ? QStringLiteral("screen") : QStringLiteral("projector"));
+  QSaveFile out{json};
+  if(out.open(QIODevice::WriteOnly))
+  {
+    out.write(QJsonDocument{o}.toJson());
+    out.commit();
+  }
+}
+
+bool CalibrationRun::isScreen(const QString& json)
+{
+  QFile f{json};
+  if(!f.open(QIODevice::ReadOnly))
+    return false;
+  return QJsonDocument::fromJson(f.readAll()).object().value(QStringLiteral("display"))
+         == QStringLiteral("screen");
+}
+
 QString CalibrationRun::outputLabel(int k) const
 {
   const auto& sel = m_setup.plan.outputs;
@@ -53,11 +81,17 @@ void CalibrationRun::saveResults()
   const auto& results = m_session.results();
   for(int i = 0; i < (int)results.size() && i < m_setup.plan.names.size(); i++)
     if(const auto& r = results[i]; r && r->ok && !r->fromFile)
-      if(!StructuredLightCore::saveFile(
-             QString(m_setup.plan.names[i] + QStringLiteral(".json")).toStdString(), *r))
-        m_log.push_back(QObject::tr("Output %1: cannot write %2.json")
+    {
+      const QString json = m_setup.plan.names[i] + QStringLiteral(".json");
+      if(!StructuredLightCore::saveFile(json.toStdString(), *r))
+      {
+        m_log.push_back(QObject::tr("Output %1: cannot write %2")
                             .arg(outputLabel(i))
-                            .arg(m_setup.plan.names[i]));
+                            .arg(json));
+        continue;
+      }
+      markDisplay(json, m_setup.screens);
+    }
 }
 
 void CalibrationRun::release()
@@ -237,7 +271,38 @@ void CalibrationRun::tick(double now)
   if(m_camera)
   {
     m_camera->take(m_rgba, m_rgbaW, m_rgbaH);
-    if(!m_frameSizeLogged && !m_rgba.empty())
+    uint64_t h = 1469598103934665603ull;
+    for(std::size_t i = 0; i < m_rgba.size(); i += 97)
+    {
+      uint32_t b;
+      std::memcpy(&b, &m_rgba[i], 4);
+      h = (h ^ b) * 1099511628211ull;
+    }
+    if(!m_rgba.empty() && h != m_lastHash)
+    {
+      m_lastHash = h;
+      m_cameraFrames++;
+      m_lastFrameAt = now;
+    }
+    else if(m_session.capturing() && now - m_lastFrameAt > m_setup.stallMs)
+    {
+      if(m_reopens++ < 2 && m_setup.cameraActive)
+      {
+        m_log.push_back(QObject::tr("The camera delivered no frame for %1 s, reopening it")
+                            .arg(int(m_setup.stallMs / 1000.)));
+        m_camera.reset();
+        m_rgba.clear();
+        m_frameSizeLogged = false;
+        m_setup.cameraActive(false);
+        m_reopenAt = now + 2000.;
+        return;
+      }
+      abort(QObject::tr("The camera delivered no frame for %1 s: is it streaming, or held "
+                        "by another program?")
+                .arg(int(m_setup.stallMs / 1000.)));
+      return;
+    }
+    if(!m_frameSizeLogged && !m_rgba.empty() && m_cameraFrames >= 2)
     {
       const QSize want = m_setup.expectedCameraSize;
       if(want.isValid() && !want.isEmpty() && QSize(m_rgbaW, m_rgbaH) != want)
@@ -265,25 +330,6 @@ void CalibrationRun::tick(double now)
       }
       m_frameSizeLogged = true;
       m_log.push_back(QObject::tr("Camera: %1x%2").arg(m_rgbaW).arg(m_rgbaH));
-    }
-    uint64_t h = 1469598103934665603ull;
-    for(std::size_t i = 0; i < m_rgba.size(); i += 97)
-    {
-      uint32_t b;
-      std::memcpy(&b, &m_rgba[i], 4);
-      h = (h ^ b) * 1099511628211ull;
-    }
-    if(!m_rgba.empty() && h != m_lastHash)
-    {
-      m_lastHash = h;
-      m_cameraFrames++;
-      m_lastFrameAt = now;
-    }
-    else if(m_session.capturing() && now - m_lastFrameAt > m_setup.stallMs)
-    {
-      abort(QObject::tr("The camera delivered no frame for %1 s: is it streaming?")
-                .arg(int(m_setup.stallMs / 1000.)));
-      return;
     }
   }
   if(m_positions)
@@ -366,7 +412,10 @@ void CalibrationRun::tick(double now)
             completed.status = r->status + " | completed from " + c.status;
             if(StructuredLightCore::saveFile(
                    QString(base + QStringLiteral(".json")).toStdString(), completed))
+            {
+              markDisplay(base + QStringLiteral(".json"), setup.screens);
               directions = std::move(completed.xyz);
+            }
             else
               out.log.push_back(QObject::tr("Output %1: cannot write the completed map").arg(label(i)));
           }

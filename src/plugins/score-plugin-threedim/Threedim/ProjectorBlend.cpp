@@ -116,11 +116,14 @@ ProjectorBlendMaps::compute(std::vector<CalibrationFile> cals, const Settings& s
       const QString qbase = QString::fromStdString(cals[i].base);
       if(writeMap(qbase + ".alpha.pfm", res.alpha[i], P[i].width, P[i].height, res.channels))
         af = QString(qbase + ".alpha.pfm").toStdString();
-      if(writeMap(qbase + ".beta.pfm", res.beta[i], P[i].width, P[i].height, res.channels))
+      if(!s.blackCompensation)
+        QFile::remove(qbase + ".beta.pfm");
+      else if(writeMap(qbase + ".beta.pfm", res.beta[i], P[i].width, P[i].height, res.channels))
         bf = QString(qbase + ".beta.pfm").toStdString();
       QJsonObject o;
       o["alphaMap"] = QFileInfo(qbase + ".alpha.pfm").fileName();
-      o["betaMap"] = QFileInfo(qbase + ".beta.pfm").fileName();
+      if(s.blackCompensation)
+        o["betaMap"] = QFileInfo(qbase + ".beta.pfm").fileName();
       o["linearLight"] = s.encodeGamma == 1.f;
       o["encodeGamma"] = s.encodeGamma;
       o["colorGainLinear"]
@@ -162,7 +165,7 @@ ProjectorBlendMaps::compute(std::vector<CalibrationFile> cals, const Settings& s
     std::snprintf(buf, sizeof(buf), " %.0f%%", 100.f * o);
     r.status += buf;
   }
-  if(res.blackTarget > 0.f)
+  if(s.blackCompensation && res.blackTarget > 0.f)
   {
     std::snprintf(buf, sizeof(buf), ", black raised to %.4f", res.blackTarget);
     r.status += buf;

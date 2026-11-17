@@ -237,6 +237,11 @@ TEST_CASE(
     CHECK(QFile::exists(n + ".warp.pfm"));
     CHECK(QFile::exists(n + ".warp.valid.pfm"));
     CHECK(QFile::exists(n + ".measured.xyz.pfm"));
+    CHECK_FALSE(QFile::exists(n + ".beta.pfm"));
+    CHECK_FALSE(Threedim::CalibrationRun::isScreen(n + ".json"));
+    QFile j{n + ".json"};
+    REQUIRE(j.open(QIODevice::ReadOnly));
+    CHECK(j.readAll().contains("\"display\": \"projector\""));
   }
   REQUIRE(assigned.outputs.size() == std::size_t(Outputs));
   CHECK(assigned.outputs[0].maps.warp == base + ".warp.pfm");
