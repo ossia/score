@@ -701,6 +701,7 @@ static void setup_locale()
 
 static void setup_app_flags()
 {
+  qputenv("ORT_DISABLE_TELEMETRY", "1");
   qputenv("QSG_USE_SIMPLE_ANIMATION_DRIVER", "1");
   qputenv("QSG_RENDER_LOOP", "basic");
   qputenv("QT3D_RENDERER", "rhi");
