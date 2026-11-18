@@ -1840,6 +1840,16 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
       "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
       "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
 
+    # A MIDI process deleted, unplugged, stopped, moved, muted or paused while
+    # it holds a note: nothing is left sounding after it or on its device.
+    score_add_test(test_unit_midi_note_release_exec
+      SOURCES MidiNoteReleaseExecTest.cpp
+      APP
+      PLUGINS score_plugin_avnd score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
+    target_include_directories(test_unit_midi_note_release_exec PRIVATE
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish"
+      "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish/examples")
+
     # A document closed while it plays: its processes' MIDI inlets are
     # unregistered before the device explorer destroys the MIDI device.
     score_add_test(test_unit_execution_close_while_playing

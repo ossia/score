@@ -60,10 +60,13 @@ struct node_graph_process final : public looping_process<node_graph_process>
     for(auto& process : processes)
     {
       process->stop();
+      if(process->node)
+        process->node->request_note_release();
     }
     for(auto& node : nodes)
     {
       node->all_notes_off();
+      node->request_note_release();
     }
   }
 
@@ -92,6 +95,7 @@ struct node_graph_process final : public looping_process<node_graph_process>
     for(auto& node : nodes)
     {
       node->all_notes_off();
+      node->request_note_release();
     }
   }
 
@@ -104,6 +108,7 @@ struct node_graph_process final : public looping_process<node_graph_process>
     for(auto& node : nodes)
     {
       node->all_notes_off();
+      node->request_note_release();
     }
   }
 
