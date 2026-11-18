@@ -197,6 +197,7 @@ then
   clone_addon https://github.com/ossia/score-addon-ndi
   clone_addon https://github.com/ossia/score-addon-openzen
   clone_addon https://github.com/ossia/score-addon-spatgris
+  clone_addon https://github.com/edumeneses/score-addon-spat gris
   # Stream Deck devices require native HID support.
   clone_addon https://github.com/ossia/score-addon-streamdeck
   clone_addon https://github.com/ossia/score-addon-ultraleap
