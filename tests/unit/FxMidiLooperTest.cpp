@@ -846,6 +846,53 @@ TEST_CASE("MIDI looper: an extending overdub stopped just past the end does not 
     CHECK(h.node.loop.notes[i].pitch != 64);
 }
 
+TEST_CASE("MIDI looper: a note sounding in the part an extending overdub is cut back "
+          "from ends when it is cut",
+          "[fx][midi][looper][musical]")
+{
+  midi_harness h{4800, 48000};
+  h.musical = true;
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
+  h.node.inputs.late.value = 120;
+  h.node.inputs.past_end.value = Nodes::Looper::PastEnd::Extend;
+  const int64_t bar = 96000;
+
+  // A note of 20000 frames at the start of a loop of one bar.
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_frames(bar);
+  h.node.inputs.mode = LoopMode::Record;
+  h.note_on(60, 10);
+  h.run_frames(19200);
+  h.note_off(60, 810);
+  h.run_frames(bar - 19200);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(2 * bar);
+  REQUIRE(h.node.loop.length == 3 * bar);
+
+  // 100 ms past the bar line the loop last grew on, the note sounds again.
+  h.run();
+  h.out.clear();
+  h.node.inputs.mode = LoopMode::Play;
+  h.run();
+  REQUIRE(h.node.loop.length == 2 * bar);
+
+  // It ends with the part it was played in, not a round later.
+  const int64_t cut = h.now;
+  h.run_frames(bar / 2);
+  const auto offs = h.offs();
+  REQUIRE(offs.size() >= 1);
+  CHECK(offs[0].pitch == 60);
+  CHECK(offs[0].at <= cut);
+  h.run_frames(4 * bar);
+  for(auto& n : h.out)
+    if(n.on)
+    {
+      h.out.erase(h.out.begin(), h.out.begin() + (&n - h.out.data()));
+      break;
+    }
+  CHECK(h.out.size() % 2 == 0);
+}
+
 TEST_CASE("MIDI looper: an extending overdub cut back to the loop replaces only where "
           "it went",
           "[fx][midi][looper]")
@@ -1269,6 +1316,244 @@ TEST_CASE("MIDI looper: the notes of an erased pass that are sounding end at onc
   CHECK(h.offs().size() == 1);
   CHECK(h.offs()[0].pitch == 67);
   CHECK(round_pitches(h, 640) == std::multiset<int>{60, 72});
+}
+
+namespace
+{
+//! Every note-off comes after the note-on it ends, and nothing is left
+//! sounding: by pitch, in the order the events went out.
+bool every_note_ends(const std::vector<out_note>& out)
+{
+  std::map<int, int> s;
+  for(auto& n : out)
+  {
+    auto& c = s[n.pitch];
+    c += n.on ? 1 : -1;
+    if(c < 0)
+      return false;
+  }
+  for(auto& [p, c] : s)
+    if(c != 0)
+      return false;
+  return true;
+}
+
+//! A loop of four beats, its second pass holding a note from 100 frames
+//! before the second beat; played up to 1000 frames before that beat, with
+//! the changes of layers waiting for the beat.
+void loop_with_note_before_a_beat(midi_harness& h)
+{
+  constexpr int64_t beat = 24000;
+  h.musical = true;
+  h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
+  record(h, 4 * beat, [](midi_harness& h) { short_note(h, 60, 10); });
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run_frames(beat - 100);
+  h.note_on(67, 0);
+  h.run_frames(20000);
+  h.note_off(67, 0);
+  h.run_frames(4 * beat - (beat - 100) - 20000);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_frames(4 * beat);
+  REQUIRE(h.node.loop.count == 2);
+  REQUIRE(h.now % (4 * beat) == 0);
+
+  h.node.inputs.quantif.value = halp::grid_value::note(0.25);
+  h.run_frames(beat - 1000);
+  h.out.clear();
+}
+}
+
+TEST_CASE("MIDI looper: a pass erased on a beat inside a tick ends the note it started "
+          "earlier in that tick",
+          "[fx][midi][looper][erase]")
+{
+  midi_harness h{4096};
+  loop_with_note_before_a_beat(h);
+
+  // The tick holds the start of the note, at 900, and the beat, at 1000.
+  h.node.inputs.layer.value = 2;
+  h.node.inputs.erase_layer.value.emplace();
+  h.run(2000);
+  h.node.inputs.erase_layer.value.reset();
+  h.run_frames(48000);
+
+  REQUIRE(h.node.loop.count == 1);
+  REQUIRE(h.ons().size() >= 1);
+  CHECK(h.ons()[0].pitch == 67);
+  CHECK(every_note_ends(h.out));
+}
+
+TEST_CASE("MIDI looper: a pass muted on a beat inside a tick ends the note it started "
+          "earlier in that tick",
+          "[fx][midi][looper][mute]")
+{
+  midi_harness h{4096};
+  loop_with_note_before_a_beat(h);
+
+  h.node.inputs.layer.value = 2;
+  h.node.inputs.mute_layer.value.emplace();
+  h.run(2000);
+  h.node.inputs.mute_layer.value.reset();
+  h.run_frames(48000);
+
+  REQUIRE(h.ons().size() >= 1);
+  CHECK(h.ons()[0].pitch == 67);
+  CHECK(every_note_ends(h.out));
+}
+
+TEST_CASE("MIDI looper: a pass soloed away on a beat inside a tick ends the note it "
+          "started earlier in that tick",
+          "[fx][midi][looper][solo]")
+{
+  midi_harness h{4096};
+  loop_with_note_before_a_beat(h);
+
+  h.node.inputs.layer.value = 1;
+  h.node.inputs.solo_layer.value.emplace();
+  h.run(2000);
+  h.node.inputs.solo_layer.value.reset();
+  h.run_frames(48000);
+
+  REQUIRE(h.ons().size() >= 1);
+  CHECK(h.ons()[0].pitch == 67);
+  CHECK(every_note_ends(h.out));
+}
+
+TEST_CASE("MIDI looper: whatever takes away or moves what plays ends the note that "
+          "sounds, at once and once",
+          "[fx][midi][looper][release]")
+{
+  enum Action
+  {
+    Clear,
+    Undo,
+    UndoRedo,
+    ModeStop,
+    Reverse,
+    Retrigger,
+    Transpose,
+    OutChannel,
+    StopButton,
+    ScoreStop
+  };
+  static constexpr const char* names[] = {
+      "Clear", "Undo", "Undo then Redo", "Mode to Stop", "Reverse",
+      "Retrigger", "Transpose", "Out channel", "Stop button", "the score stopping"};
+
+  for(const Action action :
+      {Clear, Undo, UndoRedo, ModeStop, Reverse, Retrigger, Transpose,
+       OutChannel, StopButton, ScoreStop})
+  {
+    DYNAMIC_SECTION(names[action])
+    {
+      midi_harness h;
+      h.node.inputs.start_from = Nodes::Looper::StartFrom::WhereItWas;
+      record(h, 640, [](midi_harness& h) { short_note(h, 60, 10); });
+      // A second pass with a note held over most of the loop.
+      h.node.inputs.mode = LoopMode::Overdub;
+      h.note_on(67, 1);
+      h.run_frames(576);
+      h.note_off(67, 0);
+      h.run_frames(64);
+      h.node.inputs.mode = LoopMode::Play;
+      h.run();
+      REQUIRE(h.node.loop.count == 2);
+
+      // From here on everything that goes out is kept: the note-on of the
+      // round being played, then what the action does to it.
+      h.out.clear();
+      int64_t started = -1;
+      for(int i = 0; i < 40 && started < 0; i++)
+      {
+        h.run();
+        for(auto& n : h.ons())
+          if(n.pitch == 67)
+            started = n.at;
+      }
+      REQUIRE(started >= 0);
+      // Kept from the note-on of this round: what came before belongs to the
+      // rounds already played.
+      std::erase_if(h.out, [&](const out_note& n) {
+        return n.at < started || (n.at == started && n.pitch != 67);
+      });
+      h.run();
+      for(auto& n : h.offs())
+        REQUIRE(n.pitch != 67);
+
+      const int64_t before = h.now;
+      switch(action)
+      {
+        case Clear:
+          h.press(h.node.inputs.clear);
+          break;
+        case Undo:
+          h.press(h.node.inputs.undo);
+          break;
+        case UndoRedo:
+          h.press(h.node.inputs.undo);
+          h.press(h.node.inputs.redo);
+          break;
+        case ModeStop:
+          h.node.inputs.mode = LoopMode::Stop;
+          h.run();
+          break;
+        case Reverse:
+          h.node.inputs.reverse.value = true;
+          h.run();
+          break;
+        case Retrigger:
+          h.press(h.node.inputs.retrigger);
+          break;
+        case Transpose:
+          h.node.inputs.transpose.value = 3;
+          h.run();
+          break;
+        case OutChannel:
+          h.node.inputs.out_channel.value = 5;
+          h.run();
+          break;
+        case StopButton:
+          h.press(h.node.inputs.stop);
+          break;
+        case ScoreStop:
+          h.node.stop();
+          h.run(0);
+          break;
+      }
+
+      // The note that sounded ends in the tick of the action, on the channel
+      // it went out on.
+      std::vector<out_note> offs;
+      for(auto& n : h.offs())
+        if(n.pitch == 67)
+          offs.push_back(n);
+      REQUIRE(offs.size() >= 1);
+      CHECK(offs[0].channel == 1);
+      CHECK(offs[0].at >= before);
+      CHECK(offs[0].at <= before + h.buffer_size);
+
+      // And whatever the loop plays afterwards ends too.
+      h.run_frames(3 * 640);
+      h.node.inputs.mode = LoopMode::Stop;
+      h.run();
+      h.run();
+      std::map<std::pair<int, int>, int> sounding;
+      bool ordered = true;
+      for(auto& n : h.out)
+      {
+        auto& c = sounding[{n.channel, n.pitch}];
+        c += n.on ? 1 : -1;
+        ordered &= c >= 0;
+      }
+      CHECK(ordered);
+      for(auto& [key, c] : sounding)
+      {
+        INFO("channel " << key.first << " pitch " << key.second);
+        CHECK(c == 0);
+      }
+    }
+  }
 }
 
 TEST_CASE("MIDI looper: erasing a pass is done after what undo took back, which redo "
