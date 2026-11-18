@@ -429,6 +429,7 @@ struct Node : Looper::looper_node<Node>
   void operator()(const tick& tk)
   {
     m_out_count = 0;
+    m_release_at = 0;
     m_tick_frames = ossia_state.timings(tk).length;
     if(std::exchange(m_stop_requested, false))
       stop_score();
@@ -563,7 +564,9 @@ private:
   const Looper::midi_loop& stack() const noexcept { return loop; }
   //! The notes of the loop end: the ones of a pass that goes would be left
   //! sounding, and the ones it replaced would start in the middle.
-  void layers_changing() { flush_loop(0); }
+  //! Not before the note-ons the tick already sent: a pass can go on a grid
+  //! point inside the tick, after the notes before it were played.
+  void layers_changing() { flush_loop(m_release_at); }
   bool busy() const noexcept { return false; }
   void cleared() noexcept { }
   void pass_dropped() noexcept { loop.taking = false; }
@@ -615,8 +618,11 @@ private:
   bool cut_after(int64_t end) const noexcept { return loop.taking && loop.pass_start >= end; }
   void cut_pass_dropped() noexcept { }
   void trim_top_pass(int64_t end);
-  void head_moved(int64_t pos) noexcept
+  //! The notes sounding were to end at positions of the loop the playhead
+  //! left: they end here.
+  void head_moved(int64_t pos)
   {
+    flush_loop(m_release_at);
     m_phase = double(pos);
     m_expected_pos = pos;
   }
@@ -740,6 +746,8 @@ private:
 
   int64_t m_now{};
   int64_t m_tick_frames{};
+  //! First frame of the tick at which the notes of the loop can all be ended
+  int64_t m_release_at{};
   int64_t m_expected_pos{};
   int m_loop_total{};
   std::size_t m_in_index{};
@@ -858,6 +866,8 @@ inline void Node::note_on(int ch, int pitch, int vel, int64_t ts, bool from_loop
   {
     m_loop_sounding[ch - 1][pitch]++;
     m_loop_total++;
+    // A note-off of the same frame would be sorted before this note-on.
+    m_release_at = std::max(m_release_at, ts + 1);
   }
   if(m_sounding[ch - 1][pitch]++ == 0)
     emit(ts, libremidi::channel_events::note_on(ch, pitch, std::clamp(vel, 1, 127)));
