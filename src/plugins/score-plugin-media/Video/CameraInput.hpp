@@ -17,6 +17,7 @@ extern "C" {
 #include <score_plugin_media_export.h>
 
 #include <atomic>
+#include <memory>
 #include <string>
 #include <thread>
 namespace Video
@@ -51,6 +52,7 @@ private:
   void close_stream() noexcept;
   bool alloc_format_context() noexcept;
   ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
+  bool start_when_authorized() noexcept;
 
   static const constexpr int frames_to_buffer = 1;
 
@@ -70,6 +72,10 @@ private:
   std::string m_inputDevice;
 
   std::atomic_bool m_running{};
+
+  //! Lets the answer to the OS camera prompt find this input, if still alive
+  struct PendingStart;
+  std::shared_ptr<PendingStart> m_pendingStart;
 };
 
 }
