@@ -1001,6 +1001,7 @@ struct descriptor
   } mode{ISF};
   std::string description;
   std::string credits;
+  std::string documentation;
   std::vector<std::string> categories;
 
   // ALPHA: what every colour output writes, unless an OUTPUTS entry says
