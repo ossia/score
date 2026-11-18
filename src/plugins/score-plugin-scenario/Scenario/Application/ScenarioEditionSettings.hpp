@@ -63,6 +63,8 @@ public:
   void recordPlaybackChanged(bool b)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recordPlaybackChanged, b)
 
+  void viewSelection() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewSelection)
+
   W_PROPERTY(Scenario::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
 
   W_PROPERTY(LockMode, lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
