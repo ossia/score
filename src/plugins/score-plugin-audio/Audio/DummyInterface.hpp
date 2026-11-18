@@ -29,7 +29,8 @@ public:
   std::shared_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set, const score::ApplicationContext& ctx) override
   {
-    return std::make_shared<ossia::dummy_engine>(set.getRate(), set.getBufferSize());
+    return std::make_shared<ossia::dummy_engine>(
+        set.getRate(), set.getBufferSize(), set.getDefaultIn(), set.getDefaultOut());
   }
 
   static void updateLabel(QLabel& l, int bs, int rate)
