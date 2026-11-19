@@ -186,6 +186,13 @@ clone_addon https://github.com/ossia/score-addon-deuterium
 # Emulated synthesizers and console sound chips.
 clone_addon https://github.com/ossia/score-addon-emulation
 
+# Opt in from native Linux builds with FFTW, libsamplerate and network access
+# during the build. Essentia's Waf build cannot run in the Flatpak sandbox.
+if [[ "$CI_PLATFORM" == "LINUX" && "${SCORE_CI_ENABLE_ESSENTIA:-0}" == "1" ]]; then
+  # Use the no-test-submodules fix until ossia/score-addon-essentia#1 lands.
+  clone_addon https://github.com/ossia/score-addon-essentia refs/pull/1/head
+fi
+
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
   clone_addon https://github.com/ossia/score-addon-ble

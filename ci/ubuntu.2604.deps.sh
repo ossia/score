@@ -25,6 +25,7 @@ $SUDO apt install -y \
      software-properties-common wget \
      libasound-dev \
      ninja-build cmake \
+     pkg-config python3 libeigen3-dev \
      libfftw3-dev \
      libdbus-1-dev \
      libsuil-dev liblilv-dev lv2-dev \
@@ -46,4 +47,4 @@ $SUDO apt install -y \
      dpkg-dev
 
 
-source ci/common.deps.sh LINUX
+SCORE_CI_ENABLE_ESSENTIA=1 source ci/common.deps.sh LINUX
