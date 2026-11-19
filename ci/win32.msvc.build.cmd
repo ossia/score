@@ -1,10 +1,11 @@
+if not defined SCORE_MSVC_TOOLSET set "SCORE_MSVC_TOOLSET=ClangCL"
 set SCORE_DIR=%cd%
 mkdir build
 cd build
 
 cmake %SCORE_DIR% ^
   -G"Visual Studio 18 2026" ^
-  -T ClangCL ^
+  -T "%SCORE_MSVC_TOOLSET%" ^
   -DCMAKE_PREFIX_PATH="%Qt6_DIR%" ^
   -DCMAKE_BUILD_TYPE=Release ^
   -DOSSIA_SDK=c:\ossia-sdk-msvc ^

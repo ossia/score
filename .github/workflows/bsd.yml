@@ -54,7 +54,7 @@ jobs:
           pkg install -y \
             bash \
             boost-libs \
-            cmake git \
+            cmake git python3 \
             llvm19 \
             ninja \
             qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml qt6-imageformats qt6-connectivity \
