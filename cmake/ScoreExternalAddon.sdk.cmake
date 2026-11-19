@@ -100,7 +100,7 @@ set(CXX_VERSION_FLAG cxx_std_23)
 set(CMAKE_CXX_STANDARD 23)
 
 target_compile_options(score_lib_base INTERFACE
-  -std=c++23
+  $<$<COMPILE_LANGUAGE:CXX>:-std=c++23>
   -fPIC
 )
 target_compile_options(score_lib_base INTERFACE
