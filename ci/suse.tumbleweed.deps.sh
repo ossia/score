@@ -11,7 +11,7 @@ source ci/common.deps.sh LINUX
 # $SUDO zypper -n remove busybox-which
 $SUDO zypper -n install \
    git \
-   cmake ninja gcc gcc-c++ \
+   cmake ninja gcc gcc-c++ python3 \
    libquadmath-devel \
    llvm-devel \
    libjack-devel alsa-devel \

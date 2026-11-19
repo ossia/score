@@ -8,9 +8,9 @@ source ci/common.setup.sh
 # 24.04+). With APPIMAGE_EXTRACT_AND_RUN=1 the build needs no FUSE, so libfuse2
 # is not required here. On the self-hosted host job these are pre-installed and
 # we are not root, so this apt block is skipped.
-if ! command -v wget >/dev/null 2>&1 || ! command -v desktop-file-validate >/dev/null 2>&1; then
+if ! command -v wget >/dev/null 2>&1 || ! command -v desktop-file-validate >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
   $SUDO apt-get update -qq
-  $SUDO apt-get install -y wget desktop-file-utils libfuse2t64 || $SUDO apt-get install -y wget desktop-file-utils libfuse2
+  $SUDO apt-get install -y wget desktop-file-utils python3 libfuse2t64 || $SUDO apt-get install -y wget desktop-file-utils python3 libfuse2
 fi
 
 if [[ "${CPU_ARCH}" == "aarch64" ]]; then

@@ -18,7 +18,7 @@ $SUDO apt-get install -qq --force-yes \
      file \
      libasound2-dev \
      ninja-build \
-     pkg-config python3 libeigen3-dev \
+     python3 \
      clang-$CLANG_VERSION lld-$CLANG_VERSION libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev clang-tools-$CLANG_VERSION \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \
@@ -38,4 +38,4 @@ $SUDO apt-get install -qq --force-yes \
      libpipewire-0.3-dev \
      libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev
 
-SCORE_CI_ENABLE_ESSENTIA=1 source ci/common.deps.sh LINUX
+source ci/common.deps.sh LINUX

@@ -274,6 +274,7 @@ jobs:
           pacboy: >-
             cmake:p
             ninja:p
+            python:p
             toolchain:p
             cppwinrt:p
             qt6-base:p
@@ -298,8 +299,12 @@ jobs:
           ./ci/win32.mingw.build.sh
 
   winmvsc:
-    name: MSVC
+    name: MSVC (${{ matrix.toolset }})
     runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        toolset: [v145, ClangCL]
     steps:
       - name: Long path support
         run: git config --global core.longpaths true
@@ -327,6 +332,8 @@ jobs:
 
       - name: Build
         shell: cmd
+        env:
+          SCORE_MSVC_TOOLSET: ${{ matrix.toolset }}
         run: |
           call "%cd%\ci\win32.msvc.build.cmd"
 
