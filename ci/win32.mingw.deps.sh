@@ -14,7 +14,6 @@
 #fi
 
 # The MSYS2 build disables FetchContent downloads; stage the pinned source here.
-# FFTW is already provided by the MSYS2 package list.
 essentia_archive="$(mktemp)"
 trap 'rm -f -- "$essentia_archive"' EXIT
 curl -fsSL https://codeload.github.com/MTG/essentia/tar.gz/23ae7baddecfc3227ba23ad69fa11f73ac5293a4 -o "$essentia_archive"

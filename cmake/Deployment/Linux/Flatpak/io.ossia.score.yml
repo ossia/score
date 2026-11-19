@@ -139,16 +139,11 @@ modules:
       - modules/gsl.yaml
       - modules/nlohmann-json.yaml
 
-      # Essentia and the single-precision FFTW fallback are built offline.
+      # Essentia's source must be staged before the offline build.
       - type: archive
         url: https://codeload.github.com/MTG/essentia/tar.gz/23ae7baddecfc3227ba23ad69fa11f73ac5293a4
         sha256: 41d8ce1308b3471059c67f9e6c857a97e766dfb0b0b741cfedea6db624738c32
         dest: flatpak-essentia-deps/essentia
-        strip-components: 1
-      - type: archive
-        url: https://fftw.org/fftw-3.3.10.tar.gz
-        sha256: 56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467
-        dest: flatpak-essentia-deps/fftw
         strip-components: 1
 
       - type: script
@@ -184,7 +179,6 @@ modules:
       - -DFETCHCONTENT_SOURCE_DIR_GSL=/run/build/ossia-score/flatpak-onnx-deps/gsl
       - -DFETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON=/run/build/ossia-score/flatpak-onnx-deps/nlohmann_json
       - -DSCORE_ESSENTIA_SOURCE_DIR=/run/build/ossia-score/flatpak-essentia-deps/essentia
-      - -DFETCHCONTENT_SOURCE_DIR_SCORE_ESSENTIA_FFTW=/run/build/ossia-score/flatpak-essentia-deps/fftw
 
     post-install:
       - install -Dm755 /usr/lib/sdk/llvm22/lib/libLLVM.so.22.1 "${FLATPAK_DEST}/lib/"
