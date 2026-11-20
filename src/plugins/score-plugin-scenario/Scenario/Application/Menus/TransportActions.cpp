@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TransportActions.hpp"
 
+#include <Scenario/Application/Menus/TransportDisplay.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -147,47 +148,7 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   // plus everything in the play menu
   {
     auto bar = new QToolBar{tr("Transport")};
-    {
-      struct fixed_label : public QLabel
-      {
-        QSize sz;
-        fixed_label() noexcept
-        {
-          setObjectName("TimeLabel");
-          setTextFormat(Qt::PlainText);
-          setAlignment(Qt::AlignRight);
-          setText("00:00:00.000");
-
-          applySkinFont();
-          QObject::connect(
-              &score::Skin::instance(), &score::Skin::changed, this,
-              [this] { applySkinFont(); });
-        }
-
-        //! The size is cached against relayout, so re-measure as well.
-        void applySkinFont()
-        {
-          const QFont& f = score::Skin::instance().TimecodeFont;
-          setFont(f);
-
-          QFontMetrics mf{f};
-          sz = mf.boundingRect("0000:00:00.000").size();
-
-          // see QWidgetPrivate::updateGeometry_helper
-          setMinimumSize(sz);
-          setMaximumSize(sz);
-          updateGeometry();
-        }
-
-        QSize sizeHint() const override { return sz; }
-        QSize minimumSizeHint() const override { return sz; }
-        int heightForWidth(int) const override { return sz.height(); }
-      };
-
-      auto time_label = new fixed_label;
-
-      bar->addWidget(time_label);
-    }
+    bar->addWidget(new TransportDisplay{bar});
 
     bar->addAction(m_play);
     bar->addAction(m_playGlobal);
