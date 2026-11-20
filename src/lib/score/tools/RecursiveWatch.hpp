@@ -52,14 +52,24 @@ public:
 
   void setWatchedFolder(std::string root) { m_root = root; }
 
+  //! Extensions are matched whatever their case: "sf2" also watches "A.SF2".
   void registerWatch(std::string extension, Callbacks callbacks)
   {
-    m_watched[extension].push_back(std::move(callbacks));
+    m_watched[lowercase(std::move(extension))].push_back(std::move(callbacks));
   }
 
   void registerWatch(std::string extension, AsyncCallbacks callbacks)
   {
-    m_asyncWatched[extension].push_back(std::move(callbacks));
+    m_asyncWatched[lowercase(std::move(extension))].push_back(std::move(callbacks));
+  }
+
+  //! ASCII only: an extension is letters, digits and a few signs.
+  static std::string lowercase(std::string extension) noexcept
+  {
+    for(char& c : extension)
+      if(c >= 'A' && c <= 'Z')
+        c += 'a' - 'A';
+    return extension;
   }
 
   /// Synchronous scan: calls Callbacks::added on the calling thread.
