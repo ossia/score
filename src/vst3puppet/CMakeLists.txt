@@ -43,7 +43,7 @@ if(APPLE)
 elseif(WIN32)
   target_link_libraries(ossia-score-vst3puppet PRIVATE user32 gdi32 ws2_32 uuid)
 else()
-  target_include_directories(ossia-score-vstpuppet PRIVATE "${X11_X11_INCLUDE_PATH}")
+  target_include_directories(ossia-score-vst3puppet PRIVATE "${X11_X11_INCLUDE_PATH}")
 endif()
 
 target_include_directories(
