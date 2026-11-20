@@ -23,6 +23,7 @@ $SUDO apt-get install -qq --force-yes \
      file \
      libasound-dev \
      ninja-build \
+     python3 \
      libclang-$CLANG_VERSION-dev llvm-$CLANG_VERSION-dev \
      libfftw3-dev \
      libsuil-dev liblilv-dev lv2-dev \

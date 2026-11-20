@@ -6,7 +6,7 @@ source ci/common.setup.sh
 pkg install -y \
   bash \
   boost-libs \
-  cmake git \
+  cmake git python3 \
   llvm18 \
   qt6-base qt6-declarative qt6-shadertools qt6-websockets qt6-serialport qt6-scxml qt6-svg qt6-connectivity \
   ffmpeg \
