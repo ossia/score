@@ -48,8 +48,13 @@ SCORE_PLUGIN_MIDI_TEST_EXPORT void euclidean(
 //! accent and slide lanes stay. False when nothing could move.
 SCORE_PLUGIN_MIDI_TEST_EXPORT bool transpose(Pattern& p, int semitones) noexcept;
 
-//! A copy of the last note lane, before the accent and slide lanes.
-SCORE_PLUGIN_MIDI_TEST_EXPORT void addLane(Pattern& p);
+//! An empty lane under lane `after`, or under the last note lane when `after`
+//! is not a lane. It gets the nearest note under its neighbour's that no lane
+//! plays. Its index, or -1 when the pattern is full.
+SCORE_PLUGIN_MIDI_TEST_EXPORT int addLane(Pattern& p, int after = -1);
+//! Moves a lane `delta` lanes down, up when negative, as far as the list goes.
+//! Its new index, or -1 when it stays where it is.
+SCORE_PLUGIN_MIDI_TEST_EXPORT int moveLane(Pattern& p, int lane, int delta) noexcept;
 //! The accent or slide lane, at the bottom: false when the pattern has it.
 SCORE_PLUGIN_MIDI_TEST_EXPORT bool addControlLane(Pattern& p, uint8_t note) noexcept;
 SCORE_PLUGIN_MIDI_TEST_EXPORT bool hasLane(const Pattern& p, uint8_t note) noexcept;
