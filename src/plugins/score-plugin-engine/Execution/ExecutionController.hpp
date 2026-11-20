@@ -45,6 +45,13 @@ public:
 
   TimeVal execution_time() const;
 
+  //! Whether an execution exists, playing or paused.
+  bool has_execution() const noexcept;
+
+  //! The interval execution_time() is a date in: the root of what plays, or
+  //! of the current document when nothing does.
+  const Scenario::IntervalModel* execution_interval() const;
+
   // Transport interface requests actual change to the execution.
   // Source can be either a GUI interaction, or a control from elsewhere,
   // e.g. JACK transport

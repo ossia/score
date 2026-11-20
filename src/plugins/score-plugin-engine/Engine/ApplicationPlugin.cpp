@@ -6,6 +6,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
 
+#include <Scenario/Application/Menus/TransportDisplay.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
@@ -123,9 +124,9 @@ void ApplicationPlugin::initialize()
       auto cld = tb->children();
       if(!cld.empty())
       {
-        auto label = tb->findChild<QLabel*>("TimeLabel");
-        if(label)
-          setupTimingWidget(label);
+        if(auto display = dynamic_cast<Scenario::TransportDisplay*>(
+               tb->findChild<QWidget*>("TimeLabel")))
+          setupTimingWidget(display);
 
         m_speedSlider = dynamic_cast<Scenario::SpeedWidget*>(cld.back());
       }
@@ -162,39 +163,22 @@ void ApplicationPlugin::initialize()
   m_execution.init_transport();
 }
 
-QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label)
+QWidget* ApplicationPlugin::setupTimingWidget(Scenario::TransportDisplay* display)
 {
-  score::setHelp(time_label, tr("Elapsed time since the beginning of playback"));
+  score::setHelp(display, tr("Elapsed time since the beginning of playback"));
 
-  auto c = connect(
-      &execution_ui_clock_timer, &QTimer::timeout, time_label, [this, time_label] {
-    auto t = m_execution.execution_time();
-    if(t == TimeVal::zero())
-    {
-      time_label->setText(QStringLiteral("00:00:00.000"));
-    }
-    else
-    {
-      const double one_hour_in_ms = 3600 * 1000;
-      const double one_minute_in_ms = 60000;
-      const double one_second_in_ms = 1000;
-      int64_t ms = t.impl / ossia::flicks_per_millisecond<double>;
-      int64_t hours = ms / one_hour_in_ms;
-      ms -= hours * one_hour_in_ms;
-      int64_t minutes = ms / one_minute_in_ms;
-      ms -= minutes * one_minute_in_ms;
-      int64_t seconds = ms / one_second_in_ms;
-      ms -= seconds * one_second_in_ms;
+  auto& settings = this->context.settings<Scenario::Settings::Model>();
+  display->setMusical(settings.getMeasureBars());
+  con(settings, &Scenario::Settings::Model::MeasureBarsChanged, display,
+      [display](bool musical) { display->setMusical(musical); });
 
-      time_label->setText(QStringLiteral("%1:%2:%3.%4")
-                              .arg(hours, 2, 10, QLatin1Char('0'))
-                              .arg(minutes, 2, 10, QLatin1Char('0'))
-                              .arg(seconds, 2, 10, QLatin1Char('0'))
-                              .arg(ms, 3, 10, QLatin1Char('0')));
-    }
+  connect(&execution_ui_clock_timer, &QTimer::timeout, display, [this, display] {
+    display->setPosition(
+        m_execution.execution_time(), m_execution.execution_interval(),
+        m_execution.has_execution());
   });
   execution_ui_clock_timer.start(1000 / 20);
-  return time_label;
+  return display;
 }
 
 score::GUIElements ApplicationPlugin::makeGUIElements()
