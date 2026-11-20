@@ -85,7 +85,13 @@
        sodipodi:nodetypes="ccccccccccc"
        class="st2"
        d="M 2.6458342,4.4978987 H 5.8208333 V 5.4239211 L 6.8791667,4.3655878 5.8208333,3.3072544 v 0.9270117 l -3.1749942,1.5e-5 -8e-6,-0.9270267 L 1.5875,4.3655878 2.6458276,5.4239211 Z"
-       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="polygon10-3" />
+    <path
+       sodipodi:nodetypes="ccccccccccc"
+       class="st2"
+       d="M 2.6458342,4.4978987 H 5.8208333 V 5.4239211 L 6.8791667,4.3655878 5.8208333,3.3072544 v 0.9270117 l -3.1749942,1.5e-5 -8e-6,-0.9270267 L 1.5875,4.3655878 2.6458276,5.4239211 Z"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="polygon10-3-fill" />
   </g>
 </svg>

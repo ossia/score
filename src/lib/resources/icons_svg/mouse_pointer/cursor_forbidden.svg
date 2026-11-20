@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <path style="fill:#f0f0f0;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill-rule:nonzero" d="M25 16 A9 9 0 1 1 7 16 A9 9 0 1 1 25 16 Z M22 16 A6 6 0 1 0 10 16 A6 6 0 1 0 22 16 Z M9.64 11.76 L11.76 9.64 L22.36 20.24 L20.24 22.36 Z"/>
+  <path style="fill:#f0f0f0;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill-rule:nonzero" d="M25 16 A9 9 0 1 1 7 16 A9 9 0 1 1 25 16 Z M22 16 A6 6 0 1 0 10 16 A6 6 0 1 0 22 16 Z M9.64 11.76 L11.76 9.64 L22.36 20.24 L20.24 22.36 Z"/>
+</svg>

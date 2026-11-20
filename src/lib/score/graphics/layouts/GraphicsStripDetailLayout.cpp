@@ -21,7 +21,7 @@ public:
       , m_cell{*cell}
   {
     setZValue(-1.);
-    setCursor(Qt::PointingHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::PointingHandCursor));
   }
 
   QRectF boundingRect() const override { return m_cell.rect(); }

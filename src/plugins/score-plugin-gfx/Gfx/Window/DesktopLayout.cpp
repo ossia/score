@@ -1,5 +1,7 @@
 #include "DesktopLayout.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include <QApplication>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
@@ -217,7 +219,7 @@ void DesktopLayoutItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   if(lockMode == OutputLockMode::FullLock)
   {
-    setCursor(Qt::ArrowCursor);
+    setCursor(score::Skin::instance().cursor(Qt::ArrowCursor));
     QGraphicsRectItem::hoverMoveEvent(event);
     return;
   }
@@ -225,26 +227,26 @@ void DesktopLayoutItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   if(lockMode == OutputLockMode::OneToOne)
   {
     // No resize cursors, only move
-    setCursor(Qt::SizeAllCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeAllCursor));
     QGraphicsRectItem::hoverMoveEvent(event);
     return;
   }
 
   int edges = hitTestEdges(event->pos());
   if((edges & Left) && (edges & Top))
-    setCursor(Qt::SizeFDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeFDiagCursor));
   else if((edges & Right) && (edges & Bottom))
-    setCursor(Qt::SizeFDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeFDiagCursor));
   else if((edges & Left) && (edges & Bottom))
-    setCursor(Qt::SizeBDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeBDiagCursor));
   else if((edges & Right) && (edges & Top))
-    setCursor(Qt::SizeBDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeBDiagCursor));
   else if(edges & (Left | Right))
-    setCursor(Qt::SizeHorCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeHorCursor));
   else if(edges & (Top | Bottom))
-    setCursor(Qt::SizeVerCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeVerCursor));
   else
-    setCursor(Qt::SizeAllCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeAllCursor));
 
   QGraphicsRectItem::hoverMoveEvent(event);
 }

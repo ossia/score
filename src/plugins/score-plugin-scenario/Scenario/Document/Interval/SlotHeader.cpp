@@ -15,7 +15,9 @@
 #include <Effect/EffectLayer.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/model/Skin.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/widgets/CursorTheme.hpp>
 
 #include <QApplication>
 #include <QDrag>
@@ -186,6 +188,7 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         auto& view = slt->layers.front();
         slot_header_drag->setPixmap(view.pixmap().scaledToWidth(50));
         slot_header_drag->setHotSpot(QPoint(5, 5));
+  score::CursorTheme::instance().setDragCursors(*slot_header_drag);
       }
     }
 
@@ -212,12 +215,12 @@ void SlotHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
   const auto xpos = event->pos().x();
   if(xpos >= 0 && xpos < 30)
   {
-    if(this->cursor().shape() != Qt::CrossCursor)
-      setCursor(Qt::CrossCursor);
+    if(!hasCursor())
+      setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
   }
   else
   {
-    if(this->cursor().shape() == Qt::CrossCursor)
+    if(hasCursor())
       unsetCursor();
   }
 }
@@ -227,19 +230,19 @@ void SlotHeader::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   const auto xpos = event->pos().x();
   if(xpos >= 0 && xpos < 30)
   {
-    if(this->cursor().shape() != Qt::CrossCursor)
-      setCursor(Qt::CrossCursor);
+    if(!hasCursor())
+      setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
   }
   else
   {
-    if(this->cursor().shape() == Qt::CrossCursor)
+    if(hasCursor())
       unsetCursor();
   }
 }
 
 void SlotHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  if(this->cursor().shape() == Qt::CrossCursor)
+  if(hasCursor())
     unsetCursor();
 }
 

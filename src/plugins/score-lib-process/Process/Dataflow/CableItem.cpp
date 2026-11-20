@@ -1,5 +1,7 @@
 #include "CableItem.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -44,7 +46,7 @@ CableItem::CableItem(
     , m_context{ctx}
 {
   auto& plug = ctx.dataflow;
-  this->setCursor(Qt::CrossCursor);
+  this->setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
   setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
   this->setFlag(QGraphicsItem::ItemIsFocusable);
@@ -501,7 +503,8 @@ void CableItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
       = m_p1 && m_p2
         && endNear(event->scenePos(), m_p1->sceneCenter(), m_p2->sceneCenter())
                != GrabbedEnd::None;
-  setCursor(onEnd ? Qt::PointingHandCursor : Qt::CrossCursor);
+  auto& skin = score::Skin::instance();
+  setCursor(onEnd ? skin.CursorPointingHand : skin.cursor(Qt::CrossCursor));
   probe(event->scenePos());
   event->accept();
 }
@@ -527,7 +530,7 @@ void CableItem::probe(QPointF scenePos)
 
 void CableItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  setCursor(Qt::CrossCursor);
+  setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
   Process::PortProbeHover::instance().leave();
   event->accept();
 }

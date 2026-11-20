@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeSyncView.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include "TimeSyncPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
@@ -70,7 +72,7 @@ TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
   this->setParentItem(parent);
   this->setZValue(ZPos::TimeSync);
   this->setAcceptHoverEvents(true);
-  this->setCursor(Qt::CrossCursor);
+  this->setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
 
   m_text.setFont(score::Skin::instance().Bold10Pt);
 }

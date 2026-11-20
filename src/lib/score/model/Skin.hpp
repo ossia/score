@@ -271,6 +271,12 @@ public:
   QCursor CursorPlayFromHere;
   QCursor CursorCreationMode;
 
+  //! The cursor score shows in place of a standard shape (see CursorTheme).
+  QCursor cursor(Qt::CursorShape shape) const noexcept;
+
+  //! Takes the cursors from CursorTheme, which builds them for the zoom.
+  void loadCursors();
+
   const Brush* fromString(const QString& s) const;
   Brush* fromString(const QString& s);
   QString toString(const Brush*) const;

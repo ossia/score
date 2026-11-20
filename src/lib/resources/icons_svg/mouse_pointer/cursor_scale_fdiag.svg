@@ -85,7 +85,13 @@
        sodipodi:nodetypes="ccccccccccc"
        class="st2"
        d="M 3.0427083,3.3072917 5.159375,5.4239583 4.4979167,6.0854167 h 1.5875 v -1.5875 L 5.4239583,5.159375 3.3072917,3.0427083 3.96875,2.38125 h -1.5875 v 1.5875 z"
-       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="polygon10-3" />
+    <path
+       sodipodi:nodetypes="ccccccccccc"
+       class="st2"
+       d="M 3.0427083,3.3072917 5.159375,5.4239583 4.4979167,6.0854167 h 1.5875 v -1.5875 L 5.4239583,5.159375 3.3072917,3.0427083 3.96875,2.38125 h -1.5875 v 1.5875 z"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="polygon10-3-fill" />
   </g>
 </svg>

@@ -1,5 +1,7 @@
 #include "AboutWidget.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/presenter/Licenses.hpp>
@@ -49,7 +51,7 @@ public:
       , m_logo{logo.isEmpty() ? QPixmap{} : QPixmap{logo}}
   {
     setFixedSize(Width, Height);
-    setCursor(Qt::PointingHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::PointingHandCursor));
     setToolTip(tooltip.isEmpty() ? url : tooltip);
   }
 
@@ -130,7 +132,7 @@ public:
       , m_font{font}
       , m_text{text}
   {
-    setCursor(Qt::PointingHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::PointingHandCursor));
     const QFontMetrics fm{m_font};
     setFixedSize(fm.horizontalAdvance(m_text), std::max(30, fm.height() + 6));
   }

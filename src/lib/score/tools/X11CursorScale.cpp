@@ -18,7 +18,11 @@ namespace score
 {
 namespace
 {
-double g_cursorScale = 0.;
+int g_desktopCursorSize = 0;
+
+//! XCURSOR_SIZE as the desktop set it, kept for a score started by score,
+//! which inherits the scaled XCURSOR_SIZE.
+constexpr auto desktop_cursor_size_variable = "SCORE_DESKTOP_XCURSOR_SIZE";
 
 //! The pointer size the artwork of score's cursors is drawn next to.
 constexpr double reference_cursor_size = 24.;
@@ -84,38 +88,64 @@ int desktopCursorSize()
   xcb_disconnect(conn);
   return size;
 }
+
+int environmentCursorSize()
+{
+  if(const int size = qEnvironmentVariableIntValue(desktop_cursor_size_variable); size > 0)
+    return size;
+  return qEnvironmentVariableIntValue("XCURSOR_SIZE");
+}
+
+bool usesX11()
+{
+  // Wayland compositors size the pointer themselves; so does an X server
+  // the application was not going to talk to.
+  if(qEnvironmentVariableIsSet("WAYLAND_DISPLAY")
+     && qEnvironmentVariable("QT_QPA_PLATFORM") != QLatin1String("xcb"))
+    return false;
+  if(!qEnvironmentVariableIsSet("DISPLAY"))
+    return false;
+  if(const auto platform = qEnvironmentVariable("QT_QPA_PLATFORM");
+     !platform.isEmpty() && !platform.startsWith(QLatin1String("xcb")))
+    return false;
+  return true;
+}
 #endif
 }
 
 void setupX11CursorScale(double zoom)
 {
 #if defined(SCORE_HAS_X11_CURSOR_SCALE)
-  // Wayland compositors size the pointer themselves; so does an X server
-  // the application was not going to talk to.
-  if(qEnvironmentVariableIsSet("WAYLAND_DISPLAY")
-     && qEnvironmentVariable("QT_QPA_PLATFORM") != QLatin1String("xcb"))
-    return;
-  if(!qEnvironmentVariableIsSet("DISPLAY"))
-    return;
-  if(const auto platform = qEnvironmentVariable("QT_QPA_PLATFORM");
-     !platform.isEmpty() && !platform.startsWith(QLatin1String("xcb")))
+  if(!usesX11())
     return;
 
-  int size = qEnvironmentVariableIntValue("XCURSOR_SIZE");
+  int size = environmentCursorSize();
   if(size <= 0)
     size = desktopCursorSize();
   if(size <= 0)
     return;
+  g_desktopCursorSize = size;
 
   const int scaled = std::max(1, int(std::lround(size * zoom)));
+  qputenv(desktop_cursor_size_variable, QByteArray::number(size));
   if(scaled != size)
     qputenv("XCURSOR_SIZE", QByteArray::number(scaled));
-  g_cursorScale = scaled / reference_cursor_size;
 #endif
 }
 
-double x11CursorScale() noexcept
+double x11DesktopCursorScale() noexcept
 {
-  return g_cursorScale;
+#if defined(SCORE_HAS_X11_CURSOR_SCALE)
+  if(g_desktopCursorSize <= 0)
+  {
+    int size = environmentCursorSize();
+    if(size <= 0)
+      size = desktopCursorSize();
+    g_desktopCursorSize = size;
+  }
+  if(g_desktopCursorSize > 0)
+    return g_desktopCursorSize / reference_cursor_size;
+#endif
+  return 0.;
 }
 }
