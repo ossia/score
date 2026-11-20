@@ -806,6 +806,71 @@ TEST_CASE("Looper presets: ambient decay goes straight into a fading overdub",
   CHECK(r.node.layers.layers[0].gain == Approx(in.feedback.value).margin(1e-4));
 }
 
+TEST_CASE("Looper presets: ambient decay with Reverse plays everything backwards, "
+          "the overdub as the recording",
+          "[fx][looper][presets][reverse]")
+{
+  audio_rig r{"Ambient decay"};
+  auto& in = r.node.inputs;
+  in.reverse.value = true;
+  in.passthrough = Nodes::Looper::Passthrough::None;
+  // What is played tells its time: a different level on each frame.
+  const auto played = [](int64_t t) { return 0.0001 * double((t * 7919) % 1000 + 1); };
+  std::vector<double> out;
+  const auto tick = [&] {
+    for(int c = 0; c < 2; c++)
+      for(int64_t i = 0; i < audio_rig::frames; i++)
+        r.in_buf[c][std::size_t(i)] = played(r.now + i);
+    r.tick_once();
+    out.insert(out.end(), r.out_buf[0].begin(), r.out_buf[0].end());
+  };
+  const int64_t len = 4 * audio_rig::bar;
+
+  in.rec_play_dub.value.emplace();
+  tick();
+  in.rec_play_dub.value.reset();
+  while(mode(r) != LoopMode::Record)
+    tick();
+  while(mode(r) == LoopMode::Record)
+    tick();
+  REQUIRE(mode(r) == LoopMode::Overdub);
+  REQUIRE(r.length() == len);
+  REQUIRE(r.passes() == 2);
+  // The tick the overdub started in: it starts on the frame the recording
+  // ends on, at the loop's start.
+  const int64_t dub = r.now - r.node.layers.layers[1].written;
+  const int64_t rec = dub - len;
+
+  // A round and a half of overdub.
+  while(r.now < dub + len + len / 2)
+    tick();
+  REQUIRE(mode(r) == LoopMode::Overdub);
+  const float fb = in.feedback.value;
+
+  // Both layers hold what was played in the order it was played.
+  const float* base = r.node.layer_data(0, 0);
+  const float* pass = r.node.layer_data(1, 0);
+  for(int64_t k = 1000; k < len; k += 4999)
+    CHECK(base[k] == Approx(played(rec + k)).margin(1e-6));
+  // The first half of the pass was written again on the second round, over
+  // the first one faded by the feedback; the second half only once.
+  for(int64_t k = len / 2 + 1000; k < len - 1000; k += 4999)
+    CHECK(pass[k] == Approx(played(dub + k)).margin(1e-6));
+  for(int64_t k = 1000; k < len / 2 - 1000; k += 4999)
+    CHECK(pass[k] == Approx(fb * played(dub + k) + played(dub + len + k)).margin(1e-6));
+
+  // What came out on the second round, before the playheads cross: the
+  // recording backwards, faded once, and the first round of the overdub
+  // backwards as well.
+  const int64_t t0 = int64_t(out.size()) - (r.now - (dub + len));
+  for(int64_t j = 1000; j < len / 2 - 1000; j += 4999)
+  {
+    const int64_t k = len - 1 - j;
+    CHECK(out[std::size_t(t0 + j)]
+          == Approx(fb * played(rec + k) + played(dub + k)).margin(1e-5));
+  }
+}
+
 TEST_CASE("Looper presets: capture what I played", "[fx][looper][presets]")
 {
   audio_rig r{"Capture what I played"};

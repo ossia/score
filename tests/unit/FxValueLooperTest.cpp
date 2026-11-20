@@ -858,12 +858,40 @@ struct switches_harness : value_harness
 
   void tick_once()
   {
+    if(marking)
+      return mark_tick(0);
     if(playing)
       send(float(counter++), 100);
     run(frames);
   }
+
+  //! Marks: with `marking`, nothing is played but the mark a tick is given,
+  //! over the whole tick; `heard` is the marks the loop plays, by the start
+  //! of the tick they start in.
+  bool marking{};
+  std::vector<std::pair<int64_t, int>> heard;
+  //! A mark is the number held over its tick, zero being held else. The
+  //! newest pass that holds the number is the one heard, and a pass going
+  //! round writes over what it held a round before.
+  static constexpr bool overdub_replaces = true;
+  int marked{-1};
+  void playing_marks() noexcept { playing = false; }
+  void mark_tick(int id)
+  {
+    if(id != marked)
+      send(float(id), 0);
+    marked = id;
+    const std::size_t seen = out.size();
+    const int64_t at = now;
+    run(frames);
+    for(std::size_t i = seen; i < out.size(); i++)
+      if(const float v = ossia::convert<float>(out[i].value); v > 0.5f)
+        heard.emplace_back(at, int(std::lround(v)));
+  }
   int passes() const { return node.loop.count; }
   bool muted(int k) const { return node.loop.layers[k].muted; }
+  bool stopped(int k) const { return node.loop.layers[k].stopped; }
+  int undo_steps() const { return node.loop.done; }
   int64_t length() const { return node.loop.length; }
   int64_t position() const
   {
@@ -967,6 +995,39 @@ TEST_CASE("Value looper switches: Mute layer and Erase layer, the newest or a st
 {
   switches_harness h;
   looper_switches::mute_and_erase(h);
+}
+
+TEST_CASE("Value looper switches: Play / Stop layer, on the grid, nothing for Undo",
+          "[fx][values][looper][switches][stop]")
+{
+  switches_harness h;
+  looper_switches::stop_and_play(h);
+}
+
+TEST_CASE("Value looper switches: with Reverse, a recording and the overdub after it come back "
+          "reversed",
+          "[fx][values][looper][switches][reverse]")
+{
+  switches_harness h;
+  looper_switches::reverse_record_then_overdub(h);
+}
+
+TEST_CASE("Value looper switches: Reverse turned on after recording, then an overdub",
+          "[fx][values][looper][switches][reverse]")
+{
+  switches_harness h;
+  looper_switches::reverse_after_recording(h);
+}
+
+TEST_CASE("Value looper switches: with Reverse, an overdub going round several times",
+          "[fx][values][looper][switches][reverse]")
+{
+  for(const bool per_cycle : {false, true})
+  {
+    CAPTURE(per_cycle);
+    switches_harness h;
+    looper_switches::reverse_continuous_overdub(h, per_cycle);
+  }
 }
 
 TEST_CASE("Value looper switches: Undo takes back the last action, an erase or a mute as a pass",

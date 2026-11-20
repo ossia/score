@@ -20,13 +20,6 @@ enum class OverdubMode
           ///< where the pass went.
 };
 
-//! A note still held at the end of the loop.
-enum class HeldNotes
-{
-  Wrap,    ///< Carries on from the loop's start.
-  Truncate ///< Ends with the loop.
-};
-
 struct midi_note
 {
   //! Loop position of the note-on, in frames.
@@ -124,11 +117,12 @@ struct midi_loop : tagged_pass_stack<midi_loop, midi_pass, 32>
     return false;
   }
 
-  //! `own_mute` false hears a muted pass's events as if it were not muted.
+  //! `own_mute` false hears the events of a muted or stopped pass as if it
+  //! were neither.
   bool heard(const midi_note& n, OverdubMode mode, bool own_mute = true) const noexcept
   {
     if(n.pass >= count || replaced(n.replaced_by, n.pass, taking)
-       || (own_mute && layers[n.pass].muted))
+       || (own_mute && silent(n.pass)))
       return false;
     if(replacing() && n.pass + 1 < count && mode == OverdubMode::Replace
        && touched_pitches[n.pitch] && in_pass(n.start))
@@ -136,10 +130,18 @@ struct midi_loop : tagged_pass_stack<midi_loop, midi_pass, 32>
     return true;
   }
 
+  //! A note that sounds goes on: its pass is heard, and no pass that is
+  //! replaced it. One the pass being taken in replaces as it goes ends where
+  //! it was going to.
+  bool sounds_on(const midi_note& n) const noexcept
+  {
+    return n.pass < count && !replaced(n.replaced_by, n.pass, taking) && !silent(n.pass);
+  }
+
   bool heard(const midi_control& c, bool own_mute = true) const noexcept
   {
     if(c.pass >= count || replaced(c.replaced_by, c.pass, taking)
-       || (own_mute && layers[c.pass].muted))
+       || (own_mute && silent(c.pass)))
       return false;
     if(replacing() && c.pass + 1 < count && touched(c.key()) && in_pass(c.pos))
       return false;
