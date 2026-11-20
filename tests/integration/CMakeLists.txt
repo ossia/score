@@ -330,7 +330,10 @@ score_add_test(test_integration_process_ui_placement
 set_property(TEST test_integration_process_ui_placement APPEND PROPERTY
   ENVIRONMENT_MODIFICATION "QSG_RHI_BACKEND=set:opengl")
 
-get_target_property(_js_definitions score_plugin_js COMPILE_DEFINITIONS)
+set(_js_definitions)
+if(TARGET score_plugin_js)
+  get_target_property(_js_definitions score_plugin_js COMPILE_DEFINITIONS)
+endif()
 if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions)
   score_add_test(test_integration_texture_preview
     SOURCES TexturePreviewTest.cpp
@@ -2112,7 +2115,10 @@ score_add_test(test_integration_dataflow_immediate_cycle
 
 # A Javascript View3D rendered after an earlier draw in the same Vulkan frame
 # must not lose the device.
-get_target_property(_js_definitions_quick3d score_plugin_js COMPILE_DEFINITIONS)
+set(_js_definitions_quick3d)
+if(TARGET score_plugin_js)
+  get_target_property(_js_definitions_quick3d score_plugin_js COMPILE_DEFINITIONS)
+endif()
 if("SCORE_HAS_GPU_JS" IN_LIST _js_definitions_quick3d)
   score_add_test(test_integration_js_quick3d_vulkan
     SOURCES JsQuick3DVulkanTest.cpp
