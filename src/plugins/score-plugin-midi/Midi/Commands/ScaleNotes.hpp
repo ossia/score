@@ -9,7 +9,7 @@ namespace Midi
 {
 class ProcessModel;
 
-class ScaleNotes final : public score::Command
+class SCORE_PLUGIN_MIDI_TEST_EXPORT ScaleNotes final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ScaleNotes, "Scale notes")
 public:
