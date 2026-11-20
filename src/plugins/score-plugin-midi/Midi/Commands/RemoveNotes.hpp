@@ -11,7 +11,7 @@ namespace Midi
 {
 class ProcessModel;
 
-class RemoveNotes final : public score::Command
+class SCORE_PLUGIN_MIDI_TEST_EXPORT RemoveNotes final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), RemoveNotes, "Remove notes")
 public:
