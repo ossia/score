@@ -97,11 +97,19 @@
     <path
        id="path839"
        d="M 3.175,5.5562502 4.2333333,6.6145836 5.2916667,5.5562502 h -1.058828 z"
-       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers" />
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <path
+       id="path839-fill"
+       d="M 3.175,5.5562502 4.2333333,6.6145836 5.2916667,5.5562502 h -1.058828 z"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        id="polygon10-3"
        d="M 5.2916667,2.9104036 4.2333333,1.8520725 3.175,2.9104001 l 1.0578312,9e-6 z"
-       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient841);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers" />
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient841);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <path
+       id="polygon10-3-fill"
+       d="M 5.2916667,2.9104036 4.2333333,1.8520725 3.175,2.9104001 l 1.0578312,9e-6 z"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <circle
        r="0.72760433"
        cy="4.2333331"

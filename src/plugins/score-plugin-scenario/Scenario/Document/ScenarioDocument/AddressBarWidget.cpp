@@ -31,7 +31,7 @@ public:
   explicit AddressBarButton(IntervalModel& itv, QWidget* parent)
       : QWidget{parent}
   {
-    setCursor(Qt::PointingHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::PointingHandCursor));
     setAttribute(Qt::WA_Hover, true);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     applySkinFont();

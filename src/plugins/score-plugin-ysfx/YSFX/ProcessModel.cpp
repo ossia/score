@@ -13,6 +13,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/PresetHelpers.hpp>
+#include <score/model/Skin.hpp>
 
 #include <Media/Effect/Settings/Model.hpp>
 
@@ -750,7 +751,11 @@ void Window::rebuild()
         shape = Qt::ArrowCursor;
         break;
     }
-    self->setCursor(QCursor(shape));
+    // JSFX scripts may set their cursor at every frame.
+    const QCursor c = score::Skin::instance().cursor(shape);
+    if(const QCursor cur = self->cursor();
+       cur.shape() != c.shape() || cur.pixmap().cacheKey() != c.pixmap().cacheKey())
+      self->setCursor(c);
   };
 
   conf.get_drop_file = [](void* user_data, int32_t index) -> const char* {

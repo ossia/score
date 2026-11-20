@@ -1,4 +1,5 @@
 #pragma once
+#include <score/model/Skin.hpp>
 #include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/StringListEditor.hpp>
 
@@ -383,7 +384,7 @@ struct ControllerLineEdit
     WidgetFactory::initWidgetProperties(inlet, *sl);
     sl->setTextWidth(180.);
     sl->setDefaultTextColor(QColor{"#E0B01E"});
-    sl->setCursor(Qt::IBeamCursor);
+    sl->setCursor(score::Skin::instance().cursor(Qt::IBeamCursor));
 
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 

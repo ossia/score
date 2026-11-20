@@ -83,8 +83,13 @@
      inkscape:groupmode="layer">
     <path
        d="M 4.101022,1.5875 3.1749803,2.6458197 h 0.79375 V 3.9697698 H 2.6458432 V 3.1749864 L 1.5875,4.101028 2.6458432,5.0270697 v -0.79375 h 1.3228871 v 1.3229167 h -0.79375 L 4.101022,6.6145697 5.0270636,5.5562364 H 4.2322802 V 4.2333197 h 1.3239796 v 0.79375 L 6.6145833,4.101028 5.5562598,3.1749864 V 3.9697698 H 4.2322802 V 2.6458197 h 0.7947834 z"
-       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="polygon10-3"
+       sodipodi:nodetypes="ccccccccccccccccccccccccc" />
+    <path
+       d="M 4.101022,1.5875 3.1749803,2.6458197 h 0.79375 V 3.9697698 H 2.6458432 V 3.1749864 L 1.5875,4.101028 2.6458432,5.0270697 v -0.79375 h 1.3228871 v 1.3229167 h -0.79375 L 4.101022,6.6145697 5.0270636,5.5562364 H 4.2322802 V 4.2333197 h 1.3239796 v 0.79375 L 6.6145833,4.101028 5.5562598,3.1749864 V 3.9697698 H 4.2322802 V 2.6458197 h 0.7947834 z"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="polygon10-3-fill"
        sodipodi:nodetypes="ccccccccccccccccccccccccc" />
   </g>
 </svg>

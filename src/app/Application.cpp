@@ -7,6 +7,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/X11CursorScale.hpp>
+#include <score/widgets/CursorTheme.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/application/NetworkSessionInterface.hpp>
@@ -182,6 +183,7 @@ static void setupGraphicalZoom()
     }
   }
   score::setupX11CursorScale(zoom);
+  score::CursorTheme::setStartupZoom(zoom);
 }
 
 Application::Application(int& argc, char** argv)

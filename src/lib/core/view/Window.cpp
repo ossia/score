@@ -8,6 +8,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/widgets/CursorTheme.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>
@@ -179,6 +180,9 @@ private:
 View::View(QObject* parent)
     : QMainWindow{}
 {
+  // Every widget and window created from here on shows score's cursors.
+  score::CursorTheme::instance().install();
+
   setAutoFillBackground(false);
   setObjectName("View");
   setWindowIcon(QIcon("://ossia-score.png"));

@@ -59,7 +59,7 @@ public:
     m_zoom = control(5);
     m_centre = control(6);
     setAcceptedMouseButtons(Qt::LeftButton);
-    setCursor(Qt::OpenHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::OpenHandCursor));
     setZValue(50.);
     setToolTip(QObject::tr("Drag to orbit, wheel to zoom, double click to reset"));
   }
@@ -148,7 +148,7 @@ protected:
   {
     ev->accept();
     m_dispatcher.commit<Process::SetControlValues>();
-    setCursor(Qt::OpenHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::OpenHandCursor));
   }
 
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev) override
@@ -183,7 +183,7 @@ private:
   {
     m_startYaw = value(m_yaw);
     m_startPitch = value(m_pitch);
-    setCursor(Qt::ClosedHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::ClosedHandCursor));
   }
 
   static QColor mix(const QColor& a, const QColor& b, double t)

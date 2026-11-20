@@ -1,6 +1,7 @@
 #include "ProcessTreeView.hpp"
 
 
+#include <score/widgets/CursorTheme.hpp>
 #include <score/widgets/Pixmap.hpp>
 #if defined(__EMSCRIPTEN__)
 #include <score/widgets/ItemViewDrag.hpp>
@@ -85,12 +86,7 @@ void ProcessTreeView::startDrag(Qt::DropActions)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(data);
-    /*
-    auto p =
-    score::get_pixmap(QStringLiteral(":/icons/cursor_process_audio.png"));
-    drag->setDragCursor(p, Qt::CopyAction);
-    drag->setDragCursor(p, Qt::MoveAction);
-    */
+    score::CursorTheme::instance().setDragCursors(*drag);
 #if defined(__EMSCRIPTEN__)
     QStyleOptionViewItem opt;
     initViewItemOption(&opt);

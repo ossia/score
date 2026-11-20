@@ -139,6 +139,27 @@ score_add_test(test_integration_pixmaps_skin
   GUI
   PLUGINS score_plugin_scenario)
 
+# Every cursor score shows is its own: no standard shape reaches the platform,
+# from score's code or from Qt's widgets, the main window, the settings, the
+# menus, drag and drop, QML and a zoom changed live included.
+score_add_test(test_integration_cursor_theme_audit
+  SOURCES CursorThemeAuditTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process)
+if(TARGET ${QT_PREFIX}::Quick)
+  target_link_libraries(test_integration_cursor_theme_audit PRIVATE ${QT_PREFIX}::Quick)
+  target_compile_definitions(test_integration_cursor_theme_audit PRIVATE
+    SCORE_CURSOR_TEST_HAS_QUICK=1)
+endif()
+if(APPLE)
+  # What AppKit shows, read back.
+  target_sources(test_integration_cursor_theme_audit PRIVATE CursorThemeAuditMac.mm)
+  find_library(_cursor_test_appkit AppKit)
+  target_link_libraries(test_integration_cursor_theme_audit PRIVATE ${_cursor_test_appkit})
+  target_compile_definitions(test_integration_cursor_theme_audit PRIVATE
+    SCORE_CURSOR_TEST_MAC=1)
+endif()
+
 score_add_test(test_integration_skin_palette
   SOURCES SkinPaletteTest.cpp
   GUI

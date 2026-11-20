@@ -4,6 +4,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/graphics/PainterPath.hpp>
+#include <score/model/Skin.hpp>
 #include <score/graphics/ZoomItem.hpp>
 
 #include <ossia/editor/automation/tinyspline_util.hpp>
@@ -346,18 +347,18 @@ public:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* e) override
   {
     if(m_strokedShape.contains(e->pos()))
-      setCursor(Qt::CrossCursor);
+      setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
   }
   void hoverMoveEvent(QGraphicsSceneHoverEvent* e) override
   {
     if(m_strokedShape.contains(e->pos()))
     {
-      if(cursor().shape() != Qt::CrossCursor)
-        setCursor(Qt::CrossCursor);
+      if(!hasCursor())
+        setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
     }
     else
     {
-      if(cursor().shape() == Qt::CrossCursor)
+      if(hasCursor())
         unsetCursor();
     }
   }
