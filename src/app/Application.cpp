@@ -6,6 +6,7 @@
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/X11CursorScale.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/application/NetworkSessionInterface.hpp>
@@ -155,6 +156,34 @@ createApplication(const score::ApplicationSettings& set, int& argc, char** argv)
 }
 }
 
+// The zoom of the user interface settings, applied through Qt's scale factor
+// unless the environment already sets one.
+static void setupGraphicalZoom()
+{
+  double zoom = 1.;
+  if(qEnvironmentVariableIsSet("QT_SCALE_FACTOR"))
+  {
+    zoom = qEnvironmentVariable("QT_SCALE_FACTOR").toDouble();
+    if(!(zoom > 0.))
+      zoom = 1.;
+  }
+  else
+  {
+    QSettings s;
+    if(s.contains("Skin/Zoom"))
+    {
+      zoom = s.value("Skin/Zoom").toDouble();
+      if(zoom != 1.)
+      {
+        zoom = qBound(score::minimumGlobalScaleFactor, zoom, 10.);
+        qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
+        qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", "PassThrough");
+      }
+    }
+  }
+  score::setupX11CursorScale(zoom);
+}
+
 Application::Application(int& argc, char** argv)
     : QObject{nullptr}
 {
@@ -167,20 +196,7 @@ Application::Application(int& argc, char** argv)
 
   score::setQApplicationMetadata();
 
-  if(!qEnvironmentVariableIsSet("QT_SCALE_FACTOR"))
-  {
-    QSettings s;
-    if(s.contains("Skin/Zoom"))
-    {
-      double zoom = s.value("Skin/Zoom").toDouble();
-      if(zoom != 1.)
-      {
-        zoom = qBound(1.0, zoom, 10.);
-        qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
-        qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", "PassThrough");
-      }
-    }
-  }
+  setupGraphicalZoom();
 
   m_app = createApplication(appSettings, argc, argv);
 
@@ -204,20 +220,7 @@ Application::Application(
   m_instance = this;
   score::setQApplicationMetadata();
 
-  if(!qEnvironmentVariableIsSet("QT_SCALE_FACTOR"))
-  {
-    QSettings s;
-    if(s.contains("Skin/Zoom"))
-    {
-      double zoom = s.value("Skin/Zoom").toDouble();
-      if(zoom != 1.)
-      {
-        zoom = qBound(1.0, zoom, 10.);
-        qputenv("QT_SCALE_FACTOR", QString("%1").arg(zoom).toLatin1());
-        qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", "PassThrough");
-      }
-    }
-  }
+  setupGraphicalZoom();
 
   m_app = createApplication(appSettings, argc, argv);
 }

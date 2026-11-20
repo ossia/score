@@ -3,6 +3,7 @@
 #include "SetIcons.hpp"
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/tools/X11CursorScale.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -308,6 +309,25 @@ QCursor get_cursor(QString str, double hotspot_x, double hotspot_y)
   const auto& appSettings = score::AppContext().applicationSettings;
   if(!appSettings.gui)
     return cur;
+
+  // On X11 a pixmap cursor is drawn pixel for pixel: it is given the size the
+  // theme cursors have, from the artwork with the most detail.
+  if(const double scale = score::x11CursorScale();
+     scale > 0. && QGuiApplication::platformName() == QLatin1String("xcb"))
+  {
+    QPixmap base{str};
+    if(base.isNull())
+      return cur;
+    const QSize size = (QSizeF{base.size()} * scale).toSize().expandedTo({1, 1});
+    if(size != base.size())
+    {
+      auto detailed = str;
+      detailed.replace(".png", "@2x.png", Qt::CaseInsensitive);
+      QPixmap source{QFile::exists(detailed) ? detailed : str};
+      base = source.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+    return QCursor{base, int(hotspot_x * scale), int(hotspot_y * scale)};
+  }
 
   // Here we don't care about the vector gui thing as cursors are never scaled
   QPixmap img;
