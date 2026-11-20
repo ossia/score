@@ -636,6 +636,19 @@ if(TARGET score_plugin_media)
     SOURCES StepModelTest.cpp
     APP
     PLUGINS score_plugin_media score_plugin_audio score_lib_process)
+
+  # The metronome: its engine driven directly, then its model, the documents
+  # saved before it had controls, and the node of a playing document.
+  score_add_test(test_unit_metronome_node
+    SOURCES MetronomeNodeTest.cpp
+    PLUGINS score_plugin_media score_lib_process)
+  if(TARGET score_plugin_engine AND TARGET score_plugin_scenario)
+    score_add_test(test_unit_metronome_model
+      SOURCES MetronomeModelTest.cpp
+      APP
+      PLUGINS score_plugin_media score_plugin_audio score_plugin_library
+              score_plugin_engine score_plugin_scenario score_lib_process)
+  endif()
 endif()
 
 score_add_test(test_unit_path_generator_handle

@@ -1,231 +1,212 @@
 #include "MetroExecutor.hpp"
 
+#include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <Scenario/Execution/score2OSSIA.hpp>
-
-#include <Library/LibrarySettings.hpp>
 #include <Media/MediaFileHandle.hpp>
+#include <Media/Metro/MetroNode.hpp>
 
-#include <score/application/ApplicationContext.hpp>
 #include <score/tools/Bind.hpp>
 
-#include <ossia/dataflow/graph_node.hpp>
-#include <ossia/dataflow/port.hpp>
-#include <ossia/detail/pod_vector.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/node_process.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
-#include <QCoreApplication>
-
-namespace ossia::nodes
-{
-class audio_metronome final : public ossia::nonowning_graph_node
-{
-public:
-  const ossia::small_vector<audio_sample*, 8>& hi_sound;
-  const ossia::small_vector<audio_sample*, 8>& lo_sound;
-  const int64_t hi_dur{}, lo_dur{};
-
-  ossia::audio_outlet audio_out;
-  ossia::value_outlet bang_out;
-
-  struct played_sound
-  {
-    const ossia::small_vector<audio_sample*, 8>* samples{};
-    int64_t pos{};
-    int64_t dur{};
-    int64_t start_sample{};
-    int64_t fade_total{};
-    int64_t fade_remaining{};
-  };
-
-  ossia::small_vector<played_sound, 8> in_flight;
-
-  audio_metronome(
-      const ossia::small_vector<audio_sample*, 8>& hi,
-      const ossia::small_vector<audio_sample*, 8>& lo, int64_t hi_dur, int64_t lo_dur)
-      : hi_sound{hi}
-      , lo_sound{lo}
-      , hi_dur{hi_dur}
-      , lo_dur{lo_dur}
-  {
-    m_outlets.push_back(&audio_out);
-    m_outlets.push_back(&bang_out);
-  }
-  std::string label() const noexcept override { return "audio_metronome"; }
-
-  void run(const token_request& tk, exec_state_facade st) noexcept override
-  {
-    if(!tk.paused())
-    {
-      tk.metronome(
-          st.modelToSamples(),
-          [&](int64_t hi_start_sample) {
-        for(auto& sound : in_flight)
-        {
-          sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
-          sound.fade_remaining = sound.fade_total;
-        }
-
-        if(hi_dur > 0)
-        {
-          bang_out.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
-          in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
-        }
-          },
-          [&](int64_t lo_start_sample) {
-        for(auto& sound : in_flight)
-        {
-          sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
-          sound.fade_remaining = sound.fade_total;
-        }
-
-        if(lo_dur > 0)
-        {
-          bang_out.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
-          in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
-        }
-      });
-    }
-
-    audio_out.target<audio_port>()->set_channels(2);
-    auto& ap = audio_out.target<audio_port>()->get();
-
-    auto render_sound = [&ap, &tk, &st](
-                            const int64_t fade_total, int64_t& fade_remaining,
-                            int64_t& pos, const int64_t dur, const int64_t start_sample,
-                            const ossia::small_vector<audio_sample*, 8>& sound) {
-      bool finished = false;
-
-      ap.resize(2);
-      ap[0].resize(st.bufferSize());
-      ap[1].resize(st.bufferSize());
-
-      const float* const src = sound[0] + pos;
-
-      const auto [tick_start, d] = st.timings(tk);
-
-      int64_t count = d - start_sample;
-      if(count < 0)
-        return true;
-      if(pos + count < dur)
-      {
-        pos += count;
-      }
-      else
-      {
-        count = dur - pos;
-        finished = true;
-      }
-
-      auto fade_remaining_prev = fade_remaining;
-      for(auto dst : {ap[0].data(), ap[1].data()})
-      {
-        fade_remaining = fade_remaining_prev;
-        double* start = dst + tick_start + start_sample;
-        for(int i = 0; i < count; i++)
-        {
-          const double fade
-              = (fade_total == 0 ? 1. : double(--fade_remaining) / fade_total);
-
-          start[i] += src[i] * fade;
-        }
-      }
-
-      finished |= fade_total > 0 && fade_remaining <= 0;
-
-      return finished;
-    };
-
-    for(auto it = in_flight.begin(); it != in_flight.end();)
-    {
-      bool finished = render_sound(
-          it->fade_total, it->fade_remaining, it->pos, it->dur, it->start_sample,
-          *it->samples);
-
-      if(it->start_sample != 0)
-        it->start_sample = 0;
-
-      if(finished)
-      {
-        it = in_flight.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-  }
-};
-}
+#include <QPointer>
 
 namespace Execution
 {
-struct MetronomeSounds
+namespace
 {
-  const QString root
-      = score::AppContext().settings<Library::Settings::Model>().getDefaultLibraryPath()
-        + "/Util/";
-  const std::unique_ptr<Media::AudioFile> tick{[this] {
-    auto f = std::make_unique<Media::AudioFile>();
-    f->load(
-        {root + "/metro_tick.wav", root + "/metro_tick.wav",
-         Media::DecodingMethod::Libav});
+using Media::Metro::metronome_node;
 
-    while(f->samples() != f->decodedSamples())
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      QCoreApplication::instance()->processEvents();
-    }
-    return f;
-  }()};
-  const std::unique_ptr<Media::AudioFile> tock{[this] {
-    auto f = std::make_unique<Media::AudioFile>();
-    f->load(
-        {root + "/metro_tock.wav", root + "/metro_tock.wav",
-         Media::DecodingMethod::Libav});
+class metronome_process final : public ossia::node_process
+{
+public:
+  using ossia::node_process::node_process;
 
-    while(f->samples() != f->decodedSamples())
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      QCoreApplication::instance()->processEvents();
-    }
-    return f;
-  }()};
-
-  const Media::AudioFile::ViewHandle tick_handle{tick->handle()};
-  const Media::AudioFile::ViewHandle tock_handle{tock->handle()};
-
-  operator bool() const noexcept
+  // The node does not run while the process is stopped or muted: a click cut
+  // there would otherwise end when it runs again.
+  void start() override
   {
-    return tick_handle.target<Media::AudioFile::RAMView>()
-           && tock_handle.target<Media::AudioFile::RAMView>();
+    silence();
+    ossia::node_process::start();
   }
+
+  void stop() override
+  {
+    silence();
+    ossia::node_process::stop();
+  }
+
+  void mute_impl(bool b) override
+  {
+    silence();
+    ossia::node_process::mute_impl(b);
+  }
+
+private:
+  void silence() noexcept { static_cast<metronome_node*>(node.get())->reset(); }
 };
+
+constexpr Media::Metro::sound_kind file_kinds[]
+    = {Media::Metro::Classic, Media::Metro::Files};
+}
 
 MetroComponent::MetroComponent(
     Media::Metro::Model& element, const Execution::Context& ctx, QObject* parent)
     : Execution::ProcessComponent_T<Media::Metro::Model, ossia::node_process>{
         element, ctx, "Executor::MetroComponent", parent}
 {
-  static const MetronomeSounds sounds;
-  if(sounds)
+  const int rate = ctx.execState->sampleRate;
+  auto node = ossia::make_node<metronome_node>(*ctx.execState, rate);
+  node->sound = ossia::convert<int>(element.sound->value());
+  node->volume = ossia::convert<float>(element.volume->value());
+  node->accent = ossia::convert<bool>(element.accent->value());
+  node->subdivision = ossia::convert<int>(element.subdivision->value());
+  node->beat = ossia::convert<int>(element.beat->value());
+
+  node->set_file_path(0, ossia::convert<std::string>(element.accentFile->value()));
+  node->set_file_path(1, ossia::convert<std::string>(element.beatFile->value()));
+
+  // The audio thread only passes the path on: it is decoded from this thread,
+  // and several paths in a row are one decoding, of the last.
+  node->on_file = [queue = weak_edit, self = QPointer{this}](
+                      int file, const std::string& path) {
+    if(auto q = queue.lock())
+      q->enqueue([self, file, path = std::string{path}]() mutable {
+        if(self)
+          self->on_executionPath(file, QString::fromStdString(path));
+      });
+  };
+
+  // Not running yet: what is already decoded is set without the queue.
+  for(auto kind : file_kinds)
   {
-    const auto& tick_sound{sounds.tick_handle.target<Media::AudioFile::RAMView>()->data};
-    const auto& tock_sound{sounds.tock_handle.target<Media::AudioFile::RAMView>()->data};
+    auto set = element.sounds(kind, rate);
+    node->swap_sounds(kind, set);
+  }
 
-    auto node = ossia::make_node<ossia::nodes::audio_metronome>(
-        *ctx.execState.get(), tick_sound, tock_sound, sounds.tick->decodedSamples(),
-        sounds.tock->decodedSamples());
+  this->node = node;
+  m_ossia_process = std::make_shared<metronome_process>(node);
 
-    this->node = node;
-    m_ossia_process = std::make_shared<ossia::node_process>(node);
+  element.sound->setupExecution(node->sound_in, this);
+  element.accentFile->setupExecution(node->accent_file_in, this);
+  element.beatFile->setupExecution(node->beat_file_in, this);
+  element.volume->setupExecution(node->volume_in, this);
+  element.accent->setupExecution(node->accent_in, this);
+  element.subdivision->setupExecution(node->subdivision_in, this);
+  element.beat->setupExecution(node->beat_in, this);
+
+  // The interface writes the ports' values; cables and automations reach the
+  // node's inlets directly.
+  con(*element.sound, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, c = ossia::convert<int>(v)] { node->sound = c; });
+  });
+  con(*element.volume, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, c = ossia::convert<float>(v)] { node->volume = c; });
+  });
+  con(*element.accent, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, c = ossia::convert<bool>(v)] { node->accent = c; });
+  });
+  con(*element.subdivision, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, c = ossia::convert<int>(v)] { node->subdivision = c; });
+  });
+  con(*element.beat, &Process::ControlInlet::valueChanged, this,
+      [this, node](const ossia::value& v) {
+    in_exec([node, c = ossia::convert<int>(v)] { node->beat = c; });
+  });
+
+  con(*element.accentFile, &Process::ControlInlet::valueChanged, this,
+      [this](const ossia::value& v) { on_modelPath(0, v); });
+  con(*element.beatFile, &Process::ControlInlet::valueChanged, this,
+      [this](const ossia::value& v) { on_modelPath(1, v); });
+
+  con(element, &Media::Metro::Model::soundsChanged, this, &MetroComponent::updateSounds);
+}
+
+void MetroComponent::on_executionPath(int file, QString path)
+{
+  if(file < 0 || file >= 2)
+    return;
+  m_files[file].pending = std::move(path);
+
+  // Once the queue is empty: the paths behind this one in it replace it.
+  if(!m_scheduled)
+  {
+    m_scheduled = true;
+    QMetaObject::invokeMethod(this, [this] { decodePending(); }, Qt::QueuedConnection);
   }
 }
 
-void MetroComponent::recompute() { }
+void MetroComponent::decodePending()
+{
+  m_scheduled = false;
+  bool changed = false;
+  for(auto& f : m_files)
+  {
+    if(!f.pending)
+      continue;
+    if(f.file)
+      f.file->on_finishedDecoding.disconnect<&Decoded::changed>(m_decoded);
+
+    // Null for no path, a file that is not there or not a click: this inlet
+    // then has no sound, as an empty control.
+    f.file = Media::Metro::Model::decodeFile(*f.pending, process());
+    f.pending.reset();
+    f.active = true;
+    if(f.file)
+    {
+      m_decodes++;
+      f.file->on_finishedDecoding.connect<&Decoded::changed>(m_decoded);
+    }
+    changed = true;
+  }
+
+  // What played until now is replaced at once; the new sound follows when it
+  // is decoded.
+  if(changed)
+    updateSounds();
+}
+
+void MetroComponent::on_modelPath(int file, const ossia::value& path)
+{
+  auto& f = m_files[file];
+  if(f.file)
+    f.file->on_finishedDecoding.disconnect<&Decoded::changed>(m_decoded);
+  f = {};
+
+  if(auto node = std::dynamic_pointer_cast<metronome_node>(this->node))
+    in_exec([node, file, p = ossia::convert<std::string>(path)] {
+      node->set_file_path(file, p);
+    });
+  updateSounds();
+}
+
+void MetroComponent::updateSounds()
+{
+  auto node = std::dynamic_pointer_cast<metronome_node>(this->node);
+  if(!node)
+    return;
+
+  const int rate = system().execState->sampleRate;
+  const auto& accent = m_files[0].active ? m_files[0].file : process().accentSound();
+  const auto& beat = m_files[1].active ? m_files[1].file : process().beatSound();
+
+  // The sounds the node had come back in the command, and are freed with it
+  // outside of the audio thread.
+  using namespace Media::Metro;
+  in_exec([node, set = process().sounds(Classic, rate)]() mutable {
+    node->swap_sounds(Classic, set);
+  });
+  in_exec([node, set = Model::fileSounds(accent, beat, rate)]() mutable {
+    node->swap_sounds(Files, set);
+  });
+}
 
 MetroComponent::~MetroComponent() { }
 }
