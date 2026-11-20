@@ -1177,6 +1177,12 @@ score_add_test(test_unit_time_ruler
   SOURCES TimeRulerTest.cpp
   PLUGINS score_plugin_scenario)
 
+# The transport's bar readout in every time signature, and the grid its pulse
+# indicator lays the pulses of a bar on.
+score_add_test(test_unit_musical_position
+  SOURCES MusicalPositionTest.cpp
+  PLUGINS score_plugin_scenario)
+
 # --- PipeWire quantum handling ---------------------------------------------
 # Only built where pipewire headers are available (pipewire::pipewire is
 # created by libossia's deps when they are found).

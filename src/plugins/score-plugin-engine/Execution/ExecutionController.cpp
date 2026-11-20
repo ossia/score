@@ -709,6 +709,26 @@ TimeVal ExecutionController::execution_time() const
   return TimeVal::zero();
 }
 
+bool ExecutionController::has_execution() const noexcept
+{
+  return bool(m_clock);
+}
+
+const Scenario::IntervalModel* ExecutionController::execution_interval() const
+{
+  if(m_clock && m_clock->scenario)
+    return &m_clock->scenario->baseInterval().scoreInterval();
+
+  // A document stays the current one while it closes, and events are
+  // processed in between: by then its model has no root interval any more.
+  if(auto doc = currentDocument())
+    if(auto scenar
+       = score::IDocument::try_modelDelegate<Scenario::ScenarioDocumentModel>(*doc);
+       scenar && !scenar->closing())
+      return &scenar->baseInterval();
+  return nullptr;
+}
+
 void ExecutionController::on_record(::TimeVal t)
 {
   // Playback can start while a recording waits for its first message.
