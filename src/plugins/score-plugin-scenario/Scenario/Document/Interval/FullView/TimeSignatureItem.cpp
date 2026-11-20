@@ -331,7 +331,7 @@ TimeSignatureItem::TimeSignatureItem(
                      .app.interfaces<Process::MagnetismAdjuster>()}
 {
   setZValue(200);
-  setCursor(Qt::CrossCursor);
+  setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
   setFlag(ItemHasNoContents, true);
   setFlag(ItemClipsChildrenToShape, false);
 

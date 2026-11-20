@@ -503,6 +503,16 @@ score_add_test(test_unit_application_settings
 score_add_test(test_unit_skin_defaults
   SOURCES SkinDefaultsTest.cpp)
 
+# The size and hotspot of score's cursors on each platform, against what Qt's
+# platform plug-ins do with a pixmap cursor.
+score_add_test(test_unit_cursor_geometry
+  SOURCES CursorGeometryTest.cpp)
+
+# Each widget and window gets the cursors of its screen, on screens of
+# different scales (Qt's offscreen platform with several screens).
+score_add_test(test_unit_cursor_screens
+  SOURCES CursorScreensTest.cpp)
+
 score_add_test(test_unit_process_model
   SOURCES ProcessModelTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)

@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurvePointView.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include "CurvePointModel.hpp"
 
 #include <Curve/CurveStyle.hpp>
@@ -32,7 +34,7 @@ PointView::PointView(
     , m_style{style}
 {
   this->setZValue(2);
-  this->setCursor(Qt::CrossCursor);
+  this->setCursor(score::Skin::instance().cursor(Qt::CrossCursor));
   this->setFlag(ItemIsFocusable, false);
   // Bad on retina. :(
   // this->setCacheMode(QGraphicsItem::DeviceCoordinateCache);

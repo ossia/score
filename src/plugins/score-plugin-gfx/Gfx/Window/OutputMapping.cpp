@@ -1,3 +1,4 @@
+#include <score/model/Skin.hpp>
 #include <score_plugin_gfx_export.h>
 #include "OutputMapping.hpp"
 
@@ -49,7 +50,7 @@ void OutputMappingItem::applyLockedState()
     setAcceptHoverEvents(false);
     // The view applies item->cursor() on mouse-over even with hover events
     // off, so a resize cursor left over from the unlocked state would stick.
-    setCursor(Qt::ArrowCursor);
+    setCursor(score::Skin::instance().cursor(Qt::ArrowCursor));
   }
   else
   {
@@ -433,7 +434,7 @@ void OutputMappingItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   if(lockMode == OutputLockMode::FullLock)
   {
-    setCursor(Qt::ArrowCursor);
+    setCursor(score::Skin::instance().cursor(Qt::ArrowCursor));
     QGraphicsRectItem::hoverMoveEvent(event);
     return;
   }
@@ -442,32 +443,32 @@ void OutputMappingItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   auto bh = hitTestBlendHandles(event->pos());
   if(bh == BlendLeft || bh == BlendRight)
   {
-    setCursor(Qt::SplitHCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SplitHCursor));
     QGraphicsRectItem::hoverMoveEvent(event);
     return;
   }
   if(bh == BlendTop || bh == BlendBottom)
   {
-    setCursor(Qt::SplitVCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SplitVCursor));
     QGraphicsRectItem::hoverMoveEvent(event);
     return;
   }
 
   int edges = hitTestEdges(event->pos());
   if((edges & Left) && (edges & Top))
-    setCursor(Qt::SizeFDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeFDiagCursor));
   else if((edges & Right) && (edges & Bottom))
-    setCursor(Qt::SizeFDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeFDiagCursor));
   else if((edges & Left) && (edges & Bottom))
-    setCursor(Qt::SizeBDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeBDiagCursor));
   else if((edges & Right) && (edges & Top))
-    setCursor(Qt::SizeBDiagCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeBDiagCursor));
   else if(edges & (Left | Right))
-    setCursor(Qt::SizeHorCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeHorCursor));
   else if(edges & (Top | Bottom))
-    setCursor(Qt::SizeVerCursor);
+    setCursor(score::Skin::instance().cursor(Qt::SizeVerCursor));
   else
-    setCursor(Qt::ArrowCursor);
+    setCursor(score::Skin::instance().cursor(Qt::ArrowCursor));
 
   QGraphicsRectItem::hoverMoveEvent(event);
 }

@@ -4,6 +4,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/graphics/GraphicsLayout.hpp>
 #include <score/model/Skin.hpp>
+#include <score/widgets/CursorTheme.hpp>
 
 #include <QFlags>
 #include <QGradient>
@@ -693,6 +694,7 @@ protected:
       drag->setMimeData(mime);
       drag->setPixmap(pixmap.scaledToWidth(std::min(160, pixmap.width())));
       drag->setHotSpot(QPoint(5, 5));
+      score::CursorTheme::instance().setDragCursors(*drag);
       drag->exec(Qt::CopyAction);
 
       if(alive.expired())

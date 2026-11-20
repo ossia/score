@@ -1672,7 +1672,7 @@ public:
   explicit BangButton(QWidget* parent = nullptr)
       : QAbstractButton{parent}
   {
-    setCursor(Qt::PointingHandCursor);
+    setCursor(score::Skin::instance().cursor(Qt::PointingHandCursor));
     setFocusPolicy(Qt::StrongFocus);
   }
 

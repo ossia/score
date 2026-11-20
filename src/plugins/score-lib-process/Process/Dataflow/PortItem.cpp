@@ -24,6 +24,7 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/CursorTheme.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 
@@ -1017,6 +1018,7 @@ void beginPortDrag(
   PortItem::clickedPort = &anchor;
   m->setData(score::mime::port(), {});
   d->setMimeData(m);
+  score::CursorTheme::instance().setDragCursors(*d);
 
   // NOTE ! from this point, one mustn't ever ever access any member from the PortItem.
   // This is because some drag actions may remove the port, by

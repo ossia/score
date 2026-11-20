@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiNoteView.hpp"
 
+#include <score/model/Skin.hpp>
+
 #include <Process/Focus/FocusDispatcher.hpp>
 
 #include <Midi/MidiPresenter.hpp>
@@ -111,7 +113,7 @@ void NoteView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
   }
   else
   {
-    this->setCursor(Qt::ArrowCursor);
+    this->setCursor(score::Skin::instance().cursor(Qt::ArrowCursor));
   }
 
   QGraphicsItem::hoverEnterEvent(event);
@@ -133,7 +135,7 @@ void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
     }
     else
     {
-      this->setCursor(Qt::ArrowCursor);
+      this->setCursor(score::Skin::instance().cursor(Qt::ArrowCursor));
     }
   }
 
@@ -142,7 +144,7 @@ void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 
 void NoteView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setCursor(Qt::ArrowCursor);
+  this->setCursor(score::Skin::instance().cursor(Qt::ArrowCursor));
 
   QGraphicsItem::hoverEnterEvent(event);
 }

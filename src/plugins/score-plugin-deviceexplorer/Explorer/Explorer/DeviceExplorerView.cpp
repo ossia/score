@@ -6,6 +6,7 @@
 #include "DeviceExplorerModel.hpp"
 
 #include <score/model/Skin.hpp>
+#include <score/widgets/CursorTheme.hpp>
 #include <score/widgets/Pixmap.hpp>
 #if defined(__EMSCRIPTEN__)
 #include <score/widgets/ItemViewDrag.hpp>
@@ -97,17 +98,7 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(data);
-    /*
-        auto p =
-       score::get_pixmap(QStringLiteral(":/icons/cursor_drag_device.png"));
-        drag->setPixmap(QPixmap());
-        drag->setDragCursor(p, Qt::CopyAction);
-        drag->setDragCursor(p, Qt::MoveAction);
-        drag->setDragCursor(p, Qt::LinkAction);
-        drag->setDragCursor(p, Qt::ActionMask);
-        drag->setDragCursor(p, Qt::IgnoreAction);
-        drag->setDragCursor(p, Qt::TargetMoveAction);
-        */
+    score::CursorTheme::instance().setDragCursors(*drag);
 #if defined(__EMSCRIPTEN__)
     QStyleOptionViewItem opt;
     initViewItemOption(&opt);
