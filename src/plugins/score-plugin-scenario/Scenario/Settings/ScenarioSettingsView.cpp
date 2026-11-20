@@ -108,7 +108,9 @@ View::View()
          "always open in a separate window."));
   // Below Qt 6.6 the factor cannot change on a running application; say so.
   m_zoomSpinBox = new QSpinBox;
-  m_zoomSpinBox->setMinimum(100);
+  m_zoomSpinBox->setMinimum(int(100 * score::minimumGlobalScaleFactor));
+  // The zoom is applied to the whole application: only once typed in full.
+  m_zoomSpinBox->setKeyboardTracking(false);
   m_zoomSpinBox->setMaximum(200);
   m_zoomSpinBox->setSuffix(tr("%"));
   connect(
