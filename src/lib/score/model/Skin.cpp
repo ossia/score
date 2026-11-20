@@ -237,7 +237,7 @@ bool setGlobalScaleFactor(double factor)
     return false;
 
   // Same bounds Application.cpp applies when it reads Skin/Zoom at startup.
-  if(!(factor >= 1.0 && factor <= 10.0))
+  if(!(factor >= minimumGlobalScaleFactor && factor <= 10.0))
     return false;
 
 #if SCORE_HAS_LIVE_SCALE_FACTOR && QT_CONFIG(highdpiscaling)

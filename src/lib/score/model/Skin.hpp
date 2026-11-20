@@ -408,6 +408,9 @@ SCORE_LIB_BASE_EXPORT QFont defaultApplicationFont() noexcept;
 //! QScreen signals from 6.6.
 SCORE_LIB_BASE_EXPORT bool canSetGlobalScaleFactorLive() noexcept;
 
+//! The smallest zoom of the user interface that stays usable.
+inline constexpr double minimumGlobalScaleFactor = 0.5;
+
 //! QT_SCALE_FACTOR, live, through Qt private API. Qt warns on the console
 //! when windows are open; the factor still applies. Bumps the Skin and emits
 //! changed() so the caches keyed on the device pixel ratio drop. False if the
