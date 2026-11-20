@@ -624,6 +624,14 @@ score_add_test(test_unit_midi_message
       SOURCES MidiFileTempoTest.cpp
       APP
       PLUGINS score_plugin_midi score_plugin_fx score_plugin_scenario score_lib_process)
+
+    # Notes edited in the piano roll while the score plays are played, for a
+    # MIDI process made by hand, from a file or from a looper's take, before
+    # or during playback.
+    score_add_test(test_unit_midi_edit_while_playing
+      SOURCES MidiEditWhilePlayingTest.cpp
+      APP
+      PLUGINS score_plugin_midi score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
   endif()
 endif()
 

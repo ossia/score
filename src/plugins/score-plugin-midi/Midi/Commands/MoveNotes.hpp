@@ -11,7 +11,7 @@ namespace Midi
 {
 class ProcessModel;
 
-class MoveNotes final : public score::Command
+class SCORE_PLUGIN_MIDI_TEST_EXPORT MoveNotes final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), MoveNotes, "Move notes")
 public:
@@ -37,7 +37,7 @@ private:
   std::pair<int, int> m_rangeBefore{}, m_rangeAfter{};
 };
 
-class ChangeNotesVelocity final : public score::Command
+class SCORE_PLUGIN_MIDI_TEST_EXPORT ChangeNotesVelocity final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ChangeNotesVelocity, "Change velocity")
 public:
