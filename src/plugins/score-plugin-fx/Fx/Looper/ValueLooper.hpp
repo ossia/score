@@ -182,9 +182,9 @@ struct Node : Looper::looper_node<Node>
       halp_meta(
           description,
           "Plays the loop backwards, from where the playhead is: a value goes "
-          "back to the one it had before, impulses fire where they were. An "
-          "overdub records where the playhead goes, as on tape: what is played "
-          "over the reversed loop plays reversed once it goes forwards again.")
+          "back to the one it had before, impulses fire where they were. What is played while it is on is taken in forwards, a recording and an "
+          "overdub alike, and comes back reversed with the rest of the loop: "
+          "every layer plays as it was played once Reverse is off.")
       std::function<void(bool)> update_controller;
     } reverse;
 
@@ -246,6 +246,8 @@ struct Node : Looper::looper_node<Node>
           "Layers kept apart, for undo, mute, solo and erase. What a pass does "
           "past it is what At max layers says.")
     } max_layers;
+
+    Looper::stop_layer_button stop_layer;
   } inputs;
 
   struct
@@ -445,6 +447,10 @@ private:
   //! What is heard changes: the playhead sends the value held then, at the
   //! next span it plays.
   void layers_changing() noexcept { }
+  void set_pass_stopped(int pass, bool stopped) noexcept
+  {
+    loop.set_stopped(pass, stopped);
+  }
   bool busy() const noexcept { return false; }
   void cleared() noexcept { }
   void pass_dropped() noexcept
@@ -483,12 +489,7 @@ private:
     loop.pass_written = loop.length;
     loop.end_pass();
   }
-  void close_overdub()
-  {
-    if(loop.pass_backwards && loop.taking && !m_cycle_pending)
-      close_backwards(int64_t(std::ceil(m_phase - 1e-9)));
-    close_pass();
-  }
+  void close_overdub() { close_pass(); }
   bool cut_after(int64_t end) const noexcept { return loop.taking && loop.pass_start >= end; }
   void cut_pass_dropped() noexcept { }
   void trim_top_pass(int64_t end);
@@ -684,18 +685,13 @@ private:
   bool m_stop_requested{};
   bool m_written_placeable{true};
 
-  void handle_input(
-      int64_t from, int64_t to, double pos0, bool taking, double rate = 1.,
-      bool backwards = false);
-  void record_value(
-      int64_t pos, int64_t written, uint16_t key, const ossia::value& v, bool backwards);
-  void close_backwards(int64_t boundary);
+  void handle_input(int64_t from, int64_t to, double pos0, bool taking, double rate = 1.);
+  void record_value(int64_t pos, int64_t written, uint16_t key, const ossia::value& v);
   void next_cycle_pass(int64_t start);
   void begin_pass_carried(int64_t k);
   void begin_recording();
 
   //! The playhead is m_phase, on the loop's own positions.
-  bool m_was_reverse{};
   double m_phase{};
   void advance(int64_t start, int64_t length, bool overdub);
   double rate() const noexcept;
@@ -792,7 +788,7 @@ inline void Node::chase(int64_t ts)
 //! taking in, sent on when the passthrough says so, after what the loop
 //! sends before them.
 inline void Node::handle_input(
-    int64_t from, int64_t to, double pos0, bool taking, double rate, bool backwards)
+    int64_t from, int64_t to, double pos0, bool taking, double rate)
 {
   const Passthrough pt = inputs.passthrough;
   const bool echo = taking ? pt != Passthrough::None : pt == Passthrough::Full;
@@ -820,8 +816,6 @@ inline void Node::handle_input(
 
     // Where the value falls in the loop. A recording's loop is as long as
     // what was recorded so far, so its positions are not wrapped.
-    // Backwards, pos0 counts from the loop's end, and a value falls on the
-    // edge of the position the playhead has just gone over.
     int64_t pos = -1;
     int64_t written = 0;
     if(pos0 >= 0)
@@ -829,13 +823,7 @@ inline void Node::handle_input(
       const double into = (std::max(ts, from) - from) * rate;
       pos = int64_t(pos0 + into);
       written = int64_t(pass_progress() + into);
-      if(backwards && loop.length > 0)
-      {
-        pos = (loop.length - pos) % loop.length;
-        if(pos < 0)
-          pos += loop.length;
-      }
-      else if(transport.actualMode != LoopMode::Record && loop.length > 0)
+      if(transport.actualMode != LoopMode::Record && loop.length > 0)
         pos %= loop.length;
       else
         written = pos;
@@ -847,7 +835,7 @@ inline void Node::handle_input(
     if(!impulse)
       k.in.set(v);
     if(taking && pos >= 0 && fresh)
-      record_value(pos, written, key, v, backwards);
+      record_value(pos, written, key, v);
 
     if(echo)
     {
@@ -863,7 +851,7 @@ inline void Node::handle_input(
 }
 
 inline void Node::record_value(
-    int64_t pos, int64_t written, uint16_t key, const ossia::value& v, bool backwards)
+    int64_t pos, int64_t written, uint16_t key, const ossia::value& v)
 {
   material_arriving();
   if(v.get_type() == ossia::val_type::IMPULSE)
@@ -873,29 +861,9 @@ inline void Node::record_value(
   }
   auto& k = m_keys[key];
   if(!loop.touched(key))
-    loop.touch_key(key, pos, written, backwards);
-  // Backwards, a value holds for the positions under the one it came at:
-  // the loop keeps, at that position, the value from before, which is what
-  // it goes back to going forwards; and where the playhead stops going
-  // backwards, the last value that came.
-  if(!backwards)
-    loop.add_value(pos, written, key, v);
-  else if(!k.recorded.empty())
-    loop.add_value(pos, written, key, k.recorded.get());
+    loop.touch_key(key, pos, written);
+  loop.add_value(pos, written, key, v);
   k.recorded.set(v);
-}
-
-//! The playhead stops going backwards at `boundary` while taking in: the
-//! values last recorded hold from there.
-inline void Node::close_backwards(int64_t boundary)
-{
-  if(loop.length <= 0 || pass_pending())
-    return;
-  boundary %= loop.length;
-  for(int key = 0; key < max_keys; key++)
-    if(!m_keys[key].recorded.empty())
-      loop.add_value(
-          boundary, int64_t(loop.pass_progress), uint16_t(key), m_keys[key].recorded.get());
 }
 
 //! A recording starts with the value each key holds: one that does not move
@@ -909,7 +877,7 @@ inline void Node::begin_recording()
     const auto& in = m_keys[key].in;
     if(in.empty())
       continue;
-    loop.touch_key(uint16_t(key), 0, 0, false);
+    loop.touch_key(uint16_t(key), 0, 0);
     loop.add_value(0, 0, uint16_t(key), in.get());
   }
 }
@@ -955,10 +923,10 @@ inline void Node::begin_pass_carried(int64_t k)
   {
     const auto& c = m_carried[i];
     const int64_t pos = from_point ? c.pos % len : k;
-    record_value(pos, from_point ? c.pos : 0, c.key, c.value.get(), false);
+    record_value(pos, from_point ? c.pos : 0, c.key, c.value.get());
   }
   if(from_point)
-    pass_advanced(double(m_carried_span), false);
+    pass_advanced(double(m_carried_span));
   forget_carried();
 }
 
@@ -966,13 +934,6 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
 {
   if(!loop.empty() && transport.playbackPos % loop.length != m_expected_pos)
     m_phase = double(transport.playbackPos % loop.length);
-  if(m_reverse != m_was_reverse)
-  {
-    if(m_was_reverse && loop.taking && !loop.empty())
-      close_backwards(int64_t(std::ceil(m_phase - 1e-9)));
-    m_was_reverse = m_reverse;
-  }
-
   const LoopMode mode = transport.actualMode;
   switch(mode)
   {
@@ -1013,7 +974,8 @@ inline int64_t Node::looper_run(int64_t start, int64_t length)
       }
       if(!transport.is_taking())
       {
-        const int64_t k = int64_t(m_phase) % loop.length;
+        // Where the pass records: backwards, not where the loop is read.
+        const int64_t k = int64_t(head_y(loop.length)) % loop.length;
         begin_pass_carried(k);
         m_cycle_pending = false;
         // An extending pass grows the loop by the loop it started over.
@@ -1054,8 +1016,11 @@ inline void Node::next_cycle_pass(int64_t start)
 //! Plays the loop over [start; start + length[ of the tick, and takes in what
 //! comes in when overdubbing. The loop's positions go `rate()` times as fast
 //! as the tick's frames; at the loop's end, an overdub extends it or the
-//! playhead goes round. Backwards, the same is done on the loop read from its
-//! end: position y of it is position length - y of the loop.
+//! playhead goes round. Backwards, the loop is read from its end: position y
+//! of that is position length - y of the loop. The pass taken in has a
+//! playhead of its own, at y of the loop whichever way that one is read: it
+//! always records forwards, as a recording does, so that what comes in over
+//! the reversed loop comes back reversed as well.
 inline void Node::advance(int64_t start, int64_t length, bool overdub)
 {
   const double r = rate();
@@ -1079,11 +1044,11 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
     const double b = std::min(L, y + (out_end - out) * r);
     const double seg_out = (b - y) / r;
     if(overdub && std::exchange(m_cycle_pending, false))
-      next_cycle_pass(back ? 0 : int64_t(y));
+      next_cycle_pass(int64_t(y));
 
     // Gone round again, the pass writes over what it recorded a round
     // before.
-    if(overdub && !back && !pass_pending())
+    if(overdub && !pass_pending())
       loop.write_over(int64_t(std::ceil(y)), int64_t(std::ceil(b)), loop.pass_progress);
     if(back)
       play_range_reverse(y, b, out, r);
@@ -1093,11 +1058,11 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
     const int64_t from = int64_t(std::ceil(out - 1e-9));
     const int64_t to = b >= L ? int64_t(std::ceil(out + seg_out - 1e-9))
                               : int64_t(std::ceil(out_end - 1e-9));
-    handle_input(from, to, y + (from - out) * r, overdub, r, back);
+    handle_input(from, to, y + (from - out) * r, overdub, r);
     send_due(std::numeric_limits<int64_t>::max());
     if(overdub)
     {
-      pass_advanced(b - y, back);
+      pass_advanced(b - y);
       if(!pass_pending())
         loop.update_open_stretches();
     }
@@ -1122,12 +1087,7 @@ inline void Node::advance(int64_t start, int64_t length, bool overdub)
         if(y < 0.)
           y = 0.;
         if(per_cycle)
-        {
-          // The pass is over at the loop's start.
-          if(back)
-            close_backwards(0);
           m_cycle_pending = true;
-        }
       }
     }
   }
@@ -1251,7 +1211,7 @@ inline void Node::capture_into(int64_t end, int64_t n)
         before = &h.value;
     }
     if(before)
-      record_value(0, 0, uint16_t(key), before->get(), false);
+      record_value(0, 0, uint16_t(key), before->get());
   }
   for(int64_t i = m_history_count - count; i < m_history_count; i++)
   {
@@ -1262,7 +1222,7 @@ inline void Node::capture_into(int64_t end, int64_t n)
     const auto& last = m_keys[h.key].recorded;
     if(!h.value.impulse() && !last.empty() && last.same(h.value))
       continue;
-    record_value(pos, pos, h.key, h.value.get(), false);
+    record_value(pos, pos, h.key, h.value.get());
   }
   loop.pass_written = n;
   loop.pass_progress = double(n);
@@ -1309,15 +1269,11 @@ inline bool Node::capture_layer_ready(const Looper::capture_window& w) const noe
 inline void Node::capture_layer_into(const Looper::capture_window& w)
 {
   for_each_captured(w, [&](const played& h) {
-    record_value(
-        w.position(h.frame), w.progress(h.frame), h.key, h.value.get(), w.backwards);
+    record_value(w.position(h.frame), w.progress(h.frame), h.key, h.value.get());
     return true;
   });
   loop.pass_written = w.positions();
   loop.pass_progress = double(loop.pass_written);
-  loop.pass_backwards = w.backwards;
-  if(w.backwards)
-    close_backwards(w.position(w.end));
 }
 
 //! An extending pass cut back to `end`: what it recorded since is dropped.

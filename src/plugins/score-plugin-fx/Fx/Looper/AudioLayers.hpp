@@ -73,9 +73,9 @@ struct audio_layer
   //! Kept, but not heard: as if erased for what the loop sounds like, its
   //! feedback included.
   bool muted{};
-  //! The playhead went backwards over it last: its last frames are the first
-  //! of the part it wrote.
-  bool backwards{};
+  //! Not playing: silent, the passes under it keeping what its feedback took
+  //! from them.
+  bool stopped{};
   //! Gain it was heard with when the gains last started to glide.
   float from{1.f};
   audio_seam_end head, tail;
@@ -313,7 +313,7 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     {
       auto& l = layers[i];
       l.unmuted_gain = g;
-      l.gain = l.muted ? 0.f : g;
+      l.gain = l.muted || l.stopped ? 0.f : g;
       if(!l.muted)
         g *= l.decay;
     }
@@ -334,7 +334,8 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     for(int i = 0; i < count; i++)
     {
       const auto& l = layers[i];
-      if(l.muted || !valid(l, k))
+      // A pass that stops is heard until its gain has glided to nothing.
+      if(l.muted || (l.stopped && now >= ramp_end) || !valid(l, k))
         continue;
       const int64_t p = period_of(l);
       float v = data(l.slot, c)[k % p];
@@ -530,7 +531,7 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
       return -1;
     for(int i = 0; i < count; i++)
       if(layers[i].slot == s)
-        return layers[i].muted ? -1 : i;
+        return silent(i) ? -1 : i;
     return -1;
   }
 
@@ -582,11 +583,8 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
       return;
     const int64_t first = l.start % p;
     const int64_t last = (l.start + written - 1) % p;
-    // Backwards, the part written grows towards the loop's start: its first
-    // frame is its last position.
-    const bool at_last = tail != l.backwards;
-    e.at = at_last ? last : first;
-    e.dir = at_last ? -1 : 1;
+    e.at = tail ? last : first;
+    e.dir = tail ? -1 : 1;
     e.n = int(std::min<int64_t>(fade_frames, written));
     e.partner = partner;
     e.rho = 1.f;
@@ -632,7 +630,7 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     for(int i = 0; i < count; i++)
     {
       auto& l = layers[i];
-      if(l.muted)
+      if(silent(i))
         continue;
       for(const bool tail : {false, true})
       {
@@ -799,7 +797,6 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     a.period = m.merged == length ? 0 : m.merged;
     a.written = m.merged;
     a.muted = m.muted;
-    a.backwards = false;
     merged(m.at, a, m.undoable, m.a, m.b);
   }
 
@@ -912,6 +909,20 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     ramp_end = now + ramp_len;
   }
 
+  //! Stops pass k or plays it again, its gain gliding there over `glide`
+  //! frames from `now`: a step would click.
+  bool set_playing(int k, bool playing, int64_t glide = fade_frames) noexcept
+  {
+    if(k < 0 || k >= count || layers[k].stopped == !playing)
+      return false;
+    for(int i = 0; i < count; i++)
+      layers[i].from = heard_gain(layers[i]);
+    set_stopped(k, !playing);
+    ramp_len = std::max<int64_t>(1, glide);
+    ramp_end = now + ramp_len;
+    return true;
+  }
+
   void note_peak(int slot, int64_t k, float v) noexcept
   {
     float& p = peaks_of(slot)[std::size_t(k / peak_frames)];
@@ -932,8 +943,7 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
       float* d = data(l->slot, c);
       for(int64_t i = 0; i < n; i++)
       {
-        int64_t k = l->backwards ? (l->start + i) % p
-                                 : (l->start + std::min(l->written, p) - 1 - i) % p;
+        int64_t k = (l->start + std::min(l->written, p) - 1 - i) % p;
         if(k < 0)
           k += p;
         d[k] *= float(i) / float(n);
@@ -949,11 +959,7 @@ struct audio_layers : pass_stack<audio_layers, audio_layer, max_audio_layers>
     const int64_t len = period_of(l);
     if(len <= 0)
       return;
-    // A negative count moves it later: the input of a pass the playhead went
-    // over backwards belongs further on in the loop.
     frames %= len;
-    if(frames < 0)
-      frames += len;
     if(frames <= 0)
       return;
     for(int c = 0; c < channels; c++)

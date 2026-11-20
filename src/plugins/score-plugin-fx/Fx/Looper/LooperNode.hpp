@@ -25,6 +25,14 @@ namespace Nodes::Looper
  *   // The passes, and what is heard of them, are about to change: the MIDI
  *   // looper ends the notes it plays.
  *   void layers_changing();
+ *   // Pass `pass` stops, or plays again: the pass_stack's set_stopped(), and
+ *   // what the looper does for what was sounding of it.
+ *   void set_pass_stopped(int pass, bool stopped);
+ *   // Optional: some passes are heard that were not, or the other way, the
+ *   // passes being where they were. Called once that is so, instead of
+ *   // layers_changing() before: the MIDI looper ends only the notes that are
+ *   // not heard any more.
+ *   void passes_silenced();
  *   // A file is being loaded: the loop is not there yet.
  *   bool busy() const;
  *   int max_layers() const;
@@ -114,13 +122,18 @@ namespace Nodes::Looper
  * overdub began, as far as it went; and pass_advanced() for what the pass
  * goes over. A pass that never gets anything is no layer, no take, no merge.
  * A looper that does not say so makes its passes layers as they start.
+ *
+ * The pass taken in has a playhead of its own, which always goes forwards,
+ * as a recording's does: at y of the loop when the loop's playhead is at y
+ * in the coordinates it goes forward in. Backwards, the two go opposite
+ * ways, so that what is taken in over the reversed loop comes back reversed
+ * with it, and plays as it was played once the loop plays forwards.
  */
 /**
  * What Capture takes over a loop: input frames [end - n; end[ of the capture
  * clock, as the pass an overdub over them would have been. Frame `end` is at
  * `y_end` in the coordinates the playhead goes forward in, which it goes
- * over `rate` positions a frame; `backwards`, they are the loop read from its
- * end.
+ * over `rate` positions a frame: those the pass is recorded in.
  */
 struct capture_window
 {
@@ -129,7 +142,6 @@ struct capture_window
   int64_t length{};
   double y_end{};
   double rate{1.};
-  bool backwards{};
 
   static int64_t wrap(int64_t k, int64_t len) noexcept
   {
@@ -141,11 +153,10 @@ struct capture_window
   {
     return std::clamp<int64_t>(std::llround(double(n) * rate), 0, length);
   }
-  //! The first position of what it goes over, in the loop's own order.
+  //! The first position of what it goes over.
   int64_t start() const noexcept
   {
-    const auto y = int64_t(std::floor(y_end));
-    return backwards ? wrap(length - y, length) : wrap(y - positions(), length);
+    return wrap(int64_t(std::floor(y_end)) - positions(), length);
   }
   //! The loop position input frame t falls on, as an overdub records it.
   int64_t position(int64_t t) const noexcept
@@ -153,8 +164,7 @@ struct capture_window
     double y = std::fmod(y_end - double(end - t) * rate, double(length));
     if(y < 0.)
       y += double(length);
-    const int64_t k = std::min(int64_t(y), length - 1);
-    return backwards ? wrap(length - k, length) : k;
+    return std::min(int64_t(y), length - 1);
   }
   //! The positions gone over from the window's start to input frame t.
   int64_t progress(int64_t t) const noexcept
@@ -197,10 +207,10 @@ struct looper_node
   {
     if(stack().layers[pass].muted == muted)
       return;
-    passes_changing();
-    stack().set_muted(pass, muted);
+    set_pass_muted(pass, muted);
   }
   void looper_mute(int pass, int muted = -1) { mute_pass(pass, muted); }
+  void looper_stop(int pass, int stopped = -1) { stop_pass(pass, stopped); }
   void looper_erase(int pass) { erase_pass(pass); }
   void looper_begin_actions() noexcept { stack().begin_group(); }
   void looper_end_actions() noexcept { stack().end_group(); }
@@ -245,18 +255,15 @@ protected:
       top->loop_before = m_pending_length;
     if constexpr(lazy_passes())
       if(m_pending_progress > 0.)
-        stack().advance_pass(m_pending_progress, m_pending_backwards);
+        stack().advance_pass(m_pending_progress);
   }
   //! The pass being taken in went over `frames` more frames of the loop.
-  void pass_advanced(double frames, bool backwards)
+  void pass_advanced(double frames)
   {
     if(m_pass_pending)
-    {
       m_pending_progress += frames;
-      m_pending_backwards = backwards;
-    }
     else if constexpr(lazy_passes())
-      stack().advance_pass(frames, backwards);
+      stack().advance_pass(frames);
   }
   //! The frames the pass being taken in went over.
   double pass_progress() const noexcept
@@ -308,6 +315,8 @@ protected:
   void drop_top_pass();
   void erase_pass(int pass);
   void mute_pass(int pass, int muted = -1);
+  void set_pass_muted(int pass, bool muted);
+  void stop_pass(int pass, int stopped = -1);
   int make_room();
   void begin_pass(int64_t start);
   void begin_pass_now(int64_t start);
@@ -441,7 +450,6 @@ protected:
   int64_t m_pending_start{};
   int64_t m_pending_length{};
   double m_pending_progress{};
-  bool m_pending_backwards{};
   int m_next_take_slot{};
 
   int64_t m_view_countdown{};
@@ -514,11 +522,14 @@ void looper_node<Node>::apply_buttons()
   {
     const auto& r = m_erase_requests[std::size_t(i)];
     m_switches.add(
-        {.kind = r.mute ? Looper::layer_action::mute : Looper::layer_action::erase,
+        {.kind = r.stopped >= 0 ? Looper::layer_action::stop
+                 : r.mute       ? Looper::layer_action::mute
+                                : Looper::layer_action::erase,
          .pass = r.pass,
          .layers = r.layers,
          .id = r.id,
-         .muted = r.muted},
+         .muted = r.muted,
+         .stopped = r.stopped},
         transport);
   }
 
@@ -644,8 +655,40 @@ void looper_node<Node>::mute_pass(int pass, int muted)
   if(m == st.layers[pass].muted)
     return;
   m_switches.soloed.forget();
-  passes_changing();
-  st.set_muted(pass, m);
+  set_pass_muted(pass, m);
+}
+
+template <typename Node>
+void looper_node<Node>::set_pass_muted(int pass, bool muted)
+{
+  if constexpr(requires { self().passes_silenced(); })
+  {
+    m_version++;
+    stack().set_muted(pass, muted);
+    self().passes_silenced();
+  }
+  else
+  {
+    passes_changing();
+    stack().set_muted(pass, muted);
+  }
+}
+
+//! Stops a pass, or plays it again: `stopped` says which, or it toggles. It
+//! is the transport of the pass: nothing undo goes back through, and the
+//! mutes and a solo are as they were. The mix of a take is what is heard, so
+//! the last take is not the loop as it is any more.
+template <typename Node>
+void looper_node<Node>::stop_pass(int pass, int stopped)
+{
+  auto& st = stack();
+  if(pass < 0 || pass >= st.count || self().busy())
+    return;
+  const bool s = stopped < 0 ? !st.layers[pass].stopped : stopped > 0;
+  if(s == st.layers[pass].stopped)
+    return;
+  m_version++;
+  self().set_pass_stopped(pass, s);
 }
 
 //! There are Max layers, and a pass starts: with Replace a muted layer, the
@@ -682,7 +725,6 @@ void looper_node<Node>::begin_pass(int64_t start)
     m_pending_start = start;
     m_pending_length = stack().length;
     m_pending_progress = 0.;
-    m_pending_backwards = false;
     return;
   }
   begin_pass_now(start);
@@ -771,6 +813,12 @@ void looper_node<Node>::looper_close_take(
     m_origin = transport.timeline(tk);
     m_origin.frames -= at;
     m_origin.quarters -= at / m_rate * m_loop_tempo / 60.;
+    // The transport counts how far the loop went on since it closed, e.g.
+    // from the grid point a late stop cut it back to: backwards, that is read
+    // from its end, and a pass that goes on from the recording is as far
+    // into the loop.
+    if(m_reverse && st.length > 0)
+      self().set_head(at, st.length);
   }
   else
   {
@@ -960,8 +1008,7 @@ void looper_node<Node>::capture_layer(const tick& tk, int64_t now, int64_t end)
       .n = std::min<int64_t>({round, end, self().capture_limit()}),
       .length = len,
       .y_end = y_end,
-      .rate = rate,
-      .backwards = m_reverse};
+      .rate = rate};
   if(w.n <= 0 || w.positions() <= 0 || !self().capture_layer_ready(w))
     return;
 
@@ -1193,6 +1240,11 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
   v.writing = self().view_writing();
   v.version = m_version;
   v.reverse = m_reverse;
+  // Backwards, the pass taken in is written where the loop is not read.
+  v.write_head = m_reverse && st.length > 0 && transport.is_taking()
+                 && transport.actualMode == LoopMode::Overdub;
+  v.write_position
+      = v.write_head ? float(self().head_y(st.length) / double(st.length)) : 0.f;
   v.speed = float(m_speed);
   v.selected = self().inputs.layer.value - 1;
   v.stopped = false;
@@ -1215,10 +1267,12 @@ void looper_node<Node>::fill_view(Looper::view_message& v) const noexcept
       add(m_switches.actions[std::size_t(i)].id);
   }
   v.muted.fill(0);
+  v.lane_stopped.fill(0);
   v.lane_id.fill(0);
   for(int l = merged > 0 ? 1 : 0; l < lanes; l++)
   {
     v.muted[l] = st.layers[l + merged].muted;
+    v.lane_stopped[l] = st.layers[l + merged].stopped;
     v.lane_id[l] = st.layers[l + merged].id;
   }
 }

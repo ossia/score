@@ -25,6 +25,9 @@ struct tagged_pass
   //! Kept but not heard: as if erased for what the loop sounds like, so it
   //! replaces nothing either.
   bool muted{};
+  //! Not playing: silent, with its place in the loop, which it plays from
+  //! again in time with the others. The rest of the loop is as it is with it.
+  bool stopped{};
 };
 
 /**
@@ -49,8 +52,9 @@ struct tagged_pass
  * action kept.
  *
  * `Pass` holds, besides what the looper keeps of its own for a pass (a
- * buffer, a gain...), `period`, `loop_before`, `loop_after` and `muted`, and
- * is copied whole as the passes move. What a pass recorded may instead be
+ * buffer, a gain...), `period`, `loop_before`, `loop_after`, `muted` and
+ * `stopped`, and is copied whole as the passes move. A pass is stopped and played again as a transport is: it is no action of
+ * the history, and undo and redo leave it as it is. What a pass recorded may instead be
  * kept apart, each piece tagged with the index of its pass and with the
  * passes that replace it, e.g. MIDI events: `Store` moves those along as the
  * passes move, through these hooks, which tagged_material below implements
@@ -246,6 +250,19 @@ struct pass_stack
     record(action{.kind = action::mute, .at = int8_t(k), .muted = m, .id = id});
     return true;
   }
+
+  //! Stops pass k, k being heard, or plays it again.
+  bool set_stopped(int k, bool s) noexcept
+  {
+    if(k < 0 || k >= count || layers[k].stopped == s)
+      return false;
+    layers[k].stopped = s;
+    self().passes_changed();
+    return true;
+  }
+
+  //! Pass k is not heard: muted, or stopped.
+  bool silent(int k) const noexcept { return layers[k].muted || layers[k].stopped; }
 
   void clear() noexcept
   {
@@ -605,13 +622,15 @@ struct pass_stack
 
   //! The pass `a` and `b` heard one over the other become, before what the
   //! looper keeps of its own for it: a muted pass merged with one that is
-  //! not is lost, and both muted, the merged pass is muted.
+  //! not is lost, and both muted, the merged pass is muted. A stopped pass
+  //! merged with one that plays plays with it.
   Pass merged_pass(const Pass& a, const Pass& b) const noexcept
   {
     Pass m = a;
     m.period = merged_period(a, b);
     m.loop_after = b.loop_after;
     m.muted = a.muted && b.muted;
+    m.stopped = a.stopped && b.stopped;
     return m;
   }
 
@@ -894,9 +913,6 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
   //! The frames the pass went over, not rounded: at a rate other than one, a
   //! tick goes over a fraction of a frame more than its whole frames.
   double pass_progress{};
-  //! The playhead goes backwards: the part the pass went over grows towards
-  //! the loop's start, pass_start being its first position.
-  bool pass_backwards{};
   bool taking{};
 
   //! Room for one more piece in a store holding `used` of `max`: the
@@ -1050,25 +1066,15 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
     pass_start = start;
     pass_written = 0;
     pass_progress = 0.;
-    pass_backwards = false;
     taking = true;
     store().pass_state_begun();
   }
 
-  //! The pass went over `frames` more frames of the loop, backwards when
-  //! the playhead goes backwards.
-  void advance_pass(double frames, bool backwards = false) noexcept
+  //! The pass went over `frames` more frames of the loop.
+  void advance_pass(double frames) noexcept
   {
     pass_progress += frames;
-    const auto written = int64_t(std::floor(pass_progress + 1e-6));
-    if(backwards && this->length > 0)
-    {
-      pass_start = (pass_start - (written - pass_written)) % this->length;
-      if(pass_start < 0)
-        pass_start += this->length;
-    }
-    pass_backwards = backwards;
-    pass_written = written;
+    pass_written = int64_t(std::floor(pass_progress + 1e-6));
   }
 
   //! Copies the passes of another loop and where its pass went, not its
@@ -1092,7 +1098,6 @@ struct tagged_pass_stack : pass_stack<Store, Pass, MaxLayers>
     pass_start = o.pass_start;
     pass_written = o.pass_written;
     pass_progress = o.pass_progress;
-    pass_backwards = o.pass_backwards;
     taking = o.taking;
   }
 

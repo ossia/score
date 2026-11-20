@@ -209,11 +209,18 @@ enum class FollowTempo
   TimestretchPercussive
 };
 
+//! A note still held at the end of the loop.
+enum class HeldNotes
+{
+  Wrap,    ///< Carries on from the loop's start.
+  Truncate ///< Ends with the loop.
+};
+
 //! The units Quantize offers: a time, a note value, bars, or the loop itself.
 inline constexpr halp::grid_setup quantif_grid{
     .units = halp::grid_units::free | halp::grid_units::note | halp::grid_units::bars
              | halp::grid_units::period,
-    .init = halp::grid_value::note(0.25),
+    .init = halp::grid_value::bars(1.),
     .max_bars = 16};
 
 //! A grid that never waits: none, or nothing the transport can find points of.
