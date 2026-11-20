@@ -14,10 +14,10 @@ enum cuda_result_enum
   CUDA_ERROR_UNKNOWN = 999
 };
 typedef int CUdevice_v1;
-using cuInit_pt = cuda_result_enum CUDAAPI (*)(unsigned int Flags);
-using cuDeviceGetCount_pt = cuda_result_enum CUDAAPI (*)(int* count);
+using cuInit_pt = cuda_result_enum(CUDAAPI*)(unsigned int Flags);
+using cuDeviceGetCount_pt = cuda_result_enum(CUDAAPI*)(int* count);
 using cuDeviceComputeCapability_pt
-    = cuda_result_enum CUDAAPI (*)(int* major, int* minor, int dev);
+    = cuda_result_enum(CUDAAPI*)(int* major, int* minor, int dev);
 
 namespace score
 {
