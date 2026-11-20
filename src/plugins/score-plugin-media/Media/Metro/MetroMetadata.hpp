@@ -15,6 +15,6 @@ PROCESS_METADATA(
     "Generates sound according to the current beat", "ossia score", {}, {},
     {std::vector<Process::PortType>{Process::PortType::Audio}},
     QUrl("https://ossia.io/score-docs/processes/audio-utilities.html#metronome"),
-    Process::ProcessFlags::SupportsAll)
+    Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Metro::Model, "Metronome")
