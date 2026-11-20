@@ -142,6 +142,7 @@ modules:
       # Essentia's source must be staged before the offline build.
       - type: archive
         url: https://codeload.github.com/MTG/essentia/tar.gz/23ae7baddecfc3227ba23ad69fa11f73ac5293a4
+        dest-filename: essentia.tar.gz
         sha256: 41d8ce1308b3471059c67f9e6c857a97e766dfb0b0b741cfedea6db624738c32
         dest: flatpak-essentia-deps/essentia
         strip-components: 1

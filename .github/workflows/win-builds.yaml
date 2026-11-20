@@ -246,6 +246,7 @@ jobs:
   mingw:
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - { sys: mingw64, env: x86_64 }
@@ -270,27 +271,36 @@ jobs:
         with:
           msystem: ${{matrix.sys}}
           update: true
+          # The archived Quick3D build also loads Assimp and the OpenXR loader.
           pacboy: >-
             cmake:p
             ninja:p
             python:p
             toolchain:p
             cppwinrt:p
-            qt6-base:p
-            qt6-declarative:p
-            qt6-websockets:p
-            qt6-serialport:p
-            qt6-shadertools:p
-            qt6-scxml:p
-            qt6-tools:p
-            qt6-quick3d:p
-            qt6-svg:p
-            qt6-connectivity:p
             boost:p
             portaudio:p
             fftw:p
             ffmpeg:p
             SDL2:p
+            ${{ matrix.sys == 'mingw64' && 'assimp:p openxr-sdk:p' ||
+            'qt6-base:p qt6-declarative:p qt6-websockets:p qt6-serialport:p
+            qt6-shadertools:p qt6-scxml:p qt6-tools:p qt6-quick3d:p
+            qt6-svg:p qt6-connectivity:p' }}
+
+      - name: Install archived MINGW64 Qt
+        if: matrix.sys == 'mingw64'
+        shell: msys2 {0}
+        run: |
+          # MSYS2 removed Qt leaf packages from the legacy MSVCRT repository.
+          # Install one signed Qt release together so private module APIs match.
+          repo=https://repo.msys2.org/mingw/mingw64
+          qt_version=6.12.0
+          qt_urls=("$repo/mingw-w64-x86_64-qt6-base-$qt_version-2-any.pkg.tar.zst")
+          for module in connectivity declarative quick3d quicktimeline scxml serialport shadertools svg tools websockets; do
+            qt_urls+=("$repo/mingw-w64-x86_64-qt6-$module-$qt_version-1-any.pkg.tar.zst")
+          done
+          pacman -U --needed --noconfirm "${qt_urls[@]}"
 
       - name: Build
         shell: msys2 {0}
