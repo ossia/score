@@ -18,6 +18,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QMimeData>
 #include <QPainter>
 #include <QPushButton>
 #include <QScrollArea>
@@ -257,8 +258,8 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
 
     {
       auto b = add(
-          tr("Add lane"), tr("Add a lane, a copy of the last one"),
-          [this] { m_controller->addLane(); });
+          tr("Add lane"), tr("Add an empty lane under the selected one"),
+          [this] { m_controller->addLane(m_view->selectedLane()); });
       // The accent and slide lanes from its menu.
       auto menu = new QMenu{b};
       m_addAccent = menu->addAction(tr("Accent lane"), this, [this] {
@@ -273,6 +274,10 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
       b->setMenu(menu);
       b->setPopupMode(QToolButton::MenuButtonPopup);
     }
+    add(QStringLiteral("▲"), tr("Move the selected lane up (Alt+Up)"),
+        [this] { m_controller->moveLane(m_view->selectedLane(), -1); });
+    add(QStringLiteral("▼"), tr("Move the selected lane down (Alt+Down)"),
+        [this] { m_controller->moveLane(m_view->selectedLane(), 1); });
     row->addStretch(1);
 
     m_status = new QLabel{this};
@@ -311,10 +316,21 @@ Editor::Editor(ProcessModel& model, const score::DocumentContext& ctx, QWidget* 
     m_view->setTimeGrid(grid->grid());
     m_scene->addItem(m_view);
     m_controller->attach(*m_view);
+    m_controller->selectLane = [this](int lane) {
+      m_view->setSelectedLanes({});
+      m_view->setSelectedLane(lane);
+      updateLanePanel();
+    };
+    m_controller->moveUpShortcut = QKeySequence{Qt::ALT | Qt::Key_Up};
+    m_controller->moveDownShortcut = QKeySequence{Qt::ALT | Qt::Key_Down};
     connect(m_view, &View::askContextMenu, this, [this](QPoint screen, QPointF scene) {
       QMenu menu;
-      m_controller->fillMenu(menu, m_view->headerLaneAt(m_view->mapFromScene(scene)));
+      m_controller->fillMenu(
+          menu, m_view->headerLaneAt(m_view->mapFromScene(scene)), m_view->selectedLane());
       menu.exec(screen);
+    });
+    connect(m_view, &View::dropReceived, this, [this](const QPointF&, const QMimeData& md) {
+      m_controller->drop(md);
     });
     connect(m_view, &View::fieldRandomized, this, [this](int lane, int f) {
       m_controller->randomizeField(StepField(f), lane);
@@ -642,6 +658,12 @@ void Editor::addShortcuts()
       clear();
   });
   add(QKeySequence::SelectAll, [this] { m_view->selectAll(); });
+  add(m_controller->moveUpShortcut, [this] {
+    m_controller->moveLane(m_view->selectedLane(), -1);
+  });
+  add(m_controller->moveDownShortcut, [this] {
+    m_controller->moveLane(m_view->selectedLane(), 1);
+  });
   add(Qt::Key_Escape, [this] { m_view->clearSelection(); });
 }
 

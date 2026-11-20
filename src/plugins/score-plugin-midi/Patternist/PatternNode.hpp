@@ -128,6 +128,8 @@ public:
     std::array<decided, 2> decisions{};
   };
   std::array<lane_state, max_lanes> lanes{};
+  //! Where follow_lanes reads the states from while it moves them.
+  std::array<lane_state, max_lanes> lane_scratch{};
 
   //! At the same position, in this order: an accent is set before the notes
   //! it acts on, a slide changes once the note it glides into is struck.
@@ -266,14 +268,95 @@ public:
       const Pattern& after = list[current_pattern];
       const int count_before = std::min(int(before.lanes.size()), max_lanes);
       const int count_after = std::min(int(after.lanes.size()), max_lanes);
-      for(int i = 0; i < count_after; i++)
-        if(i >= count_before
-           || laneDivision(before, before.lanes[i]) != laneDivision(after, after.lanes[i]))
-          resync_lane[i] = true;
+      if(!follow_lanes(before, after, count_before, count_after))
+        for(int i = 0; i < count_after; i++)
+          if(laneDivision(before, before.lanes[i]) != laneDivision(after, after.lanes[i]))
+            resync_lane[i] = true;
       if(before.length != after.length || before.division != after.division)
         resync_main = true;
     }
     std::swap(patterns, list);
+  }
+
+  //! What a lane holds and where it is in its loop is kept by its place in the
+  //! list: when lanes are moved, added or removed, each state goes to the
+  //! place its lane now has, so that a tie carries on with its own note and a
+  //! step already scheduled is not played again. Lanes are told apart by
+  //! their note. A lane that is new starts fresh; the state of one that is
+  //! gone is left past the last lane, where release_removed_lanes ends the
+  //! note it holds. False when the lanes are the ones there were, in the
+  //! same order.
+  bool follow_lanes(
+      const Pattern& before, const Pattern& after, int count_before,
+      int count_after) noexcept
+  {
+    bool same = count_before == count_after;
+    for(int i = 0; same && i < count_after; i++)
+      same = before.lanes[i].note == after.lanes[i].note;
+    if(same)
+      return false;
+
+    std::array<int16_t, max_lanes> source;
+    source.fill(-1);
+    std::array<bool, max_lanes> taken{};
+    const int common = std::min(count_before, count_after);
+    for(int i = 0; i < common; i++)
+    {
+      if(before.lanes[i].note == after.lanes[i].note)
+      {
+        source[i] = int16_t(i);
+        taken[i] = true;
+      }
+    }
+    for(int i = 0; i < count_after; i++)
+    {
+      if(source[i] >= 0)
+        continue;
+      for(int j = 0; j < count_before; j++)
+      {
+        if(!taken[j] && before.lanes[j].note == after.lanes[i].note)
+        {
+          source[i] = int16_t(j);
+          taken[j] = true;
+          break;
+        }
+      }
+    }
+    // A lane whose note was changed stays where it is.
+    for(int i = 0; i < common; i++)
+    {
+      if(source[i] < 0 && !taken[i])
+      {
+        source[i] = int16_t(i);
+        taken[i] = true;
+      }
+    }
+
+    lane_scratch = lanes;
+    int next = count_after;
+    for(int i = 0; i < count_after; i++)
+    {
+      if(source[i] >= 0)
+      {
+        lanes[i] = lane_scratch[source[i]];
+        if(laneDivision(before, before.lanes[source[i]]) != laneDivision(after, after.lanes[i]))
+          resync_lane[i] = true;
+      }
+      else
+      {
+        lanes[i] = lane_state{};
+        // When there is no musical time to resync on, every lane counts the
+        // same steps.
+        lanes[i].played = main_played;
+        resync_lane[i] = true;
+      }
+    }
+    for(int j = 0; j < count_before && next < max_lanes; j++)
+      if(!taken[j])
+        lanes[next++] = lane_scratch[j];
+    for(; next < max_lanes; next++)
+      lanes[next] = lane_state{};
+    return true;
   }
 
   void set_channel(uint8_t c) noexcept
