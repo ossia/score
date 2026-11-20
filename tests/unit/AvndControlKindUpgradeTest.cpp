@@ -558,6 +558,135 @@ TEST_CASE("The loopers' Quantize: a preset saved with the Quantif note list", "[
 
 namespace
 {
+const QString value_looper_uuid = QStringLiteral("399796c5-9e86-4a00-8671-3e759ad6fb33");
+}
+
+TEST_CASE(
+    "The loopers' defaults: a new looper is quantized to the bar and truncates held "
+    "notes, a saved one keeps what it saved",
+    "[avnd][upgrade][looper][defaults]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    for(const auto& uuid : {audio_looper_uuid, midi_looper_uuid, value_looper_uuid})
+    {
+      INFO(uuid.toStdString());
+      auto looper = make_looper(dctx, uuid);
+      if(!looper)
+        SKIP("the loopers are not built");
+      // A new looper: one bar.
+      CHECK(grid_of(*looper) == ossia::vec2f{1.f, 2.f});
+
+      // A score saved with the quarter note the looper had by default then
+      // has it in its Quantize port.
+      inlet_named(*looper, "Quantize")->setValue(ossia::vec2f{0.25f, 1.f});
+      for(auto roundtrip : {&roundtrip_json, &roundtrip_datastream})
+      {
+        std::unique_ptr<Process::ProcessModel> loaded{roundtrip(*looper, dctx, nullptr)};
+        REQUIRE(loaded);
+        CHECK(grid_of(*loaded) == ossia::vec2f{0.25f, 1.f});
+      }
+
+      // A preset that says nothing of Quantize leaves it as it is.
+      const int late = inlet_named(*looper, "Late stop (ms)")->id().val();
+      Process::Preset p;
+      p.key.key = looper->concreteKey();
+      p.data = QStringLiteral("[[%1,{\"Int\":77}]]").arg(late).toUtf8();
+      looper->loadPreset(p);
+      CHECK(grid_of(*looper) == ossia::vec2f{0.25f, 1.f});
+      CHECK(inlet_named(*looper, "Late stop (ms)")->value() == ossia::value{77});
+      auto fresh = make_looper(dctx, uuid);
+      fresh->loadPreset(p);
+      CHECK(grid_of(*fresh) == ossia::vec2f{1.f, 2.f});
+    }
+
+    auto midi = make_looper(dctx, midi_looper_uuid);
+    REQUIRE(midi);
+    auto* held = inlet_named(*midi, "Held notes");
+    REQUIRE(held);
+    CHECK(held->value() == ossia::value{std::string{"Truncate"}});
+    // Wrap, what a looper saved before had unless it was changed.
+    held->setValue(std::string{"Wrap"});
+    for(auto roundtrip : {&roundtrip_json, &roundtrip_datastream})
+    {
+      std::unique_ptr<Process::ProcessModel> loaded{roundtrip(*midi, dctx, nullptr)};
+      REQUIRE(loaded);
+      auto* h = inlet_named(*loaded, "Held notes");
+      REQUIRE(h);
+      CHECK(h->id() == held->id());
+      CHECK(h->value() == ossia::value{std::string{"Wrap"}});
+    }
+    // A preset that says nothing of it leaves it as it is, one that names it
+    // sets it.
+    {
+      Process::Preset p;
+      p.key.key = midi->concreteKey();
+      const int late = inlet_named(*midi, "Late stop (ms)")->id().val();
+      p.data = QStringLiteral("[[%1,{\"Int\":77}]]").arg(late).toUtf8();
+      midi->loadPreset(p);
+      CHECK(held->value() == ossia::value{std::string{"Wrap"}});
+      p.data = QStringLiteral("[[%1,{\"String\":\"Truncate\"}]]")
+                   .arg(held->id().val())
+                   .toUtf8();
+      midi->loadPreset(p);
+      CHECK(held->value() == ossia::value{std::string{"Truncate"}});
+      p.data
+          = QStringLiteral("[[%1,{\"String\":\"Wrap\"}]]").arg(held->id().val()).toUtf8();
+      midi->loadPreset(p);
+      CHECK(held->value() == ossia::value{std::string{"Wrap"}});
+    }
+  });
+}
+
+TEST_CASE(
+    "The loopers' Play / Stop layer: a score saved before it existed loads with "
+    "everything it saved",
+    "[avnd][upgrade][looper][stop]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& dctx = doc->context();
+    for(const auto& uuid : {audio_looper_uuid, midi_looper_uuid, value_looper_uuid})
+    {
+      INFO(uuid.toStdString());
+      auto looper = make_looper(dctx, uuid);
+      if(!looper)
+        SKIP("the loopers are not built");
+      REQUIRE(inlet_named(*looper, "Play / Stop layer"));
+      const auto count = looper->inlets().size();
+
+      // The looper as it was saved then: without that port, the others set.
+      auto& inlets = InletsAccess::of(*looper);
+      auto it = ossia::find_if(
+          inlets, [](auto* in) { return in->name() == "Play / Stop layer"; });
+      REQUIRE(it != inlets.end());
+      delete *it;
+      inlets.erase(it);
+      inlet_named(*looper, "Quantize")->setValue(ossia::vec2f{0.5f, 1.f});
+      inlet_named(*looper, "Late stop (ms)")->setValue(42);
+      inlet_named(*looper, "Record bars")->setValue(3);
+      const auto after_record = inlet_named(*looper, "After record")->id();
+
+      for(auto roundtrip : {&roundtrip_json, &roundtrip_datastream})
+      {
+        std::unique_ptr<Process::ProcessModel> loaded{roundtrip(*looper, dctx, nullptr)};
+        REQUIRE(loaded);
+        CHECK(loaded->inlets().size() == count);
+        CHECK(inlet_named(*loaded, "Play / Stop layer"));
+        CHECK(grid_of(*loaded) == ossia::vec2f{0.5f, 1.f});
+        CHECK(inlet_named(*loaded, "Late stop (ms)")->value() == ossia::value{42});
+        CHECK(inlet_named(*loaded, "Record bars")->value() == ossia::value{3});
+        CHECK(inlet_named(*loaded, "After record")->id() == after_record);
+      }
+    }
+  });
+}
+
+namespace
+{
 QString name_of(const Process::Port& p)
 {
   return p.name();

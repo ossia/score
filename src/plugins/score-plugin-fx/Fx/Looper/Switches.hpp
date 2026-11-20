@@ -37,6 +37,7 @@
  *   bool looper_muted(int pass) const;
  *   void looper_set_muted(int pass, bool muted);
  *   void looper_mute(int pass, int muted);    // muted: 1, 0, or -1 to toggle
+ *   void looper_stop(int pass, int stopped);  // stopped: 1, 0, or -1 to toggle
  *   void looper_erase(int pass);
  *   void looper_begin_actions();              // what follows is one action
  *   void looper_end_actions();                // for undo, until this
@@ -295,6 +296,35 @@ struct note_grid_selector : halp::grid_chooser<"Note grid", note_grid>
       "as Strength says.")
 };
 
+//! What becomes of a note held across the end of the loop. The choices keep
+//! the order saved documents know them by; a new looper truncates.
+struct held_notes_selector
+{
+  static clang_buggy_consteval auto name() { return std::string_view{"Held notes"}; }
+  enum widget
+  {
+    enumeration,
+    list,
+    combobox
+  };
+  struct range
+  {
+    std::string_view values[2] = {"Wrap", "Truncate"};
+    HeldNotes init = HeldNotes::Truncate;
+  };
+  HeldNotes value = HeldNotes::Truncate;
+  operator HeldNotes() const noexcept { return value; }
+  auto& operator=(HeldNotes t) noexcept
+  {
+    value = t;
+    return *this;
+  }
+  halp_meta(
+      description,
+      "A note held across the end of the loop ends with the loop (Truncate), "
+      "or carries on from its start (Wrap).")
+};
+
 struct at_max_layers_selector
     : enum_combobox<"At max layers", AtMaxLayers, AtMaxLayers::MergeIntoNewest>
 {
@@ -435,6 +465,17 @@ struct erase_layer_button : halp::impulse_button<"Erase layer">
       "overdub goes on in a new one, as with Undo.")
 };
 
+struct stop_layer_button : halp::impulse_button<"Play / Stop layer">
+{
+  halp_meta(
+      description,
+      "Stops the layer Layer says, or plays it again, on the grid, as the "
+      "play and stop button of its lane does. A stopped layer is silent and "
+      "comes back in time with the others. Unlike a mute, it is no change of "
+      "the loop: Undo does not take it back, the layers under it keep what "
+      "its feedback took from them, and it keeps replacing what it replaced.")
+};
+
 struct solo_layer_button : halp::impulse_button<"Solo layer">
 {
   halp_meta(
@@ -512,19 +553,21 @@ struct solo_memory
 //! A layer action waiting for the grid: on the layer Layer says then, or on
 //! the pass a lane of the view showed: the one of id `id` wherever it is
 //! then, or else pass `pass` when the loop still has `layers`. A mute sets
-//! `muted` when it is 0 or 1, and toggles else.
+//! `muted` when it is 0 or 1, and toggles else; a stop does with `stopped`.
 struct layer_action
 {
   enum kind_t : uint8_t
   {
     mute,
     erase,
-    solo
+    solo,
+    stop
   } kind;
   int pass;
   int layers;
   uint32_t id{};
   int8_t muted{-1};
+  int8_t stopped{-1};
 };
 
 //! Where the passes and what undo goes back through are: what was undone
@@ -650,6 +693,8 @@ struct switches
       add({.kind = layer_action::erase, .pass = -1, .layers = -1}, t);
     if(in.solo_layer.value)
       add({.kind = layer_action::solo, .pass = -1, .layers = -1}, t);
+    if(in.stop_layer.value)
+      add({.kind = layer_action::stop, .pass = -1, .layers = -1}, t);
 
     bool asked = false;
     if(in.reverse_toggle.value)
@@ -703,6 +748,9 @@ struct switches
           e.looper_begin_actions();
           soloed.toggle(e, pass);
           e.looper_end_actions();
+          break;
+        case layer_action::stop:
+          e.looper_stop(pass, a.stopped);
           break;
       }
       follow(in, e.looper_passes());
@@ -840,6 +888,7 @@ struct layers_tab
   halp::item<&Ins::mute_layer> mute_layer;
   halp::item<&Ins::erase_layer> erase_layer;
   halp::item<&Ins::solo_layer> solo_layer;
+  halp::item<&Ins::stop_layer> stop_layer;
 };
 
 //! The Speed tab of a looper whose inputs are `Ins`: how fast and which way

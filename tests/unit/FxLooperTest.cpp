@@ -65,7 +65,7 @@ struct looper_harness
     st.samplesToModelRatio = 1.;
     node.ossia_state = {&st};
 
-    // Quantification is a quarter note by default; most cases here are about
+    // Quantification is one bar by default; most cases here are about
     // the sample machinery, not the musical grid.
     node.inputs.quantif.value = halp::grid_value{};
     // Most cases here are about what happens on the grid, not just after it.
@@ -132,6 +132,17 @@ struct looper_harness
   };
   loop_view loop(int chan = 0) const { return {node, chan}; }
 };
+}
+
+TEST_CASE("Looper: a new looper is quantized to the bar", "[fx][audio][looper][defaults]")
+{
+  Looper n;
+  CHECK(n.inputs.quantif.value == halp::grid_value::bars(1.));
+  CHECK(Nodes::Looper::quantif_grid.init == halp::grid_value::bars(1.));
+  // What a score saved with the note list of older versions becomes is its
+  // own: a quarter note stays one.
+  CHECK(
+      Nodes::Looper::quantif_selector::legacy_grid(0.25f) == halp::grid_value::note(0.25));
 }
 
 TEST_CASE("Looper: stopped with full passthrough, the input passes through untouched",
@@ -1240,6 +1251,47 @@ TEST_CASE("Looper: an overdub asked for just after a grid point ends a recording
 
   // The hit is the pass's from the bar line on, at full level: the pass
   // carries on what the recording was taking in.
+  const float* pass = h.node.layer_data(1, 0);
+  const int64_t played = int64_t(h.bar_samples() * 0.05) + h.buffer_size;
+  for(int64_t i : {int64_t(0), int64_t(64), int64_t(128), int64_t(1000), int64_t(4799), played - 1})
+  {
+    INFO(i);
+    CHECK(pass[i] == Approx(1.0));
+  }
+  CHECK(pass[played + 10] == Approx(0.0));
+}
+
+TEST_CASE("Looper: with Reverse, an overdub asked for just after a grid point ends a "
+          "recording keeps what was played since the point",
+          "[fx][audio][looper][musical][reverse]")
+{
+  musical_harness h{480};
+  h.node.inputs.quantif.value = halp::grid_value::bars(1);
+  h.node.inputs.postaction_bars.value = 0;
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.late.value = 120;
+  h.node.inputs.reverse.value = true;
+
+  h.node.inputs.mode = LoopMode::Stop;
+  h.run_bars(1);
+  h.node.inputs.mode = LoopMode::Record;
+  h.run_bars(2);
+  // A hit on the bar line, and the footswitch pressed 100 ms later.
+  h.fill_input(0, [](int64_t) { return 1.0; });
+  h.run_bars(0.05);
+  h.node.inputs.mode = LoopMode::Overdub;
+  h.run(h.mtick(h.buffer_size));
+  REQUIRE(h.node.transport.actualMode == LoopMode::Overdub);
+  REQUIRE(h.loop().size() == 2 * h.bar_samples());
+  h.reset_input();
+  h.run_bars(2);
+  h.node.inputs.mode = LoopMode::Play;
+  h.run_bars(0.5);
+  REQUIRE(h.node.layers.count == 2);
+
+  // The pass is taken in forwards from the bar line whichever way the loop
+  // is read: the hit is at its start, as without Reverse, and is heard
+  // reversed with the rest of the loop.
   const float* pass = h.node.layer_data(1, 0);
   const int64_t played = int64_t(h.bar_samples() * 0.05) + h.buffer_size;
   for(int64_t i : {int64_t(0), int64_t(64), int64_t(128), int64_t(1000), int64_t(4799), played - 1})
@@ -2482,8 +2534,7 @@ TEST_CASE("Looper: reversed, the loop plays backwards from where the playhead is
   CHECK(h.node.transport.playbackPos == 960);
 }
 
-TEST_CASE("Looper: an overdub over the reversed loop sounds reversed once it plays "
-          "forwards",
+TEST_CASE("Looper: what is played over the reversed loop comes back reversed with it",
           "[fx][audio][looper][reverse]")
 {
   looper_harness h{1, 64};
@@ -2493,21 +2544,92 @@ TEST_CASE("Looper: an overdub over the reversed loop sounds reversed once it pla
 
   h.node.inputs.reverse.value = true;
   h.node.inputs.mode = LoopMode::Overdub;
-  // The overdub starts from the loop's start, going backwards: its frame j
-  // is written at position 1023 - j.
-  run_with(h, 1024, ramp);
+  // The overdub starts from the loop's start. The loop's playhead goes
+  // backwards from there; the pass has its own, which goes forwards as a
+  // recording's does: its frame j is written at position j.
+  const auto live = run_with(h, 1024, ramp);
   REQUIRE(h.node.layers.count == 2);
   const auto& top = *h.node.layers.top();
   CHECK(top.written == 1024);
-  CHECK(top.backwards);
   for(int64_t j = 128; j < 1024; j++)
-    CHECK(h.node.layer_data(1, 0)[1023 - j] == Approx(ramp(j)));
+    CHECK(h.node.layer_data(1, 0)[j] == Approx(ramp(j)));
 
+  // While it is taken in, the pass is heard backwards as well: the loop's
+  // playhead, at position 1023 - j, reads what the pass wrote there since
+  // the two crossed.
+  for(int64_t j = 700; j < 890; j++)
+    CHECK(live[j] == Approx(0.25 + ramp(1023 - j)));
+
+  // Played, the whole loop is backwards, the pass with it.
+  h.node.inputs.mode = LoopMode::Play;
+  const auto reversed = run_with(h, 1024, nullptr);
+  for(int64_t j = 140; j < 880; j++)
+    CHECK(reversed[j] == Approx(0.25 + ramp(1023 - j)));
+
+  // Forwards, every layer plays as it was played.
   h.node.inputs.reverse.value = false;
+  const int64_t from = h.node.transport.playbackPos;
+  const auto forwards = run_with(h, 1024, nullptr);
+  for(int64_t j = 0; j < 1024; j++)
+  {
+    const int64_t k = (from + j) % 1024;
+    if(k < 140 || k > 1024 - 140)
+      continue;
+    CHECK(forwards[j] == Approx(0.25 + ramp(k)));
+  }
+}
+
+TEST_CASE("Looper: a reversed recording that goes on into an overdub keeps both "
+          "reversed",
+          "[fx][audio][looper][reverse]")
+{
+  // Reverse is on from the start, as with a preset that records then
+  // overdubs: the recording is taken in forwards and plays backwards, and so
+  // does what is played over it.
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.reverse.value = true;
+  h.node.inputs.after_record = AfterRecord::Overdub;
+  record_with(h, 1024, sine32);
+  h.node.inputs.mode = LoopMode::Overdub;
+  const auto live = run_with(h, 1024, ramp);
+  REQUIRE(h.node.layers.count == 2);
+  CHECK(h.node.transport.actualMode == LoopMode::Overdub);
+  // The pass goes on from where the recording ended: the loop's start.
+  const float* pass = h.node.layer_data(1, 0);
+  for(int64_t j = 0; j < 1024 - 140; j++)
+    CHECK(pass[j] == Approx(ramp(j)));
+  // The recording is heard backwards while it is overdubbed.
+  for(int64_t j = 140; j < 400; j++)
+    CHECK(live[j] == Approx(sine32(1023 - j)).margin(1e-5));
+
   h.node.inputs.mode = LoopMode::Play;
   const auto out = run_with(h, 1024, nullptr);
-  for(int64_t k = 200; k < 800; k++)
-    CHECK(out[k] == Approx(0.25 + ramp(1023 - k)));
+  for(int64_t j = 200; j < 824; j++)
+    CHECK(out[j] == Approx(sine32(1023 - j) + ramp(1023 - j)).margin(1e-5));
+}
+
+TEST_CASE("Looper: the loop's playhead crossing the one of a reversed overdub does "
+          "not click",
+          "[fx][audio][looper][reverse]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_with(h, 2048, silent);
+  h.run(64);
+  h.node.inputs.reverse.value = true;
+  // Each round replaces the one before.
+  h.node.inputs.feedback.value = 0.f;
+  h.node.inputs.mode = LoopMode::Overdub;
+  // A constant: what the pass is heard with steps wherever it is cut.
+  const auto out = run_with(h, 3 * 2048, [](int64_t) { return 0.5; });
+  double worst = 0.;
+  for(std::size_t j = 1; j < out.size(); j++)
+    worst = std::max(worst, std::abs(out[j] - out[j - 1]));
+  // The pass fades in under the fade of the crossing, at most.
+  CHECK(worst <= 0.5 / 50.);
+  // And it is heard: at its level between two crossings.
+  CHECK(out[2048 + 512] == Approx(0.5));
 }
 
 TEST_CASE("Looper: at half speed a loop's sine is an octave down, at double speed up",
@@ -2937,8 +3059,31 @@ struct switches_harness : musical_harness
 
   static double ramp_at(int64_t t) { return double(t % 100000) / 100000.; }
 
+  //! Marks: with `marking`, nothing is played but the mark a tick is given,
+  //! over the whole tick; `heard` is the marks the loop plays, by the start
+  //! of the tick they start in.
+  bool marking{};
+  std::vector<std::pair<int64_t, int>> heard;
+  //! Layers add up, and stay.
+  static constexpr bool overdub_replaces = false;
+  void playing_marks() noexcept { }
+  void mark_tick(int id)
+  {
+    for(int64_t i = 0; i < frames; i++)
+      in_buf[0][i] = 0.1 * id;
+    const int64_t at = now;
+    run(mtick(frames));
+    double sum = 0.;
+    for(int64_t i = 0; i < frames; i++)
+      sum += out_buf[0][i];
+    if(const int out = int(std::lround(sum / double(frames) / 0.1)); out > 0)
+      heard.emplace_back(at, out);
+  }
+
   void tick_once()
   {
+    if(marking)
+      return mark_tick(0);
     if(ramp)
       for(int64_t i = 0; i < frames; i++)
         in_buf[0][i] = ramp_at(now + i);
@@ -2946,6 +3091,8 @@ struct switches_harness : musical_harness
   }
   int passes() const { return node.layers.count; }
   bool muted(int k) const { return node.layers.layers[k].muted; }
+  bool stopped(int k) const { return node.layers.layers[k].stopped; }
+  int undo_steps() const { return node.layers.done; }
   int64_t length() const { return node.layers.length; }
   int64_t position() const
   {
@@ -3048,6 +3195,39 @@ TEST_CASE("Looper switches: Mute layer and Erase layer, the newest or a stepped 
 {
   switches_harness h;
   looper_switches::mute_and_erase(h);
+}
+
+TEST_CASE("Looper switches: Play / Stop layer, on the grid, nothing for Undo",
+          "[fx][audio][looper][switches][stop]")
+{
+  switches_harness h;
+  looper_switches::stop_and_play(h);
+}
+
+TEST_CASE("Looper switches: with Reverse, a recording and the overdub after it come back "
+          "reversed",
+          "[fx][audio][looper][switches][reverse]")
+{
+  switches_harness h;
+  looper_switches::reverse_record_then_overdub(h);
+}
+
+TEST_CASE("Looper switches: Reverse turned on after recording, then an overdub",
+          "[fx][audio][looper][switches][reverse]")
+{
+  switches_harness h;
+  looper_switches::reverse_after_recording(h);
+}
+
+TEST_CASE("Looper switches: with Reverse, an overdub going round several times",
+          "[fx][audio][looper][switches][reverse]")
+{
+  for(const bool per_cycle : {false, true})
+  {
+    CAPTURE(per_cycle);
+    switches_harness h;
+    looper_switches::reverse_continuous_overdub(h, per_cycle);
+  }
 }
 
 TEST_CASE("Looper switches: Undo takes back the last action, an erase or a mute as a pass",
@@ -3983,8 +4163,17 @@ TEST_CASE("Looper: passes per cycle overdubbed backwards play on across the seam
   looper_harness h{1, 64};
   const auto r = overdub_per_cycle(h, {.reverse = true});
   REQUIRE(h.node.layers.count == 5);
-  check_seamless(r);
-  // Forwards, what was played backwards is heard backwards, as continuous.
+  // While they are taken in, the loop's playhead crosses the one of the pass
+  // twice a round, going the other way, on the loop's ends and on its middle:
+  // what the pass writes comes in there over what was played on from the
+  // round before, with no step. The overdub started on the middle, where the
+  // faded start of its first pass is: what is heard dips there, no more than
+  // by that pass.
+  CHECK(worst_step(r.live, seam_period) <= 1.);
+  CHECK(worst_dip(r.live) >= 0.5);
+  CHECK(worst_step(r.played, seam_period) <= 1.);
+  CHECK(worst_dip(r.played) >= 0.9);
+  // Forwards, the passes are as continuous.
   h.node.inputs.reverse.value = false;
   const auto forwards = play_rounds(h);
   CHECK(worst_step(forwards, seam_period) <= 1.);
@@ -4856,4 +5045,251 @@ TEST_CASE("Looper view: the x of a lane undone before the grid leaves the layer 
   CHECK(h.node.layers.count == 3);
   CHECK(h.node.layers.layers[0].gain == Approx(0.5));
   CHECK(h.node.layers.mix(0, 320) == Approx(heard));
+}
+
+TEST_CASE("Looper: the overview of the pass taken in fades with the feedback, as "
+          "what is heard of it",
+          "[fx][audio][looper][feedback][view]")
+{
+  looper_harness h{1, 64};
+  Nodes::Looper::view_message last{};
+  h.node.send_message = [&](Nodes::Looper::view_message v) { last = v; };
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.feedback.value = 0.5f;
+  constexpr int64_t len = 4096;
+  record_with(h, len, [](int64_t) { return 0.8; });
+  h.run(64);
+  h.node.inputs.mode = LoopMode::Overdub;
+  // One round with something played, then rounds with nothing: the pass goes
+  // round over itself and fades what it holds, as the recording under it.
+  run_with(h, len - 64, [](int64_t) { return 0.4; });
+  constexpr int bins = Nodes::Looper::view_message::bins;
+  const auto lane_peak = [&](int lane) {
+    return last.peaks[std::size_t(lane * bins + bins / 2)];
+  };
+  // What a lane shows is what its pass is heard with: the level of the pass
+  // alone, in the middle of the loop.
+  const auto heard = [&](int pass) {
+    const auto& l = h.node.layers.layers[pass];
+    return std::abs(l.gain * h.node.layer_data(pass, 0)[len / 2]);
+  };
+  for(int round = 1; round <= 3; round++)
+  {
+    run_with(h, len, silent);
+    for(int i = 0; i < 40; i++)
+      h.run(64);
+    REQUIRE(last.lanes == 2);
+    INFO("round " << round);
+    CHECK(heard(1) < 0.4 * std::pow(0.5, round) + 1e-3);
+    CHECK(lane_peak(0) == Approx(heard(0)).margin(0.01));
+    CHECK(lane_peak(1) == Approx(heard(1)).margin(0.01));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Stopping a layer and playing it again.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Looper: a stopped layer is silent, the layers under it as they were, and "
+          "plays again in time",
+          "[fx][audio][looper][layers][stop]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  h.node.inputs.feedback.value = 0.5f;
+  record_with(h, 1024, ramp);
+  h.run(64);
+  h.node.inputs.mode = LoopMode::Overdub;
+  run_with(h, 1024, [](int64_t) { return 0.5; });
+  h.node.inputs.mode = LoopMode::Play;
+  h.run(64);
+  REQUIRE(h.node.layers.count == 2);
+  REQUIRE(h.node.layers.layers[0].gain == Approx(0.5));
+  const auto history = h.node.layers.done;
+
+  // Layer 2 stops: the recording under it keeps the gain the overdub's
+  // feedback left it, where a mute would give it back.
+  h.node.inputs.layer.value = 2;
+  press(h.node.inputs.stop_layer, h);
+  CHECK(h.node.layers.layers[1].stopped);
+  CHECK(!h.node.layers.layers[1].muted);
+  CHECK(h.node.layers.layers[0].gain == Approx(0.5));
+  // Nothing for undo to go back through.
+  CHECK(h.node.layers.done == history);
+  h.run(256);
+  const int64_t from = h.node.transport.playbackPos;
+  const auto alone = run_with(h, 1024, nullptr);
+  for(int64_t j = 0; j < 1024; j++)
+  {
+    const int64_t k = (from + j) % 1024;
+    if(k < 140 || k > 1024 - 140)
+      continue;
+    CHECK(alone[j] == Approx(0.5 * ramp(k)));
+  }
+
+  // It plays again where the loop is, not from its start.
+  press(h.node.inputs.stop_layer, h);
+  CHECK(!h.node.layers.layers[1].stopped);
+  h.run(256);
+  const int64_t back = h.node.transport.playbackPos;
+  const auto both = run_with(h, 1024, nullptr);
+  for(int64_t j = 0; j < 1024; j++)
+  {
+    const int64_t k = (back + j) % 1024;
+    if(k < 140 || k > 1024 - 140)
+      continue;
+    CHECK(both[j] == Approx(0.5 * ramp(k) + 0.5));
+  }
+  CHECK(h.node.layers.done == history);
+}
+
+TEST_CASE("Looper: a layer stops and plays again without a step",
+          "[fx][audio][looper][layers][stop]")
+{
+  looper_harness h{1, 64};
+  h.node.inputs.passthrough = Passthrough::None;
+  record_with(h, 4096, [](int64_t) { return 0.5; });
+  h.run(64);
+  h.node.inputs.layer.value = 1;
+  std::vector<double> out;
+  const auto more = [&](int64_t frames) {
+    const auto o = run_with(h, frames, nullptr);
+    out.insert(out.end(), o.begin(), o.end());
+  };
+  more(512);
+  h.node.inputs.stop_layer.value.emplace();
+  more(64);
+  h.node.inputs.stop_layer.value.reset();
+  more(512);
+  CHECK(out.back() == Approx(0.));
+  h.node.inputs.stop_layer.value.emplace();
+  more(64);
+  h.node.inputs.stop_layer.value.reset();
+  more(512);
+  CHECK(out.back() == Approx(0.5));
+  double worst = 0.;
+  for(std::size_t j = 1; j < out.size(); j++)
+    worst = std::max(worst, std::abs(out[j] - out[j - 1]));
+  CHECK(worst <= 0.5 / 100.);
+}
+
+TEST_CASE("Looper: undo, redo and a mute leave a stopped layer stopped",
+          "[fx][audio][looper][layers][stop][undo]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  overdub_pass(h, 512, 0.125);
+  REQUIRE(h.node.layers.count == 3);
+  h.node.inputs.layer.value = 1;
+  press(h.node.inputs.stop_layer, h);
+  REQUIRE(h.node.layers.layers[0].stopped);
+  h.run(256);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5 + 0.125));
+
+  // Undo takes the last pass out, not the stop.
+  press(h.node.inputs.undo, h);
+  CHECK(h.node.layers.count == 2);
+  CHECK(h.node.layers.layers[0].stopped);
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.5));
+  press(h.node.inputs.redo, h);
+  CHECK(h.node.layers.count == 3);
+  CHECK(h.node.layers.layers[0].stopped);
+
+  // A mute and its undo are the layer's own.
+  h.node.inputs.layer.value = 2;
+  press(h.node.inputs.mute_layer, h);
+  CHECK(h.node.layers.layers[1].muted);
+  CHECK(h.node.layers.layers[0].stopped);
+  press(h.node.inputs.undo, h);
+  CHECK(!h.node.layers.layers[1].muted);
+  CHECK(h.node.layers.layers[0].stopped);
+
+  // Erased and brought back, it is stopped still.
+  h.node.inputs.layer.value = 1;
+  press(h.node.inputs.erase_layer, h);
+  CHECK(h.node.layers.count == 2);
+  press(h.node.inputs.undo, h);
+  REQUIRE(h.node.layers.count == 3);
+  CHECK(h.node.layers.layers[0].stopped);
+}
+
+TEST_CASE("Looper: stopping and playing a layer allocates nothing",
+          "[fx][audio][looper][layers][stop]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  h.node.inputs.layer.value = 2;
+  int allocated = 0;
+  {
+    alloc_counter::scope counter;
+    for(int i = 0; i < 4; i++)
+    {
+      press(h.node.inputs.stop_layer, h);
+      for(int k = 0; k < 10; k++)
+        h.run(64);
+    }
+    allocated = counter.allocations();
+  }
+  CHECK(allocated == 0);
+  CHECK(!h.node.layers.layers[1].stopped);
+}
+
+TEST_CASE("Looper view: the play and stop button of a lane shows at once what it asks "
+          "for, and acts on the grid",
+          "[fx][audio][looper][view][stop]")
+{
+  looper_harness h{1, 64};
+  record_and_overdub(h, 512, 0.25, 0.5);
+  view_link l{h};
+  l.refresh();
+  h.node.inputs.quantif.value = halp::grid_value::period(1.);
+  h.run(64);
+  REQUIRE(l.v.state.lanes == 2);
+
+  // Left of the m, inside the lane, and apart from it.
+  for(int lane = 0; lane < 2; lane++)
+  {
+    const auto s = l.v.stop_box(lane), m = l.v.mute_box(lane);
+    CHECK(s.x + s.size < m.x);
+    CHECK(s.y == m.y);
+    CHECK(l.v.stop_lane_at(s.x + s.size / 2., s.y + s.size / 2.) == lane);
+    CHECK(l.v.mute_lane_at(s.x + s.size / 2., s.y + s.size / 2.) < 0);
+    CHECK(l.v.stop_lane_at(m.x + m.size / 2., m.y + m.size / 2.) < 0);
+  }
+
+  const int sent = l.sent;
+  CHECK(l.press(l.v.stop_box(1)));
+  CHECK(l.sent == sent + 1);
+  CHECK(l.v.lane_stopped(1));
+  CHECK(l.v.lane_stop_pending(1));
+  CHECK(!l.v.lane_muted(1));
+  CHECK(!h.node.layers.layers[1].stopped);
+  for(int i = 0; i < 12; i++)
+    h.run(64);
+  CHECK(h.node.layers.layers[1].stopped);
+  CHECK(!h.node.layers.layers[1].muted);
+  l.refresh();
+  CHECK(l.v.state.lane_stopped[1]);
+  CHECK(l.v.lane_stopped(1));
+  CHECK(!l.v.lane_stop_pending(1));
+  CHECK(l.v.lane_silent(1));
+  CHECK(!l.v.lane_silent(0));
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.25));
+
+  // The m of the same lane is its own.
+  CHECK(l.press_m(1));
+  CHECK(l.v.lane_muted(1));
+  CHECK(l.v.lane_stopped(1));
+  CHECK(l.press_m(1));
+
+  // Pressed again: it plays, on the grid.
+  CHECK(l.press(l.v.stop_box(1)));
+  CHECK(!l.v.lane_stopped(1));
+  CHECK(h.node.layers.layers[1].stopped);
+  for(int i = 0; i < 12; i++)
+    h.run(64);
+  CHECK(!h.node.layers.layers[1].stopped);
+  l.refresh();
+  CHECK(!l.v.lane_stopped(1));
+  CHECK(h.node.layers.mix(0, 320) == Approx(0.75));
 }
