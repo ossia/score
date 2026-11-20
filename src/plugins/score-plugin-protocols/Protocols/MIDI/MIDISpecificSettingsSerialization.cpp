@@ -8,6 +8,10 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/StdVariantSerialization.hpp>
 
+#include <QByteArray>
+#include <QDataStream>
+#include <QIODevice>
+
 JSON_METADATA(libremidi::usb_device_identifier, "usb_device_identifier")
 JSON_METADATA(libremidi::uuid, "uuid")
 
@@ -113,7 +117,7 @@ void DataStreamReader::read(const Protocols::MIDISpecificSettings& n)
            << n.handle.container << n.handle.device << n.handle.port
            << n.handle.manufacturer << n.handle.product << n.handle.serial
            << n.handle.device_name << n.handle.port_name << n.handle.display_name
-           << n.velocityZeroIsNoteOff;
+           << n.velocityZeroIsNoteOff << static_cast<int32_t>(n.controllers);
   insertDelimiter();
 }
 
@@ -124,6 +128,13 @@ void DataStreamWriter::write(Protocols::MIDISpecificSettings& n)
       >> n.handle.container >> n.handle.device >> n.handle.port >> n.handle.manufacturer
       >> n.handle.product >> n.handle.serial >> n.handle.device_name
       >> n.handle.port_name >> n.handle.display_name >> n.velocityZeroIsNoteOff;
+
+  int32_t controllers{};
+  m_stream >> controllers;
+  n.controllers
+      = controllers == static_cast<int32_t>(libremidi::controller_translation::semantic)
+            ? libremidi::controller_translation::semantic
+            : libremidi::controller_translation::raw;
   checkDelimiter();
 }
 
@@ -156,6 +167,7 @@ void JSONReader::read(const Protocols::MIDISpecificSettings& n)
   obj["CreateWholeTree"] = n.createWholeTree;
   obj["VirtualPort"] = n.virtualPort;
   obj["VelocityZeroIsNoteOff"] = n.velocityZeroIsNoteOff;
+  obj["ControllerTranslation"] = static_cast<int>(n.controllers);
 }
 
 template <>
@@ -209,4 +221,10 @@ void JSONWriter::write(Protocols::MIDISpecificSettings& n)
     n.velocityZeroIsNoteOff = it->toBool();
   else
     n.velocityZeroIsNoteOff = false;
+
+  // Devices saved without it forward their controllers as they are.
+  n.controllers = libremidi::controller_translation::raw;
+  if(auto it = obj.tryGet("ControllerTranslation"))
+    if(it->toInt() == static_cast<int>(libremidi::controller_translation::semantic))
+      n.controllers = libremidi::controller_translation::semantic;
 }

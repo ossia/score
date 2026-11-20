@@ -1509,6 +1509,18 @@ score_add_test(test_unit_midi_malformed_message
 score_add_test(test_unit_midi_sysex_input
   SOURCES MidiSysexInputTest.cpp)
 
+# Bank select, data entry and RPN / NRPN controllers from a MIDI input: either
+# forwarded as they are or combined into MIDI 2 messages, by a setting of the
+# device, and in neither case able to stop what the device sends afterwards.
+if(TARGET score_plugin_protocols)
+  score_add_test(test_unit_midi_controller_translation
+    APP
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/MidiControllerTranslationTest.cpp"
+    PLUGINS score_plugin_protocols score_lib_device score_lib_state)
+  target_include_directories(test_unit_midi_controller_translation PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+endif()
+
 # System-exclusive to a MIDI 1 destination: the SysEx7 packets a graph port
 # carries, sent one per call, leave a MIDI device output and reach an LV2
 # plug-in as one F0 ... F7 message.

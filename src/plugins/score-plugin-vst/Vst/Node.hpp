@@ -118,7 +118,10 @@ public:
 protected:
   //! Where in the tick the block the plug-in processes starts
   int64_t m_blockStart{};
-  libremidi::midi1_to_midi2 m_toUmp;
+  // What the plug-in emits reaches the graph message for message: a MIDI
+  // effect that lets bank select or data entry controllers through must not
+  // have them merged or held back on the way.
+  libremidi::midi1_to_midi2 m_toUmp{libremidi::controller_translation::raw};
 
 public:
 

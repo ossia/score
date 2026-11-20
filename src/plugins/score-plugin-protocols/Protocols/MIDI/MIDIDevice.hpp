@@ -14,6 +14,10 @@ namespace libremidi
 {
 class observer;
 }
+namespace ossia::net::midi
+{
+struct midi_protocol_configuration;
+}
 namespace Protocols
 {
 class MidiKeyboardEventFilter;
@@ -47,6 +51,11 @@ bool midiApiAvailable(libremidi::API api) noexcept;
 SCORE_PLUGIN_PROTOCOLS_TEST_EXPORT
 std::pair<libremidi::input_configuration, libremidi::input_api_configuration>
 makeInputConfiguration(MIDIDevice* self, MIDISpecificSettings& set);
+
+/// What the settings of a device ask of the protocol that runs it.
+SCORE_PLUGIN_PROTOCOLS_EXPORT
+ossia::net::midi::midi_protocol_configuration
+makeProtocolConfiguration(const MIDISpecificSettings& set);
 
 /// Counterpart of makeInputConfiguration for output devices.
 SCORE_PLUGIN_PROTOCOLS_EXPORT
