@@ -115,3 +115,27 @@ TEST_CASE("for_all_files walks a link back up the tree only once", "[recursive_w
   for(const auto& p : paths)
     CHECK(QFileInfo::exists(p));
 }
+
+TEST_CASE("a watch matches its extension whatever the case", "[recursivewatch]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  touch(dir.filePath("lower.sf2"));
+  touch(dir.filePath("UPPER.SF2"));
+  touch(dir.filePath("Mixed.Sf2"));
+  touch(dir.filePath("other.gig"));
+
+  QStringList seen;
+  score::RecursiveWatch w;
+  w.setWatchedFolder(dir.path().toStdString());
+  score::RecursiveWatch::Callbacks cbs;
+  cbs.added = [&](std::string_view p) {
+    seen.push_back(QFileInfo{QString::fromUtf8(p.data(), p.size())}.fileName());
+  };
+  // Registered in upper case as well: the handler's spelling does not matter.
+  w.registerWatch("SF2", std::move(cbs));
+  w.scan();
+
+  seen.sort();
+  CHECK(seen == QStringList{"Mixed.Sf2", "UPPER.SF2", "lower.sf2"});
+}

@@ -78,7 +78,9 @@ class LibraryHandler final
   std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
     score::PathInfo file{path};
-    const bool extension = file.fileName.ends_with(".jsfx");
+    const bool extension
+        = QLatin1StringView{file.fileName.data(), qsizetype(file.fileName.size())}
+              .endsWith(QLatin1StringView{".jsfx"}, Qt::CaseInsensitive);
     if(!extension && !isExtensionlessJsfx(path))
       return std::nullopt;
 
