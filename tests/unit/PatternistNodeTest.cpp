@@ -1381,3 +1381,63 @@ TEST_CASE("patternist: a gate random moves the release", "[midi][pattern]")
     CHECK(differ > 10);
   }
 }
+
+TEST_CASE("patternist: what a lane holds follows it when lanes move", "[midi][pattern]")
+{
+  fixture f;
+  const Lane tied = lane(36, {Note::Note, Note::Legato, Note::Legato, Note::Legato});
+  const Lane silent = lane(38, {Note::Rest, Note::Rest, Note::Rest, Note::Rest});
+  f.set({tied, silent}, 4);
+
+  auto s0 = f.step();
+  REQUIRE(s0.size() == 1);
+  CHECK(s0[0].status == note_on);
+  CHECK(s0[0].note == 36);
+
+  const auto replace = [&](std::vector<Lane> lanes) {
+    std::vector<Pattern> list = f.node.patterns;
+    list[0].lanes = std::move(lanes);
+    f.node.replace_patterns(list);
+  };
+
+  // Moved under the other lane: the tie holds its note, nothing is struck
+  // again and nothing is cut.
+  replace({silent, tied});
+  CHECK(f.step().empty());
+
+  // A lane added above both, in the middle of the pattern: it is on the
+  // step the others are on.
+  const Lane added = lane(40, {Note::Note, Note::Rest, Note::Rest, Note::Note});
+  replace({added, silent, tied});
+  CHECK(f.step().empty());
+  auto s3 = f.step();
+  REQUIRE(s3.size() == 1);
+  CHECK(s3[0].status == note_on);
+  CHECK(s3[0].note == 40);
+
+}
+
+TEST_CASE("patternist: a lane removed among others ends its note alone", "[midi][pattern]")
+{
+  fixture f;
+  const Lane tied = lane(36, {Note::Note, Note::Legato, Note::Legato, Note::Legato});
+  const Lane other = lane(40, {Note::Note, Note::Rest, Note::Rest, Note::Note});
+  const Lane silent = lane(38, {Note::Rest, Note::Rest, Note::Rest, Note::Rest});
+  f.set({tied, other, silent}, 4);
+  auto t0 = f.step();
+  REQUIRE(t0.size() == 2);
+
+  std::vector<Pattern> list = f.node.patterns;
+  list[0].lanes = {other, silent};
+  f.node.replace_patterns(list);
+  auto t1 = f.step();
+  std::multiset<std::pair<int, int>> got;
+  for(const auto& m : t1)
+    got.insert({m.status, m.note});
+  CHECK(got == std::multiset<std::pair<int, int>>{{note_off, 36}, {note_off, 40}});
+  CHECK(f.step().empty());
+  auto t3 = f.step();
+  REQUIRE(t3.size() == 1);
+  CHECK(t3[0].status == note_on);
+  CHECK(t3[0].note == 40);
+}

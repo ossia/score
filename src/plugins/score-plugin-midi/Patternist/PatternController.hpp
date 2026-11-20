@@ -3,10 +3,13 @@
 
 #include <Patternist/PatternEdit.hpp>
 
+#include <QKeySequence>
+
 #include <functional>
 #include <random>
 
 class QMenu;
+class QMimeData;
 namespace score
 {
 struct DocumentContext;
@@ -14,6 +17,7 @@ struct DocumentContext;
 namespace Patternist
 {
 class View;
+struct MidiClip;
 
 //! Turns edits of the current pattern into commands. Shared by the layer, the
 //! node and the editor window.
@@ -26,11 +30,22 @@ public:
   //! Edits made in the view become commands.
   void attach(View& view);
 
-  //! Pattern actions, and those of `lane` when it is valid.
-  void fillMenu(QMenu& menu, int lane);
+  //! Pattern actions, and those of `lane` when it is valid. A lane added from
+  //! the menu goes under `addAfter`, or under `lane` when it is left out.
+  void fillMenu(QMenu& menu, int lane, int addAfter = -1);
 
   //! What the last action did, for the editor to show.
   std::function<void(const QString&)> status;
+  //! The lane an action leaves the user on: the one added, the one moved.
+  std::function<void(int)> selectLane;
+  //! Shown beside the menu's entries that move a lane, where the keys do it.
+  QKeySequence moveUpShortcut, moveDownShortcut;
+
+  //! Pattern text files and MIDI files dropped on the pattern: the first
+  //! pattern of the first, or the notes of the second on the pattern's grid.
+  //! False when the drop holds neither.
+  bool drop(const QMimeData& mime);
+  void importMidi(const MidiClip& clip);
 
   void copy() const;
   void paste();
@@ -52,9 +67,12 @@ public:
   void copyLanes(const std::vector<int>& lanes) const;
   bool pasteLanes(const std::vector<int>& targets);
   void clearLanes(const std::vector<int>& lanes);
-  void addLane();
+  //! An empty lane under `after`, or under the last note lane.
+  void addLane(int after = -1);
   void addControlLane(uint8_t note);
   void removeLane(int lane);
+  //! One lane up (-1) or down (1).
+  void moveLane(int lane, int delta);
   void setLength(int length);
   void setDivision(int division);
 

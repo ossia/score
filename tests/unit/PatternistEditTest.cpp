@@ -4,8 +4,21 @@
 
 #include <Patternist/PatternEdit.hpp>
 #include <Patternist/PatternGrid.hpp>
+#include <Patternist/PatternMidiImport.hpp>
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <libremidi/writer.hpp>
+
+#include <QByteArray>
+#include <QFile>
+#include <QMimeData>
+#include <QTemporaryDir>
+#include <QUrl>
+
+#include <cmath>
+#include <limits>
+#include <random>
+#include <sstream>
 
 using namespace Patternist;
 
@@ -114,19 +127,92 @@ TEST_CASE(
   CHECK(notes < 32);
 }
 
-TEST_CASE("patternist: adding a lane copies the last one", "[midi][pattern]")
+TEST_CASE("patternist: a lane is added empty, under the one given", "[midi][pattern]")
+{
+  auto p = pattern({lane(38, {N, R}), lane(36, {R, N})}, 2);
+  p.lanes[1].mute = true;
+  p.lanes[1].length = 1;
+  normalize(p);
+
+  SECTION("under the last note lane when no lane is given")
+  {
+    CHECK(addLane(p) == 2);
+    REQUIRE(p.lanes.size() == 3);
+    const Lane& l = p.lanes[2];
+    CHECK(l.pattern == std::vector<Note>(2, R));
+    CHECK(l.params == std::vector<StepParams>(2));
+    // Nothing of its neighbour but a note next to its own.
+    CHECK(l.note == 35);
+    CHECK(!l.mute);
+    CHECK(l.length == 0);
+    CHECK(l.velocity == Lane{}.velocity);
+    CHECK(p.lanes[0].pattern == std::vector<Note>({N, R}));
+    CHECK(p.lanes[1].pattern == std::vector<Note>({R, N}));
+  }
+  SECTION("under the lane given, with a note no lane plays")
+  {
+    CHECK(addLane(p, 0) == 1);
+    REQUIRE(p.lanes.size() == 3);
+    CHECK(p.lanes[0].note == 38);
+    CHECK(p.lanes[1].note == 37);
+    CHECK(p.lanes[1].pattern == std::vector<Note>(2, R));
+    CHECK(p.lanes[2].note == 36);
+
+    // 37 and 36 are taken: the next one down that is free.
+    CHECK(addLane(p, 0) == 1);
+    CHECK(p.lanes[1].note == 35);
+    CHECK(addLane(p, 3) == 4);
+    CHECK(p.lanes[4].note == 34);
+  }
+  SECTION("at the bottom of the range, the note goes up")
+  {
+    auto q = pattern({lane(1, {N}), lane(0, {N})}, 1);
+    CHECK(addLane(q, 1) == 2);
+    CHECK(q.lanes[2].note == 2);
+  }
+  SECTION("a full pattern takes no more")
+  {
+    while(std::ssize(p.lanes) < Pattern::maxLanes)
+      REQUIRE(addLane(p) >= 0);
+    CHECK(addLane(p) == -1);
+    CHECK(addLane(p, 0) == -1);
+    CHECK(std::ssize(p.lanes) == Pattern::maxLanes);
+  }
+}
+
+TEST_CASE("patternist: removing lanes leaves one", "[midi][pattern]")
 {
   auto p = pattern({lane(36, {N, R}), lane(38, {R, N})}, 2);
-  p.lanes[1].mute = true;
-  addLane(p);
-  REQUIRE(p.lanes.size() == 3);
-  CHECK(p.lanes[2] == p.lanes[1]);
-
-  removeLane(p, 0);
-  CHECK(p.lanes.size() == 2);
-  removeLane(p, 0);
   removeLane(p, 0);
   CHECK(p.lanes.size() == 1);
+  removeLane(p, 0);
+  CHECK(p.lanes.size() == 1);
+}
+
+TEST_CASE("patternist: a lane moves up and down with all it holds", "[midi][pattern]")
+{
+  auto p = pattern({lane(40, {N, R}), lane(38, {R, N}), lane(36, {N, N})}, 2);
+  normalize(p);
+  p.lanes[0].mute = true;
+  p.lanes[0].params[0].velocity = 0.25f;
+  const Lane a = p.lanes[0], b = p.lanes[1], c = p.lanes[2];
+
+  CHECK(moveLane(p, 0, 1) == 1);
+  CHECK(p.lanes == std::vector<Lane>{b, a, c});
+  CHECK(moveLane(p, 1, 1) == 2);
+  CHECK(p.lanes == std::vector<Lane>{b, c, a});
+  // The ends of the list stop it.
+  CHECK(moveLane(p, 2, 1) == -1);
+  CHECK(moveLane(p, 0, -1) == -1);
+  CHECK(p.lanes == std::vector<Lane>{b, c, a});
+  CHECK(moveLane(p, 2, -1) == 1);
+  CHECK(moveLane(p, 1, -1) == 0);
+  CHECK(p.lanes == std::vector<Lane>{a, b, c});
+  // Further than the list goes: to its end.
+  CHECK(moveLane(p, 0, 10) == 2);
+  CHECK(p.lanes == std::vector<Lane>{b, c, a});
+  CHECK(moveLane(p, 5, 1) == -1);
+  CHECK(moveLane(p, -1, 1) == -1);
 }
 
 TEST_CASE("patternist: mute and solo decide what a lane plays", "[midi][pattern]")
@@ -554,14 +640,19 @@ TEST_CASE("patternist: accent and slide lanes stay at the bottom", "[midi][patte
   CHECK(p.lanes[1].note == accentLane);
   CHECK(p.lanes[1].pattern == std::vector<Note>(4, Note::Rest));
 
-  // A new lane copies the last note lane, above the accent and the slide.
-  addLane(p);
+  // A new lane goes above the accent and the slide, unless told otherwise.
+  CHECK(addLane(p) == 1);
   REQUIRE(p.lanes.size() == 4);
-  CHECK(p.lanes[1].note == 36);
-  CHECK(p.lanes[1].pattern == p.lanes[0].pattern);
+  CHECK(p.lanes[1].note == 35);
+  CHECK(p.lanes[1].pattern == std::vector<Note>(4, Note::Rest));
   CHECK(p.lanes[2].note == accentLane);
   CHECK(p.lanes[3].note == slideLane);
   CHECK(hasLane(p, slideLane));
+
+  // Under the accent: a note lane, named after the nearest one above.
+  CHECK(addLane(p, 2) == 3);
+  CHECK(p.lanes[3].note == 34);
+  CHECK(p.lanes[4].note == slideLane);
 }
 
 TEST_CASE("patternist: the gate random is a parameter", "[midi][pattern]")
@@ -612,4 +703,472 @@ TEST_CASE("patternist: a lane copied from a pattern of another length", "[midi][
   CHECK(pasteLanes(to, copyLanes(from, {0}), {0}));
   CHECK(to.lanes[0].length == 3);
   CHECK(writtenNote(to, to.lanes[0], 0) == N);
+}
+
+// ---------------------------------------------------------------------------
+// MIDI files written over a pattern.
+namespace
+{
+struct file_note
+{
+  int tick;
+  int length;
+  int channel;
+  int pitch;
+  int velocity;
+  int track{0};
+};
+
+//! A Standard MIDI file at 480 ticks per quarter, of `end` ticks. With one
+//! track it is written as type 0, as type 1 otherwise.
+QByteArray midi_file(const std::vector<file_note>& notes, int end, int tracks = 1)
+{
+  libremidi::writer w;
+  w.ticksPerQuarterNote = 480;
+  for(int t = 0; t < tracks; t++)
+  {
+    struct ev
+    {
+      int tick;
+      libremidi::message m;
+    };
+    std::vector<ev> events;
+    for(const auto& n : notes)
+    {
+      if(n.track != t)
+        continue;
+      events.push_back(
+          {n.tick, libremidi::channel_events::note_on(n.channel, n.pitch, n.velocity)});
+      events.push_back(
+          {n.tick + n.length, libremidi::channel_events::note_off(n.channel, n.pitch, 0)});
+    }
+    std::stable_sort(events.begin(), events.end(), [](const ev& a, const ev& b) {
+      return a.tick < b.tick;
+    });
+    int prev = 0;
+    if(t == 0)
+      w.add_event(0, 0, libremidi::meta_events::time_signature(4, 4, 24, 8));
+    for(const auto& e : events)
+    {
+      w.add_event(e.tick - prev, t, e.m);
+      prev = e.tick;
+    }
+    // libremidi's writer ends a track right after its last event: a
+    // controller there holds the length of the file.
+    w.add_event(
+        std::max(0, end - prev), t, libremidi::channel_events::control_change(1, 7, 100));
+  }
+  std::ostringstream out;
+  w.write(out);
+  const auto s = std::move(out).str();
+  return QByteArray(s.data(), qsizetype(s.size()));
+}
+
+//! The steps of a lane that strike a note.
+std::vector<int> hits(const Pattern& p, int note)
+{
+  std::vector<int> res;
+  for(const Lane& l : p.lanes)
+    if(l.note == note)
+      for(int i = 0; i < p.length; i++)
+        if(l.pattern[i] == N)
+          res.push_back(i);
+  return res;
+}
+
+const Lane& lane_of(const Pattern& p, int note)
+{
+  for(const Lane& l : p.lanes)
+    if(l.note == note)
+      return l;
+  FAIL("no lane plays " << note);
+  return p.lanes.front();
+}
+
+//! What the engine sends for a step: see pattern_node::play_step.
+int played_velocity(const Lane& l, int step)
+{
+  return int(std::lround(l.params[step].velocity * l.velocity * 127.f));
+}
+
+constexpr int sixteenth_ticks = 120;
+
+//! A bar of 4/4 on the drum channel: kick on the beats, snare on 2 and 4,
+//! closed hat on the eighths, softer off the beat.
+std::vector<file_note> drum_loop()
+{
+  std::vector<file_note> n;
+  for(int beat = 0; beat < 4; beat++)
+    n.push_back({beat * 480, 60, 10, 36, 110});
+  for(int beat : {1, 3})
+    n.push_back({beat * 480, 60, 10, 38, 120});
+  for(int e = 0; e < 8; e++)
+    n.push_back({e * 240, 30, 10, 42, e % 2 ? 60 : 90});
+  return n;
+}
+}
+
+TEST_CASE("patternist: a 4/4 drum loop lands on a sixteenth grid", "[midi][pattern][import]")
+{
+  // The default pattern: snare over kick, 16 steps of a sixteenth.
+  auto p = pattern(
+      {lane(38, {R, R, N, R, N, R, R, R, N, R, N, R, N, R, N, R}),
+       lane(36, {N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N})},
+      16);
+  normalize(p);
+  p.lanes[1].length = 5;
+  p.lanes[1].division = 8;
+  p.lanes[1].mute = true;
+
+  const MidiClip clip = readMidiFile(midi_file(drum_loop(), 4 * 480));
+  REQUIRE(clip.notes.size() == 14);
+  CHECK(clip.length == 4.);
+  CHECK(clip.notes.front().drum);
+
+  const MidiMatch m = matchToGrid(p, clip);
+  CHECK(m.notes == 13);
+  CHECK(m.merged == 0);
+  CHECK(m.dropped == 1);
+  const Pattern& r = m.pattern;
+  CHECK(r.length == 16);
+  CHECK(r.division == 16);
+
+  // The hat is new and the highest: above the two lanes there were, which
+  // keep their place.
+  REQUIRE(r.lanes.size() == 3);
+  CHECK(r.lanes[0].note == 42);
+  CHECK(r.lanes[1].note == 38);
+  CHECK(r.lanes[2].note == 36);
+
+  // What the lanes played is gone, and each lane keeps its grid: the kick's
+  // is 5 steps of an eighth, where its fourth beat falls past the end.
+  CHECK(hits(r, 36) == std::vector<int>{0, 2, 4});
+  CHECK(hits(r, 38) == std::vector<int>{4, 12});
+  CHECK(hits(r, 42) == std::vector<int>{0, 2, 4, 6, 8, 10, 12, 14});
+  CHECK(r.lanes[2].length == 5);
+  CHECK(r.lanes[2].division == 8);
+  CHECK(r.lanes[2].mute);
+  // The new lane follows the pattern.
+  CHECK(r.lanes[0].length == 0);
+  CHECK(r.lanes[0].division == 0);
+
+  // Velocities play as the file has them.
+  const Lane& hat = lane_of(r, 42);
+  CHECK(played_velocity(hat, 0) == 90);
+  CHECK(played_velocity(hat, 2) == 60);
+  CHECK(played_velocity(lane_of(r, 36), 2) == 110);
+  CHECK(played_velocity(lane_of(r, 38), 4) == 120);
+
+  // On the grid and on the drum channel: nothing but the velocity is set.
+  for(const Lane& l : r.lanes)
+    for(int i = 0; i < r.length; i++)
+    {
+      StepParams sp = l.params[i];
+      sp.velocity = 1.f;
+      CHECK(sp == StepParams{});
+      CHECK(l.pattern[i] != L);
+    }
+}
+
+TEST_CASE("patternist: notes off the grid go to the nearest step", "[midi][pattern][import]")
+{
+  auto p = pattern({lane(60, {R})}, 16);
+  normalize(p);
+
+  SECTION("eighth triplets keep their place as offsets")
+  {
+    std::vector<file_note> n;
+    for(int i = 0; i < 6; i++)
+      n.push_back({i * 160, 100, 1, 60, 100});
+    const MidiMatch m = matchToGrid(p, readMidiFile(midi_file(n, 960)));
+    const Pattern& r = m.pattern;
+    CHECK(m.notes == 6);
+    CHECK(r.length == 16);
+    // 0, 1.33, 2.67, 4, 5.33 and 6.67 sixteenths.
+    CHECK(hits(r, 60) == std::vector<int>{0, 1, 3, 4, 5, 7});
+    const Lane& l = lane_of(r, 60);
+    CHECK(l.params[0].offset == 0.f);
+    CHECK(l.params[1].offset == Catch::Approx(1. / 3.));
+    CHECK(l.params[3].offset == Catch::Approx(-1. / 3.));
+    CHECK(l.params[4].offset == 0.f);
+    // Where each plays is where the file has it.
+    for(int i = 0; i < 6; i++)
+    {
+      const int step = hits(r, 60)[i];
+      CHECK((step + l.params[step].offset) * sixteenth_ticks == Catch::Approx(i * 160.));
+    }
+  }
+  SECTION("a few ticks off is on the grid")
+  {
+    const MidiMatch m = matchToGrid(
+        p, readMidiFile(midi_file(
+               {{3, 100, 10, 60, 100}, {480 - 4, 100, 10, 60, 100}, {960 + 5, 100, 10, 60, 100}},
+               1920)));
+    CHECK(hits(m.pattern, 60) == std::vector<int>{0, 4, 8});
+    for(int step : {0, 4, 8})
+      CHECK(lane_of(m.pattern, 60).params[step].offset == 0.f);
+  }
+  SECTION("two notes of a pitch on one step: the nearest stays")
+  {
+    // At 0, 1 and 1.25 sixteenths.
+    const MidiMatch m = matchToGrid(
+        p, readMidiFile(midi_file(
+               {{0, 20, 10, 60, 50}, {150, 20, 10, 60, 100}, {120, 20, 10, 60, 70}}, 1920)));
+    CHECK(m.notes == 2);
+    CHECK(m.merged == 1);
+    CHECK(hits(m.pattern, 60) == std::vector<int>{0, 1});
+    const Lane& l = lane_of(m.pattern, 60);
+    CHECK(l.params[1].offset == 0.f);
+    CHECK(played_velocity(l, 1) == 70);
+  }
+  SECTION("a note just before the end leads into the first step")
+  {
+    const MidiMatch m = matchToGrid(
+        p, readMidiFile(midi_file({{1920 - 40, 30, 10, 60, 100}}, 1920)));
+    CHECK(m.pattern.length == 16);
+    CHECK(hits(m.pattern, 60) == std::vector<int>{0});
+    CHECK(lane_of(m.pattern, 60).params[0].offset == Catch::Approx(-1. / 3.));
+  }
+  SECTION("another division is kept")
+  {
+    p.division = 8;
+    p.length = 8;
+    const MidiMatch m = matchToGrid(p, readMidiFile(midi_file(drum_loop(), 1920)));
+    CHECK(m.pattern.division == 8);
+    CHECK(m.pattern.length == 8);
+    CHECK(hits(m.pattern, 42) == std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7});
+    CHECK(hits(m.pattern, 36) == std::vector<int>{0, 2, 4, 6});
+  }
+}
+
+TEST_CASE("patternist: a file longer than the pattern leaves its length and rate", "[midi][pattern][import]")
+{
+  auto p = pattern({lane(36, {N})}, 16);
+  normalize(p);
+
+  // Two bars and a beat of quarters.
+  std::vector<file_note> quarters;
+  for(int beat = 0; beat < 9; beat++)
+    quarters.push_back({beat * 480, 60, 10, 36, 100});
+
+  SECTION("what starts past the end is left out")
+  {
+    const MidiMatch m = matchToGrid(p, readMidiFile(midi_file(quarters, 9 * 480)));
+    CHECK(m.pattern.length == 16);
+    CHECK(m.pattern.division == 16);
+    CHECK(m.notes == 4);
+    CHECK(m.dropped == 5);
+    CHECK(hits(m.pattern, 36) == std::vector<int>{0, 4, 8, 12});
+  }
+  SECTION("a silent end changes nothing")
+  {
+    const MidiMatch m
+        = matchToGrid(p, readMidiFile(midi_file({{0, 60, 10, 36, 100}}, 2 * 1920)));
+    CHECK(m.pattern.length == 16);
+    CHECK(m.dropped == 0);
+  }
+  SECTION("a shorter file leaves the length")
+  {
+    const MidiMatch m
+        = matchToGrid(p, readMidiFile(midi_file({{480, 60, 10, 36, 100}}, 960)));
+    CHECK(m.pattern.length == 16);
+    CHECK(hits(m.pattern, 36) == std::vector<int>{4});
+  }
+  SECTION("a lane of its own length and rate is filled on its own grid")
+  {
+    // Six steps of a quarter.
+    p.lanes[0].length = 6;
+    p.lanes[0].division = 4;
+    const MidiMatch m = matchToGrid(p, readMidiFile(midi_file(quarters, 9 * 480)));
+    CHECK(m.pattern.length == 16);
+    CHECK(m.pattern.division == 16);
+    const Lane& l = lane_of(m.pattern, 36);
+    CHECK(l.length == 6);
+    CHECK(l.division == 4);
+    CHECK(m.notes == 6);
+    CHECK(m.dropped == 3);
+    CHECK(hits(m.pattern, 36) == std::vector<int>{0, 1, 2, 3, 4, 5});
+  }
+  SECTION("another pattern grid is kept as it is")
+  {
+    p.length = 12;
+    p.division = 8;
+    const MidiMatch m = matchToGrid(p, readMidiFile(midi_file(quarters, 9 * 480)));
+    CHECK(m.pattern.length == 12);
+    CHECK(m.pattern.division == 8);
+    // Quarters on an eighth grid: every other step, six of them in twelve.
+    CHECK(hits(m.pattern, 36) == std::vector<int>{0, 2, 4, 6, 8, 10});
+    CHECK(m.dropped == 3);
+  }
+}
+
+TEST_CASE("patternist: type 0 and type 1 files give the same pattern", "[midi][pattern][import]")
+{
+  auto p = pattern({lane(38, {R}), lane(36, {R})}, 16);
+  normalize(p);
+
+  // Drums and a bass line: one track, or one each.
+  auto notes = drum_loop();
+  const std::vector<file_note> bass
+      = {{0, 480, 2, 40, 100}, {480, 110, 2, 43, 80}, {960, 60, 2, 40, 100},
+         {1440, 240, 2, 45, 90}};
+  auto split = notes;
+  for(auto n : bass)
+  {
+    notes.push_back(n);
+    n.track = 1;
+    split.push_back(n);
+  }
+  const QByteArray type0 = midi_file(notes, 1920, 1);
+  const QByteArray type1 = midi_file(split, 1920, 2);
+  // Byte 9 of the header is the format.
+  REQUIRE(type0[9] == 0);
+  REQUIRE(type1[9] == 1);
+
+  const MidiMatch a = matchToGrid(p, readMidiFile(type0));
+  const MidiMatch b = matchToGrid(p, readMidiFile(type1));
+  CHECK(a.notes == 18);
+  CHECK(a.pattern == b.pattern);
+
+  const Pattern& r = a.pattern;
+  std::vector<int> order;
+  for(const Lane& l : r.lanes)
+    order.push_back(l.note);
+  CHECK(order == std::vector<int>{45, 43, 42, 40, 38, 36});
+
+  // Off the drum channel the lengths count: a quarter is tied over its
+  // steps, a short note gets a gate, one about a step long fills it.
+  const Lane& e = lane_of(r, 40);
+  CHECK(e.pattern[0] == N);
+  CHECK(e.pattern[1] == L);
+  CHECK(e.pattern[2] == L);
+  CHECK(e.pattern[3] == L);
+  CHECK(e.pattern[4] == R);
+  CHECK(e.params[0].gate == 1.f);
+  CHECK(e.pattern[8] == N);
+  CHECK(e.params[8].gate == Catch::Approx(0.5));
+  CHECK(lane_of(r, 43).params[4].gate == 1.f);
+  CHECK(lane_of(r, 43).pattern[5] == R);
+  const Lane& a2 = lane_of(r, 45);
+  CHECK(a2.pattern[12] == N);
+  CHECK(a2.pattern[13] == L);
+  CHECK(a2.pattern[14] == R);
+  // The drums' lengths say nothing.
+  CHECK(lane_of(r, 42).params[0].gate == 1.f);
+}
+
+TEST_CASE("patternist: files without notes leave the pattern alone", "[midi][pattern][import]")
+{
+  auto p = pattern({lane(38, {N, R, N, R}), lane(36, {R, N, R, N})}, 4);
+  normalize(p);
+
+  const auto unchanged = [&](const QByteArray& data) {
+    const MidiClip clip = readMidiFile(data);
+    CHECK(clip.notes.empty());
+    const MidiMatch m = matchToGrid(p, clip);
+    CHECK(m.notes == 0);
+    CHECK(m.pattern == p);
+  };
+
+  SECTION("no data")
+  {
+    unchanged({});
+  }
+  SECTION("a file with a track and no event")
+  {
+    unchanged(midi_file({}, 1920));
+  }
+  SECTION("something else")
+  {
+    unchanged("BD x---x---x---x---\n");
+    unchanged(QByteArray(4096, '\xff'));
+    unchanged(QByteArray(4096, '\0'));
+  }
+  SECTION("a file cut anywhere")
+  {
+    const QByteArray whole = midi_file(drum_loop(), 1920);
+    for(int n = 0; n < whole.size(); n++)
+    {
+      // Whatever could be read: never past the pattern's limits.
+      const MidiMatch m = matchToGrid(p, readMidiFile(whole.left(n)));
+      CHECK(m.pattern.length <= Pattern::maxLength);
+      CHECK(std::ssize(m.pattern.lanes) <= Pattern::maxLanes);
+      for(const Lane& l : m.pattern.lanes)
+        CHECK(std::ssize(l.pattern) >= m.pattern.length);
+    }
+  }
+  SECTION("bytes at random after a header")
+  {
+    QByteArray data = midi_file(drum_loop(), 1920);
+    std::mt19937 rng{7};
+    for(int round = 0; round < 200; round++)
+    {
+      QByteArray d = data;
+      for(int k = 0; k < 8; k++)
+        d[14 + int(rng() % (d.size() - 14))] = char(rng());
+      const MidiMatch m = matchToGrid(p, readMidiFile(d));
+      CHECK(m.pattern.length <= Pattern::maxLength);
+      CHECK(std::ssize(m.pattern.lanes) <= Pattern::maxLanes);
+    }
+  }
+  SECTION("notes that are not numbers")
+  {
+    MidiClip clip;
+    clip.length = std::numeric_limits<double>::infinity();
+    clip.notes.push_back({std::numeric_limits<double>::quiet_NaN(), 1., 60, 100, false});
+    clip.notes.push_back({-4., 1., 60, 100, false});
+    clip.notes.push_back({1e300, 1., 60, 100, false});
+    clip.notes.push_back({0., std::numeric_limits<double>::quiet_NaN(), 62, 100, false});
+    const MidiMatch m = matchToGrid(p, clip);
+    CHECK(m.pattern.length <= Pattern::maxLength);
+    CHECK(hits(m.pattern, 62) == std::vector<int>{0});
+  }
+}
+
+TEST_CASE("patternist: more pitches than lanes", "[midi][pattern][import]")
+{
+  // Every pitch there is, over a pattern that already has lanes of its own.
+  Pattern p;
+  p.length = 16;
+  for(int i = 0; i < 100; i++)
+    p.lanes.push_back(Lane{std::vector<Note>(16, N), 60});
+  addControlLane(p, accentLane);
+  normalize(p);
+
+  MidiClip clip;
+  clip.length = 4.;
+  for(int pitch = 0; pitch < 128; pitch++)
+    clip.notes.push_back({0., 0.25, uint8_t(pitch), 100, true});
+  const MidiMatch m = matchToGrid(p, clip);
+  CHECK(std::ssize(m.pattern.lanes) == Pattern::maxLanes);
+  CHECK(m.notes + m.dropped == 128);
+  CHECK(m.dropped == 128 - 28);
+  // The accent closes the list still, with the steps it had.
+  CHECK(m.pattern.lanes.back().note == accentLane);
+  CHECK(m.pattern.lanes.back() == p.lanes.back());
+}
+
+TEST_CASE("patternist: a MIDI file among what is dropped", "[midi][pattern][import]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const auto write = [&](const QString& name, const QByteArray& data) {
+    QFile f{dir.filePath(name)};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(data);
+    return QUrl::fromLocalFile(f.fileName());
+  };
+
+  QMimeData mime;
+  CHECK(!midiFromMime(mime));
+  mime.setUrls(
+      {write("notes.txt", "hello"), write("empty.mid", midi_file({}, 480)),
+       write("loop.MID", midi_file(drum_loop(), 1920))});
+  const auto clip = midiFromMime(mime);
+  REQUIRE(clip);
+  CHECK(clip->notes.size() == 14);
+
+  QMimeData other;
+  other.setUrls({write("loop.wav", midi_file(drum_loop(), 1920))});
+  CHECK(!midiFromMime(other));
 }

@@ -28,6 +28,7 @@
 #include <ossia/detail/flicks.hpp>
 
 #include <QApplication>
+#include <QDropEvent>
 #include <QElapsedTimer>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -35,16 +36,23 @@
 #include <QImage>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QTemporaryDir>
+#include <QToolButton>
+#include <QUrl>
 
 #include <Patternist/Commands/PatternProperties.hpp>
+#include <Patternist/PatternController.hpp>
+#include <Patternist/PatternMidiImport.hpp>
 #include <Patternist/PatternEdit.hpp>
 #include <Patternist/PatternEditor.hpp>
 #include <Patternist/PatternModel.hpp>
 #include <Patternist/PatternNode.hpp>
 #include <Patternist/PatternView.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <libremidi/writer.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Project.hpp>
@@ -58,6 +66,7 @@
 #include <map>
 #include <new>
 #include <set>
+#include <sstream>
 #include <thread>
 #include <vector>
 
@@ -1433,4 +1442,314 @@ TEST_CASE("patternist: random spreads, for the whole note or each hit", "[midi][
     CHECK(stuck_whole == 0);
     CHECK(stuck_each == 0);
   }
+}
+
+// ===========================================================================
+// 8. Lanes added and moved, MIDI files dropped: in the editor, with undo
+// ===========================================================================
+
+namespace
+{
+//! The editor of a pattern process in a new document, shown, with what a test
+//! needs to act on it as a user does.
+struct editor_rig
+{
+  score::Document* doc{};
+  Patternist::ProcessModel* proc{};
+  Patternist::Editor* editor{};
+  Patternist::View* view{};
+  QGraphicsView* graphics{};
+
+  explicit editor_rig(const score::GUIApplicationContext& ctx)
+  {
+    doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    proc = add_pattern_process(*doc);
+    REQUIRE(proc);
+    editor = new Patternist::Editor{*proc, doc->context(), nullptr};
+    editor->show();
+    settle();
+    graphics = editor->findChild<QGraphicsView*>();
+    REQUIRE(graphics);
+    for(auto item : graphics->scene()->items())
+      if(auto v = dynamic_cast<Patternist::View*>(item))
+        view = v;
+    REQUIRE(view);
+  }
+  ~editor_rig() { delete editor; }
+
+  static void settle()
+  {
+    for(int i = 0; i < 20; i++)
+      QApplication::processEvents();
+  }
+
+  const Pattern& pattern() const { return proc->patterns()[proc->currentPattern()]; }
+
+  void click(const QString& text)
+  {
+    for(auto b : editor->findChildren<QToolButton*>())
+    {
+      if(b->text() == text)
+      {
+        b->click();
+        settle();
+        return;
+      }
+    }
+    FAIL("no button " << text.toStdString());
+  }
+
+  //! Drops files on the grid, through the events a drag from a file manager
+  //! sends.
+  void drop(const QList<QUrl>& urls)
+  {
+    QMimeData md;
+    md.setUrls(urls);
+    auto vp = graphics->viewport();
+    const QPoint pos = vp->rect().center();
+    // Enter and move take a QPoint on every Qt 6.
+    QDragEnterEvent enter{pos, Qt::CopyAction, &md, Qt::LeftButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &enter);
+    QDragMoveEvent move{pos, Qt::CopyAction, &md, Qt::LeftButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &move);
+    QDropEvent release{QPointF{pos}, Qt::CopyAction, &md, Qt::LeftButton, Qt::NoModifier};
+    QApplication::sendEvent(vp, &release);
+    settle();
+  }
+
+  void shot(const QString& name)
+  {
+    const QString dir = qEnvironmentVariable("PATTERNIST_SHOTS");
+    if(dir.isEmpty())
+      return;
+    settle();
+    editor->grab().save(dir + "/" + name + ".png");
+  }
+};
+
+std::vector<int> lane_notes(const Pattern& p)
+{
+  std::vector<int> res;
+  for(const Lane& l : p.lanes)
+    res.push_back(l.note);
+  return res;
+}
+
+//! Two bars on the drum channel, as a type 1 file: kick, snare, closed and
+//! open hats, with a clap on the last beat.
+QByteArray two_bar_drums()
+{
+  struct ev
+  {
+    int tick;
+    libremidi::message m;
+  };
+  std::vector<ev> events;
+  const auto hit = [&](int tick, int pitch, int velocity) {
+    events.push_back({tick, libremidi::channel_events::note_on(10, pitch, velocity)});
+    events.push_back({tick + 40, libremidi::channel_events::note_off(10, pitch, 0)});
+  };
+  for(int bar = 0; bar < 2; bar++)
+  {
+    const int t = bar * 1920;
+    for(int beat = 0; beat < 4; beat++)
+      hit(t + beat * 480, 36, 115);
+    hit(t + 1680, 36, 80);
+    for(int beat : {1, 3})
+      hit(t + beat * 480, 38, 120);
+    for(int e = 0; e < 8; e++)
+      hit(t + e * 240, e == 7 ? 46 : 42, e % 2 ? 60 : 95);
+  }
+  hit(1920 + 1440, 39, 100);
+  std::stable_sort(events.begin(), events.end(), [](const ev& a, const ev& b) {
+    return a.tick < b.tick;
+  });
+
+  libremidi::writer w;
+  w.ticksPerQuarterNote = 480;
+  w.add_event(0, 0, libremidi::meta_events::time_signature(4, 4, 24, 8));
+  int prev = 0;
+  for(const auto& e : events)
+  {
+    w.add_event(e.tick - prev, 1, e.m);
+    prev = e.tick;
+  }
+  // libremidi's writer ends a track right after its last event: a controller
+  // there holds the length of the file.
+  w.add_event(2 * 1920 - prev, 1, libremidi::channel_events::control_change(10, 7, 100));
+  std::ostringstream out;
+  w.write(out);
+  const auto s = std::move(out).str();
+  return QByteArray(s.data(), qsizetype(s.size()));
+}
+}
+
+TEST_CASE(
+    "patternist: Add lane puts an empty lane under the selected one",
+    "[midi][pattern][ui][lanes]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    editor_rig r{ctx};
+    const Pattern original = r.pattern();
+    // The default pattern: the snare over the kick, both with notes.
+    REQUIRE(lane_notes(original) == std::vector<int>{38, 36});
+
+    r.view->setSelectedLane(0);
+    r.click("Add lane");
+    REQUIRE(lane_notes(r.pattern()) == std::vector<int>{38, 37, 36});
+    const Lane& added = r.pattern().lanes[1];
+    CHECK(added.pattern == std::vector<Note>(added.pattern.size(), Note::Rest));
+    CHECK(added.params == std::vector<StepParams>(added.params.size()));
+    CHECK(r.pattern().lanes[0] == original.lanes[0]);
+    CHECK(r.pattern().lanes[2] == original.lanes[1]);
+    // The user is on the new lane: the next one goes under it.
+    CHECK(r.view->selectedLane() == 1);
+    r.click("Add lane");
+    CHECK(lane_notes(r.pattern()) == std::vector<int>{38, 37, 35, 36});
+    CHECK(r.view->selectedLane() == 2);
+    const Pattern twice = r.pattern();
+
+    // Each a step of its own in the history.
+    auto& stack = r.doc->commandStack();
+    stack.undo();
+    CHECK(lane_notes(r.pattern()) == std::vector<int>{38, 37, 36});
+    stack.undo();
+    CHECK(r.pattern() == original);
+    stack.redo();
+    stack.redo();
+    CHECK(r.pattern() == twice);
+
+    // From the menu of the layer, where no lane is selected: at the bottom.
+    Patternist::Controller layer{*r.proc, r.doc->context(), nullptr};
+    layer.addLane();
+    CHECK(lane_notes(r.pattern()) == std::vector<int>{38, 37, 35, 36, 34});
+    CHECK(r.pattern().lanes[4].pattern
+          == std::vector<Note>(r.pattern().lanes[4].pattern.size(), Note::Rest));
+  });
+}
+
+TEST_CASE(
+    "patternist: a lane is moved up and down in the editor",
+    "[midi][pattern][ui][lanes]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    editor_rig r{ctx};
+    {
+      auto p = r.pattern();
+      Patternist::addLane(p);
+      p.lanes[2].note = 42;
+      p.lanes[2].pattern[3] = Note::Note;
+      r.proc->setPattern(r.proc->currentPattern(), p);
+    }
+    const Pattern original = r.pattern();
+    const Lane a = original.lanes[0], b = original.lanes[1], c = original.lanes[2];
+    auto& stack = r.doc->commandStack();
+    const auto undoable = [&] { return stack.undoable().size(); };
+    const auto undoable_before = undoable();
+
+    r.view->setSelectedLane(0);
+    r.click(QStringLiteral("▼"));
+    CHECK(r.pattern().lanes == std::vector<Lane>{b, a, c});
+    CHECK(r.view->selectedLane() == 1);
+    r.click(QStringLiteral("▼"));
+    CHECK(r.pattern().lanes == std::vector<Lane>{b, c, a});
+    CHECK(r.view->selectedLane() == 2);
+    // At the bottom: it stays, and the history gets nothing.
+    r.click(QStringLiteral("▼"));
+    CHECK(r.pattern().lanes == std::vector<Lane>{b, c, a});
+    CHECK(undoable() == undoable_before + 2);
+    CHECK(r.view->selectedLane() == 2);
+    r.click(QStringLiteral("▲"));
+    CHECK(r.pattern().lanes == std::vector<Lane>{b, a, c});
+    CHECK(r.view->selectedLane() == 1);
+
+    // Three moves, three steps back.
+    stack.undo();
+    CHECK(r.pattern().lanes == std::vector<Lane>{b, c, a});
+    stack.undo();
+    stack.undo();
+    CHECK(r.pattern() == original);
+    CHECK(undoable() == undoable_before);
+    stack.redo();
+    CHECK(r.pattern().lanes == std::vector<Lane>{b, a, c});
+
+    // The menu of a lane says where it can go.
+    QMenu menu;
+    Patternist::Controller layer{*r.proc, r.doc->context(), nullptr};
+    layer.fillMenu(menu, 0);
+    const auto entry = [&](const QString& text) -> QAction* {
+      for(auto act : menu.actions())
+        if(act->text() == text)
+          return act;
+      return nullptr;
+    };
+    REQUIRE(entry("Move lane up"));
+    REQUIRE(entry("Move lane down"));
+    CHECK(!entry("Move lane up")->isEnabled());
+    CHECK(entry("Move lane down")->isEnabled());
+    entry("Move lane down")->trigger();
+    CHECK(r.pattern().lanes == std::vector<Lane>{a, b, c});
+  });
+}
+
+TEST_CASE(
+    "patternist: a MIDI file dropped on the editor is one step of the history",
+    "[midi][pattern][ui][import]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const auto write = [&](const QString& name, const QByteArray& data) {
+      QFile f{dir.filePath(name)};
+      REQUIRE(f.open(QIODevice::WriteOnly));
+      f.write(data);
+      return QUrl::fromLocalFile(f.fileName());
+    };
+
+    editor_rig r{ctx};
+    const Pattern original = r.pattern();
+    auto& stack = r.doc->commandStack();
+    r.shot("1_editor_default_pattern");
+
+    // Nothing to read: nothing changes, nothing to undo.
+    const auto undoable_before = stack.undoable().size();
+    r.drop({write("garbage.mid", QByteArray(512, '\x7f')), write("empty.mid", {})});
+    CHECK(r.pattern() == original);
+    CHECK(stack.undoable().size() == undoable_before);
+
+    r.drop({write("drums.mid", two_bar_drums())});
+    const Pattern imported = r.pattern();
+    // The pattern keeps its grid: of the two bars, the first fills its 16
+    // steps; the clap, only in the second, gets no lane.
+    CHECK(imported.division == original.division);
+    CHECK(imported.length == original.length);
+    CHECK(lane_notes(imported) == std::vector<int>{46, 42, 38, 36});
+    int notes = 0;
+    for(const Lane& l : imported.lanes)
+      notes += int(std::count(l.pattern.begin(), l.pattern.end(), Note::Note));
+    CHECK(notes == 15);
+    r.shot("2_editor_after_midi_drop");
+
+    stack.undo();
+    CHECK(r.pattern() == original);
+    CHECK(stack.undoable().size() == undoable_before);
+    stack.redo();
+    CHECK(r.pattern() == imported);
+    CHECK(stack.undoable().size() == undoable_before + 1);
+
+    // A pattern text file still goes the way it did.
+    r.drop({write("kick.pat", "BD x---x---x---x---\n")});
+    CHECK(lane_notes(r.pattern()) == std::vector<int>{36});
+    stack.undo();
+    CHECK(r.pattern() == imported);
+
+    r.view->setSelectedLane(1);
+    r.click("Add lane");
+    r.shot("3_editor_after_add_lane_under_lane_2");
+    r.click(QStringLiteral("▲"));
+    r.click(QStringLiteral("▲"));
+    r.shot("4_editor_after_moving_the_new_lane_to_the_top");
+    CHECK(lane_notes(r.pattern()) == std::vector<int>{41, 46, 42, 38, 36});
+  });
 }
