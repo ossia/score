@@ -67,10 +67,14 @@ class OSCLibraryHandler final : public Library::LibraryInterface
   bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
   {
     Device::Node n{Device::DeviceSettings{}, nullptr};
-    bool ok = (path.endsWith(".touchosc") && Device::loadDeviceFromTouchOSC(path, n))
-              || (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
-              || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
-              || (path.endsWith(".device") && Device::loadDeviceFromScoreJSON(path, n));
+    const auto is = [&](QLatin1StringView extension) {
+      return path.endsWith(extension, Qt::CaseInsensitive);
+    };
+    using namespace Qt::StringLiterals;
+    bool ok = (is(".touchosc"_L1) && Device::loadDeviceFromTouchOSC(path, n))
+              || (is(".json"_L1) && Device::loadDeviceFromScoreJSON(path, n))
+              || (is(".xml"_L1) && Device::loadDeviceFromXML(path, n))
+              || (is(".device"_L1) && Device::loadDeviceFromScoreJSON(path, n));
     if(!ok)
       return false;
 

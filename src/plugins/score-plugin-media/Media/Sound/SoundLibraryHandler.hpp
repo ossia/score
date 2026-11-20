@@ -36,7 +36,7 @@ public:
       : QWidget{parent}
   {
     // FIXME libav does not support rex2 format
-    if(path.endsWith("rx2"))
+    if(path.endsWith(QLatin1StringView{"rx2"}, Qt::CaseInsensitive))
       return;
 
     auto lay = new score::MarginLess<QHBoxLayout>{this};

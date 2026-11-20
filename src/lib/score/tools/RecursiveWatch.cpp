@@ -417,7 +417,7 @@ void RecursiveWatch::scan() const
     const auto suffix = watched_suffix(path, m_root);
     if(!suffix)
       return;
-    if(auto it = m_watched.find(*suffix); it != m_watched.end())
+    if(auto it = m_watched.find(lowercase(std::string{*suffix})); it != m_watched.end())
     {
       for(auto& handler : it->second)
       {
@@ -467,7 +467,7 @@ void RecursiveWatch::scanAsync(QObject* context)
       const auto suffix = watched_suffix(path, state.root);
       if(!suffix)
         return;
-      auto it = state.watched.find(*suffix);
+      auto it = state.watched.find(lowercase(std::string{*suffix}));
       if(it == state.watched.end())
         return;
       for(auto& handler : it->second)
