@@ -45,6 +45,8 @@ struct voice
   //! A system-exclusive message reaches the plug-in as one MIDI event, F0 to
   //! F7, once the last of its SysEx7 packets is in.
   std::vector<libremidi::midi2_to_midi1_assembler<>> midi_2to1;
+  //! What the plug-in emits reaches the graph message for message: no
+  //! controller is merged with another or held back on the way.
   std::vector<libremidi::midi1_to_midi2> midi_1to2;
 
   std::vector<AtomBuffer> atom_ins;
@@ -951,15 +953,11 @@ struct lv2_node final : public ossia::graph_node
         if(ev.body.type == data.host.midi_event_id)
         {
           auto bytes = (const uint8_t*)LV2_ATOM_BODY_CONST(&ev.body);
-          conv.convert(
-              bytes, ev.body.size, ev.time.frames,
-              [&](const uint32_t* ump, int count, int64_t ts) {
-            libremidi::ump u;
-            std::copy_n(ump, std::min(count, 4), u.data);
-            u.timestamp = offset + ts;
-            ossia_port.messages.push_back(u);
-            return stdx::error{};
-          });
+          // A system-exclusive message gives every SysEx7 packet it is
+          // made of.
+          conv.convert_packets(
+              bytes, ev.body.size, offset + ev.time.frames,
+              [&](const libremidi::ump& u) { ossia_port.messages.push_back(u); });
         }
         // Other events on a MIDI port are for the plug-in's UI
         // (send_ui_messages forwards them); FIXME also forward them (patch:Set...) to a value

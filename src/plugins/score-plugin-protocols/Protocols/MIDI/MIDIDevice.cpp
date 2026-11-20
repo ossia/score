@@ -229,6 +229,16 @@ makeOutputConfiguration(MIDIDevice* self, MIDISpecificSettings& set)
   return std::make_pair(conf, api_conf);
 }
 
+ossia::net::midi::midi_protocol_configuration
+makeProtocolConfiguration(const MIDISpecificSettings& set)
+{
+  ossia::net::midi::midi_protocol_configuration conf;
+  conf.device_name = set.handle.display_name;
+  conf.velocity_zero_is_note_off = set.velocityZeroIsNoteOff;
+  conf.controllers = set.controllers;
+  return conf;
+}
+
 bool MIDIDevice::reconnect()
 {
   disconnect();
@@ -281,19 +291,13 @@ bool MIDIDevice::reconnect()
     {
       auto [conf, api_conf] = makeInputConfiguration(this, set);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
-          m_ctx,
-          ossia::net::midi::midi_protocol_configuration{
-              set.handle.display_name, set.velocityZeroIsNoteOff},
-          conf, api_conf);
+          m_ctx, makeProtocolConfiguration(set), conf, api_conf);
     }
     else
     {
       auto [conf, api_conf] = makeOutputConfiguration(this, set);
       proto = std::make_unique<ossia::net::midi::midi_protocol>(
-          m_ctx,
-          ossia::net::midi::midi_protocol_configuration{
-              set.handle.display_name, set.velocityZeroIsNoteOff},
-          conf, api_conf);
+          m_ctx, makeProtocolConfiguration(set), conf, api_conf);
     }
 
     auto& p = *proto;

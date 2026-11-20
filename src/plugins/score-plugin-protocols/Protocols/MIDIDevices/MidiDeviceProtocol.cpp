@@ -1337,7 +1337,10 @@ struct midi_device_protocol final
   //! and the queue are not worth paying for otherwise.
   std::atomic_bool m_streaming{};
 
-  libremidi::midi1_to_midi2 m_toUmp;
+  // The port carries the controllers as the device sent them: what a bank
+  // select or a data entry means is the description's to say, not the
+  // MIDI specification's.
+  libremidi::midi1_to_midi2 m_toUmp{libremidi::controller_translation::raw};
 };
 }
 
