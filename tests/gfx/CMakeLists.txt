@@ -1147,11 +1147,14 @@ score_add_gfx_test(window_device_tree WindowDeviceTree.cpp)
 # real document, with GfxContext between the window and the graph. The rigs
 # above drive a ScreenNode directly and pump frames themselves, which is why a
 # window that has stopped presenting in the running app still reads as healthy.
-score_add_gfx_test(window_device_lifecycle WindowDeviceLifecycle.cpp)
-target_link_libraries(test_gfx_window_device_lifecycle PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
-# Closing a document whose Window device draws into the scenario view.
-score_add_gfx_test(window_background_device_close WindowBackgroundDeviceClose.cpp)
-target_link_libraries(test_gfx_window_background_device_close PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
+# Both build their documents through the Javascript edition API.
+if(TARGET score_plugin_js)
+  score_add_gfx_test(window_device_lifecycle WindowDeviceLifecycle.cpp)
+  target_link_libraries(test_gfx_window_device_lifecycle PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
+  # Closing a document whose Window device draws into the scenario view.
+  score_add_gfx_test(window_background_device_close WindowBackgroundDeviceClose.cpp)
+  target_link_libraries(test_gfx_window_background_device_close PRIVATE score_plugin_deviceexplorer score_plugin_engine score_plugin_js)
+endif()
 target_link_libraries(test_gfx_window_device_tree PRIVATE score_plugin_deviceexplorer)
 
 

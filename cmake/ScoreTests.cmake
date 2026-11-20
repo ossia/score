@@ -175,6 +175,39 @@ if(SCORE_STATIC_PLUGINS)
     CALL _score_link_static_plugin_tests)
 endif()
 
+# A test whose PLUGINS include a plug-in this build leaves out (a
+# SCORE_DISABLED_PLUGINS entry, a missing dependency) cannot link: it is left
+# out of the build and reported as disabled by ctest. Checked at the end of the
+# top-level directory, as a test declared under src/ may name a plug-in
+# configured after it.
+function(_score_disable_tests_without_plugins)
+  get_property(_targets GLOBAL PROPERTY SCORE_TEST_PLUGIN_TARGETS)
+  foreach(_target IN LISTS _targets)
+    get_target_property(_plugins ${_target} SCORE_TEST_PLUGINS)
+    set(_missing)
+    foreach(_plugin IN LISTS _plugins)
+      if(_plugin MATCHES "^score_(plugin|lib|addon)_" AND NOT TARGET ${_plugin})
+        list(APPEND _missing ${_plugin})
+      endif()
+    endforeach()
+    if(NOT _missing)
+      continue()
+    endif()
+    message(STATUS "score: ${_target} left out, without ${_missing}")
+    set_target_properties(${_target} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    get_target_property(_dir ${_target} SCORE_TEST_DIR)
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.28)
+      get_property(_tests DIRECTORY "${_dir}" PROPERTY TESTS)
+      if(_target IN_LIST _tests)
+        set_property(TEST ${_target} DIRECTORY "${_dir}" PROPERTY DISABLED TRUE)
+      endif()
+    endif()
+  endforeach()
+endfunction()
+
+cmake_language(DEFER DIRECTORY "${SCORE_ROOT_SOURCE_DIR}"
+  CALL _score_disable_tests_without_plugins)
+
 # A GPU reset (device lost, driver watchdog) destroys every context on the
 # machine, so GPU tests running side by side die together. Every test labelled
 # "gpu", wherever it is registered (tests/, plug-ins, add-ons, score_add_test
@@ -262,6 +295,13 @@ function(score_add_test NAME)
   endif()
 
   set_target_properties(${NAME} PROPERTIES FOLDER "Tests")
+
+  if(ARG_PLUGINS)
+    set_target_properties(${NAME} PROPERTIES
+      SCORE_TEST_PLUGINS "${ARG_PLUGINS}"
+      SCORE_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    set_property(GLOBAL APPEND PROPERTY SCORE_TEST_PLUGIN_TARGETS "${NAME}")
+  endif()
 
   if(ARG_NO_CTEST)
     return()
