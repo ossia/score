@@ -31,6 +31,7 @@ private:
       const QItemSelection& selected, const QItemSelection& deselected) override;
   void startDrag(Qt::DropActions supportedActions) override;
   void mouseDoubleClickEvent(QMouseEvent* event) override;
+  void contextMenuEvent(QContextMenuEvent* event) override;
   Library::ProcessData* dataFromViewIndex(QModelIndex);
 };
 }

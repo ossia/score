@@ -287,6 +287,16 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     slay->addWidget(filter);
     slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
+    // Only snippets can be edited, by their name: F2 or their menu
+    m_tv.setEditTriggers(QAbstractItemView::EditKeyPressed);
+    // A renamed snippet is another file: what shows it is built again
+    connect(
+        m_processModel, &QAbstractItemModel::dataChanged, this,
+        [this, processFilterProxy](const QModelIndex& first, const QModelIndex&) {
+      if(m_tv.selectionModel()
+         && m_tv.selectionModel()->isSelected(processFilterProxy->mapFromSource(first)))
+        m_tv.reselect();
+    });
     m_tv.setStatusTip(statusTip());
     m_tv.setUniformRowHeights(true);
     setup_treeview(m_tv);
