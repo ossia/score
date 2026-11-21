@@ -1367,6 +1367,25 @@ bool NodeItem::sceneEvent(QEvent* event)
 
 void NodeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
+  // The frame and title have no menu of their own: the view the node is in
+  // gives its menu, which acts on the selected nodes, this one among them.
+  // What the node shows inside may have its own, from its layer.
+  if(!m_model.selection.get())
+    score::SelectionDispatcher{m_context.selectionStack}.select(m_model);
+
+  // Given to what holds the node, not to a node under it: that one would
+  // select itself in turn.
+  if(auto s = scene())
+  {
+    for(auto parent = parentItem(); parent; parent = parent->parentItem())
+    {
+      event->setPos(parent->mapFromScene(event->scenePos()));
+      event->accept();
+      s->sendEvent(parent, event);
+      if(event->isAccepted())
+        return;
+    }
+  }
   event->accept();
 }
 

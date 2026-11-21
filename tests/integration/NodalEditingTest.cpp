@@ -34,7 +34,9 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Library/ProcessPicker.hpp>
+#include <Process/ProcessList.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
@@ -64,6 +66,7 @@
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QListWidget>
+#include <QContextMenuEvent>
 #include <QMenu>
 #include <QMimeData>
 #include <QPushButton>
@@ -79,6 +82,18 @@ using score::test::run_events_for;
 
 // avnd's Float value: one value inlet, one value outlet. Always built.
 const auto float_key = UuidKey<Process::ProcessModel>{"ee3a50c0-a202-4f51-a26d-be57a939997d"};
+
+//! Picks the Float process in the process picker that is open, as typing its
+//! name and Return does.
+bool pickFloat()
+{
+  auto* picker = dynamic_cast<Library::ProcessPicker*>(QApplication::activePopupWidget());
+  if(!picker)
+    return false;
+  const auto& fact = *score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(float_key);
+  picker->setSearch(fact.prettyName());
+  return picker->accept();
+}
 
 Scenario::ScenarioDocumentModel& docModel(score::Document& doc)
 {
@@ -290,21 +305,11 @@ TEST_CASE(
     const QPointF expected = view->nodeContainer().mapFromParent(at);
 
     const auto before = t.itv->processes.size();
-    bool opened = false;
-    QTimer::singleShot(50, [&] {
-      auto* dialog = dynamic_cast<Scenario::AddProcessDialog*>(QApplication::activeModalWidget());
-      opened = dialog != nullptr;
-      if(!dialog)
-        return;
-      // What picking Float in the list and pressing OK ends up doing
-      dialog->on_okPressed(float_key, {});
-      dialog->reject();
-    });
-
     doubleClickAt(*t.doc, view->mapToScene(at));
     run_events_for(100);
 
-    REQUIRE(opened);
+    REQUIRE(pickFloat());
+    run_events_for(50);
     REQUIRE(t.itv->processes.size() == before + 1);
     const Process::ProcessModel* added{};
     for(auto& p : t.itv->processes)
@@ -909,24 +914,239 @@ TEST_CASE(
     REQUIRE(view);
 
     const QPointF at = view->boundingRect().center();
-    bool opened = false;
-    QTimer::singleShot(50, [&] {
-      auto* dialog = dynamic_cast<Scenario::AddProcessDialog*>(QApplication::activeModalWidget());
-      opened = dialog != nullptr;
-      if(!dialog)
-        return;
-      dialog->on_okPressed(float_key, {});
-      dialog->reject();
-    });
-
     doubleClickAt(*doc, view->mapToScene(at));
     run_events_for(100);
 
-    REQUIRE(opened);
+    REQUIRE(pickFloat());
+    run_events_for(50);
     REQUIRE(nodal.nodes.size() == 1);
     CHECK(QLineF{nodal.nodes.begin()->position(), at}.length() < 1.);
 
     doc->commandStack().undo();
     CHECK(nodal.nodes.size() == 0);
+  });
+}
+
+TEST_CASE("Tab in the score asks for a process to add to the selected box", "[integration][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    run_events_for(100);
+    doc->context().selectionStack.pushNewSelection({&itv});
+
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(pr);
+    auto& view = pr->view().view();
+    QKeyEvent tab{QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier};
+    QApplication::sendEvent(&view, &tab);
+    run_events_for(100);
+
+    const auto before = itv.processes.size();
+    REQUIRE(pickFloat());
+    run_events_for(50);
+    REQUIRE(itv.processes.size() == before + 1);
+    bool found = false;
+    for(auto& p : itv.processes)
+      found |= p.concreteKey() == float_key;
+    CHECK(found);
+
+    doc->commandStack().undo();
+    CHECK(itv.processes.size() == before);
+  });
+}
+
+TEST_CASE(
+    "Tab on a selected outlet adds a process cabled to it, and goes on from it",
+    "[integration][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto* first = addFloat(*doc, itv, QPointF{100, 100});
+    REQUIRE(first);
+    REQUIRE_FALSE(first->outlets().empty());
+    auto& outlet = *first->outlets()[0];
+    doc->context().selectionStack.pushNewSelection({&outlet});
+
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(pr);
+    QKeyEvent tab{QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier};
+    QApplication::sendEvent(&pr->view().view(), &tab);
+    run_events_for(100);
+
+    // Only what an outlet of its type can go to
+    auto* picker = dynamic_cast<Library::ProcessPicker*>(QApplication::activePopupWidget());
+    REQUIRE(picker);
+    picker->setSearch({});
+    for(const auto& name : picker->processes())
+      CHECK_FALSE(name.isEmpty());
+
+    const auto before = itv.processes.size();
+    const auto cablesBefore = docModel(*doc).cables.size();
+    REQUIRE(pickFloat());
+    run_events_for(50);
+    REQUIRE(itv.processes.size() == before + 1);
+    REQUIRE(docModel(*doc).cables.size() == cablesBefore + 1);
+
+    Process::ProcessModel* added{};
+    for(auto& p : itv.processes)
+      if(&p != first)
+        added = &p;
+    REQUIRE(added);
+    auto& cable = *docModel(*doc).cables.begin();
+    CHECK(&cable.source().find(doc->context()) == &outlet);
+    CHECK(&cable.sink().find(doc->context()) == added->inlets()[0]);
+    // Beside the node it comes from
+    CHECK(added->position().x() > first->position().x());
+
+    // Its outlet is selected: Tab again goes on from it
+    const auto& sel = doc->context().selectionStack.currentSelection();
+    REQUIRE(sel.size() == 1);
+    CHECK(sel.at(0) == added->outlets()[0]);
+
+    // One undo step
+    doc->commandStack().undo();
+    CHECK(itv.processes.size() == before);
+    CHECK(docModel(*doc).cables.size() == cablesBefore);
+  });
+}
+
+namespace
+{
+void pressTab(score::Document& doc)
+{
+  auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(doc);
+  REQUIRE(pr);
+  QKeyEvent tab{QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier};
+  QApplication::sendEvent(&pr->view().view(), &tab);
+  run_events_for(100);
+}
+
+std::vector<const Process::ProcessModel*>
+processesBut(const Scenario::IntervalModel& itv, const Process::ProcessModel* but)
+{
+  std::vector<const Process::ProcessModel*> v;
+  for(auto& p : itv.processes)
+    if(&p != but)
+      v.push_back(&p);
+  return v;
+}
+}
+
+TEST_CASE(
+    "Processes added by Tab each go where a new one goes, not on each other",
+    "[integration][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    run_events_for(100);
+
+    for(int i = 0; i < 2; i++)
+    {
+      doc->context().selectionStack.pushNewSelection({&itv});
+      pressTab(*doc);
+      REQUIRE(pickFloat());
+      run_events_for(50);
+    }
+    REQUIRE(itv.processes.size() == 2);
+    const auto procs = processesBut(itv, nullptr);
+    CHECK(procs[0]->position() != procs[1]->position());
+  });
+}
+
+TEST_CASE(
+    "Tab twice on an outlet puts the new nodes apart, and hands its address on",
+    "[integration][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto* first = addFloat(*doc, itv, QPointF{100, 100});
+    REQUIRE(first);
+    auto& outlet = *first->outlets()[0];
+    const State::AddressAccessor address{State::Address{"test", {"value"}}};
+    outlet.setAddress(address);
+
+    doc->context().selectionStack.pushNewSelection({&outlet});
+    pressTab(*doc);
+    REQUIRE(pickFloat());
+    run_events_for(50);
+    // What it was sending to, the end of the chain sends to now
+    CHECK(outlet.address() == State::AddressAccessor{});
+    auto added = processesBut(itv, first);
+    REQUIRE(added.size() == 1);
+    CHECK(added[0]->outlets()[0]->address() == address);
+
+    doc->context().selectionStack.pushNewSelection({&outlet});
+    pressTab(*doc);
+    REQUIRE(pickFloat());
+    run_events_for(50);
+    added = processesBut(itv, first);
+    REQUIRE(added.size() == 2);
+    const QRectF a{added[0]->position(), added[0]->size()};
+    const QRectF b{added[1]->position(), added[1]->size()};
+    CHECK_FALSE(a.intersects(b));
+  });
+}
+
+TEST_CASE(
+    "A right click on nodes over each other selects the one on top, not the one "
+    "under it",
+    "[integration][nodal][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto* under = addFloat(*doc, itv, QPointF{100, 100});
+    auto* over = addFloat(*doc, itv, QPointF{120, 110});
+    REQUIRE(under);
+    REQUIRE(over);
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(pr);
+    pr->setDisplayedInterval(&itv);
+    pr->setNodalMode(true);
+    run_events_for(200);
+
+    auto* top = nodeOf(*doc, *over);
+    auto* bottom = nodeOf(*doc, *under);
+    REQUIRE(top);
+    REQUIRE(bottom);
+    // A point of both frames, on the title of the one on top
+    const QPointF at = top->mapToScene(QPointF{10., 6.});
+    REQUIRE(bottom->contains(bottom->mapFromScene(at)));
+    Process::NodeItem* first{};
+    for(auto* item : documentScene(*doc).items(at))
+      if(auto n = dynamic_cast<Process::NodeItem*>(item); n && !first)
+        first = n;
+    REQUIRE(first == top);
+    doc->context().selectionStack.deselect();
+
+    auto& gv = pr->view().view();
+    gv.centerOn(at);
+    run_events_for(30);
+    const QPoint vp = gv.mapFromScene(at);
+    bool menu = false;
+    QTimer::singleShot(50, [&] {
+      if(auto m = qobject_cast<QMenu*>(QApplication::activePopupWidget()))
+      {
+        menu = true;
+        m->close();
+      }
+    });
+    QContextMenuEvent ev{QContextMenuEvent::Mouse, vp, gv.viewport()->mapToGlobal(vp)};
+    QApplication::sendEvent(gv.viewport(), &ev);
+    run_events_for(100);
+
+    CHECK(menu);
+    const auto& sel = doc->context().selectionStack.currentSelection();
+    REQUIRE(sel.size() == 1);
+    CHECK(sel.at(0) == over);
   });
 }

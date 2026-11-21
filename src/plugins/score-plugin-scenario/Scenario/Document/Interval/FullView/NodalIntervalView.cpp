@@ -632,9 +632,8 @@ void NodalIntervalView::openProcessPicker(QPointF nodePos)
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
-  // The canvas of the node view: what can be added where the menu opens.
-  if(m_itemsToShow != AllItems)
-    return;
+  // The canvas of the node view, or of a box's slot: what can be added to the
+  // interval where the menu opens.
 
   const QPointF nodePos = m_container->mapFromParent(event->pos());
   QPointer<NodalIntervalView> self = this;
