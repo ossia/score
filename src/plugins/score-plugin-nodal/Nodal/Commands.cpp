@@ -1,3 +1,4 @@
+#include <Process/Dataflow/CableCopy.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
@@ -257,29 +258,10 @@ PasteNodes::PasteNodes(const Model& p, const rapidjson::Value& copy, QPointF off
   if(auto cables = copy.FindMember("Cables");
      cables != copy.MemberEnd() && cables->value.IsArray())
   {
-    auto copied_cables = JsonValue{cables->value}.to<Dataflow::SerializedCables>();
-    const auto relocate = [&](ObjectPath& path) {
-      auto& vec = path.vec();
-      if(vec.empty())
-        return false;
-      for(auto [old_id, new_id] : ids)
-        if(vec.front().id() == old_id)
-        {
-          vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
-          return true;
-        }
-      return false;
-    };
-    std::vector<Process::CableData> kept;
-    for(auto& [id, cd] : copied_cables)
-      if(relocate(cd.source.unsafePath()) && relocate(cd.sink.unsafePath()))
-        kept.push_back(std::move(cd));
-
-    // As many new identifiers as cables, as pasting in the timeline gets them.
-    const auto new_ids
-        = getStrongIdRange<Process::Cable>(kept.size(), document.cables);
-    for(std::size_t i = 0; i < kept.size(); i++)
-      m_cables.emplace_back(new_ids[i], std::move(kept[i]));
+    m_cables = Dataflow::keepCopiedCables(
+        JsonValue{cables->value}.to<Dataflow::SerializedCables>(),
+        [&](ObjectPath& path) { return Dataflow::relocateToCopy(path, ids); },
+        document.cables);
     Dataflow::unstripCables(m_path.unsafePath(), m_cables);
   }
 }

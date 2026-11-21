@@ -30,6 +30,14 @@ std::vector<ObjectPath> loadCopiedProcesses(
     std::vector<std::pair<int32_t, int32_t>>& proc_id_map,
     const score::DocumentContext& ctx);
 
+//! Loads the processes of a box, `processes`, copied from the interval at
+//! `from`, in `interval`: the anchors between them move to the copies.
+SCORE_PLUGIN_SCENARIO_EXPORT
+std::vector<ObjectPath> loadIntervalProcesses(
+    Command::Macro& m, const IntervalModel& interval, const rapidjson::Value& processes,
+    const ObjectPath& from, std::vector<std::pair<int32_t, int32_t>>& proc_id_map,
+    const score::DocumentContext& ctx);
+
 //! Copies the process in its interval; references to its own objects move to the copy's
 SCORE_PLUGIN_SCENARIO_EXPORT
 void duplicateProcess(

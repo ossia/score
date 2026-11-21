@@ -27,12 +27,17 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
+#include <Library/ProcessesItemModel.hpp>
+#include <Library/PresetFile.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <Library/Snippet.hpp>
 
 #include <QDir>
 #include <QMimeData>
 #include <QUrl>
 #include <QFile>
+#include <QFileInfo>
+#include <QImage>
 #include <QTemporaryDir>
 
 #include <catch2/catch_test_macros.hpp>
@@ -45,6 +50,33 @@ namespace
 std::string utf8(const QString& s)
 {
   return s.toStdString();
+}
+
+//! The user library in a temporary folder while it lives
+struct TemporaryUserLibrary
+{
+  TemporaryUserLibrary()
+  {
+    auto& set = score::GUIAppContext().settings<Library::Settings::Model>();
+    old = set.getRootPath();
+    set.setRootPath(dir.path());
+    snippets = set.getUserLibraryPath() + "/snippets";
+  }
+  ~TemporaryUserLibrary()
+  {
+    score::GUIAppContext().settings<Library::Settings::Model>().setRootPath(old);
+  }
+  QTemporaryDir dir;
+  QString old;
+  QString snippets;
+};
+
+void writeFile(const QString& path, const QByteArray& data)
+{
+  QDir{}.mkpath(QFileInfo{path}.absolutePath());
+  QFile f{path};
+  REQUIRE(f.open(QIODevice::WriteOnly));
+  f.write(data);
 }
 }
 
@@ -75,6 +107,53 @@ TEST_CASE("Only .scenario files are snippets", "[snippets]")
 
   CHECK_FALSE(Scenario::snippetEntry("/root/packages/user/cues/Messages.cues"));
   CHECK_FALSE(Scenario::snippetEntry("/root/packages/user/snippets/Song.score"));
+}
+
+TEST_CASE("A snippet is renamed in the library: its file and its place", "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // Built before the user library moves: it does not scan it
+    Library::ProcessesItemModel model{ctx, nullptr};
+    model.flushPending();
+    TemporaryUserLibrary user;
+    const QString folder = user.snippets + "/Drums";
+    for(const char* name : {"Kick", "Snare"})
+      writeFile(folder + "/" + name + ".scenario", R"({"Intervals":[],"States":[],"Cables":[]})");
+    for(const char* name : {"Kick", "Snare"})
+      if(auto e = Scenario::snippetEntry(
+             QString{folder + "/" + name + ".scenario"}.toStdString()))
+        model.publish(std::move(*e));
+    model.flushPending();
+
+    const auto kick = model.find(Library::snippetKey(), folder + "/Kick.scenario");
+    REQUIRE(kick.isValid());
+    const auto drums = kick.parent();
+    REQUIRE(model.rowCount(drums) == 2);
+    CHECK(model.flags(kick) & Qt::ItemIsEditable);
+
+    // A name with a folder in it, an empty one, one no file can have, one
+    // taken: refused.
+    CHECK_FALSE(model.setData(kick, "Up/Kick", Qt::EditRole));
+    CHECK_FALSE(model.setData(kick, "  ", Qt::EditRole));
+    CHECK_FALSE(model.setData(kick, "Kick: hard", Qt::EditRole));
+    CHECK_FALSE(model.setData(kick, ".hidden", Qt::EditRole));
+    CHECK_FALSE(model.setData(kick, "Snare", Qt::EditRole));
+    CHECK(QFile::exists(folder + "/Kick.scenario"));
+
+    // Renamed: the file follows, and the entry sorts after Snare.
+    QPersistentModelIndex moved{kick};
+    REQUIRE(model.setData(kick, "Toms", Qt::EditRole));
+    CHECK_FALSE(QFile::exists(folder + "/Kick.scenario"));
+    CHECK(QFile::exists(folder + "/Toms.scenario"));
+    REQUIRE(moved.isValid());
+    CHECK(moved.row() == 1);
+    CHECK(model.data(moved, Qt::DisplayRole).toString() == "Toms");
+    CHECK(model.index(0, 0, drums).data().toString() == "Snare");
+    CHECK(model.find(Library::snippetKey(), folder + "/Toms.scenario") == QModelIndex{moved});
+
+    // A process is not renamed.
+    CHECK_FALSE(model.flags(drums) & Qt::ItemIsEditable);
+  });
 }
 
 TEST_CASE("Saving a snippet writes it below the snippets folder", "[snippets]")
@@ -168,6 +247,10 @@ TEST_CASE(
     const double top = std::min(new_autom->position().y(), new_step->position().y());
     CHECK(left == 500.);
     CHECK(top == 300.);
+    // Each box's nodes on their own, side by side: they were in separate
+    // node views
+    CHECK_FALSE(QRectF(new_autom->position(), new_autom->size())
+                    .intersects(QRectF(new_step->position(), new_step->size())));
 
     // The cable joins the copies, not the originals.
     REQUIRE(document.cables.size() == cables_before + 1);
@@ -461,6 +544,139 @@ TEST_CASE("A snippet with several cables goes in with all of them", "[snippets]"
         doc->context(), *target, QPointF{0., 0.}, *file));
     CHECK(target->processes.size() == 3);
     CHECK(document.cables.size() == cables_before + 2);
+
+    // In the timeline, in a new box: both cables too.
+    QFile f{*file};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    auto json = readJson(f.readAll());
+    const auto cables_mid = document.cables.size();
+    REQUIRE(Scenario::pasteProcessesInNewBox(
+        scenario, Scenario::Point{TimeVal::fromMsecs(9000), 0.7}, json, doc->context()));
+    CHECK(document.cables.size() == cables_mid + 2);
   });
 }
 
+
+TEST_CASE("Only the snippets of the user's library are renamed", "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Library::ProcessesItemModel model{ctx, nullptr};
+    model.flushPending();
+    TemporaryUserLibrary user;
+    // A package's snippet, next to the user's library
+    const QString package = QDir::cleanPath(
+        QFileInfo{user.snippets}.absolutePath() + "/../a-package/snippets/Kick.scenario");
+    writeFile(package, R"({"Intervals":[]})");
+    if(auto e = Scenario::snippetEntry(utf8(QFileInfo{package}.absoluteFilePath())))
+      model.publish(std::move(*e));
+    model.flushPending();
+
+    const auto idx
+        = model.find(Library::snippetKey(), QFileInfo{package}.absoluteFilePath());
+    REQUIRE(idx.isValid());
+    CHECK_FALSE(model.flags(idx) & Qt::ItemIsEditable);
+    CHECK_FALSE(model.setData(idx, "Renamed", Qt::EditRole));
+    CHECK(QFile::exists(package));
+  });
+}
+
+TEST_CASE(
+    "A snippet's description is written in its file, the rest of it untouched",
+    "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    TemporaryUserLibrary user;
+    const QString path = user.snippets + "/Kit.scenario";
+    Library::SnippetInfo info;
+    info.description = "old";
+    info.tags = {"kick"};
+    info.thumbnail = QImage{4, 4, QImage::Format_ARGB32};
+    info.thumbnail.fill(Qt::red);
+    writeFile(path, Library::withSnippetInfo(R"({"Intervals":[{"id":1}]})", info));
+
+    REQUIRE(Library::writeSnippetDescription(path, "new words"));
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const QByteArray json = f.readAll();
+    const auto read = Library::readSnippetInfo(json);
+    CHECK(read.description == "new words");
+    CHECK(read.tags == QStringList{"kick"});
+    CHECK(read.thumbnail.size() == QSize{4, 4});
+    CHECK(json.contains(R"("Intervals")"));
+
+    // Without the thumbnail when it is not needed
+    CHECK(Library::readSnippetInfo(json, false).thumbnail.isNull());
+
+    // A file that is not a snippet is left alone
+    const QString other = user.snippets + "/Broken.scenario";
+    writeFile(other, "not json");
+    CHECK_FALSE(Library::writeSnippetDescription(other, "x"));
+    QFile o{other};
+    REQUIRE(o.open(QIODevice::ReadOnly));
+    CHECK(o.readAll() == "not json");
+    CHECK_FALSE(Library::writeSnippetDescription(user.snippets + "/Missing.scenario", "x"));
+
+    CHECK(Library::isUserLibraryFile(path));
+    CHECK_FALSE(Library::isUserLibraryFile(user.dir.path() + "/elsewhere/Kit.scenario"));
+  });
+}
+
+TEST_CASE("A new description is searched for at once", "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    Library::ProcessesItemModel model{ctx, nullptr};
+    model.flushPending();
+    TemporaryUserLibrary user;
+    const QString path = user.snippets + "/Kit.scenario";
+    writeFile(path, R"({"Intervals":[]})");
+    if(auto e = Scenario::snippetEntry(utf8(path)))
+      model.publish(std::move(*e));
+    model.flushPending();
+    const auto idx = model.find(Library::snippetKey(), path);
+    REQUIRE(idx.isValid());
+
+    // The search proxies filter again on dataChanged
+    int changed = 0;
+    QObject::connect(
+        &model, &QAbstractItemModel::dataChanged, &model,
+        [&](const QModelIndex& a, const QModelIndex&) { changed += (a == idx); });
+    model.setSearchText(Library::snippetKey(), path, "zebra");
+    CHECK(changed == 1);
+    CHECK(model.nodeFromModelIndex(idx).searchText == "zebra");
+  });
+}
+
+TEST_CASE("A malformed snippet is refused, not half inserted", "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenario = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* target{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      target
+          = &m.createBox(scenario, TimeVal::fromMsecs(0), TimeVal::fromMsecs(1000), 0.3);
+      m.commit();
+    }
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const auto steps = doc->commandStack().size();
+    for(const char* content :
+        {R"({"Intervals":[{"id":"one","Processes":[{"id":1,"Pos":["a","b"]}]}]})",
+         R"({"Intervals":[{"id":1,"Processes":[{"id":1,"Pos":[1]}]}],"Cables":[{}]})",
+         R"({"Intervals":7})", R"([1,2,3])"})
+    {
+      const QString path = dir.path() + "/Bad.scenario";
+      QFile f{path};
+      REQUIRE(f.open(QIODevice::WriteOnly));
+      f.write(content);
+      f.close();
+      CHECK_FALSE(Scenario::insertSnippetInInterval(
+          doc->context(), *target, QPointF{}, path));
+      CHECK(target->processes.empty());
+    }
+    CHECK(doc->commandStack().size() == steps);
+  });
+}

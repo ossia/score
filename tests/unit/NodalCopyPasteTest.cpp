@@ -2,6 +2,7 @@
 // back in the Nodal process, with the cables between them.
 
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/CableCopy.hpp>
 #include <Process/Dataflow/Port.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -132,6 +133,22 @@ TEST_CASE(
     doc->commandStack().undo();
     CHECK(nodal->nodes.size() == 3);
     CHECK(document.cables.size() == cables_before);
+
+    // Its preset, loaded in another Nodal process: every cable comes along.
+    Nodal::Model* other{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      other = qobject_cast<Nodal::Model*>(m.createProcessInNewSlot(
+          *box, UuidKey<Process::ProcessModel>{"f5678806-c431-45c5-ae3a-fae5183380fb"},
+          {}, QPointF{}));
+      m.commit();
+    }
+    REQUIRE(other);
+    const auto preset = static_cast<const Process::ProcessModel&>(*nodal).savePreset();
+    static_cast<Process::ProcessModel&>(*other).loadPreset(preset);
+    CHECK(other->nodes.size() == 3);
+    CHECK(document.cables.size() == cables_before + 2);
   });
 }
 
@@ -349,4 +366,38 @@ TEST_CASE(
     CHECK(t.box->processes.size() == boxProcesses + 3);
     CHECK(t.nodal->nodes.size() == 3);
   });
+}
+
+TEST_CASE(
+    "Copied cables go to the copies, under new identifiers, and those with an end "
+    "not copied are left out",
+    "[nodal][cables]")
+{
+  const auto path = [](std::vector<ObjectIdentifier> v) { return ObjectPath{std::move(v)}; };
+  const auto cable = [&](int from, int to) {
+    Process::CableData cd;
+    cd.source = Path<Process::Port>{path({{"Proc", from}, {"Outlet", 0}}), {}};
+    cd.sink = Path<Process::Port>{path({{"Proc", to}, {"Inlet", 0}}), {}};
+    return cd;
+  };
+  std::vector<Process::CableData> copied{cable(1, 2), cable(2, 9)};
+  const std::vector<std::pair<int32_t, int32_t>> ids{{1, 11}, {2, 12}};
+  // The document's cables, as they give their identifiers
+  struct Existing
+  {
+    Id<Process::Cable> i;
+    Id<Process::Cable> id() const { return i; }
+  };
+  std::vector<Existing> existing{{Id<Process::Cable>{0}}, {Id<Process::Cable>{1}}};
+
+  const auto kept = Dataflow::keepCopiedCables(
+      copied, [&](ObjectPath& p) { return Dataflow::relocateToCopy(p, ids); }, existing);
+
+  // The cable to process 9, which was not copied, would go to whatever has
+  // its id where it is pasted
+  REQUIRE(kept.size() == 1);
+  CHECK(kept[0].second.source.unsafePath().vec().front().id() == 11);
+  CHECK(kept[0].second.sink.unsafePath().vec().front().id() == 12);
+  CHECK(kept[0].first != Id<Process::Cable>{0});
+  CHECK(kept[0].first != Id<Process::Cable>{1});
 }

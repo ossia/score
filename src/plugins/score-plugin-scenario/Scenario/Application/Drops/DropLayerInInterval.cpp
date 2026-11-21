@@ -191,10 +191,12 @@ void DropLayerInInterval::perform(
     auto& document
         = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-    for(auto& c : cables)
-    {
-      c.first = getStrongId(document.cables);
-    }
+    // One new identifier per cable: the document's cables do not change
+    // while they are being numbered.
+    const auto new_ids
+        = getStrongIdRange<Process::Cable>(cables.size(), document.cables);
+    for(std::size_t i = 0; i < cables.size(); i++)
+      cables[i].first = new_ids[i];
     m.loadCables(new_path, cables);
   }
 

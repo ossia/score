@@ -1,6 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationDropHandler.hpp"
+#include <Process/Dataflow/CableCopy.hpp>
+#include <Library/Snippet.hpp>
 #include <Scenario/Library/Snippets.hpp>
 
 #include <Device/Node/NodeListMimeSerialization.hpp>
@@ -46,7 +48,7 @@ bool DropScenario::drop(
     const auto& doc = pres.context().context;
     auto& sm = pres.model();
     auto path = mime.urls().first().toLocalFile();
-    if(QFileInfo{path}.suffix() == "scenario")
+    if(QFileInfo{path}.suffix() == QLatin1String(Library::snippetSuffix()))
       return insertSnippet(pres, pos, path);
   }
 
@@ -221,46 +223,20 @@ bool DropScoreInInterval::drop(
 
       // Anchors between objects of the file's base interval move to the copies
       std::vector<std::pair<int32_t, int32_t>> proc_id_map;
-      std::vector<ObjectPath> pasted;
-      {
-        rapidjson::Document copy;
-        copy.SetObject();
-        auto& alloc = copy.GetAllocator();
-        copy.AddMember("Processes", rapidjson::Value(itv["Processes"], alloc), alloc);
-        JSONReader r;
-        r.readFrom(old_path);
-        const auto parent = readJson(r.toByteArray());
-        copy.AddMember("ProcessesParent", rapidjson::Value(parent, alloc), alloc);
-        pasted = loadCopiedProcesses(m, interval, copy, proc_id_map, doc);
-      }
+      auto pasted
+          = loadIntervalProcesses(m, interval, itv["Processes"], old_path, proc_id_map, doc);
 
-      // Reload cables
+      // The cables between them, moved to the copies
       {
-        auto new_path = score::IDocument::path(interval).unsafePath();
-        auto cables = Dataflow::serializedCablesFromCableJson(
-            old_path, docobj["Cables"].GetArray());
-
         auto& document
             = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc.document);
-        for(auto& c : cables)
-        {
-          c.first = getStrongId(document.cables);
-          // The copies may have new identifiers
-          auto remap = [&](ObjectPath& path) {
-            auto& vec = path.vec();
-            if(vec.empty())
-              return;
-            for(auto& [old_id, new_id] : proc_id_map)
-              if(vec.front().id() == old_id)
-              {
-                vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
-                break;
-              }
-          };
-          remap(c.second.source.unsafePath());
-          remap(c.second.sink.unsafePath());
-        }
-        m.loadCables(new_path, cables);
+        m.loadCables(
+            score::IDocument::path(interval).unsafePath(),
+            Dataflow::keepCopiedCables(
+                Dataflow::serializedCablesFromCableJson(
+                    old_path, docobj["Cables"].GetArray()),
+                [&](ObjectPath& p) { return Dataflow::relocateToCopy(p, proc_id_map); },
+                document.cables));
       }
       if(!pasted.empty())
         m.submit(new Command::FollowPasted{std::move(pasted)});
@@ -285,7 +261,7 @@ bool DropSnippetInInterval::drop(
   if(!mime.hasUrls())
     return false;
   const auto path = mime.urls().first().toLocalFile();
-  if(QFileInfo{path}.suffix() != "scenario")
+  if(QFileInfo{path}.suffix() != QLatin1String(Library::snippetSuffix()))
     return false;
   return insertSnippetInInterval(doc, interval, p, path);
 }

@@ -45,6 +45,14 @@ QByteArray withSnippetInfo(const QByteArray& json, const SnippetInfo& info)
   auto doc = readJson(json);
   if(!doc.IsObject())
     return json;
+  addSnippetInfo(doc, info);
+  return jsonToByteArray(doc);
+}
+
+void addSnippetInfo(rapidjson::Document& doc, const SnippetInfo& info)
+{
+  if(!doc.IsObject())
+    return;
   auto& alloc = doc.GetAllocator();
   doc.RemoveMember("Snippet");
 
@@ -77,7 +85,6 @@ QByteArray withSnippetInfo(const QByteArray& json, const SnippetInfo& info)
         rapidjson::Value(b64.constData(), rapidjson::SizeType(b64.size()), alloc), alloc);
   }
   doc.AddMember("Snippet", obj, alloc);
-  return jsonToByteArray(doc);
 }
 
 QString snippetSearchText(const SnippetInfo& info)

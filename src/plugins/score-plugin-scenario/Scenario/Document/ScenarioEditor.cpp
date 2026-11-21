@@ -1,5 +1,6 @@
 #include "ScenarioEditor.hpp"
 
+#include <Process/Dataflow/CableCopy.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -126,6 +127,22 @@ std::vector<ObjectPath> loadCopiedProcesses(
   return pasted;
 }
 
+std::vector<ObjectPath> loadIntervalProcesses(
+    Command::Macro& m, const IntervalModel& interval, const rapidjson::Value& processes,
+    const ObjectPath& from, std::vector<std::pair<int32_t, int32_t>>& proc_id_map,
+    const score::DocumentContext& ctx)
+{
+  rapidjson::Document copy;
+  copy.SetObject();
+  auto& alloc = copy.GetAllocator();
+  copy.AddMember("Processes", rapidjson::Value(processes, alloc), alloc);
+  JSONReader r;
+  r.readFrom(from);
+  const auto parent = readJson(r.toByteArray());
+  copy.AddMember("ProcessesParent", rapidjson::Value(parent, alloc), alloc);
+  return loadCopiedProcesses(m, interval, copy, proc_id_map, ctx);
+}
+
 void duplicateProcess(
     const IntervalModel& interval, const Process::ProcessModel& proc,
     const score::DocumentContext& ctx)
@@ -190,33 +207,16 @@ bool pasteProcessesInNewBox(
   std::vector<std::pair<int32_t, int32_t>> proc_id_map;
   const auto pasted = loadCopiedProcesses(m, interval, obj, proc_id_map, ctx);
 
-  // Remap cable endpoints from old process IDs to new ones, then load.
+  // The cables between them, moved to the copies
   {
-    auto cables = JsonValue{cables_it->value}.to<Dataflow::SerializedCables>();
-    auto new_path = score::IDocument::path(interval).unsafePath();
     auto& document
         = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
-
-    for(auto& [cable_id, cable_data] : cables)
-    {
-      auto remap = [&](ObjectPath& path) {
-        auto& vec = path.vec();
-        if(vec.empty())
-          return;
-        for(auto& [old_id, new_id] : proc_id_map)
-        {
-          if(vec.front().id() == old_id)
-          {
-            vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
-            break;
-          }
-        }
-      };
-      remap(cable_data.source.unsafePath());
-      remap(cable_data.sink.unsafePath());
-      cable_id = getStrongId(document.cables);
-    }
-    m.loadCables(new_path, cables);
+    m.loadCables(
+        score::IDocument::path(interval).unsafePath(),
+        Dataflow::keepCopiedCables(
+            JsonValue{cables_it->value}.to<Dataflow::SerializedCables>(),
+            [&](ObjectPath& p) { return Dataflow::relocateToCopy(p, proc_id_map); },
+            document.cables));
   }
   m.submit(new Scenario::Command::FollowPasted{std::move(pasted)});
 

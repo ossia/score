@@ -3,6 +3,8 @@
 
 #include <score/plugins/UuidKey.hpp>
 
+#include <rapidjson/document.h>
+
 #include <QImage>
 #include <QString>
 #include <QStringList>
@@ -51,6 +53,10 @@ SnippetInfo readSnippetInfoFile(const QString& path);
 //! The snippet content `json` with `info` added to it.
 SCORE_PLUGIN_LIBRARY_EXPORT
 QByteArray withSnippetInfo(const QByteArray& json, const SnippetInfo& info);
+
+//! Adds `info` to the snippet content `doc`, in place.
+SCORE_PLUGIN_LIBRARY_EXPORT
+void addSnippetInfo(rapidjson::Document& doc, const SnippetInfo& info);
 
 //! What the library's search matches of a snippet besides its name.
 SCORE_PLUGIN_LIBRARY_EXPORT
