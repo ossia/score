@@ -994,7 +994,7 @@ ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext& ctx
   m_searchWidget->setVisible(false);
 
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  m_widget->setMinimumHeight(160);
+  m_widget->setMinimumHeight(100);
   m_widget->setSizeHint({250, 100});
   m_widget->setMinimumWidth(250);
   score::setHelp(m_widget, 
