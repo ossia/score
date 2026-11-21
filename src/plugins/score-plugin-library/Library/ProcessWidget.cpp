@@ -113,6 +113,14 @@ public:
     {
       setVisible(true);
       m_name.setText(d->prettyName);
+      const auto info = readSnippetInfoFile(d->customData);
+      if(!info.tags.isEmpty())
+        m_tags.setText(tr("Tags: ") + info.tags.join(", "));
+      if(!info.description.isEmpty())
+      {
+        m_description.setText(info.description);
+        return;
+      }
       m_description.setText(
           tr("A snippet: boxes, their processes and the cables between them. "
              "Drag it onto the timeline to add its boxes, or into a box or the "

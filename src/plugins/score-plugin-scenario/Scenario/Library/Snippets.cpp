@@ -6,6 +6,10 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Scenario/PasteAnchors.hpp>
@@ -32,7 +36,14 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QInputDialog>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPainter>
+#include <QPixmap>
+#include <QPlainTextEdit>
 #include <QMessageBox>
 #include <QObject>
 
@@ -88,6 +99,93 @@ std::optional<QString> writeSnippet(
   return file;
 }
 
+namespace
+{
+//! The boxes selected in the focused timeline as they are drawn, small.
+QImage renderSelection(const score::DocumentContext& ctx)
+{
+  auto focus = Process::ProcessFocusManager::get(ctx);
+  if(!focus)
+    return {};
+  auto pres = qobject_cast<const ScenarioPresenter*>(focus->focusedPresenter());
+  if(!pres || !pres->view().scene())
+    return {};
+
+  QRectF rect;
+  for(const TemporalIntervalPresenter& itv : pres->getIntervals())
+  {
+    if(!itv.model().selection.get())
+      continue;
+    const auto* v = itv.view();
+    rect |= v->mapRectToScene(v->boundingRect() | v->childrenBoundingRect());
+  }
+  if(rect.width() < 1. || rect.height() < 1.)
+    return {};
+
+  const QSize size = rect.size().scaled(QSizeF{320., 180.}, Qt::KeepAspectRatio).toSize();
+  if(size.isEmpty())
+    return {};
+  QImage img{size, QImage::Format_ARGB32_Premultiplied};
+  img.fill(Qt::transparent);
+  QPainter p{&img};
+  p.setRenderHint(QPainter::Antialiasing);
+  p.setRenderHint(QPainter::SmoothPixmapTransform);
+  pres->view().scene()->render(&p, QRectF{QPointF{}, QSizeF{size}}, rect);
+  return img;
+}
+
+struct SnippetForm
+{
+  QString name;
+  Library::SnippetInfo info;
+};
+
+std::optional<SnippetForm> askSnippet(QWidget* parent, const QImage& thumbnail)
+{
+  QDialog dlg{parent};
+  dlg.setWindowTitle(QObject::tr("Save as snippet"));
+  auto lay = new QFormLayout{&dlg};
+
+  auto name = new QLineEdit{QObject::tr("Snippet"), &dlg};
+  name->setToolTip(QObject::tr("Folder/Name puts it in a folder of the library"));
+  lay->addRow(QObject::tr("Name"), name);
+
+  auto description = new QPlainTextEdit{&dlg};
+  description->setMaximumHeight(80);
+  lay->addRow(QObject::tr("Description"), description);
+
+  auto tags = new QLineEdit{&dlg};
+  tags->setPlaceholderText(QObject::tr("Separated by commas"));
+  lay->addRow(QObject::tr("Tags"), tags);
+
+  if(!thumbnail.isNull())
+  {
+    auto preview = new QLabel{&dlg};
+    preview->setPixmap(QPixmap::fromImage(thumbnail));
+    lay->addRow(preview);
+  }
+
+  auto buttons = new QDialogButtonBox{QDialogButtonBox::Save | QDialogButtonBox::Cancel, &dlg};
+  QObject::connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+  QObject::connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+  lay->addRow(buttons);
+
+  name->selectAll();
+  name->setFocus();
+  if(dlg.exec() != QDialog::Accepted)
+    return std::nullopt;
+
+  SnippetForm res;
+  res.name = name->text();
+  res.info.description = description->toPlainText().trimmed();
+  for(const QString& t : tags->text().split(',', Qt::SkipEmptyParts))
+    if(auto tag = t.trimmed(); !tag.isEmpty())
+      res.info.tags.push_back(tag);
+  res.info.thumbnail = thumbnail;
+  return res;
+}
+}
+
 std::optional<QString>
 saveSelectionAsSnippet(const score::DocumentContext& ctx, QWidget* parent)
 {
@@ -115,16 +213,14 @@ saveSelectionAsSnippet(const score::DocumentContext& ctx, QWidget* parent)
       return std::nullopt;
   }
 
-  bool ok = false;
-  const QString name = QInputDialog::getText(
-      parent, QObject::tr("Save as snippet"),
-      QObject::tr("Name (Folder/Name puts it in a folder):"), QLineEdit::Normal,
-      QObject::tr("Snippet"), &ok);
-  if(!ok)
+  const auto form = askSnippet(parent, renderSelection(ctx));
+  if(!form)
     return std::nullopt;
 
   const auto& lib = ctx.app.settings<Library::Settings::Model>();
-  return writeSnippet(json, lib.getUserLibraryPath(), name, parent);
+  return writeSnippet(
+      Library::withSnippetInfo(json, form->info), lib.getUserLibraryPath(), form->name,
+      parent);
 }
 
 bool insertSnippet(const ScenarioPresenter& pres, QPointF pos, const QString& path)

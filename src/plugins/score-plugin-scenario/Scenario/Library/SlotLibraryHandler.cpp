@@ -13,7 +13,9 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/tools/File.hpp>
 
+#include <QLabel>
 #include <QMimeData>
+#include <QPixmap>
 
 #include <algorithm>
 
@@ -159,7 +161,21 @@ std::optional<Library::ProcessEntry> snippetEntry(std::string_view path)
       = QString::fromUtf8(info.completeBaseName.data(), info.completeBaseName.size());
   data.customData
       = QString::fromUtf8(info.absoluteFilePath.data(), info.absoluteFilePath.size());
+  data.searchText = Library::snippetSearchText(Library::readSnippetInfoFile(data.customData));
   return Library::ProcessEntry{
       data.key, snippetCategories(info.absolutePath), {std::move(data), {}}};
+}
+
+QWidget* ScenarioLibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
+{
+  if(!path.endsWith(".scenario"))
+    return nullptr;
+  const auto info = Library::readSnippetInfoFile(path);
+  if(info.thumbnail.isNull())
+    return nullptr;
+  auto label = new QLabel{parent};
+  label->setPixmap(QPixmap::fromImage(info.thumbnail));
+  label->setAlignment(Qt::AlignCenter);
+  return label;
 }
 }

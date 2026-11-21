@@ -3,6 +3,12 @@
 
 #include <score/plugins/UuidKey.hpp>
 
+#include <QImage>
+#include <QString>
+#include <QStringList>
+
+#include <score_plugin_library_export.h>
+
 namespace Library
 {
 //! Snippets are timeline content saved as a .scenario file: the processes,
@@ -24,4 +30,29 @@ inline constexpr const char* snippetSuffix() noexcept
 {
   return "scenario";
 }
+
+//! What a snippet says about itself, besides its content: stored in its file
+//! under the "Snippet" key, which pasting the content ignores.
+struct SnippetInfo
+{
+  QString description;
+  QStringList tags;
+  QImage thumbnail;
+};
+
+//! The information of a snippet file's content; empty for a file saved
+//! without any, such as one from before snippets had them.
+SCORE_PLUGIN_LIBRARY_EXPORT
+SnippetInfo readSnippetInfo(const QByteArray& json);
+
+SCORE_PLUGIN_LIBRARY_EXPORT
+SnippetInfo readSnippetInfoFile(const QString& path);
+
+//! The snippet content `json` with `info` added to it.
+SCORE_PLUGIN_LIBRARY_EXPORT
+QByteArray withSnippetInfo(const QByteArray& json, const SnippetInfo& info);
+
+//! What the library's search matches of a snippet besides its name.
+SCORE_PLUGIN_LIBRARY_EXPORT
+QString snippetSearchText(const SnippetInfo& info);
 }

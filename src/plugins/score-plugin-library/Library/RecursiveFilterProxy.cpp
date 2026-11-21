@@ -77,6 +77,7 @@ bool ProcessFilterProxy::filterAcceptsRowItself(
   auto model = static_cast<ProcessesItemModel*>(sourceModel());
   auto& node = model->nodeFromModelIndex(index);
 
-  return node.prettyName.contains(m_textPattern, Qt::CaseInsensitive);
+  return node.prettyName.contains(m_textPattern, Qt::CaseInsensitive)
+         || node.searchText.contains(m_textPattern, Qt::CaseInsensitive);
 }
 }

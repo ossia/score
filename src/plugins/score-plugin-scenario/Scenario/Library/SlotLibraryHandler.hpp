@@ -31,6 +31,8 @@ class ScenarioLibraryHandler final : public Library::LibraryInterface
   void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
       override;
   std::optional<Library::ProcessEntry> scanPath(std::string_view path) override;
+  //! The thumbnail it was saved with.
+  QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept override;
 };
 
 //! The folders a snippet file is listed under: those below the snippets

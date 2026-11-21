@@ -189,3 +189,43 @@ TEST_CASE(
     CHECK(document.cables.size() == cables_before + 1);
   });
 }
+
+TEST_CASE("A snippet keeps its description, tags and thumbnail", "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    const QByteArray json = R"({"Intervals":[],"States":[],"Cables":[]})";
+    Library::SnippetInfo info;
+    info.description = "Four on the floor";
+    info.tags = {"drums", "techno"};
+    info.thumbnail = QImage{32, 18, QImage::Format_ARGB32};
+    info.thumbnail.fill(Qt::red);
+
+    const auto saved = Library::withSnippetInfo(json, info);
+    const auto back = Library::readSnippetInfo(saved);
+    CHECK(back.description == info.description);
+    CHECK(back.tags == info.tags);
+    REQUIRE(!back.thumbnail.isNull());
+    CHECK(back.thumbnail.size() == info.thumbnail.size());
+    CHECK(back.thumbnail.pixelColor(5, 5) == QColor(Qt::red));
+
+    // The content is still what pasting reads.
+    const auto doc = readJson(saved);
+    CHECK(doc.HasMember("Intervals"));
+    CHECK(doc.HasMember("Cables"));
+
+    // A file from before has none, and is no less a snippet.
+    CHECK(Library::readSnippetInfo(json).description.isEmpty());
+    CHECK(Library::readSnippetInfo(json).thumbnail.isNull());
+
+    // Its tags are found by the library's search.
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const auto file = Scenario::writeSnippet(saved, dir.path(), "Kick", nullptr);
+    REQUIRE(file);
+    const QByteArray path = file->toUtf8();
+    const auto entry = Scenario::snippetEntry(std::string_view{path.data(), size_t(path.size())});
+    REQUIRE(entry);
+    CHECK(entry->node.data.searchText.contains("techno"));
+    CHECK(entry->node.data.searchText.contains("Four on the floor"));
+  });
+}

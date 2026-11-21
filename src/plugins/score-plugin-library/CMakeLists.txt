@@ -44,6 +44,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetTreeView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetAudition.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessesItemModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Snippet.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessTreeView.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProjectLibraryWidget.cpp"
