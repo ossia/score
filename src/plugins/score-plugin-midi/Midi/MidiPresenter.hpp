@@ -13,6 +13,7 @@
 class QMimeData;
 namespace Midi
 {
+class BarGrid;
 class NoteView;
 class View;
 class Note;
@@ -69,6 +70,7 @@ private:
   void pushNoteSelection();
 
   View* m_view{};
+  BarGrid* m_barGrid{};
   ossia::hash_map<const Note*, NoteView*> m_notes;
   ossia::hash_set<NoteView*> m_selectedNotes;
   bool m_selectionPushPending{};

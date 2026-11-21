@@ -57,6 +57,15 @@ struct MidiStyle
     octavePen = QPen{fg, 1};
     octavePen.setCosmetic(true);
 
+    // Musical mode: the bar lines stand out from the rows, their sub-divisions
+    // a little less than the octaves.
+    fg.setAlpha(96);
+    barPen = QPen{fg, 1};
+    barPen.setCosmetic(true);
+    fg.setAlpha(32);
+    subdivisionPen = QPen{fg, 1};
+    subdivisionPen.setCosmetic(true);
+
     selectionPen
         = QPen{skin.Transparent1.main.brush, 2, Qt::DashLine, Qt::SquareCap,
                Qt::BevelJoin};
@@ -83,6 +92,8 @@ struct MidiStyle
   const QBrush transparentBrush{Qt::transparent};
   QPen semitonePen;
   QPen octavePen;
+  QPen barPen;
+  QPen subdivisionPen;
   QPen selectionPen;
 
   QBrush noteBaseBrush;

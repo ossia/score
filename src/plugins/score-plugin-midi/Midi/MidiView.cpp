@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiView.hpp"
 
+#include <Midi/MidiBarGrid.hpp>
 #include <Midi/MidiStyle.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
@@ -183,6 +184,16 @@ void View::setDefaultWidth(double w)
     cld->update();
 }
 
+void View::setBarGrid(BarGrid* grid)
+{
+  if(m_barGrid)
+    disconnect(m_barGrid, nullptr, this, nullptr);
+  m_barGrid = grid;
+  if(grid)
+    connect(grid, &BarGrid::changed, this, [this] { update(); });
+  update();
+}
+
 void View::setRange(int min, int max)
 {
   m_min = min;
@@ -236,6 +247,28 @@ void View::paint_impl(QPainter* p) const
               QRectF{text_w, 0., next_w, (double)m_bgCache.height()});
           x += next_w / dpi;
         }
+      }
+
+      if(m_barGrid)
+      {
+        const double right = std::min(
+            proc_w, this->mapFromScene(v->mapToScene(v->viewport()->width(), 0)).x());
+        const auto& lines = m_barGrid->lines(left, right - left);
+        const double bottom = height();
+        const auto draw = [&](const std::vector<double>& xs, const QPen& pen) {
+          if(xs.empty())
+            return;
+          QLineF* segs = (QLineF*)alloca(sizeof(QLineF) * xs.size());
+          int count = 0;
+          for(double lx : xs)
+            if(lx >= 0. && lx <= proc_w)
+              segs[count++] = QLineF{lx, 0., lx, bottom};
+          p->setPen(pen);
+          p->drawLines(segs, count);
+        };
+        p->setRenderHint(QPainter::Antialiasing, false);
+        draw(lines.subdivisions, style().subdivisionPen);
+        draw(lines.bars, style().barPen);
       }
 
       if(left < 30 && !m_textCache.isNull())
@@ -322,7 +355,7 @@ NoteData View::noteAtPos(QPointF point) const
   const auto rect = boundingRect();
 
   NoteData n;
-  n.m_start = std::max(0., point.x() / m_defaultW);
+  n.m_start = std::max(0., snap(point.x()) / m_defaultW);
   n.m_duration = 0.1;
   n.m_pitch = qBound(
       m_min,

@@ -4,16 +4,22 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Layer/LayerContextMenu.hpp>
 
+#include <Magnetism/MagnetismAdjuster.hpp>
+
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/MoveNotes.hpp>
 #include <Midi/Commands/RemoveNotes.hpp>
 #include <Midi/Commands/ScaleNotes.hpp>
+#include <Midi/MidiBarGrid.hpp>
 #include <Midi/MidiDrop.hpp>
 #include <Midi/MidiNoteView.hpp>
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <Midi/MidiView.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -87,6 +93,32 @@ Presenter::Presenter(
       updateNote(*note);
   });
   m_view->setRange(model.range().first, model.range().second);
+
+  m_barGrid = new BarGrid{
+      model, ctx.app.settings<Scenario::Settings::Model>(), this};
+  m_view->setBarGrid(m_barGrid);
+
+  // Note starts and ends go to the time syncs magnetism finds near them, as
+  // the automation curve's points do, else to the lines drawn here: they are
+  // the bars of this box at this zoom, which the timeline's grid is not.
+  auto& magnetism = const_cast<Process::MagnetismAdjuster&>(
+      ctx.app.interfaces<Process::MagnetismAdjuster>());
+  auto& settings = ctx.app.settings<Scenario::Settings::Model>();
+  m_view->setSnap([this, &model, &magnetism, &settings](double x) {
+    if(m_zr <= 0.)
+      return x;
+    const bool shifted = !(model.flags() & Process::ProcessFlags::HandlesLooping);
+    const TimeVal offset = shifted ? model.startOffset() : TimeVal::zero();
+    const auto info
+        = magnetism.getPosition(&model, TimeVal::fromPixels(x, m_zr) - offset);
+    const double magnetic = (info.time + offset).toPixelsRaw(m_zr);
+    if(settings.getMagneticMeasures())
+      if(auto line = m_barGrid->nearestLine(x))
+        if(!info.snapLine || std::abs(*line - x) < std::abs(magnetic - x))
+          return *line;
+    return magnetic;
+  });
+
   model.notes.added.connect<&Presenter::on_noteAdded>(this);
   model.notes.removing.connect<&Presenter::on_noteRemoving>(this);
   model.notes.replaced.connect<&Presenter::on_notesReplaced>(this);
@@ -155,10 +187,22 @@ void Presenter::fillContextMenu(
   });
 }
 
+//! The width of the whole process, not rounded to a pixel: notes are stored
+//! as a fraction of it, and a note snapped to a line must land on its time.
+//! It is the width the layer is given when that is it once rounded; a zoom
+//! not given yet says nothing of it.
+static double exactWidth(const Midi::ProcessModel& model, ZoomRatio zr, double rounded)
+{
+  if(zr <= 0.)
+    return rounded;
+  const double exact = model.duration().toPixelsRaw(zr);
+  return std::abs(exact - rounded) <= 1. ? exact : rounded;
+}
+
 void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
-  m_view->setDefaultWidth(defaultWidth);
+  m_view->setDefaultWidth(exactWidth(model(), m_zr, defaultWidth));
   for(auto [_, note] : m_notes)
     updateNote(*note);
 }
@@ -183,7 +227,8 @@ void Presenter::putBehind()
 void Presenter::on_zoomRatioChanged(ZoomRatio zr)
 {
   m_zr = zr;
-  m_view->setDefaultWidth(model().duration().toPixels(m_zr));
+  m_barGrid->setZoom(zr);
+  m_view->setDefaultWidth(exactWidth(model(), m_zr, model().duration().toPixels(m_zr)));
   for(auto [_, note] : m_notes)
     updateNote(*note);
 }

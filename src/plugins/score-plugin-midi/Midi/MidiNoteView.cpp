@@ -72,6 +72,20 @@ QPointF NoteView::closestPos(QPointF newPos) const noexcept
   return newPos;
 }
 
+double NoteView::snappedX(double x) const noexcept
+{
+  auto& view = *(View*)parentItem();
+  return std::max(0., view.snap(x));
+}
+
+double NoteView::snappedWidth(double width) const noexcept
+{
+  // The end of the note is what lands on the grid.
+  auto& view = *(View*)parentItem();
+  const double end = view.snap(pos().x() + std::max(2., width));
+  return std::max(2., end - pos().x());
+}
+
 QRectF NoteView::computeRect() const noexcept
 {
   auto& view = *(View*)parentItem();
@@ -211,14 +225,14 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     {
       case Move:
         // The time here; the pitch from the model once the move is applied.
-        this->setX(closestPos(
-                       noteview_origpoint + event->scenePos()
-                       - event->buttonDownScenePos(Qt::LeftButton))
-                       .x());
+        this->setX(snappedX(closestPos(
+                                noteview_origpoint + event->scenePos()
+                                - event->buttonDownScenePos(Qt::LeftButton))
+                                .x()));
         m_presenter.on_noteChanged(*this, dragSemitones(*parentItem(), event));
         break;
       case Scale:
-        this->setWidth(std::max(2., event->pos().x()));
+        this->setWidth(snappedWidth(event->pos().x()));
         break;
       case Duplicate:
         m_presenter.on_duplicate();
@@ -242,7 +256,7 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     {
       case Move: {
         auto delta = event->scenePos() - event->buttonDownScenePos(Qt::LeftButton);
-        this->setX(closestPos(noteview_origpoint + delta).x());
+        this->setX(snappedX(closestPos(noteview_origpoint + delta).x()));
         if(delta != QPointF{})
         {
           const int semitones = dragSemitones(*parentItem(), event);
@@ -252,7 +266,7 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         break;
       }
       case Scale: {
-        this->setWidth(std::max(2., event->pos().x()));
+        this->setWidth(snappedWidth(event->pos().x()));
 
         auto delta = event->scenePos() - event->buttonDownScenePos(Qt::LeftButton);
         if(delta != QPointF{})

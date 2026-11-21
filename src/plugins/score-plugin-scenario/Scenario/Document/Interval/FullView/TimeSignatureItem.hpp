@@ -7,6 +7,8 @@
 #include <QGraphicsTextItem>
 #include <QObject>
 
+#include <score_plugin_scenario_export.h>
+
 #include <verdigris>
 
 namespace Process
@@ -33,7 +35,8 @@ public:
   void done(QString s) W_SIGNAL(done, s)
 };
 
-class TimeSignatureHandle
+// Exported: their signals are instantiated wherever Timebars is used
+class SCORE_PLUGIN_SCENARIO_EXPORT TimeSignatureHandle
     : public QObject
     , public QGraphicsItem
 {
@@ -73,7 +76,7 @@ public:
   bool m_visible{true};
 };
 
-class StartMarker
+class SCORE_PLUGIN_SCENARIO_EXPORT StartMarker
     : public QObject
     , public QGraphicsItem
 {
