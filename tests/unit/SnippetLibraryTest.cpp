@@ -229,3 +229,93 @@ TEST_CASE("A snippet keeps its description, tags and thumbnail", "[snippets]")
     CHECK(entry->node.data.searchText.contains("Four on the floor"));
   });
 }
+
+TEST_CASE("A snippet put on a cable goes in between its two ends", "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenario = score::test::base_scenario(*doc);
+    auto& document
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->context().document);
+
+    // The snippet: a box with a step sequencer, its inlets and outlet free.
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    QString file;
+    {
+      Scenario::IntervalModel* box{};
+      {
+        Scenario::Command::Macro m{
+            new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+        box = &m.createBox(
+            scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(2000), 0.1);
+        REQUIRE(m.createProcessInNewSlot(
+            *box, Metadata<ConcreteKey_k, Media::Step::Model>::get(), QString{}));
+        m.commit();
+      }
+      box->selection.set(true);
+      JSONReader r;
+      Scenario::copySelectedScenarioElements(r, scenario);
+      box->selection.set(false);
+      auto saved = Scenario::writeSnippet(r.toByteArray(), dir.path(), "Step", nullptr);
+      REQUIRE(saved);
+      file = *saved;
+    }
+
+    // An automation drives a step sequencer.
+    Scenario::IntervalModel* target{};
+    const Process::ProcessModel* autom{};
+    const Process::ProcessModel* step{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      target
+          = &m.createBox(scenario, TimeVal::fromMsecs(3000), TimeVal::fromMsecs(6000), 0.5);
+      autom = m.createProcessInNewSlot(
+          *target, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), QString{});
+      step = m.createProcessInNewSlot(
+          *target, Metadata<ConcreteKey_k, Media::Step::Model>::get(), QString{});
+      REQUIRE(autom);
+      REQUIRE(step);
+      m.createCable(
+          document, *autom->outlets().front(), *step->inlets().front(),
+          Process::CableType::ImmediateGlutton);
+      m.commit();
+    }
+    REQUIRE(autom->outlets().front()->cables().size() == 1);
+    const auto& cable = autom->outlets().front()->cables().front().find(doc->context());
+    const auto cables_before = document.cables.size();
+
+    REQUIRE(Scenario::insertSnippetInCable(doc->context(), cable, file));
+
+    REQUIRE(target->processes.size() == 3);
+    const Process::ProcessModel* inserted{};
+    for(auto& p : target->processes)
+      if(&p != autom && &p != step)
+        inserted = &p;
+    REQUIRE(inserted);
+
+    // automation -> inserted -> step, and nothing from the automation to the
+    // step directly any more.
+    CHECK(document.cables.size() == cables_before + 1);
+    const auto& a_out = *autom->outlets().front();
+    REQUIRE(a_out.cables().size() == 1);
+    const auto& first = a_out.cables().front().find(doc->context());
+    CHECK(Process::parentProcess(&first.sink().find(doc->context())) == inserted);
+
+    const auto& i_out = *inserted->outlets().front();
+    REQUIRE(i_out.cables().size() == 1);
+    const auto& second = i_out.cables().front().find(doc->context());
+    CHECK(&second.sink().find(doc->context()) == step->inlets().front());
+
+    // One undo: the cable as it was.
+    doc->commandStack().undo();
+    CHECK(target->processes.size() == 2);
+    CHECK(document.cables.size() == cables_before);
+    REQUIRE(a_out.cables().size() == 1);
+    CHECK(
+        &a_out.cables().front().find(doc->context()).sink().find(doc->context())
+        == step->inlets().front());
+  });
+}

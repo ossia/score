@@ -14,11 +14,16 @@
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
+#include <Scenario/Library/Snippets.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <QFileInfo>
+#include <QMimeData>
+#include <QUrl>
 
 namespace Dataflow
 {
@@ -84,7 +89,16 @@ public:
     // the cableitem to be deleted too and thus it cannot finish the dropEvent without crashing.
     const auto& handlers = m_context.app.interfaces<Process::ProcessDropHandlerList>();
 
-    if(mime.hasFormat(score::mime::layerdata()))
+    if(mime.hasUrls() && mime.urls().size() == 1
+       && QFileInfo{mime.urls().first().toLocalFile()}.suffix() == "scenario")
+    {
+      // A snippet: its processes in between the two ends.
+      const QString path = mime.urls().first().toLocalFile();
+      QMetaObject::invokeMethod(this, [path, this]() {
+        Scenario::insertSnippetInCable(this->m_context, cable, path);
+      }, Qt::QueuedConnection);
+    }
+    else if(mime.hasFormat(score::mime::layerdata()))
     {
       // TODO
     }

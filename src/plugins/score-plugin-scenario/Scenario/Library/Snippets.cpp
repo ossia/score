@@ -6,6 +6,9 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
@@ -240,21 +243,24 @@ bool insertSnippet(const ScenarioPresenter& pres, QPointF pos, const QString& pa
   return true;
 }
 
-bool insertSnippetInInterval(
-    const score::DocumentContext& ctx, const IntervalModel& interval, QPointF nodePos,
-    const QString& path)
+namespace
+{
+//! Loads the processes of all the boxes of the snippet at `path` in
+//! `interval`, and the cables between them; the paths of the new processes.
+std::vector<ObjectPath> loadSnippet(
+    Command::Macro& m, const score::DocumentContext& ctx, const IntervalModel& interval,
+    QPointF nodePos, const QString& path)
 {
   QFile f{path};
   if(!f.open(QIODevice::ReadOnly))
-    return false;
+    return {};
   auto json = readJson(f.readAll());
   if(!json.IsObject())
-    return false;
+    return {};
   const auto intervals_it = json.FindMember("Intervals");
   if(intervals_it == json.MemberEnd() || !intervals_it->value.IsArray()
      || intervals_it->value.Empty())
-    return false;
-  auto& alloc = json.GetAllocator();
+    return {};
   auto intervals = intervals_it->value.GetArray();
 
   // Where the boxes were: the anchors between their processes are found from it.
@@ -285,8 +291,6 @@ bool insertSnippetInInterval(
             }
   }
 
-  Command::Macro m{new Command::DropProcessInIntervalMacro, ctx};
-
   // (box, process) in the snippet -> process in `interval`
   std::map<std::pair<int32_t, int32_t>, int32_t> ids;
   std::vector<ObjectPath> pasted;
@@ -316,7 +320,7 @@ bool insertSnippetInInterval(
       ids[{itv_id, old_id}] = new_id;
   }
   if(pasted.empty())
-    return false;
+    return {};
 
   // The cables between them: their ends start at the box in the snippet, and
   // in `interval` at the copy of the process.
@@ -352,8 +356,98 @@ bool insertSnippetInInterval(
       m.loadCables(score::IDocument::path(interval).unsafePath(), cables);
   }
 
+  return pasted;
+}
+}
+
+bool insertSnippetInInterval(
+    const score::DocumentContext& ctx, const IntervalModel& interval, QPointF nodePos,
+    const QString& path)
+{
+  Command::Macro m{new Command::DropProcessInIntervalMacro, ctx};
+  auto pasted = loadSnippet(m, ctx, interval, nodePos, path);
+  if(pasted.empty())
+    return false;
   m.submit(new Command::FollowPasted{std::move(pasted)});
   m.showRack(interval);
+  m.commit();
+  return true;
+}
+
+bool insertSnippetInCable(
+    const score::DocumentContext& ctx, const Process::Cable& cable, const QString& path)
+{
+  auto* source = cable.source().try_find(ctx);
+  auto* sink = cable.sink().try_find(ctx);
+  if(!source || !sink)
+    return false;
+  auto* interval = closestParentInterval(source);
+  if(!interval)
+    return false;
+
+  // Between the two nodes the cable joins.
+  QPointF nodePos{};
+  {
+    auto* from = Process::parentProcess(source);
+    auto* to = Process::parentProcess(sink);
+    if(from && to)
+      nodePos = (from->position() + to->position()) / 2.;
+    else if(from)
+      nodePos = from->position() + QPointF{250., 0.};
+  }
+
+  Command::Macro m{new Command::DropProcessInIntervalMacro, ctx};
+  auto pasted = loadSnippet(m, ctx, *interval, nodePos, path);
+  if(pasted.empty())
+    return false;
+
+  // The snippet as a chain: the cable's source feeds the left-most inlet of
+  // its type that nothing feeds, and the right-most outlet of its type that
+  // goes nowhere feeds the cable's sink.
+  std::vector<const Process::ProcessModel*> procs;
+  for(const auto& p : pasted)
+    if(auto proc = p.try_find<Process::ProcessModel>(ctx))
+      procs.push_back(proc);
+  std::sort(procs.begin(), procs.end(), [](auto a, auto b) {
+    return a->position().x() < b->position().x();
+  });
+
+  const Process::Inlet* inlet{};
+  for(auto it = procs.begin(); it != procs.end() && !inlet; ++it)
+    for(auto* in : (*it)->inlets())
+      if(in->type() == source->type() && in->cables().empty())
+      {
+        inlet = in;
+        break;
+      }
+
+  const Process::Outlet* outlet{};
+  for(auto it = procs.rbegin(); it != procs.rend() && !outlet; ++it)
+    for(auto* out : (*it)->outlets())
+      if(out->type() == sink->type() && out->cables().empty())
+      {
+        outlet = out;
+        break;
+      }
+
+  auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+  const auto type = cable.type();
+  if(inlet && outlet)
+  {
+    m.removeCable(document, cable);
+    m.createCable(document, *source, *inlet, type);
+    m.createCable(document, *outlet, *sink, type);
+  }
+  else if(inlet)
+  {
+    m.createCable(document, *source, *inlet, type);
+  }
+  else if(outlet)
+  {
+    m.createCable(document, *outlet, *sink, type);
+  }
+
+  m.submit(new Command::FollowPasted{std::move(pasted)});
   m.commit();
   return true;
 }

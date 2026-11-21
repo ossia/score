@@ -13,6 +13,10 @@ namespace score
 {
 struct DocumentContext;
 }
+namespace Process
+{
+class Cable;
+}
 namespace Scenario
 {
 class ScenarioPresenter;
@@ -44,6 +48,12 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 bool insertSnippetInInterval(
     const score::DocumentContext& ctx, const IntervalModel& interval, QPointF nodePos,
     const QString& path);
+
+//! The snippet at `path` put on `cable`, in the interval of its source: its
+//! processes in between the two ends, as a process dropped on a cable.
+SCORE_PLUGIN_SCENARIO_EXPORT
+bool insertSnippetInCable(
+    const score::DocumentContext& ctx, const Process::Cable& cable, const QString& path);
 
 //! The snippets of the library in `menu`, their folders as sub-menus: picking
 //! one calls `insert` with its file.
