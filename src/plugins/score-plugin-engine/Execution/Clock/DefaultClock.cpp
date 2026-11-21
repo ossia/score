@@ -86,8 +86,20 @@ void DefaultClock::play(const TimeVal& t, BaseScenarioElement& bs)
   }
 }
 
+// The graph is not run while the score is paused, nor once it has stopped:
+// the MIDI devices it sent notes to would play them until it runs again, or
+// for good.
+static void release_held_notes(const Context& context)
+{
+  context.executionQueue.enqueue([g = context.execGraph, s = context.execState] {
+    if(g && s)
+      ossia::release_held_notes(*g, *s);
+  });
+}
+
 void DefaultClock::pause(BaseScenarioElement& bs)
 {
+  release_held_notes(context);
   bs.baseInterval().pause();
 }
 
@@ -98,6 +110,7 @@ void DefaultClock::resume(BaseScenarioElement& bs)
 
 void DefaultClock::stop(BaseScenarioElement& bs)
 {
+  release_held_notes(context);
   bs.baseInterval().stop();
 }
 

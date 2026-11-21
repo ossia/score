@@ -246,9 +246,10 @@ jobs:
   mingw:
     runs-on: windows-latest
     strategy:
+      # MSYS2 no longer builds Qt for mingw64 (msys2/MINGW-packages#33701).
+      fail-fast: false
       matrix:
         include:
-          - { sys: mingw64, env: x86_64 }
           - { sys: ucrt64,  env: ucrt-x86_64 }
           - { sys: clang64, env: clang-x86_64 }
     steps:
