@@ -7,6 +7,9 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <Library/Snippet.hpp>
+#include <Scenario/Library/Snippets.hpp>
+
+#include <QCursor>
 #include <Library/ProcessesItemModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -72,9 +75,20 @@ void CentralNodalDisplay::recenter()
 
 void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
-  // A snippet is timeline content: it is no process to create here.
+  // A snippet adds its processes and their cables, at the mouse when it is
+  // over the view.
   if(dat.key == Library::snippetKey())
+  {
+    if(presenter)
+    {
+      auto& gv = parent.view().view();
+      const auto scenePos = gv.mapToScene(gv.mapFromGlobal(QCursor::pos()));
+      insertSnippetInInterval(
+          parent.context(), parent.displayedInterval(),
+          presenter->pastePosition(scenePos), dat.customData);
+    }
     return;
+  }
 
   auto createInParentInterval = [&] {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};

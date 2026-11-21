@@ -274,6 +274,7 @@ std::vector<score::InterfaceBase*> score_plugin_scenario::factories(
          Scenario::DropPresetInScenario, Scenario::DropLayerInScenario>,
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval,
          Scenario::DropLayerInInterval, Scenario::DropScoreInInterval,
+         Scenario::DropSnippetInInterval,
          Scenario::AutomationDropHandler, Scenario::DropPresetInInterval>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper,
          Scenario::TempoPointInspectorFactory, Scenario::InspectorWidgetDelegateFactory

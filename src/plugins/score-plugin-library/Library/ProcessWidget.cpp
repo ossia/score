@@ -115,8 +115,9 @@ public:
       m_name.setText(d->prettyName);
       m_description.setText(
           tr("A snippet: boxes, their processes and the cables between them. "
-             "Drag it onto the timeline, or double-click it to add it where the "
-             "view is."));
+             "Drag it onto the timeline to add its boxes, or into a box or the "
+             "node view to add its processes. Double-click adds it to the selected "
+             "box, or where the view is."));
       return;
     }
 

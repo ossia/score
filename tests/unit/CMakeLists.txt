@@ -1213,7 +1213,7 @@ score_add_test(test_unit_musical_grid
 score_add_test(test_unit_snippet_library
   SOURCES SnippetLibraryTest.cpp
   APP
-  PLUGINS score_plugin_scenario score_plugin_library)
+  PLUGINS score_plugin_scenario score_plugin_library score_plugin_automation score_plugin_media)
 
 # The time ruler's ticks are a few pixels apart and labelled with their time at
 # every zoom, on its graduation thresholds too.

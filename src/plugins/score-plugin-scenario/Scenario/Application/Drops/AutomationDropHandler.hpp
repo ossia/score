@@ -82,6 +82,17 @@ class DropScoreInInterval final : public IntervalDropHandler
       const QMimeData& mime) override;
 };
 
+//! A snippet dropped in a box or in the node view: its processes join the
+//! interval, with the cables between them.
+class DropSnippetInInterval final : public IntervalDropHandler
+{
+  SCORE_CONCRETE("b3a9e4d1-6f27-4c58-9e0a-71d2c8f5a346")
+
+  bool drop(
+      const score::DocumentContext& ctx, const Scenario::IntervalModel&, QPointF p,
+      const QMimeData& mime) override;
+};
+
 /**
  * @brief The AutomationDropHandler class
  * Will create an automation where the addresses are dropped.

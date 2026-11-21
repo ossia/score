@@ -6,6 +6,14 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Scenario/PasteAnchors.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 
@@ -27,6 +35,9 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QObject>
+
+#include <limits>
+#include <map>
 
 namespace Scenario
 {
@@ -128,6 +139,124 @@ bool insertSnippet(const ScenarioPresenter& pres, QPointF pos, const QString& pa
   CommandDispatcher<> d{pres.context().context.commandStack};
   d.submit(
       new Command::ScenarioPasteElements(pres.model(), json, pres.toScenarioPoint(pos)));
+  return true;
+}
+
+bool insertSnippetInInterval(
+    const score::DocumentContext& ctx, const IntervalModel& interval, QPointF nodePos,
+    const QString& path)
+{
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+    return false;
+  auto json = readJson(f.readAll());
+  if(!json.IsObject())
+    return false;
+  const auto intervals_it = json.FindMember("Intervals");
+  if(intervals_it == json.MemberEnd() || !intervals_it->value.IsArray()
+     || intervals_it->value.Empty())
+    return false;
+  auto& alloc = json.GetAllocator();
+  auto intervals = intervals_it->value.GetArray();
+
+  // Where the boxes were: the anchors between their processes are found from it.
+  ObjectPath origin;
+  if(auto it = json.FindMember("Origin"); it != json.MemberEnd())
+    origin <<= JsonValue{it->value};
+
+  // The nodes of all the boxes move together, their top-left one to nodePos.
+  {
+    double x0 = std::numeric_limits<double>::max();
+    double y0 = std::numeric_limits<double>::max();
+    for(auto& itv : intervals)
+      if(itv.HasMember("Processes") && itv["Processes"].IsArray())
+        for(auto& proc : itv["Processes"].GetArray())
+          if(proc.HasMember("Pos") && proc["Pos"].IsArray() && proc["Pos"].Size() == 2)
+          {
+            x0 = std::min(x0, proc["Pos"][0].GetDouble());
+            y0 = std::min(y0, proc["Pos"][1].GetDouble());
+          }
+    if(x0 != std::numeric_limits<double>::max())
+      for(auto& itv : intervals)
+        if(itv.HasMember("Processes") && itv["Processes"].IsArray())
+          for(auto& proc : itv["Processes"].GetArray())
+            if(proc.HasMember("Pos") && proc["Pos"].IsArray() && proc["Pos"].Size() == 2)
+            {
+              proc["Pos"][0].SetDouble(proc["Pos"][0].GetDouble() - x0 + nodePos.x());
+              proc["Pos"][1].SetDouble(proc["Pos"][1].GetDouble() - y0 + nodePos.y());
+            }
+  }
+
+  Command::Macro m{new Command::DropProcessInIntervalMacro, ctx};
+
+  // (box, process) in the snippet -> process in `interval`
+  std::map<std::pair<int32_t, int32_t>, int32_t> ids;
+  std::vector<ObjectPath> pasted;
+  for(auto& itv : intervals)
+  {
+    if(!itv.HasMember("Processes") || !itv["Processes"].IsArray() || !itv.HasMember("id"))
+      continue;
+    const int32_t itv_id = itv["id"].GetInt();
+
+    rapidjson::Document copy;
+    copy.SetObject();
+    auto& calloc = copy.GetAllocator();
+    copy.AddMember("Processes", rapidjson::Value(itv["Processes"], calloc), calloc);
+    {
+      ObjectPath parent = origin;
+      parent.vec().push_back(ObjectIdentifier{"Scenario::IntervalModel", itv_id});
+      JSONReader r;
+      r.readFrom(parent);
+      const auto parent_json = readJson(r.toByteArray());
+      copy.AddMember("ProcessesParent", rapidjson::Value(parent_json, calloc), calloc);
+    }
+
+    std::vector<std::pair<int32_t, int32_t>> map;
+    auto paths = loadCopiedProcesses(m, interval, copy, map, ctx);
+    pasted.insert(pasted.end(), paths.begin(), paths.end());
+    for(auto [old_id, new_id] : map)
+      ids[{itv_id, old_id}] = new_id;
+  }
+  if(pasted.empty())
+    return false;
+
+  // The cables between them: their ends start at the box in the snippet, and
+  // in `interval` at the copy of the process.
+  if(auto cables_it = json.FindMember("Cables");
+     cables_it != json.MemberEnd() && cables_it->value.IsArray())
+  {
+    const auto copied = cableDataFromCablesJson(cables_it->value.GetArray());
+    auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+    const auto relocate = [&](ObjectPath& p) {
+      auto& vec = p.vec();
+      if(vec.size() < 2 || vec[0].objectName() != "Scenario::IntervalModel")
+        return false;
+      auto it = ids.find({vec[0].id(), vec[1].id()});
+      if(it == ids.end())
+        return false;
+      vec.erase(vec.begin());
+      vec.front() = ObjectIdentifier{vec.front().objectName(), it->second};
+      return true;
+    };
+
+    Dataflow::SerializedCables cables;
+    for(Process::CableData cd : copied)
+    {
+      if(relocate(cd.source.unsafePath()) && relocate(cd.sink.unsafePath()))
+      {
+        Id<Process::Cable> id = getStrongId(document.cables);
+        while(ossia::any_of(cables, [&](const auto& c) { return c.first == id; }))
+          id = getStrongId(document.cables);
+        cables.emplace_back(id, std::move(cd));
+      }
+    }
+    if(!cables.empty())
+      m.loadCables(score::IDocument::path(interval).unsafePath(), cables);
+  }
+
+  m.submit(new Command::FollowPasted{std::move(pasted)});
+  m.showRack(interval);
+  m.commit();
   return true;
 }
 }

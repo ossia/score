@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationDropHandler.hpp"
+#include <Scenario/Library/Snippets.hpp>
 
 #include <Device/Node/NodeListMimeSerialization.hpp>
 
@@ -281,4 +282,16 @@ bool DropScoreInInterval::drop(
   return false;
 }
 
+
+bool DropSnippetInInterval::drop(
+    const score::DocumentContext& doc, const IntervalModel& interval, QPointF p,
+    const QMimeData& mime)
+{
+  if(!mime.hasUrls())
+    return false;
+  const auto path = mime.urls().first().toLocalFile();
+  if(QFileInfo{path}.suffix() != "scenario")
+    return false;
+  return insertSnippetInInterval(doc, interval, p, path);
+}
 }

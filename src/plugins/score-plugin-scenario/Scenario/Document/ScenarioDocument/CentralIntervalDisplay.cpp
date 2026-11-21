@@ -294,6 +294,17 @@ void CentralIntervalDisplay::on_executionTimer() { }
 
 void CentralIntervalDisplay::insertSnippet(const QString& path)
 {
+  // In the box selected, as a process goes there: its processes and cables.
+  {
+    auto sel = filterSelectionByType<IntervalModel>(
+        parent.context().selectionStack.currentSelection());
+    if(sel.size() == 1)
+    {
+      insertSnippetInInterval(parent.context(), *sel.front(), QPointF{40., 40.}, path);
+      return;
+    }
+  }
+
   auto itv = presenter.intervalPresenter();
   if(!itv)
     return;
