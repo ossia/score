@@ -508,6 +508,23 @@ bool ProcessGraphicsView::event(QEvent* event)
 {
   switch(event->type())
   {
+    case QEvent::KeyPress: {
+      // Tab adds a process, as in node editors, rather than moving the focus
+      // from item to item. Text being typed in the score keeps it.
+      const auto& key = static_cast<QKeyEvent&>(*event);
+      if(key.key() == Qt::Key_Tab && key.modifiers() == Qt::NoModifier)
+      {
+        const auto* focus = scene() ? scene()->focusItem() : nullptr;
+        if(!focus
+           || !(focus->isWidget()
+                || (focus->flags() & QGraphicsItem::ItemAcceptsInputMethod)))
+        {
+          addProcessRequested();
+          return true;
+        }
+      }
+      return QGraphicsView::event(event);
+    }
     case QEvent::HoverEnter:
       hoverEnterEvent(static_cast<QHoverEvent*>(event));
       return QGraphicsView::event(event);

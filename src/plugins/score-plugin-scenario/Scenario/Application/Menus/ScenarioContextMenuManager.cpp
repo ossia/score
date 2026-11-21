@@ -18,7 +18,7 @@
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/DialogWidget/PickProcess.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>

@@ -45,6 +45,10 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <QCursor>
 
 #include <Dataflow/Commands/EditConnection.hpp>
 
@@ -71,6 +75,7 @@
 #include <QMimeData>
 #include <QPushButton>
 #include <QTimer>
+#include <QToolButton>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -1190,5 +1195,117 @@ TEST_CASE("The snippets menu lists the library's snippets in their folders", "[i
     for(auto* act : empty.actions())
       listed |= act->text() == "Menu kick";
     CHECK_FALSE(listed);
+  });
+}
+
+TEST_CASE(
+    "Tab on a selected node adds a process cabled after it, as the library does",
+    "[integration][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    auto* first = addFloat(*doc, itv, QPointF{100, 100});
+    REQUIRE(first);
+    REQUIRE_FALSE(first->outlets().empty());
+    doc->context().selectionStack.pushNewSelection({first});
+
+    pressTab(*doc);
+
+    // Only what can be cabled after its outlet, as from the outlet itself
+    auto* picker = dynamic_cast<Library::ProcessPicker*>(QApplication::activePopupWidget());
+    REQUIRE(picker);
+    CHECK(picker->findChild<QToolButton*>("ProcessPickerChipClear"));
+    const auto type = first->outlets()[0]->type();
+    for(auto& f : app.interfaces<Process::ProcessFactoryList>())
+    {
+      const auto d = f.descriptor(QString{});
+      if(!d.inlets || ossia::contains(*d.inlets, type)
+         || (f.flags() & Process::ProcessFlags::Deprecated))
+        continue;
+      picker->setSearch(f.prettyName());
+      CHECK_FALSE(picker->processes().contains(f.prettyName()));
+      break;
+    }
+    picker->setSearch({});
+
+    const auto before = itv.processes.size();
+    const auto cablesBefore = docModel(*doc).cables.size();
+    REQUIRE(pickFloat());
+    run_events_for(50);
+    REQUIRE(itv.processes.size() == before + 1);
+    REQUIRE(docModel(*doc).cables.size() == cablesBefore + 1);
+
+    const auto added = processesBut(itv, first);
+    REQUIRE(added.size() == 1);
+    auto& cable = *docModel(*doc).cables.begin();
+    CHECK(&cable.source().find(doc->context()) == first->outlets()[0]);
+    CHECK(&cable.sink().find(doc->context()) == added[0]->inlets()[0]);
+
+    doc->commandStack().undo();
+    CHECK(itv.processes.size() == before);
+    CHECK(docModel(*doc).cables.size() == cablesBefore);
+  });
+}
+
+TEST_CASE(
+    "Tab over the emptiness of a scenario makes a box there with the process, "
+    "started on play",
+    "[integration][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    run_events_for(200);
+    auto& scenario = score::test::base_scenario(*doc);
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(pr);
+    auto& gv = pr->view().view();
+
+    // The mouse in the visible part of the scenario, away from its start
+    const Scenario::ScenarioView* sv{};
+    for(auto item : gv.scene()->items())
+      if(item->type() == Scenario::ScenarioView::Type)
+        if(auto v = static_cast<const Scenario::ScenarioView*>(item);
+           v->presenter() && &v->presenter()->model() == &scenario)
+          sv = v;
+    REQUIRE(sv);
+    const QRectF visible
+        = sv->mapFromScene(gv.mapToScene(gv.viewport()->rect())).boundingRect()
+          & sv->boundingRect();
+    REQUIRE(visible.width() > 100);
+    const QPointF local{
+        visible.left() + visible.width() * 0.4, visible.top() + visible.height() * 0.6};
+    QCursor::setPos(gv.viewport()->mapToGlobal(gv.mapFromScene(sv->mapToScene(local))));
+    run_events_for(100);
+    // Where the mouse is, on a whole pixel
+    const auto expected = sv->presenter()->toScenarioPoint(
+        sv->mapFromScene(gv.mapToScene(gv.viewport()->mapFromGlobal(QCursor::pos()))));
+
+    // Clicking in it selects the scenario: it is not where the process goes
+    doc->context().selectionStack.pushNewSelection({&scenario});
+    const auto intervalsBefore = scenario.intervals.size();
+    pressTab(*doc);
+    REQUIRE(pickFloat());
+    run_events_for(50);
+    REQUIRE(scenario.intervals.size() == intervalsBefore + 1);
+
+    const Scenario::IntervalModel* box{};
+    for(auto& i : scenario.intervals)
+      for(auto& p : i.processes)
+        if(p.concreteKey() == float_key)
+          box = &i;
+    REQUIRE(box);
+    CHECK(box->processes.size() == 1);
+    CHECK(std::abs(box->date().msec() - expected.date.msec()) < 1.);
+    CHECK(std::abs(box->heightPercentage() - expected.y) < 0.01);
+    auto& ts = Scenario::startTimeSync(*box, scenario);
+    CHECK(ts.isStartPoint());
+    CHECK(ts.active());
+
+    // One undo step
+    doc->commandStack().undo();
+    CHECK(scenario.intervals.size() == intervalsBefore);
   });
 }

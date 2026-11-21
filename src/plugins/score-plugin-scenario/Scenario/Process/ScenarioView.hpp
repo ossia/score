@@ -26,6 +26,7 @@ public:
   int type() const final override { return Type; }
 
   void init(ScenarioPresenter* p) { m_scenario = p; }
+  ScenarioPresenter* presenter() const noexcept { return m_scenario; }
 
   void paint_impl(QPainter* painter) const override;
 

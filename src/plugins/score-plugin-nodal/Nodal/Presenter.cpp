@@ -1,7 +1,8 @@
+#include <Process/Commands/LoadPresetCommandFactory.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/DialogWidget/PickProcess.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <Nodal/CommandFactory.hpp>
@@ -153,23 +154,27 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& mime)
 
 void Presenter::openProcessPicker(QPointF pos)
 {
-  const auto& ctx = context().context;
-  auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-  auto dialog = new Scenario::AddProcessDialog{
-      fact, Process::ProcessFlags::SupportsTemporal, QApplication::activeWindow()};
-
-  // The dialog runs its own event loop, which may close the document.
+  // The document may be closed before a process is picked.
   QPointer<Presenter> self = this;
-  dialog->on_okPressed = [self, pos](const Scenario::AddProcessDialog::Key& key, QString data) {
+  Scenario::pickProcess(
+      context().context.app, Process::ProcessFlags::SupportsTemporal,
+      [self, pos](const Library::PickedProcess& p) {
     if(!self)
       return;
+    const auto& ctx = self->context().context;
     auto& layer = self->m_model;
-    CommandDispatcher<>{self->context().context.commandStack}.submit(
-        new CreateNode(layer, pos, key, data, getStrongId(layer.nodes)));
-  };
-
-  dialog->launchWindow();
-  dialog->deleteLater();
+    RedoMacroCommandDispatcher<DropNodesMacro> cmd{ctx.commandStack};
+    auto create = new CreateNode(
+        layer, pos, p.preset ? p.preset->key.key : p.key,
+        p.preset ? p.preset->key.effect : p.customData, getStrongId(layer.nodes));
+    cmd.submit(create);
+    if(p.preset)
+      if(auto node = layer.nodes.find(create->nodeId()); node != layer.nodes.end())
+        if(auto load = ctx.app.interfaces<Process::LoadPresetCommandFactoryList>().make(
+               &Process::LoadPresetCommandFactory::make, *node, *p.preset, ctx))
+          cmd.submit(load);
+    cmd.commit();
+  });
 }
 
 void Presenter::on_created(Process::ProcessModel& n)

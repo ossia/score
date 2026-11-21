@@ -18,6 +18,10 @@ class LayerContextMenuManager;
 class ProcessModelFactory;
 class LayerFactory;
 }
+namespace Library
+{
+struct PickedProcess;
+}
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
@@ -32,7 +36,7 @@ public:
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
 private:
-  void addProcessInInterval(const UuidKey<Process::ProcessModel>&, const QString& data);
+  void addProcessInInterval(const Library::PickedProcess& picked);
 
   void on_showRacks();
   void on_hideRacks();

@@ -135,7 +135,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/PickProcess.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioEditor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseElementContext.hpp"
@@ -497,7 +497,7 @@ set(SRCS ${SRCS}
 
 
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/PickProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Graph.cpp"
