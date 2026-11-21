@@ -18,4 +18,5 @@ PROCESS_METADATA(
     {},                                          // Inputs
     {},                                          // Outputs
     QUrl(""),                                    // Documentation link (if existing)
-    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
+        | Process::ProcessFlags::HoldsProcesses)

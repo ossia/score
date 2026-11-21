@@ -1,5 +1,6 @@
 #include "ScenarioEditor.hpp"
 
+#include <Process/ProcessList.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 
@@ -419,6 +420,27 @@ Scenario::Point pointNextTo(const Scenario::ProcessModel& sc, const QObject* chi
 }
 }
 
+QObject* pasteStart(QObject* focusedObject, const score::DocumentContext& ctx)
+{
+  auto focusedLayer = qobject_cast<Process::LayerPresenter*>(focusedObject);
+  QObject* focused
+      = focusedLayer ? const_cast<Process::ProcessModel*>(&focusedLayer->model())
+                     : nullptr;
+  QObject* selected{};
+  if(auto sel = ctx.selectionStack.currentSelection(); sel.size() == 1)
+    selected = sel.at(0);
+
+  if(!focused)
+    return selected;
+  if(selected && selected != focused)
+  {
+    auto focusManager = Process::ProcessFocusManager::get(ctx);
+    if(focusManager && focusManager->selectionNewerThanFocus())
+      return selected;
+  }
+  return focused;
+}
+
 bool ScenarioEditor::paste(
     QPoint pos, QObject* focusedObject, const QMimeData& mime,
     const score::DocumentContext& ctx)
@@ -433,24 +455,7 @@ bool ScenarioEditor::paste(
   if(kind == PasteKind::None)
     return false;
 
-  // Start from whichever of the selection and the focus changed last.
-  auto focusedLayer = qobject_cast<Process::LayerPresenter*>(focusedObject);
-  QObject* focused
-      = focusedLayer ? const_cast<Process::ProcessModel*>(&focusedLayer->model())
-                     : nullptr;
-  QObject* selected{};
-  if(auto sel = ctx.selectionStack.currentSelection(); sel.size() == 1)
-    selected = sel.at(0);
-
-  QObject* start = focused;
-  if(!start)
-    start = selected;
-  else if(selected && selected != start)
-  {
-    auto focusManager = Process::ProcessFocusManager::get(ctx);
-    if(focusManager && focusManager->selectionNewerThanFocus())
-      start = selected;
-  }
+  QObject* const start = pasteStart(focusedObject, ctx);
 
   // The first ancestor that can take what was copied receives it, next to the
   // child it was reached from.
@@ -493,6 +498,15 @@ bool ScenarioEditor::paste(
     else if(qobject_cast<ScenarioDocumentModel*>(obj))
     {
       break;
+    }
+    else if(auto proc = qobject_cast<Process::ProcessModel*>(obj);
+            proc && kind == PasteKind::Processes)
+    {
+      // A process that holds processes takes them itself, through its own
+      // editor: the type says it, whatever an older document saved.
+      auto fact = ctx.app.interfaces<Process::ProcessFactoryList>().get(proc->concreteKey());
+      if(fact && (fact->flags() & Process::ProcessFlags::HoldsProcesses))
+        return false;
     }
   }
 

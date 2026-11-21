@@ -1209,6 +1209,13 @@ score_add_test(test_unit_musical_grid
   APP
   PLUGINS score_plugin_scenario)
 
+# Nodes of a Nodal process copy and paste with their cables.
+score_add_test(test_unit_nodal_copy_paste
+  SOURCES NodalCopyPasteTest.cpp
+  GUI
+  APP
+  PLUGINS score_plugin_nodal score_plugin_scenario score_plugin_automation score_plugin_media)
+
 # Snippets: timeline content saved in the library and listed with the processes.
 score_add_test(test_unit_snippet_library
   SOURCES SnippetLibraryTest.cpp

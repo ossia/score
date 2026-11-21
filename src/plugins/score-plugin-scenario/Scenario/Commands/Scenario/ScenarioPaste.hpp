@@ -212,6 +212,18 @@ struct ProcessesBeingCopied
   ProcessesBeingCopied(
       const rapidjson::Value::ConstArray& sourceProcesses,
       const Scenario::IntervalModel& parent, const score::DocumentContext& ctx)
+      : ProcessesBeingCopied{
+            sourceProcesses, const_cast<Scenario::IntervalModel&>(parent),
+            parent.processes, ctx}
+  {
+  }
+
+  //! In any `parent` holding the `existing` processes, a box or a process
+  //! made of processes: only those that load here, under new identifiers.
+  template <typename Existing>
+  ProcessesBeingCopied(
+      const rapidjson::Value::ConstArray& sourceProcesses, QObject& parent,
+      const Existing& existing, const score::DocumentContext& ctx)
   {
     // TODO this is (again) really a bad idea... either they should be properly added,
     // or the json should be modified without including anything in the
@@ -226,8 +238,7 @@ struct ProcessesBeingCopied
       for(const auto& element : json_arr)
       {
         JSONObject::Deserializer deserializer{element};
-        auto proc = deserialize_interface(
-            pl, deserializer, ctx, const_cast<Scenario::IntervalModel*>(&parent));
+        auto proc = deserialize_interface(pl, deserializer, ctx, &parent);
         if(proc)
         {
           processes.emplace_back(proc);
@@ -239,13 +250,13 @@ struct ProcessesBeingCopied
 
     // We generate identifiers for the forthcoming elements
     processes_ids = getStrongIdRange2<Process::ProcessModel>(
-        processes.size(), parent.processes, processes);
+        processes.size(), existing, processes);
   }
 
   // "ProcessPaths" holds the original path of each copied process, or
   // "ProcessesParent" the path of the interval they all come from.
   void remapAnchors(
-      const rapidjson::Value& copy, const Scenario::IntervalModel& parent,
+      const rapidjson::Value& copy, const QObject& parent,
       const score::DocumentContext& ctx)
   {
     CopiedPaths paths;

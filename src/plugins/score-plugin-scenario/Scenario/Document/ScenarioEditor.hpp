@@ -43,6 +43,13 @@ bool pasteProcessesInNewBox(
     const Scenario::ProcessModel& sm, Scenario::Point origin, rapidjson::Value& obj,
     const score::DocumentContext& ctx, bool startsOnPlay = false);
 
+//! Where a paste starts looking for what takes it: whichever of the focused
+//! layer's process and the one selected object changed last. Every editor
+//! that pastes processes starts from it, so that the closest container that
+//! takes them gets them, whatever order the editors are tried in.
+SCORE_PLUGIN_SCENARIO_EXPORT
+QObject* pasteStart(QObject* focusedObject, const score::DocumentContext& ctx);
+
 using score::RemovalLinks;
 
 //! Removes processes of intervals, in one undo step.
