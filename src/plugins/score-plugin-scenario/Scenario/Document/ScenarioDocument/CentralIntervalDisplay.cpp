@@ -5,8 +5,13 @@
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Library/Snippets.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <Library/ProcessesItemModel.hpp>
+#include <Library/Snippet.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/selection/SelectionStack.hpp>
@@ -122,6 +127,12 @@ Process::ProcessModel* closestParentProcessBeforeInterval(const QObject* obj)
 
 void CentralIntervalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
+  if(dat.key == Library::snippetKey())
+  {
+    insertSnippet(dat.customData);
+    return;
+  }
+
   // First try to see if an interval is selected.
   auto createInParentInterval = [&] {
     auto sel = filterSelectionByType<IntervalModel>(
@@ -280,4 +291,33 @@ void CentralIntervalDisplay::on_visibleRectChanged(const QRectF&)
 
 void CentralIntervalDisplay::on_executionTimer() { }
 
+
+void CentralIntervalDisplay::insertSnippet(const QString& path)
+{
+  auto itv = presenter.intervalPresenter();
+  if(!itv)
+    return;
+
+  // In the timeline shown, a little into what the view shows: the snippet
+  // extends right and down from there.
+  auto& gv = parent.view().view();
+  const QRectF visible = gv.mapToScene(gv.viewport()->rect()).boundingRect();
+  const QPointF scenePos{
+      visible.left() + 0.1 * visible.width(), visible.top() + 0.2 * visible.height()};
+
+  for(const SlotPresenter& slot : itv->getSlots())
+  {
+    auto* layers = ossia::get_if<LayerSlotPresenter>(&slot);
+    if(!layers)
+      continue;
+    for(const LayerData& layer : layers->layers)
+    {
+      if(auto sp = qobject_cast<const ScenarioPresenter*>(layer.mainPresenter()))
+      {
+        Scenario::insertSnippet(*sp, sp->view().mapFromScene(scenePos), path);
+        return;
+      }
+    }
+  }
+}
 }

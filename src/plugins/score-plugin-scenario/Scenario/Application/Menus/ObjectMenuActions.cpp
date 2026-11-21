@@ -3,6 +3,10 @@
 #include "ObjectMenuActions.hpp"
 
 #include "ScenarioCopy.hpp"
+
+#include <Scenario/Library/Snippets.hpp>
+
+#include <score/widgets/HelpInteraction.hpp>
 #include "TextDialog.hpp"
 
 #include <Process/Dataflow/CableCopy.hpp>
@@ -160,6 +164,17 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     s.exec();
   });
 
+  // SNIPPETS
+  m_saveSnippet = new QAction{tr("Save as snippet"), this};
+  score::setHelp(
+      m_saveSnippet,
+      tr("Save the selected boxes, their processes and the cables between them "
+         "in the library, to add them again from there"));
+  connect(m_saveSnippet, &QAction::triggered, this, [this] {
+    if(auto doc = m_parent->currentDocument())
+      saveSelectionAsSnippet(doc->context(), qApp->activeWindow());
+  });
+
   // MERGE TIMESYNC
   m_mergeTimeSyncs = new QAction{this};
   connect(m_mergeTimeSyncs, &QAction::triggered, [this]() {
@@ -298,6 +313,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addAction(m_cutContent);
   object.menu()->addAction(m_pasteElements);
   object.menu()->addAction(m_pasteElementsAfter);
+  object.menu()->addAction(m_saveSnippet);
   object.menu()->addSeparator();
   object.menu()->addAction(m_mergeTimeSyncs);
   object.menu()->addAction(m_mergeEvents);
@@ -367,6 +383,7 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 
     objectMenu->addAction(m_pasteElementsAfter);
     objectMenu->addAction(m_duplicate);
+    objectMenu->addAction(m_saveSnippet);
     objectMenu->addSeparator();
     objectMenu->addAction(m_encapsulate);
     objectMenu->addAction(m_decapsulate);
@@ -381,6 +398,7 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     objectMenu->addSeparator();
 
     objectMenu->addAction(m_copyContent);
+    objectMenu->addAction(m_saveSnippet);
   });
 
   m_eventActions.setupContextMenu(ctxm);

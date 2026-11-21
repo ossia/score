@@ -41,6 +41,7 @@ static void initUserLibrary(const QDir& userlib)
   userlib.mkpath("./presets");
   userlib.mkpath("./devices");
   userlib.mkpath("./cues");
+  userlib.mkpath("./snippets");
 }
 
 Model::Model(

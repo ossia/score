@@ -6,6 +6,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
+#include <Library/Snippet.hpp>
 #include <Library/ProcessesItemModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -71,6 +72,10 @@ void CentralNodalDisplay::recenter()
 
 void CentralNodalDisplay::on_addProcessFromLibrary(const Library::ProcessData& dat)
 {
+  // A snippet is timeline content: it is no process to create here.
+  if(dat.key == Library::snippetKey())
+    return;
+
   auto createInParentInterval = [&] {
     Command::Macro m{new Command::DropProcessInIntervalMacro, parent.context()};
     m.createProcessInNewSlot(parent.displayedInterval(), dat);

@@ -26,6 +26,8 @@ public:
   // https://stackoverflow.com/questions/69050714/observing-the-state-of-a-variant-during-construction
   void init();
 
+  //! A snippet of the library pasted in the timeline shown.
+  void insertSnippet(const QString& path);
   void on_addProcessFromLibrary(const Library::ProcessData& dat);
   void on_addPresetFromLibrary(const Process::Preset& dat);
   void on_visibleRectChanged(const QRectF&);

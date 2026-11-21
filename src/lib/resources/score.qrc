@@ -309,6 +309,8 @@
         <file>icons/ui@2x.png</file>
         <file>icons/structure.png</file>
         <file>icons/structure@2x.png</file>
+        <file>icons/snippet.png</file>
+        <file>icons/snippet@2x.png</file>
         <file>icons/gfx@2x.png</file>
         <file>icons/gfx.png</file>
         <file>icons/console_on.png</file>

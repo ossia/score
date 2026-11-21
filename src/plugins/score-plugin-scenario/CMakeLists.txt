@@ -323,6 +323,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/SlotLibraryHandler.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/Snippets.hpp"
 
 
   "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ScenarioComponent.hpp"
@@ -639,6 +640,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/SlotLibraryHandler.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/Snippets.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_scenario.cpp"
 

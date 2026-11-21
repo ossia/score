@@ -22,6 +22,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetTreeView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetAudition.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessesItemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/Snippet.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessTreeView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProjectLibraryWidget.hpp"

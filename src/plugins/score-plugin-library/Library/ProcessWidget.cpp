@@ -6,6 +6,7 @@
 #include <Process/PreviewSettings.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Library/Snippet.hpp>
 #include <Library/PresetFile.hpp>
 #include <Library/ItemModelFilterLineEdit.hpp>
 #include <Library/LibraryWidget.hpp>
@@ -107,6 +108,17 @@ public:
     m_io.setText(QString{});
     m_tags.setText(QString{});
     m_documentationLink.clear();
+
+    if(d && d->key == snippetKey())
+    {
+      setVisible(true);
+      m_name.setText(d->prettyName);
+      m_description.setText(
+          tr("A snippet: boxes, their processes and the cables between them. "
+             "Drag it onto the timeline, or double-click it to add it where the "
+             "view is."));
+      return;
+    }
 
     if(d)
     {

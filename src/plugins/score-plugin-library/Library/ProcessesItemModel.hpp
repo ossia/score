@@ -74,6 +74,12 @@ public:
   //! anchor's key so only their per-plugin children are user-creatable.
   void clearAnchorKey(const Process::ProcessModelFactory::ConcreteKey& key);
 
+  //! A top-level branch that entries anchor to with `key`, but which is not
+  //! itself something to drag: the snippets. Called from a handler's setup().
+  void addContainer(
+      const Process::ProcessModelFactory::ConcreteKey& key, const QString& name,
+      const QIcon& icon);
+
   //! Immediately publish everything still buffered. Mostly for tests.
   void flushPending();
 

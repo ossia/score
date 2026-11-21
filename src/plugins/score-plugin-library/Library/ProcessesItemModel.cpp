@@ -1,5 +1,7 @@
 #include "ProcessesItemModel.hpp"
 
+#include <Library/Snippet.hpp>
+
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
@@ -14,6 +16,7 @@
 #include <QIcon>
 #include <QMimeData>
 #include <QPointer>
+#include <QUrl>
 #include <QTimer>
 
 namespace Library
@@ -431,6 +434,21 @@ void ProcessesItemModel::replaceChildren(
   }
 }
 
+void ProcessesItemModel::addContainer(
+    const Process::ProcessModelFactory::ConcreteKey& key, const QString& name,
+    const QIcon& icon)
+{
+  const auto pos = std::lower_bound(m_root.begin(), m_root.end(), name, LibraryNameSort{});
+  const int row = std::distance(m_root.begin(), pos);
+  if(!m_inReset)
+    beginInsertRows(QModelIndex{}, row, row);
+  // An empty key: the branch itself creates nothing.
+  auto& node = m_root.emplace(pos, ProcessData{{{}, name, {}}, icon}, &m_root);
+  if(!m_inReset)
+    endInsertRows();
+  m_anchors[key] = &node;
+}
+
 void ProcessesItemModel::clearAnchorKey(
     const Process::ProcessModelFactory::ConcreteKey& key)
 {
@@ -507,6 +525,12 @@ QMimeData* ProcessesItemModel::mimeData(const QModelIndexList& indexes) const
 
   const auto& index = indexes.first();
   const auto& node = nodeFromModelIndex(index);
+  if(node.key == snippetKey())
+  {
+    // A snippet is dropped as its file, wherever a .scenario file can go.
+    mimeData->setUrls({QUrl::fromLocalFile(node.customData)});
+    return mimeData;
+  }
   MimeReader<Process::ProcessData>{*mimeData}.serialize(node);
   return mimeData;
 }

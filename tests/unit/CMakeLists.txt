@@ -1209,6 +1209,12 @@ score_add_test(test_unit_musical_grid
   APP
   PLUGINS score_plugin_scenario)
 
+# Snippets: timeline content saved in the library and listed with the processes.
+score_add_test(test_unit_snippet_library
+  SOURCES SnippetLibraryTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_library)
+
 # The time ruler's ticks are a few pixels apart and labelled with their time at
 # every zoom, on its graduation thresholds too.
 score_add_test(test_unit_time_ruler

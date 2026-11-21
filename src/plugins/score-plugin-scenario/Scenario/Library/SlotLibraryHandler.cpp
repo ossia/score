@@ -6,12 +6,16 @@
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 
 #include <Library/FileSystemModel.hpp>
+#include <Library/ProcessesItemModel.hpp>
+#include <Library/Snippet.hpp>
 #include <Library/ProcessWidget.hpp>
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/tools/File.hpp>
 
 #include <QMimeData>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -114,5 +118,48 @@ QSet<QString> ScenarioLibraryHandler::acceptedMimeTypes() const noexcept
 QSet<QString> ScenarioLibraryHandler::acceptedFiles() const noexcept
 {
   return {"scenario", "cues"};
+}
+
+QStringList snippetCategories(std::string_view absoluteDir)
+{
+  const QStringList parts
+      = QString::fromUtf8(absoluteDir.data(), absoluteDir.size())
+            .split('/', Qt::SkipEmptyParts);
+  const auto it = std::find(parts.rbegin(), parts.rend(), Library::snippetsFolder());
+  if(it != parts.rend())
+    return parts.mid(parts.size() - std::distance(parts.rbegin(), it));
+  if(parts.isEmpty())
+    return {};
+  return {parts.back()};
+}
+
+void ScenarioLibraryHandler::setup(
+    Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+{
+  model.addContainer(
+      Library::snippetKey(), QObject::tr("Snippets"),
+      Process::getCategoryIcon(QStringLiteral("Snippets")));
+}
+
+std::optional<Library::ProcessEntry>
+ScenarioLibraryHandler::scanPath(std::string_view path)
+{
+  return snippetEntry(path);
+}
+
+std::optional<Library::ProcessEntry> snippetEntry(std::string_view path)
+{
+  score::PathInfo info{path};
+  if(!info.fileName.ends_with(std::string_view{".scenario"}))
+    return std::nullopt;
+
+  Library::ProcessData data;
+  data.key = Library::snippetKey();
+  data.prettyName
+      = QString::fromUtf8(info.completeBaseName.data(), info.completeBaseName.size());
+  data.customData
+      = QString::fromUtf8(info.absoluteFilePath.data(), info.absoluteFilePath.size());
+  return Library::ProcessEntry{
+      data.key, snippetCategories(info.absolutePath), {std::move(data), {}}};
 }
 }
