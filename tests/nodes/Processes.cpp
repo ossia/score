@@ -43,6 +43,7 @@
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
@@ -85,6 +86,8 @@ struct SweepResult
   bool datastream_fixedpoint = false;
   bool crashed = false;
   std::string detail;
+  //! The kinds of port it makes that its descriptor does not list
+  std::string undeclared_ports;
 
   //! It hosts a validation plug-in, and the ports the plug-in gave it
   bool plugin = false;
@@ -126,6 +129,39 @@ void sweep_one(
     return;
   r.constructed = true;
   r.ports = proc->inlets().size() + proc->outlets().size();
+
+  // The kinds of port it says it has include those it makes: the process
+  // picker offers, from a port, the processes that say they can be cabled to it.
+  {
+    const auto d = factory.descriptor(data);
+    const auto check = [&](const auto& declared, const auto& ports, const char* dir) {
+      if(!declared)
+        return;
+      std::set<int> missing;
+      for(const Process::Port* p : ports)
+        if(std::find(declared->begin(), declared->end(), p->type()) == declared->end())
+          missing.insert(int(p->type()));
+      for(int t : missing)
+        r.undeclared_ports += std::string(dir) + " of type " + std::to_string(t) + "; ";
+      // Nor more: a kind it does not make would have it offered from ports it
+      // cannot be cabled to
+      for(auto t : *declared)
+        if(std::none_of(ports.begin(), ports.end(), [t](auto* p) { return p->type() == t; }))
+          r.undeclared_ports
+              += std::string("declared ") + dir + " of type " + std::to_string(int(t)) + " it does not make; ";
+    };
+    check(d.inlets, proc->inlets(), "inlet");
+    check(d.outlets, proc->outlets(), "outlet");
+
+    // With no plug-in, a host says no plug-in's ports: the picker asks a kind
+    // that way, for all its plug-ins at once
+    if(r.plugin)
+    {
+      const auto none = factory.descriptor(QString{});
+      if(none.inlets || none.outlets)
+        r.undeclared_ports += "ports of a plug-in with no plug-in; ";
+    }
+  }
 
   // --- DataStream round-trip ---
   if(trace)
@@ -340,6 +376,8 @@ TEST_CASE("Every process factory instantiates and round-trips", "[nodes][l1][ser
     CHECK(r.constructed);
     CHECK(r.datastream_roundtrip);
     CHECK(r.json_roundtrip);
+    if(r.constructed && !r.undeclared_ports.empty())
+      FAIL_CHECK("undeclared ports: " << r.name << " {" << r.uuid << "}: " << r.undeclared_ports);
     // A host that loaded its plug-in has the ports of the plug-in
     if(r.plugin && r.constructed)
       CHECK(r.ports > 0);

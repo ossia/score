@@ -10,6 +10,7 @@
 #include <avnd/binding/ossia/port_base.hpp>
 #include <avnd/concepts/all.hpp>
 #include <avnd/introspection/input.hpp>
+#include <avnd/introspection/messages.hpp>
 #include <avnd/introspection/output.hpp>
 #include <avnd/wrappers/metadatas.hpp>
 
@@ -192,15 +193,32 @@ struct ProcessPortVisitor
 template <typename Info>
 struct Metadata<Process::Descriptor_k, oscr::ProcessModel<Info>>
 {
+  // The ports in the order the process makes them (ProcessModel's
+  // expected_input_ports): audio taken by argument, or the value of a CV
+  // processor, comes first, then the messages, then the declared ports.
   static std::vector<Process::PortType> inletDescription()
   {
     ProcessPortVisitor vis;
+    if constexpr(avnd::audio_argument_processor<Info>)
+      vis.audio();
+    else if constexpr(avnd::tag_cv<Info>)
+      vis.value();
+    for(std::size_t i = 0; i < avnd::messages_introspection<Info>::size; i++)
+      vis.value();
     avnd::input_introspection<Info>::for_all(vis);
     return vis.port;
   }
   static std::vector<Process::PortType> outletDescription()
   {
     ProcessPortVisitor vis;
+    if constexpr(avnd::audio_argument_processor<Info>)
+      vis.audio();
+    else if constexpr(avnd::tag_cv<Info>)
+    {
+      using operator_ret = typename avnd::function_reflection_o<Info>::return_type;
+      if constexpr(!std::is_void_v<operator_ret>)
+        vis.value();
+    }
     avnd::output_introspection<Info>::for_all(vis);
     return vis.port;
   }

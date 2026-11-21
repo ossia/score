@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Display a video",                // Description
     "ossia team",                     // Author
     (QStringList{"gfx", "video"}),    // Tags
-    {},                               // Inputs
-    {},                               // Outputs
+    {std::vector<Process::PortType>{}}, // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Texture}}, // Outputs
     QUrl("https://ossia.io/score-docs/processes/video.html#video"),
     Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::HandlesLooping // Flags

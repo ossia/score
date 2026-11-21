@@ -17,8 +17,8 @@ PROCESS_METADATA(
     "model's Data outlet, when its image goes to no output", // Description
     "ossia team",                                            // Author
     (QStringList{"gfx", "sink", "output"}),                  // Tags
-    {},                                                      // Inputs
-    {},                                                      // Outputs
+    (std::vector<Process::PortType>{Process::PortType::Texture, Process::PortType::Message}), // Inputs
+    {std::vector<Process::PortType>{}}, // Outputs
     QUrl{},
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
 )

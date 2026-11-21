@@ -16,8 +16,8 @@ PROCESS_METADATA(
     "vertex colours or texture coordinates", // Description
     "ossia team",                         // Author
     (QStringList{"gfx", "geometry", "3d", "monitoring"}), // Tags
-    {},                                   // Inputs
-    {},                                   // Outputs
+    (std::vector<Process::PortType>{Process::PortType::Texture, Process::PortType::Geometry, Process::PortType::Message}), // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Texture}}, // Outputs
     QUrl{},                               // Doc url
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface
         | Process::ProcessFlags::FullyCustomItem // Flags

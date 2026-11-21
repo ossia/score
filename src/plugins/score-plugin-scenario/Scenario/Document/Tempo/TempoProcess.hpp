@@ -12,7 +12,7 @@ PROCESS_METADATA(
     , Scenario::TempoProcess, "14bcc6d2-cb34-4bc6-8c70-e512f11d1ceb", "Tempo", "Tempo",
     Process::ProcessCategory::Automation, "Automations",
     "Tempo curve - only one per interval", "ossia score",
-    (QStringList{"Curve", "Automation"}), {}, {},
+    (QStringList{"Curve", "Automation"}), {std::vector<Process::PortType>{Process::PortType::Message}}, {std::vector<Process::PortType>{}},
     QUrl("https://ossia.io/score-docs/processes/tempo.html#tempo"),
     Process::ProcessFlags::SupportsTemporal)
 

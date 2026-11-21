@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Filter a flattened scene by tag or material index, per pass",
     "ossia team",
     (QStringList{"gfx", "scene", "filter", "3d"}),
-    {},
-    {},
+    (std::vector<Process::PortType>{Process::PortType::Geometry, Process::PortType::Message}),
+    {std::vector<Process::PortType>{Process::PortType::Geometry}},
     QUrl{},
     Process::ProcessFlags::SupportsAll
 )

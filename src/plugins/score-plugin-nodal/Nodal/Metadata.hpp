@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Organise processes in a node-based editor", // Description
     "ossia score",                               // Author
     (QStringList{}),                             // Tags
-    {},                                          // Inputs
-    {},                                          // Outputs
+    {std::vector<Process::PortType>{Process::PortType::Audio}}, // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Audio}}, // Outputs
     QUrl(""),                                    // Documentation link (if existing)
     Process::ProcessFlags::SupportsTemporal | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::HoldsProcesses)

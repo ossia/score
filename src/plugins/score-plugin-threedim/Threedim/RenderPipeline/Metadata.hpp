@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Generic shader-based render pipeline",           // Description
     "ossia team",                                     // Author
     (QStringList{"gfx", "model", "3d", "rendering"}), // Tags
-    {},                                               // Inputs
-    {},                                               // Outputs
+    (std::vector<Process::PortType>{Process::PortType::Geometry, Process::PortType::Message, Process::PortType::Texture}), // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Texture}}, // Outputs
     QUrl{},                                           // Doc url
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface
         | Process::ProcessFlags::ScriptEditingSupported // Flags

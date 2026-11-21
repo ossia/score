@@ -81,6 +81,9 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept
   desc.documentationLink = QUrl(
       "https://ossia.io/score-docs/processes/"
       "audio-plugins.html#common-formats-vst-vst3-lv2-jsfx");
+  // Without a plug-in, nothing of one: an empty id would be read as 0
+  if(d.isEmpty())
+    return desc;
   if(it != app.vst_infos.end())
   {
     desc.prettyName = it->displayName;
@@ -93,7 +96,9 @@ EffectProcessFactory_T<vst::Model>::descriptor(QString d) const noexcept
     {
       desc.category = Process::ProcessCategory::Synth;
 
-      auto inlets = std::vector<Process::PortType>{Process::PortType::Midi};
+      // An audio inlet first, as for any plug-in (vst::Model::create)
+      auto inlets = std::vector<Process::PortType>{
+          Process::PortType::Audio, Process::PortType::Midi};
       for(int i = 0; i < it->controls; i++)
         inlets.push_back(Process::PortType::Message);
       desc.inlets = std::move(inlets);

@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Flattens a scene_spec hierarchy into a GPU-resident geometry_spec", // Description
     "ossia team",                                 // Author
     (QStringList{"gfx", "scene", "geometry", "3d"}), // Tags
-    {},                                           // Inputs
-    {},                                           // Outputs
+    {std::vector<Process::PortType>{Process::PortType::Geometry}}, // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Geometry}}, // Outputs
     QUrl{},                                       // Doc url
     Process::ProcessFlags::SupportsAll            // Flags
 )
