@@ -42,13 +42,18 @@ struct SnippetInfo
   QImage thumbnail;
 };
 
-//! The information of a snippet file's content; empty for a file saved
-//! without any, such as one from before snippets had them.
+//! The information of a snippet file's content; empty for a file without a
+//! "Snippet" key. The thumbnail, the costly part, only when asked for.
 SCORE_PLUGIN_LIBRARY_EXPORT
-SnippetInfo readSnippetInfo(const QByteArray& json);
+SnippetInfo readSnippetInfo(const QByteArray& json, bool thumbnail = true);
 
 SCORE_PLUGIN_LIBRARY_EXPORT
-SnippetInfo readSnippetInfoFile(const QString& path);
+SnippetInfo readSnippetInfoFile(const QString& path, bool thumbnail = true);
+
+//! Sets the description of the snippet file at `path`, the rest of it as it
+//! is. The whole file is written or, on failure, left as it was.
+SCORE_PLUGIN_LIBRARY_EXPORT
+bool writeSnippetDescription(const QString& path, const QString& description);
 
 //! The snippet content `json` with `info` added to it.
 SCORE_PLUGIN_LIBRARY_EXPORT

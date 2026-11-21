@@ -10,6 +10,7 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 
+#include <Library/Snippet.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -90,7 +91,8 @@ public:
     const auto& handlers = m_context.app.interfaces<Process::ProcessDropHandlerList>();
 
     if(mime.hasUrls() && mime.urls().size() == 1
-       && QFileInfo{mime.urls().first().toLocalFile()}.suffix() == "scenario")
+       && QFileInfo{mime.urls().first().toLocalFile()}.suffix()
+              == QLatin1String(Library::snippetSuffix()))
     {
       // A snippet: its processes in between the two ends.
       const QString path = mime.urls().first().toLocalFile();

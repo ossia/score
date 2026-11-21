@@ -449,6 +449,16 @@ void ProcessesItemModel::addContainer(
   m_anchors[key] = &node;
 }
 
+void ProcessesItemModel::setSearchText(
+    const Process::ProcessModelFactory::ConcreteKey& key, const QString& customData,
+    const QString& text)
+{
+  m_root.visit([&](const ProcessNode& n) {
+    if(n.key == key && n.customData == customData)
+      const_cast<ProcessNode&>(n).searchText = text;
+  });
+}
+
 void ProcessesItemModel::clearAnchorKey(
     const Process::ProcessModelFactory::ConcreteKey& key)
 {

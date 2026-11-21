@@ -2,12 +2,14 @@
 
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <Library/PresetFile.hpp>
+
 #include <QBuffer>
 #include <QFile>
 
 namespace Library
 {
-SnippetInfo readSnippetInfo(const QByteArray& json)
+SnippetInfo readSnippetInfo(const QByteArray& json, bool thumbnail)
 {
   SnippetInfo info;
   const auto doc = readJson(json);
@@ -24,6 +26,8 @@ SnippetInfo readSnippetInfo(const QByteArray& json)
     for(const auto& tag : t->value.GetArray())
       if(tag.IsString())
         info.tags.push_back(QString::fromUtf8(tag.GetString(), tag.GetStringLength()));
+  if(!thumbnail)
+    return info;
   if(auto th = obj.FindMember("Thumbnail"); th != obj.MemberEnd() && th->value.IsString())
     info.thumbnail.loadFromData(
         QByteArray::fromBase64(
@@ -32,12 +36,40 @@ SnippetInfo readSnippetInfo(const QByteArray& json)
   return info;
 }
 
-SnippetInfo readSnippetInfoFile(const QString& path)
+SnippetInfo readSnippetInfoFile(const QString& path, bool thumbnail)
 {
   QFile f{path};
   if(!f.open(QIODevice::ReadOnly))
     return {};
-  return readSnippetInfo(f.readAll());
+  return readSnippetInfo(f.readAll(), thumbnail);
+}
+
+bool writeSnippetDescription(const QString& path, const QString& description)
+{
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+    return false;
+  auto doc = readJson(f.readAll());
+  f.close();
+  if(!doc.IsObject())
+    return false;
+
+  auto& alloc = doc.GetAllocator();
+  auto snippet = doc.FindMember("Snippet");
+  if(snippet == doc.MemberEnd() || !snippet->value.IsObject())
+  {
+    doc.RemoveMember("Snippet");
+    doc.AddMember("Snippet", rapidjson::Value(rapidjson::kObjectType), alloc);
+    snippet = doc.FindMember("Snippet");
+  }
+  const QByteArray d = description.toUtf8();
+  rapidjson::Value text(d.constData(), rapidjson::SizeType(d.size()), alloc);
+  if(auto it = snippet->value.FindMember("Description"); it != snippet->value.MemberEnd())
+    it->value = std::move(text);
+  else
+    snippet->value.AddMember("Description", std::move(text), alloc);
+
+  return writePresetData(path, jsonToByteArray(doc));
 }
 
 QByteArray withSnippetInfo(const QByteArray& json, const SnippetInfo& info)

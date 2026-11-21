@@ -80,6 +80,12 @@ public:
       const Process::ProcessModelFactory::ConcreteKey& key, const QString& name,
       const QIcon& icon);
 
+  //! The words the search matches for the entry of this file, besides its
+  //! name, after they changed (a snippet's new description).
+  void setSearchText(
+      const Process::ProcessModelFactory::ConcreteKey& key, const QString& customData,
+      const QString& text);
+
   //! Immediately publish everything still buffered. Mostly for tests.
   void flushPending();
 

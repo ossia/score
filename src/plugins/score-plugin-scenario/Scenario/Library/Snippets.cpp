@@ -11,6 +11,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/widgets/MessageBox.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
@@ -33,6 +34,7 @@
 #include <Library/Panel/LibraryPanelDelegate.hpp>
 #include <Library/ProcessWidget.hpp>
 #include <Library/ProcessesItemModel.hpp>
+#include <Library/PresetFile.hpp>
 #include <Library/Snippet.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -84,29 +86,40 @@ std::optional<QString> writeSnippet(
   const bool replacing = QFile::exists(file);
   if(replacing)
   {
-    const auto answer = QMessageBox::question(
+    const auto answer = score::question(
         parent, QObject::tr("Save as snippet"),
-        QObject::tr("A snippet named %1 exists. Replace it?").arg(rel),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        QObject::tr("A snippet named %1 exists. Replace it?").arg(rel));
     if(answer != QMessageBox::Yes)
       return std::nullopt;
   }
 
-  QFile f{file};
-  if(!f.open(QIODevice::WriteOnly))
+  // A snippet replaced is kept as it was if the new one cannot be written
+  if(!Library::writePresetData(file, json))
+  {
+    score::warning(
+        parent, QObject::tr("Save as snippet"),
+        QObject::tr("The snippet could not be written in %1").arg(file));
     return std::nullopt;
-  f.write(json);
-  f.close();
+  }
 
   // The library only scans its folders on start and on a rescan: a new
-  // snippet is added to it here. A replaced one is already listed.
-  if(!replacing)
+  // snippet is added to it here; a replaced one is listed, with what it says
+  // of itself now.
+  if(auto panel = score::GUIAppContext().findPanel<Library::ProcessPanel>())
   {
-    if(auto panel = score::GUIAppContext().findPanel<Library::ProcessPanel>())
+    auto& model = panel->processWidget().processModel();
+    const QString path = QFileInfo{file}.absoluteFilePath();
+    if(replacing)
     {
-      const QByteArray utf8 = QFileInfo{file}.absoluteFilePath().toUtf8();
+      model.setSearchText(
+          Library::snippetKey(), path,
+          Library::snippetSearchText(Library::readSnippetInfo(json, false)));
+    }
+    else
+    {
+      const QByteArray utf8 = path.toUtf8();
       if(auto entry = snippetEntry(std::string_view{utf8.data(), size_t(utf8.size())}))
-        panel->processWidget().processModel().publish(std::move(*entry));
+        model.publish(std::move(*entry));
     }
   }
   return file;
@@ -534,26 +547,16 @@ bool insertSnippetInCable(
 
 void fillSnippetsMenu(QMenu& menu, std::function<void(const QString&)> insert)
 {
-  auto panel = score::GUIAppContext().findPanel<Library::ProcessPanel>();
+  // The branch the snippets are listed under
   const Library::ProcessNode* root{};
-  if(panel)
+  if(auto panel = score::GUIAppContext().findPanel<Library::ProcessPanel>())
   {
-    // The branch the snippets are listed under: the one holding them.
-    for(const auto& top : panel->processWidget().processModel().rootNode())
-    {
-      bool found = false;
-      top.visit([&](const Library::ProcessNode& n) {
-        found = found || n.key == Library::snippetKey();
-      });
-      if(found)
-      {
-        root = &top;
-        break;
-      }
-    }
+    auto& model = panel->processWidget().processModel();
+    if(const auto idx = model.find(Library::snippetKey()); idx.isValid())
+      root = &model.nodeFromModelIndex(idx);
   }
 
-  if(!root)
+  if(!root || !root->hasChildren())
   {
     auto none = menu.addAction(QObject::tr("No snippets in the library"));
     none->setEnabled(false);

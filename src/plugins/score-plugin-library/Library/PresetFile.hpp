@@ -2,6 +2,7 @@
 #include <QByteArray>
 #include <QSaveFile>
 #include <QString>
+#include <QStringView>
 
 namespace Library
 {
@@ -17,5 +18,16 @@ namespace Library
     return false;
   }
   return f.commit();
+}
+
+//! A name the library can give a file, on every platform
+[[nodiscard]] inline bool isValidForFilename(QStringView name)
+{
+  if(name.trimmed().isEmpty() || name.startsWith(u'.'))
+    return false;
+  for(QChar c : QStringView{u",^@=+{}[]~!?:&*\"|#%<>$';`/\\"})
+    if(name.contains(c))
+      return false;
+  return true;
 }
 }

@@ -152,7 +152,8 @@ ScenarioLibraryHandler::scanPath(std::string_view path)
 std::optional<Library::ProcessEntry> snippetEntry(std::string_view path)
 {
   score::PathInfo info{path};
-  if(!info.fileName.ends_with(std::string_view{".scenario"}))
+  const std::string suffix = std::string{"."} + Library::snippetSuffix();
+  if(!info.fileName.ends_with(suffix))
     return std::nullopt;
 
   Library::ProcessData data;
@@ -161,14 +162,16 @@ std::optional<Library::ProcessEntry> snippetEntry(std::string_view path)
       = QString::fromUtf8(info.completeBaseName.data(), info.completeBaseName.size());
   data.customData
       = QString::fromUtf8(info.absoluteFilePath.data(), info.absoluteFilePath.size());
-  data.searchText = Library::snippetSearchText(Library::readSnippetInfoFile(data.customData));
+  // Its words, not its thumbnail: there may be many to scan
+  data.searchText
+      = Library::snippetSearchText(Library::readSnippetInfoFile(data.customData, false));
   return Library::ProcessEntry{
       data.key, snippetCategories(info.absolutePath), {std::move(data), {}}};
 }
 
 QWidget* ScenarioLibraryHandler::previewWidget(const QString& path, QWidget* parent) const noexcept
 {
-  if(!path.endsWith(".scenario"))
+  if(!path.endsWith(QLatin1Char('.') + QLatin1String(Library::snippetSuffix())))
     return nullptr;
   const auto info = Library::readSnippetInfoFile(path);
   if(info.thumbnail.isNull())

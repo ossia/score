@@ -1150,3 +1150,45 @@ TEST_CASE(
     CHECK(sel.at(0) == over);
   });
 }
+
+#include <Library/Panel/LibraryPanelDelegate.hpp>
+#include <Library/ProcessWidget.hpp>
+#include <Library/ProcessesItemModel.hpp>
+#include <Scenario/Library/SlotLibraryHandler.hpp>
+#include <Scenario/Library/Snippets.hpp>
+
+TEST_CASE("The snippets menu lists the library's snippets in their folders", "[integration][snippets][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto* panel = app.findPanel<Library::ProcessPanel>();
+    REQUIRE(panel);
+    auto& model = panel->processWidget().processModel();
+    model.flushPending();
+    const QString path = "/somewhere/packages/user/snippets/Drums/Menu kick.scenario";
+    if(auto e = Scenario::snippetEntry(path.toStdString()))
+      model.publish(std::move(*e));
+    model.flushPending();
+
+    QMenu menu;
+    QString inserted;
+    Scenario::fillSnippetsMenu(menu, [&](const QString& p) { inserted = p; });
+    QAction* found{};
+    for(auto* top : menu.actions())
+      if(top->menu() && top->text() == "Drums")
+        for(auto* act : top->menu()->actions())
+          if(act->text() == "Menu kick")
+            found = act;
+    REQUIRE(found);
+    found->trigger();
+    CHECK(inserted == path);
+
+    // None in the library: said so
+    model.rescan();
+    QMenu empty;
+    Scenario::fillSnippetsMenu(empty, [](const QString&) {});
+    bool listed = false;
+    for(auto* act : empty.actions())
+      listed |= act->text() == "Menu kick";
+    CHECK_FALSE(listed);
+  });
+}

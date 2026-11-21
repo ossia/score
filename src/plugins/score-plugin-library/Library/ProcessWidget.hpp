@@ -12,6 +12,8 @@
 #include <QSplitter>
 #include <QTreeView>
 
+#include <QPlainTextEdit>
+
 #include <functional>
 
 #include <score_plugin_library_export.h>
@@ -28,6 +30,7 @@ namespace Library
 {
 class ProcessesItemModel;
 class PresetItemModel;
+class InfoWidget;
 
 class PresetLibraryHandler final
     : public QObject
@@ -101,6 +104,16 @@ private:
 
   QWidget m_preview;
   QWidget* m_previewChild{};
+
+  //! What the selected snippet or preset of the user says it is, edited in
+  //! place: written into its file once the field loses the focus.
+  InfoWidget* m_info{};
+  QPlainTextEdit* m_descriptionEdit{};
+  QString m_descriptionShown;
+  std::function<void(const QString&)> m_saveDescription;
+  void editDescription(const QString& text, std::function<void(const QString&)> save);
+  void commitDescription();
+  QLineEdit* m_presetSearch{};
   //! Rebuilds the preset preview for the row that is current, when one is.
   std::function<void()> m_refreshPresetPreview;
 };
