@@ -29,7 +29,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
 {
   new QVBoxLayout{m_widget};
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-  m_widget->setMinimumHeight(400);
+  m_widget->setMinimumHeight(200);
   m_widget->setMinimumWidth(200);
 
   score::setHelp(

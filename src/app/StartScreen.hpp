@@ -34,6 +34,7 @@
 #include <QPixmap>
 #include <QLocale>
 #include <QPlainTextEdit>
+#include <QResizeEvent>
 #include <QPointer>
 #include <QMainWindow>
 #include <QMenu>
@@ -1104,9 +1105,15 @@ public:
   //! Shows the start screen again after an action that led nowhere (cancelled dialog...)
   void reopen();
 
+  //! The size the artwork is drawn for.
   static constexpr int Width = 880;
   static constexpr int Height = 640;
   static constexpr int HeaderHeight = 220;
+  //! A window shorter than Height takes the difference from the header, down
+  //! to this: a 4K screen at 300% leaves less than Height under a menu bar,
+  //! a dock or a panel and the window's title bar.
+  static constexpr int MinimumHeaderHeight = 140;
+  static constexpr int MinimumHeight = Height - (HeaderHeight - MinimumHeaderHeight);
   static constexpr int NavWidth = 190;
   static constexpr int MaxRecentFiles = 8;
 
@@ -1117,8 +1124,11 @@ protected:
   void closeEvent(QCloseEvent* event) override;
   void showEvent(QShowEvent* event) override;
   void hideEvent(QHideEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
 
 private:
+  int headerHeight() const noexcept;
+
   struct Link
   {
     QString text;
@@ -1240,6 +1250,7 @@ private:
 
   QPixmap m_background;
   QPixmap m_logo;
+  QWidget* m_headerWidget{};
 
   QStackedWidget* m_pages{};
   std::vector<InteractiveLabel*> m_navItems;
@@ -1271,7 +1282,7 @@ StartScreen::StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget*
   auto& skin = score::Skin::instance();
   setCursor(skin.CursorPointer);
   setFocusPolicy(Qt::StrongFocus);
-  setMinimumSize(Width, Height);
+  setMinimumSize(Width, MinimumHeight);
   // Covers the whole main window, and follows its size.
   if(parent)
   {
@@ -1416,6 +1427,7 @@ QWidget* StartScreen::createHeader()
   // controls that sit on top of it.
   auto header = new QWidget{this};
   header->setFixedHeight(HeaderHeight);
+  m_headerWidget = header;
   auto lay = new QHBoxLayout{header};
   lay->setContentsMargins(0, 10, 10, 0);
   lay->setSpacing(12);
@@ -2596,33 +2608,38 @@ void StartScreen::paintEvent(QPaintEvent* event)
         m_background.rect());
   }
 
+  const int header = headerHeight();
+
   // Scaled up, the decorations reach into the header: fade them out behind the
   // logo, the tagline and the version.
   {
-    QLinearGradient fade{QPointF{0, 0}, QPointF{0, qreal(HeaderHeight)}};
+    QLinearGradient fade{QPointF{0, 0}, QPointF{0, qreal(header)}};
     fade.setColorAt(0, QColor{0, 0, 0, 255});
     fade.setColorAt(0.92, QColor{0, 0, 0, 255});
     fade.setColorAt(1, QColor{0, 0, 0, 0});
-    painter.fillRect(QRect{0, 0, width(), HeaderHeight}, fade);
+    painter.fillRect(QRect{0, 0, width(), header}, fade);
   }
 
-  // The logo and tagline keep the scale they have at the minimum size, so that
-  // they line up with HeaderHeight.
-  qreal scale = 1.;
+  // The logo and tagline keep the scale they have at Width x Height, so that
+  // they line up with HeaderHeight, and shrink with a shorter header.
+  const qreal headerScale = qreal(header) / HeaderHeight;
+  qreal scale = headerScale;
   if(!m_logo.isNull())
   {
     const QSizeF logical = m_logo.deviceIndependentSize();
-    scale = std::max(Width / logical.width(), Height / logical.height());
+    scale = headerScale * std::max(Width / logical.width(), Height / logical.height());
     painter.drawPixmap(QRectF{QPointF{}, logical * scale}, m_logo, m_logo.rect());
   }
 
   // The version sits under the tagline, which is part of the artwork
-  painter.setFont(m_versionFont);
+  QFont versionFont = m_versionFont;
+  versionFont.setPixelSize(std::max(1, qRound(m_versionFont.pixelSize() * headerScale)));
+  painter.setFont(versionFont);
   painter.setPen(QPen{StartScreenColors::Version});
   {
     // Branch builds carry the branch name: keep it inside the header
     const qreal x = 217 * scale;
-    const QFontMetrics fm{m_versionFont};
+    const QFontMetrics fm{versionFont};
     painter.drawText(
         QPointF(x, 188 * scale), fm.elidedText(
                                      QCoreApplication::applicationVersion(),
@@ -2631,12 +2648,12 @@ void StartScreen::paintEvent(QPaintEvent* event)
 
   // Dim the artwork behind the navigation so that its text stays readable
   painter.fillRect(
-      QRect{0, HeaderHeight, NavWidth, height() - HeaderHeight}, QColor{0, 0, 0, 120});
+      QRect{0, header, NavWidth, height() - header}, QColor{0, 0, 0, 120});
 
   // Page panel. The selected navigation item paints itself with the panel
   // color so that it visually connects to the page.
   painter.fillRect(
-      QRect{NavWidth, HeaderHeight, width() - NavWidth, height() - HeaderHeight},
+      QRect{NavWidth, header, width() - NavWidth, height() - header},
       StartScreenColors::Panel);
 }
 
@@ -2649,6 +2666,18 @@ void StartScreen::showEvent(QShowEvent* event)
     setGeometry(p->rect());
   raise();
   setFocus();
+}
+
+int StartScreen::headerHeight() const noexcept
+{
+  return std::clamp(HeaderHeight - (Height - height()), MinimumHeaderHeight, HeaderHeight);
+}
+
+void StartScreen::resizeEvent(QResizeEvent* event)
+{
+  QWidget::resizeEvent(event);
+  if(m_headerWidget)
+    m_headerWidget->setFixedHeight(headerHeight());
 }
 
 void StartScreen::hideEvent(QHideEvent* event)
