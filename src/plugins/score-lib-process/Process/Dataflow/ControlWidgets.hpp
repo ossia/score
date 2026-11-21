@@ -1,4 +1,5 @@
 #pragma once
+#include <score/model/Skin.hpp>
 #include <State/Value.hpp>
 
 #include <Process/Commands/SetControlValue.hpp>
@@ -1080,7 +1081,7 @@ struct LineEdit
     initWidgetProperties(inlet, *sl);
     sl->setTextWidth(180.);
     sl->setDefaultTextColor(QColor{"#E0B01E"});
-    sl->setCursor(Qt::IBeamCursor);
+    sl->setCursor(score::Skin::instance().cursor(Qt::IBeamCursor));
 
     sl->setPlainText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
 

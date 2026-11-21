@@ -112,20 +112,67 @@ bool transpose(Pattern& p, int semitones) noexcept
   return moved;
 }
 
-void addLane(Pattern& p)
+//! A note no lane plays, as close under `ref` as there is one: lanes go from
+//! the high notes down. Above it once everything under is taken.
+static uint8_t freeNote(const Pattern& p, int ref) noexcept
+{
+  for(int n = ref - 1; n >= 0; n--)
+    if(!hasLane(p, uint8_t(n)))
+      return uint8_t(n);
+  for(int n = ref + 1; n < 128; n++)
+    if(!hasLane(p, uint8_t(n)))
+      return uint8_t(n);
+  return uint8_t(ref);
+}
+
+int addLane(Pattern& p, int after)
 {
   if(std::ssize(p.lanes) >= Pattern::maxLanes)
-    return;
-  auto last = std::find_if(
-      p.lanes.rbegin(), p.lanes.rend(), [](const Lane& l) { return l.note < 128; });
-  Lane lane = last != p.lanes.rend()
-                  ? *last
-                  : Lane{std::vector<Note>(p.length, Note::Rest), 36};
-  auto controls = std::find_if(
-      p.lanes.begin(), p.lanes.end(), [](const Lane& l) { return isControlLane(l); });
-  if(last != p.lanes.rend() && controls < last.base())
-    controls = last.base();
-  p.lanes.insert(controls, std::move(lane));
+    return -1;
+
+  int at{};
+  if(ossia::valid_index(after, p.lanes))
+  {
+    at = after + 1;
+  }
+  else
+  {
+    // Under the last note lane: the accent and the slide close the list.
+    at = int(p.lanes.size());
+    while(at > 0 && isControlLane(p.lanes[at - 1]))
+      at--;
+  }
+
+  // Named after the nearest note lane, the one above first.
+  int ref = -1;
+  for(int i = at - 1; i >= 0 && ref < 0; i--)
+    if(!isControlLane(p.lanes[i]))
+      ref = p.lanes[i].note;
+  for(int i = at; i < std::ssize(p.lanes) && ref < 0; i++)
+    if(!isControlLane(p.lanes[i]))
+      ref = p.lanes[i].note;
+
+  Lane lane;
+  lane.note = ref < 0 ? uint8_t(36) : freeNote(p, ref);
+  lane.pattern.assign(std::max(p.length, 1), Note::Rest);
+  lane.params.resize(lane.pattern.size());
+  p.lanes.insert(p.lanes.begin() + at, std::move(lane));
+  return at;
+}
+
+int moveLane(Pattern& p, int lane, int delta) noexcept
+{
+  if(!ossia::valid_index(lane, p.lanes))
+    return -1;
+  const int to = std::clamp(lane + delta, 0, int(p.lanes.size()) - 1);
+  if(to == lane)
+    return -1;
+  const auto b = p.lanes.begin();
+  if(to < lane)
+    std::rotate(b + to, b + lane, b + lane + 1);
+  else
+    std::rotate(b + lane, b + lane + 1, b + to + 1);
+  return to;
 }
 
 bool hasLane(const Pattern& p, uint8_t note) noexcept

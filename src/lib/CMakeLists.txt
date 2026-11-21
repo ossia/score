@@ -238,6 +238,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Clamp.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cuda.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/X11CursorScale.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/DeleteAll.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/File.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/FindStringInFile.hpp"
@@ -363,6 +364,8 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MessageBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MimeData.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CursorTheme.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CursorThemeNative.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Pixmap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/PluginWindow.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/PromptLineEdit.hpp"
@@ -571,7 +574,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/PluginWindow.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/PromptLineEdit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QuantificationWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CursorTheme.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/X11CursorScale.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SelectionButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.cpp"
@@ -662,6 +667,7 @@ if(APPLE)
     target_sources(score_lib_base PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CursorThemeMac.mm"
     )
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${AppKit_FK}
@@ -670,9 +676,21 @@ if(APPLE)
     set_source_files_properties(
         "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CursorThemeMac.mm"
         PROPERTIES
           SKIP_UNITY_BUILD_INCLUSION 1
     )
+endif()
+
+# The cursors of the frames and of the blocked windows, which no Qt event
+# reaches on Windows.
+if(WIN32)
+  target_sources(score_lib_base PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CursorThemeWin.cpp")
+  # windows.h in its own translation unit.
+  set_source_files_properties(
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CursorThemeWin.cpp"
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION 1)
 endif()
 
 # Relative pointer motion. On Wayland Qt exposes neither zwp_pointer_constraints_v1
@@ -701,6 +719,9 @@ if(UNIX AND NOT APPLE AND NOT WIN32 AND NOT EMSCRIPTEN)
     set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/PointerLock.cpp"
       APPEND PROPERTY
         COMPILE_DEFINITIONS SCORE_HAS_X11_POINTER_LOCK=1)
+    set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/X11CursorScale.cpp"
+      APPEND PROPERTY
+        COMPILE_DEFINITIONS SCORE_HAS_X11_CURSOR_SCALE=1)
   endif()
 
   if(WAYLAND_CLIENT_FOUND AND WAYLAND_PROTOCOLS_FOUND)

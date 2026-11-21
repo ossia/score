@@ -3,6 +3,7 @@
 #include "SetIcons.hpp"
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/widgets/CursorTheme.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -304,39 +305,32 @@ QPixmap get_pixmap(QString str, QString svg)
 
 QCursor get_cursor(QString str, double hotspot_x, double hotspot_y)
 {
-  QCursor cur;
   const auto& appSettings = score::AppContext().applicationSettings;
   if(!appSettings.gui)
-    return cur;
+    return {};
 
-  // Here we don't care about the vector gui thing as cursors are never scaled
-  QPixmap img;
-  if(qGuiApp->devicePixelRatio() >= 1.5)
-  {
-    auto newstr = str;
-    newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
-    if(QFile::exists(newstr))
-    {
-      str = newstr;
-      img.load(str);
-      img.setDevicePixelRatio(2.);
-    }
-    else
-    {
-      qDebug() << "hidpi pixmap not found: " << newstr;
-      img.load(str);
-    }
-  }
-  else
-  {
-    img.load(str);
-  }
-  double hotspot_scale = 1.;
-  if(QGuiApplication::platformName() == QLatin1String("xcb"))
-    hotspot_scale = img.devicePixelRatio();
+  // The 1x bitmap gives the canvas, the 2x one the detail; both are drawn
+  // at the size CursorTheme gives its own cursors.
+  const QPixmap base{str};
+  if(base.isNull())
+    return {};
 
-  cur = QCursor{img, (int)(hotspot_x * hotspot_scale), (int)(hotspot_y * hotspot_scale)};
-  return cur;
+  // The hotspot names a pixel of the 1x bitmap: its centre clicks.
+  const auto& theme = CursorTheme::instance();
+  (void)theme.cursor(CursorArtwork::Pointer);
+  const auto g = cursorGeometry(
+      theme.platform(), base.size(), QPointF(int(hotspot_x) + 0.5, int(hotspot_y) + 0.5),
+      theme.zoom(), theme.screenScale());
+
+  auto detailed = str;
+  detailed.replace(".png", "@2x.png", Qt::CaseInsensitive);
+  const QPixmap source{QFile::exists(detailed) ? detailed : str};
+  QPixmap img = source.size() == g.pixelSize
+                    ? source
+                    : source.scaled(
+                          g.pixelSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+  img.setDevicePixelRatio(g.devicePixelRatio);
+  return QCursor{img, g.hotspot.x(), g.hotspot.y()};
 }
 
 QImage get_image(QString str, QString svg)

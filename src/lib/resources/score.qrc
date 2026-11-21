@@ -562,6 +562,30 @@
         <file>icons/cursor_drag_device@2x.png</file>
         <file>icons/cursor_pointing_hand.png</file>
         <file>icons/cursor_pointing_hand@2x.png</file>
+        <file>icons_svg/mouse_pointer/cursor_busy.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_closed_hand.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_creation_mode.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_cross.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_drag_copy.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_drag_link.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_drag_move.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_forbidden.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_ibeam.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_magnifier.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_move.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_open_hand.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_play_from_here.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_pointer.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_pointing_hand.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_scale_fdiag.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_scale_h.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_scale_v.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_spin.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_split_h.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_split_v.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_up_arrow.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_wait.svg</file>
+        <file>icons_svg/mouse_pointer/cursor_whats_this.svg</file>
         <file>icons/cursor_scale_fdiag.png</file>
         <file>icons/cursor_scale_fdiag@2x.png</file>
         <file>icons/cursor_spin.png</file>

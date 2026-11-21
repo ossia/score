@@ -128,14 +128,12 @@ struct value_loop : tagged_pass_stack<value_loop, tagged_pass, 32>
   uint32_t next_serial{};
 
   //! A key the pass being taken in holds: where, and how far into the pass,
-  //! it had its first new value, the way the playhead went then, and the
-  //! stretch it holds it over.
+  //! it had its first new value, and the stretch it holds it over.
   struct touch
   {
     uint16_t key;
     int64_t first;
     int64_t at;
-    bool backwards;
     int stretch;
   };
   std::array<touch, max_touched> touches{};
@@ -208,13 +206,13 @@ struct value_loop : tagged_pass_stack<value_loop, tagged_pass, 32>
     event_count = out;
   }
 
-  //! Heard, the pass being taken in included. `own_mute` false hears a muted
-  //! pass's material as if it were not muted.
+  //! Heard, the pass being taken in included. `own_mute` false hears the
+  //! material of a muted or stopped pass as if it were neither.
   template <typename T>
   bool heard(const T& e, bool own_mute = true) const noexcept
   {
     return e.pass < count && !replaced(e.replaced_by, e.pass, false)
-           && !(own_mute && layers[e.pass].muted);
+           && !(own_mute && silent(e.pass));
   }
 
   //! The open stretch the pass being taken in holds `key` over, -1 for none.
@@ -239,7 +237,7 @@ struct value_loop : tagged_pass_stack<value_loop, tagged_pass, 32>
 
   //! The pass being taken in has its first new value of `key` at `pos`,
   //! `at` frames into it: it holds the key from there on.
-  void touch_key(uint16_t key, int64_t pos, int64_t at, bool backwards) noexcept
+  void touch_key(uint16_t key, int64_t pos, int64_t at) noexcept
   {
     if(touched(key) || touch_count >= max_touched
        || !make_room(stretch_count, max_stretches))
@@ -253,7 +251,7 @@ struct value_loop : tagged_pass_stack<value_loop, tagged_pass, 32>
         .pass = uint8_t(count - 1),
         .replaced_by = 0,
         .merged = 0};
-    touches[touch_count++] = touch{key, pos, at, backwards, stretch_count};
+    touches[touch_count++] = touch{key, pos, at, stretch_count};
     stretch_count++;
     update_open_stretches();
   }
@@ -278,13 +276,9 @@ struct value_loop : tagged_pass_stack<value_loop, tagged_pass, 32>
 
   void set_stretch(value_stretch& s, const touch& t, int64_t span) noexcept
   {
-    int64_t from = t.backwards ? t.first - span : t.first;
+    int64_t from = t.first;
     if(length > 0)
-    {
       from %= length;
-      if(from < 0)
-        from += length;
-    }
     if(s.from != from || s.span != span)
       edits++;
     s.from = from;

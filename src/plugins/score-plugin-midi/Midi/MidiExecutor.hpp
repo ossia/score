@@ -34,6 +34,7 @@ public:
   void on_noteAdded(const Midi::Note&);
   void on_noteRemoved(const Midi::Note&);
   void on_notesReplaced();
+  void connect_note(const Midi::Note&);
 
   ossia::nodes::note_data to_note(const NoteData& n);
 };

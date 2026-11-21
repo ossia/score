@@ -34,6 +34,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -553,6 +554,224 @@ void mute_and_erase(H& h)
     CHECK(h.passes() == 3);
     CHECK(mode(h) == LoopMode::Overdub);
     CHECK(h.node.transport.is_taking());
+  }
+}
+
+//! Play / Stop layer stops the layer Layer says on the grid, and plays it
+//! again: it is not a mute, and nothing Undo goes back through. A press
+//! still waiting for the grid is taken back by Undo, as any press is.
+template <typename H>
+void stop_and_play(H& h)
+{
+  auto& in = h.node.inputs;
+  four_layers(h);
+  CHECK(in.layer.value == 4);
+  const int steps = h.undo_steps();
+  const double newest = h.signature(3);
+
+  press_off_beat(h, in.stop_layer);
+  CHECK(!h.stopped(3));
+  next_beat(h);
+  CHECK(h.stopped(3));
+  CHECK(!h.muted(3));
+  CHECK(h.passes() == 4);
+  CHECK(h.undo_steps() == steps);
+  // What the layer holds is kept.
+  CHECK(same(h.signature(3), newest));
+
+  // Another layer, the first one staying stopped.
+  press(h, in.previous_layer);
+  CHECK(in.layer.value == 3);
+  at_beat(h, in.stop_layer);
+  CHECK(h.stopped(2));
+  CHECK(h.stopped(3));
+  at_beat(h, in.stop_layer);
+  CHECK(!h.stopped(2));
+  CHECK(h.stopped(3));
+
+  // A mute of a stopped layer and its undo leave it stopped.
+  in.layer.value = 4;
+  at_beat(h, in.mute_layer);
+  CHECK(h.muted(3));
+  CHECK(h.stopped(3));
+  press(h, in.undo);
+  CHECK(!h.muted(3));
+  CHECK(h.stopped(3));
+  CHECK(h.passes() == 4);
+
+  // A solo leaves the stops alone.
+  in.layer.value = 1;
+  at_beat(h, in.solo_layer);
+  CHECK(h.muted(3));
+  CHECK(h.stopped(3));
+  at_beat(h, in.solo_layer);
+  CHECK(!h.muted(3));
+  CHECK(h.stopped(3));
+
+  // A press waiting for the grid is taken back by Undo.
+  in.layer.value = 4;
+  press_off_beat(h, in.stop_layer);
+  press(h, in.undo);
+  next_beat(h);
+  CHECK(h.stopped(3));
+  CHECK(h.passes() == 4);
+
+  at_beat(h, in.stop_layer);
+  CHECK(!h.stopped(3));
+  CHECK(mode(h) == LoopMode::Play);
+
+  // Stopped while it is overdubbed, the layer goes on being taken in.
+  at_beat(h, in.overdub);
+  beats(h, 1);
+  const int passes = h.passes();
+  in.layer.value = passes;
+  at_beat(h, in.stop_layer);
+  CHECK(h.stopped(passes - 1));
+  CHECK(mode(h) == LoopMode::Overdub);
+  CHECK(h.node.transport.is_taking());
+}
+
+// Reverse. The harness plays marks, each over one tick, and says which ones
+// the loop plays and when: h.marking, h.mark_tick(id), h.heard. A mark played
+// over tick k of a loop of n ticks is heard over tick k when the loop plays
+// forwards, and over tick n - 1 - k when it plays backwards.
+
+//! Marks by the tick of the loop they are played or heard in.
+using marks = std::map<int, int>;
+
+//! Runs `ticks` ticks, playing the marks of `played`, and gives the marks the
+//! loop played. `last` is called before the last tick: what it asks for is
+//! taken up on the beat the round ends on.
+template <typename H, typename F>
+marks marked_round(H& h, const marks& played, F&& last, int ticks = 4 * int(H::beat / H::frames))
+{
+  h.heard.clear();
+  const int64_t t0 = h.now;
+  for(int i = 0; i < ticks; i++)
+  {
+    if(i == ticks - 1)
+      last();
+    const auto it = played.find(i);
+    h.mark_tick(it == played.end() ? 0 : it->second);
+  }
+  marks r;
+  for(const auto& [t, id] : h.heard)
+    r[int((t - t0) / H::frames)] = id;
+  return r;
+}
+template <typename H>
+marks marked_round(H& h, const marks& played = {})
+{
+  return marked_round(h, played, [] {});
+}
+
+//! Starts a recording of a bar, four beats, on the next bar line, which
+//! gives way to `after`; the harness is left on that bar line.
+template <typename H>
+void record_marks_from_next_beat(H& h, AfterRecord after)
+{
+  auto& in = h.node.inputs;
+  h.marking = true;
+  h.playing_marks();
+  in.after_record = after;
+  in.postaction_bars.value = 1;
+  // Asked for in the last beat of a bar: taken up on the bar line.
+  while(h.now % (4 * H::beat) != 3 * H::beat + H::frames)
+    h.tick_once();
+  in.record.value.emplace();
+  h.tick_once();
+  in.record.value.reset();
+  while(h.now % (4 * H::beat) != 0)
+    h.tick_once();
+}
+
+//! With Reverse on from the start, a recording that goes on into an overdub:
+//! what is recorded and what is overdubbed both come back reversed, and both
+//! play as they were played once Reverse is off.
+template <typename H>
+void reverse_record_then_overdub(H& h)
+{
+  auto& in = h.node.inputs;
+  in.reverse.value = true;
+  record_marks_from_next_beat(h, AfterRecord::Overdub);
+  marked_round(h, {{2, 1}, {7, 2}});
+  // The recording closes on the first frame of the next tick.
+  marked_round(h, {{12, 3}}, [&] { in.mode.value = LoopMode::Play; });
+  REQUIRE(h.length() == 4 * H::beat);
+  CHECK(mode(h) == LoopMode::Overdub);
+  CHECK(h.passes() == 2);
+
+  CHECK(marked_round(h) == marks{{17, 1}, {12, 2}, {7, 3}});
+  CHECK(mode(h) == LoopMode::Play);
+  CHECK(marked_round(h) == marks{{17, 1}, {12, 2}, {7, 3}});
+  in.reverse.value = false;
+  CHECK(marked_round(h) == marks{{2, 1}, {7, 2}, {12, 3}});
+}
+
+//! A loop recorded forwards plays backwards once Reverse is on; an overdub
+//! made then comes back reversed with it, and Reverse off plays every layer
+//! as it was played.
+template <typename H>
+void reverse_after_recording(H& h)
+{
+  auto& in = h.node.inputs;
+  record_marks_from_next_beat(h, AfterRecord::Play);
+  marked_round(h, {{2, 1}, {7, 2}});
+  CHECK(marked_round(h) == marks{{2, 1}, {7, 2}});
+  CHECK(mode(h) == LoopMode::Play);
+
+  in.reverse.value = true;
+  CHECK(
+      marked_round(h, {}, [&] { in.mode.value = LoopMode::Overdub; })
+      == marks{{17, 1}, {12, 2}});
+  marked_round(h, {{12, 3}}, [&] { in.mode.value = LoopMode::Play; });
+  CHECK(mode(h) == LoopMode::Overdub);
+  CHECK(marked_round(h) == marks{{17, 1}, {12, 2}, {7, 3}});
+  CHECK(h.passes() == 2);
+
+  in.reverse.value = false;
+  CHECK(marked_round(h) == marks{{2, 1}, {7, 2}, {12, 3}});
+  in.reverse.value = true;
+  CHECK(marked_round(h) == marks{{17, 1}, {12, 2}, {7, 3}});
+}
+
+//! With Reverse on, an overdub that goes round the loop several times, as
+//! one pass or as a pass per cycle: what each round took in comes back
+//! reversed, in the round it is played in already, once the loop's playhead
+//! has crossed the one of the pass. A looper whose passes replace keeps the
+//! last round only.
+template <typename H>
+void reverse_continuous_overdub(H& h, bool per_cycle)
+{
+  auto& in = h.node.inputs;
+  in.reverse.value = true;
+  in.passes.value = per_cycle ? Passes::PerCycle : Passes::Whole;
+  record_marks_from_next_beat(h, AfterRecord::Overdub);
+  marked_round(h, {{2, 1}});
+  marked_round(h, {{12, 3}});
+  // The second round of the overdub: the first one is heard backwards, and
+  // what is played now is as well, from where it was played on.
+  const auto live = marked_round(h, {{4, 5}}, [&] { in.mode.value = LoopMode::Play; });
+  CHECK(mode(h) == LoopMode::Overdub);
+  const auto reversed = marked_round(h);
+  CHECK(mode(h) == LoopMode::Play);
+  in.reverse.value = false;
+  const auto forwards = marked_round(h);
+
+  if(!H::overdub_replaces)
+  {
+    CHECK(live == marks{{17, 1}, {7, 3}, {15, 5}});
+    CHECK(reversed == marks{{17, 1}, {7, 3}, {15, 5}});
+    CHECK(forwards == marks{{2, 1}, {12, 3}, {4, 5}});
+    CHECK(h.passes() == (per_cycle ? 3 : 2));
+  }
+  else
+  {
+    CHECK(live.count(15));
+    CHECK(reversed.count(15));
+    CHECK(reversed.at(15) == 5);
+    CHECK(forwards.count(4));
+    CHECK(forwards.at(4) == 5);
   }
 }
 

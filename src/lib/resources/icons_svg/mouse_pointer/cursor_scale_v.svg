@@ -83,7 +83,13 @@
      style="display:inline;opacity:1">
     <path
        id="polygon10-3"
-       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 4.2332768,2.6458342 V 5.8208333 H 3.3072544 L 4.3655877,6.8791667 5.4239211,5.8208333 H 4.4969094 l -1.5e-5,-3.1749942 0.9270267,-8e-6 L 4.3655877,1.5875 3.3072544,2.6458276 Z"
+       class="st2"
+       sodipodi:nodetypes="ccccccccccc" />
+    <path
+       id="polygon10-3-fill"
+       style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:none;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 4.2332768,2.6458342 V 5.8208333 H 3.3072544 L 4.3655877,6.8791667 5.4239211,5.8208333 H 4.4969094 l -1.5e-5,-3.1749942 0.9270267,-8e-6 L 4.3655877,1.5875 3.3072544,2.6458276 Z"
        class="st2"
        sodipodi:nodetypes="ccccccccccc" />

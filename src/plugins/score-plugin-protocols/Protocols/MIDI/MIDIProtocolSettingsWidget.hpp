@@ -15,6 +15,7 @@ namespace score
 class ComboBox;
 }
 class QCheckBox;
+class QComboBox;
 class QRadioButton;
 class QWidget;
 class QLineEdit;
@@ -37,6 +38,7 @@ private:
   QCheckBox* m_createWhole{};
   QCheckBox* m_virtualPort{};
   QCheckBox* m_velocityZeroIsNoteOff{};
+  QComboBox* m_controllers{};
   Device::DeviceSettings m_current;
 };
 class MIDIOutputSettingsWidget final : public Device::ProtocolSettingsWidget

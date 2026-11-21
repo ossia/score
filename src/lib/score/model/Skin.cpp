@@ -4,6 +4,7 @@
 
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/widgets/CursorTheme.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
@@ -237,7 +238,7 @@ bool setGlobalScaleFactor(double factor)
     return false;
 
   // Same bounds Application.cpp applies when it reads Skin/Zoom at startup.
-  if(!(factor >= 1.0 && factor <= 10.0))
+  if(!(factor >= minimumGlobalScaleFactor && factor <= 10.0))
     return false;
 
 #if SCORE_HAS_LIVE_SCALE_FACTOR && QT_CONFIG(highdpiscaling)
@@ -261,9 +262,13 @@ bool setGlobalScaleFactor(double factor)
       w->setWindowState(state);
   }
 
+  // The cursors are drawn at the size the zoom gives them.
+  CursorTheme::instance().setZoom(factor);
+
   // Every glyph image and pixmap was rasterised at the previous ratio, which
   // score::newImage() bakes in at creation.
   Skin& skin = Skin::instance();
+  skin.loadCursors();
   skin.LoadIndex++;
   skin.changed();
   return true;
@@ -377,38 +382,32 @@ Skin::Skin() noexcept
   SliderLine = QPen{QColor{"#c58014"}, 1, Qt::SolidLine, Qt::FlatCap};
   SliderTextPen = QColor{"#d0d0d0"};
 
-  int hotspotX = 12;
-  int hotspotY = 10;
-  CursorPointer = score::get_cursor(":/icons/cursor_pointer.png", hotspotX, hotspotY);
+  loadCursors();
+}
 
-  int centerHotspot = 16;
-  CursorOpenHand
-      = score::get_cursor(":/icons/cursor_open_hand.png", centerHotspot, centerHotspot);
-  CursorClosedHand = score::get_cursor(
-      ":/icons/cursor_closed_hand.png", centerHotspot, centerHotspot);
-  CursorPointingHand = score::get_cursor(
-      ":/icons/cursor_pointing_hand.png", centerHotspot, centerHotspot);
+void Skin::loadCursors()
+{
+  if(!score::AppContext().applicationSettings.gui)
+    return;
 
-  int hotspot = 15;
-  CursorMagnifier = score::get_cursor(":/icons/cursor_magnifier.png", hotspot, hotspot);
-  CursorMove = score::get_cursor(":/icons/cursor_move.png", hotspot, hotspot);
+  const auto& theme = CursorTheme::instance();
+  CursorPointer = theme.cursor(CursorArtwork::Pointer);
+  CursorOpenHand = theme.cursor(CursorArtwork::OpenHand);
+  CursorClosedHand = theme.cursor(CursorArtwork::ClosedHand);
+  CursorPointingHand = theme.cursor(CursorArtwork::PointingHand);
+  CursorMagnifier = theme.cursor(CursorArtwork::Magnifier);
+  CursorMove = theme.cursor(CursorArtwork::Move);
+  CursorScaleH = theme.cursor(CursorArtwork::ScaleH);
+  CursorScaleV = theme.cursor(CursorArtwork::ScaleV);
+  CursorScaleFDiag = theme.cursor(CursorArtwork::ScaleFDiag);
+  CursorSpin = theme.cursor(CursorArtwork::Spin);
+  CursorPlayFromHere = theme.cursor(CursorArtwork::PlayFromHere);
+  CursorCreationMode = theme.cursor(CursorArtwork::CreationMode);
+}
 
-  CursorScaleH
-      = score::get_cursor(":/icons/cursor_scale_h.png", centerHotspot, centerHotspot);
-  CursorScaleV
-      = score::get_cursor(":/icons/cursor_scale_v.png", centerHotspot, centerHotspot);
-  CursorScaleFDiag = score::get_cursor(
-      ":/icons/cursor_scale_fdiag.png", centerHotspot, centerHotspot);
-
-  CursorSpin
-      = score::get_cursor(":/icons/cursor_spin.png", centerHotspot, centerHotspot);
-
-  hotspotX = 12;
-  hotspotY = 10;
-  CursorPlayFromHere
-      = score::get_cursor(":/icons/cursor_play_from_here.png", hotspotX, hotspotY);
-  CursorCreationMode
-      = score::get_cursor(":/icons/cursor_creation_mode.png", hotspotY, hotspotX);
+QCursor Skin::cursor(Qt::CursorShape shape) const noexcept
+{
+  return CursorTheme::instance().cursor(shape);
 }
 
 const std::vector<std::pair<const char*, QPalette::ColorRole>>&

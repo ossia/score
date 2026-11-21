@@ -271,6 +271,12 @@ public:
   QCursor CursorPlayFromHere;
   QCursor CursorCreationMode;
 
+  //! The cursor score shows in place of a standard shape (see CursorTheme).
+  QCursor cursor(Qt::CursorShape shape) const noexcept;
+
+  //! Takes the cursors from CursorTheme, which builds them for the zoom.
+  void loadCursors();
+
   const Brush* fromString(const QString& s) const;
   Brush* fromString(const QString& s);
   QString toString(const Brush*) const;
@@ -407,6 +413,9 @@ SCORE_LIB_BASE_EXPORT QFont defaultApplicationFont() noexcept;
 //! exists from 5.6 but only updates the screens from 6.5 and only emits the
 //! QScreen signals from 6.6.
 SCORE_LIB_BASE_EXPORT bool canSetGlobalScaleFactorLive() noexcept;
+
+//! The smallest zoom of the user interface that stays usable.
+inline constexpr double minimumGlobalScaleFactor = 0.5;
 
 //! QT_SCALE_FACTOR, live, through Qt private API. Qt warns on the console
 //! when windows are open; the factor still applies. Bumps the Skin and emits

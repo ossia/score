@@ -1,5 +1,6 @@
 #include <score/graphics/widgets/QGraphicsSelectablePixmapToggle.hpp>
 #include <score/model/Skin.hpp>
+#include <score/widgets/CursorTheme.hpp>
 
 #include <QApplication>
 #include <QDrag>
@@ -119,6 +120,7 @@ void QGraphicsDraggablePixmap::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
       auto drag = new QDrag{this};
       drag->setMimeData(mime);
+      score::CursorTheme::instance().setDragCursors(*drag);
       drag->exec();
     }
   }

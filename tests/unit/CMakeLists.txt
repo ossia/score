@@ -503,6 +503,16 @@ score_add_test(test_unit_application_settings
 score_add_test(test_unit_skin_defaults
   SOURCES SkinDefaultsTest.cpp)
 
+# The size and hotspot of score's cursors on each platform, against what Qt's
+# platform plug-ins do with a pixmap cursor.
+score_add_test(test_unit_cursor_geometry
+  SOURCES CursorGeometryTest.cpp)
+
+# Each widget and window gets the cursors of its screen, on screens of
+# different scales (Qt's offscreen platform with several screens).
+score_add_test(test_unit_cursor_screens
+  SOURCES CursorScreensTest.cpp)
+
 score_add_test(test_unit_process_model
   SOURCES ProcessModelTest.cpp
   PLUGINS score_lib_process score_lib_state score_lib_device)
@@ -624,6 +634,14 @@ score_add_test(test_unit_midi_message
       SOURCES MidiFileTempoTest.cpp
       APP
       PLUGINS score_plugin_midi score_plugin_fx score_plugin_scenario score_lib_process)
+
+    # Notes edited in the piano roll while the score plays are played, for a
+    # MIDI process made by hand, from a file or from a looper's take, before
+    # or during playback.
+    score_add_test(test_unit_midi_edit_while_playing
+      SOURCES MidiEditWhilePlayingTest.cpp
+      APP
+      PLUGINS score_plugin_midi score_plugin_fx score_plugin_dataflow score_plugin_engine score_plugin_scenario score_lib_process)
   endif()
 endif()
 
@@ -636,6 +654,19 @@ if(TARGET score_plugin_media)
     SOURCES StepModelTest.cpp
     APP
     PLUGINS score_plugin_media score_plugin_audio score_lib_process)
+
+  # The metronome: its engine driven directly, then its model, the documents
+  # saved before it had controls, and the node of a playing document.
+  score_add_test(test_unit_metronome_node
+    SOURCES MetronomeNodeTest.cpp
+    PLUGINS score_plugin_media score_lib_process)
+  if(TARGET score_plugin_engine AND TARGET score_plugin_scenario)
+    score_add_test(test_unit_metronome_model
+      SOURCES MetronomeModelTest.cpp
+      APP
+      PLUGINS score_plugin_media score_plugin_audio score_plugin_library
+              score_plugin_engine score_plugin_scenario score_lib_process)
+  endif()
 endif()
 
 score_add_test(test_unit_path_generator_handle
@@ -1177,6 +1208,12 @@ score_add_test(test_unit_time_ruler
   SOURCES TimeRulerTest.cpp
   PLUGINS score_plugin_scenario)
 
+# The transport's bar readout in every time signature, and the grid its pulse
+# indicator lays the pulses of a bar on.
+score_add_test(test_unit_musical_position
+  SOURCES MusicalPositionTest.cpp
+  PLUGINS score_plugin_scenario)
+
 # --- PipeWire quantum handling ---------------------------------------------
 # Only built where pipewire headers are available (pipewire::pipewire is
 # created by libossia's deps when they are found).
@@ -1489,6 +1526,18 @@ score_add_test(test_unit_midi_malformed_message
 # SysEx7 packet it is made of, kept away from ports bound to a channel.
 score_add_test(test_unit_midi_sysex_input
   SOURCES MidiSysexInputTest.cpp)
+
+# Bank select, data entry and RPN / NRPN controllers from a MIDI input: either
+# forwarded as they are or combined into MIDI 2 messages, by a setting of the
+# device, and in neither case able to stop what the device sends afterwards.
+if(TARGET score_plugin_protocols)
+  score_add_test(test_unit_midi_controller_translation
+    APP
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/MidiControllerTranslationTest.cpp"
+    PLUGINS score_plugin_protocols score_lib_device score_lib_state)
+  target_include_directories(test_unit_midi_controller_translation PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-protocols")
+endif()
 
 # System-exclusive to a MIDI 1 destination: the SysEx7 packets a graph port
 # carries, sent one per call, leave a MIDI device output and reach an LV2

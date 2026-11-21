@@ -34,6 +34,7 @@ set(HEADER_FILES
   Patternist/PatternLibrary.hpp
   Patternist/PatternMetadata.hpp
   Patternist/PatternParsing.hpp
+  Patternist/PatternMidiImport.hpp
   Patternist/PatternEdit.hpp
   Patternist/PatternGrid.hpp
   Patternist/PatternTimeGrid.hpp
@@ -68,6 +69,7 @@ set(SOURCE_FILES
   Patternist/PatternPresenter.cpp
   Patternist/PatternExecutor.cpp
   Patternist/PatternParsing.cpp
+  Patternist/PatternMidiImport.cpp
   Patternist/PatternEdit.cpp
   Patternist/PatternGrid.cpp
   Patternist/PatternTimeGrid.cpp

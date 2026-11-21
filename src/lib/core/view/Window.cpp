@@ -8,6 +8,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/widgets/CursorTheme.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>
@@ -21,7 +22,9 @@
 
 #include <QApplication>
 #include <QCloseEvent>
+#include <QCursor>
 #include <QFontMetrics>
+#include <QGuiApplication>
 #include <QPainter>
 #include <QPushButton>
 #include <QScreen>
@@ -34,6 +37,8 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
+
+#include <algorithm>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 
@@ -179,6 +184,9 @@ private:
 View::View(QObject* parent)
     : QMainWindow{}
 {
+  // Every widget and window created from here on shows score's cursors.
+  score::CursorTheme::instance().install();
+
   setAutoFillBackground(false);
   setObjectName("View");
   setWindowIcon(QIcon("://ossia-score.png"));
@@ -202,9 +210,36 @@ View::View(QObject* parent)
     leftTabs->layout()->setSpacing(6);
   }
 
-  auto rect = QGuiApplication::primaryScreen()->availableGeometry();
-  this->resize(
-      static_cast<int>(rect.width() * 0.75), static_cast<int>(rect.height() * 0.75));
+  // Qt opens a new window on the screen under the mouse and only centres it
+  // when it fits there: a window sized for another screen keeps the logical
+  // position 0,0, which a screen of another scale maps far outside the
+  // desktop. Size and place it on that screen ourselves.
+  {
+    auto screen = QGuiApplication::screenAt(QCursor::pos());
+    if(!screen)
+      screen = QGuiApplication::primaryScreen();
+    // The geometry set here excludes the title bar, whose height is only
+    // known once the window exists: keep room for one as tall as Windows'.
+    // A Wayland compositor does not tell Qt about its panels: the available
+    // geometry is the whole output, so keep room for one panel as well.
+    int reserved = 32;
+    if(QGuiApplication::platformName().startsWith(QLatin1String("wayland")))
+      reserved += 48;
+    QRect available = screen->availableGeometry();
+    available.setTop(available.top() + reserved);
+
+    // Three quarters of the screen, but never smaller than what the start
+    // screen covering the window draws at full size (880x640), as long as the
+    // window and its borders still fit: 75% of a 4K screen at 300% is
+    // 960x540. Below that, the start screen shrinks its header.
+    const auto side = [](int avail, int floor) {
+      const int preferred = static_cast<int>(avail * 0.75);
+      return std::max(preferred, std::min(floor, avail - 16));
+    };
+    QRect rect{0, 0, side(available.width(), 1000), side(available.height(), 680)};
+    rect.moveCenter(available.center());
+    this->setGeometry(rect);
+  }
 
   auto totalWidg = new RectSplitter;
   totalWidg->setContentsMargins(0, 0, 0, 0);

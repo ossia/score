@@ -17,6 +17,7 @@
 namespace Scenario
 {
 class SpeedWidget;
+class TransportDisplay;
 }
 namespace Scenario
 {
@@ -40,7 +41,6 @@ namespace ossia
 class audio_engine;
 }
 
-class QLabel;
 namespace Engine
 {
 
@@ -62,7 +62,7 @@ public:
   void on_createdDocument(score::Document& doc) override;
   void on_documentChanged(score::Document* olddoc, score::Document* newdoc) override;
 
-  QWidget* setupTimingWidget(QLabel*);
+  QWidget* setupTimingWidget(Scenario::TransportDisplay*);
   void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
   Execution::ExecutionController& execution() { return m_execution; }

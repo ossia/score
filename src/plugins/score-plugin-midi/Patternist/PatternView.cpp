@@ -139,6 +139,8 @@ View::View(const Patternist::ProcessModel& model, QGraphicsItem* parent)
          "Right-click on a note: remove it\n"
          "Drag: paint over several steps\n"
          "Drag a lane name up or down: change its note\n"
+         "Right-click a lane name: move the lane up or down, add one under it\n"
+         "Drop a MIDI file: its notes replace the pattern's, on its grid\n"
          "In the parameter bars: Shift-drag moves them all, Alt-drag blends them "
          "towards a random state"));
 

@@ -13,6 +13,8 @@
 
 #include <Patternist/Commands/PatternProperties.hpp>
 #include <Patternist/PatternEdit.hpp>
+#include <Patternist/PatternMidiImport.hpp>
+#include <Patternist/PatternParsing.hpp>
 #include <Patternist/PatternView.hpp>
 
 namespace Patternist
@@ -121,11 +123,13 @@ void Controller::submit(const Pattern& p)
   disp.submit<UpdatePattern>(m_model, m_model.currentPattern(), p);
 }
 
-void Controller::fillMenu(QMenu& menu, int lane)
+void Controller::fillMenu(QMenu& menu, int lane, int addAfter)
 {
   if(!hasPattern())
     return;
   const auto& pat = m_model.patterns()[m_model.currentPattern()];
+  if(!ossia::valid_index(addAfter, pat.lanes))
+    addAfter = lane;
 
   if(ossia::valid_index(lane, pat.lanes))
   {
@@ -161,10 +165,26 @@ void Controller::fillMenu(QMenu& menu, int lane)
     remove->setEnabled(pat.lanes.size() > 1);
     connect(remove, &QAction::triggered, this, [this, lane] { removeLane(lane); });
     menu.addSeparator();
+
+    for(int delta : {-1, 1})
+    {
+      auto move = menu.addAction(delta < 0 ? tr("Move lane up") : tr("Move lane down"));
+      move->setEnabled(ossia::valid_index(lane + delta, pat.lanes));
+      if(const auto& keys = delta < 0 ? moveUpShortcut : moveDownShortcut; !keys.isEmpty())
+      {
+        move->setShortcut(keys);
+        move->setShortcutVisibleInContextMenu(true);
+      }
+      connect(move, &QAction::triggered, this, [this, lane, delta] {
+        moveLane(lane, delta);
+      });
+    }
+    menu.addSeparator();
   }
 
-  connect(
-      menu.addAction(tr("Add lane")), &QAction::triggered, this, [this] { addLane(); });
+  connect(menu.addAction(tr("Add lane")), &QAction::triggered, this, [this, addAfter] {
+    addLane(addAfter);
+  });
   for(auto [note, name] :
       {std::pair{accentLane, tr("Add accent lane")}, std::pair{slideLane, tr("Add slide lane")}})
   {
@@ -355,13 +375,75 @@ void Controller::toggleSolo(int lane)
   submit(p);
 }
 
-void Controller::addLane()
+void Controller::addLane(int after)
 {
   if(!hasPattern())
     return;
   auto p = current();
-  Patternist::addLane(p);
+  const int lane = Patternist::addLane(p, after);
+  if(lane < 0)
+  {
+    if(status)
+      status(tr("The pattern has all the lanes it can hold"));
+    return;
+  }
   submit(p);
+  if(selectLane)
+    selectLane(lane);
+}
+
+void Controller::moveLane(int lane, int delta)
+{
+  if(!hasPattern())
+    return;
+  auto p = current();
+  const int to = Patternist::moveLane(p, lane, delta);
+  if(to < 0)
+    return;
+  submit(p);
+  if(selectLane)
+    selectLane(to);
+}
+
+bool Controller::drop(const QMimeData& mime)
+{
+  if(!hasPattern())
+    return false;
+  if(const auto patterns = parsePatternFiles(mime);
+     !patterns.empty() && !patterns[0].empty())
+  {
+    submit(patterns[0][0]);
+    return true;
+  }
+  if(const auto clip = midiFromMime(mime))
+  {
+    importMidi(*clip);
+    return true;
+  }
+  return false;
+}
+
+void Controller::importMidi(const MidiClip& clip)
+{
+  if(!hasPattern())
+    return;
+  const auto match = matchToGrid(current(), clip);
+  if(match.notes == 0)
+  {
+    if(status)
+      status(tr("The MIDI file has no notes"));
+    return;
+  }
+  if(status)
+  {
+    QString text
+        = match.notes == 1 ? tr("1 note imported") : tr("%1 notes imported").arg(match.notes);
+    if(match.dropped > 0)
+      text += tr(", %1 left out past the end").arg(match.dropped);
+    status(text);
+  }
+  // After the status: nothing changing is reported in its place.
+  submit(match.pattern);
 }
 
 void Controller::addControlLane(uint8_t note)

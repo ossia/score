@@ -11,7 +11,7 @@ namespace Midi
 {
 class ProcessModel;
 
-class AddNote final : public score::Command
+class SCORE_PLUGIN_MIDI_TEST_EXPORT AddNote final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), AddNote, "Add a note")
 public:
@@ -30,7 +30,7 @@ private:
   NoteData m_note;
 };
 
-class AddNotes final : public score::Command
+class SCORE_PLUGIN_MIDI_TEST_EXPORT AddNotes final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), AddNotes, "Add multiple notes")
 public:

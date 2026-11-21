@@ -67,7 +67,7 @@ class ConsoleLibraryHandler final
       return false;
 
     auto& p = ctx.app.panel<JS::PanelDelegate>();
-    if(QFileInfo{f}.suffix() == "mjs")
+    if(QFileInfo{f}.suffix().compare("mjs", Qt::CaseInsensitive) == 0)
     {
       p.importModule(path);
     }
@@ -101,7 +101,8 @@ class LibraryHandler final
 
   std::optional<Library::ProcessEntry> scanPath(std::string_view path) override
   {
-    if(std::string_view{path}.ends_with(".ui.qml"))
+    if(QLatin1StringView{path.data(), qsizetype(path.size())}.endsWith(
+           QLatin1StringView{".ui.qml"}, Qt::CaseInsensitive))
       return std::nullopt;
 
     score::PathInfo pathinfo{path};

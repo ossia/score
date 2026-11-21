@@ -3,6 +3,7 @@
 
 #include <libremidi/api.hpp>
 #include <libremidi/observer_configuration.hpp>
+#include <libremidi/types.hpp>
 
 #include <verdigris>
 
@@ -22,6 +23,11 @@ struct MIDISpecificSettings
   bool createWholeTree{};
 
   bool velocityZeroIsNoteOff{};
+
+  //! For an input: whether bank select, data entry and RPN / NRPN controllers
+  //! reach the document as the control changes the device sent (raw) or as
+  //! the MIDI 2 messages they make together (semantic).
+  libremidi::controller_translation controllers{libremidi::controller_translation::raw};
 };
 }
 Q_DECLARE_METATYPE(Protocols::MIDISpecificSettings)
