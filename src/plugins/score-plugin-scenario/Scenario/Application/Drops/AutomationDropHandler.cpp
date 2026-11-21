@@ -46,13 +46,8 @@ bool DropScenario::drop(
     const auto& doc = pres.context().context;
     auto& sm = pres.model();
     auto path = mime.urls().first().toLocalFile();
-    if(QFile f{path}; QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
-    {
-      CommandDispatcher<> d{doc.commandStack};
-      d.submit(new Scenario::Command::ScenarioPasteElements(
-          sm, readJson(f.readAll()), pres.toScenarioPoint(pos)));
-      return true;
-    }
+    if(QFileInfo{path}.suffix() == "scenario")
+      return insertSnippet(pres, pos, path);
   }
 
   return false;

@@ -649,6 +649,19 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     if(self)
       insertSnippetInInterval(self->m_context, self->m_model, nodePos, path);
   });
+
+  // The nodes selected, with the cables between them.
+  if(ossia::any_of(m_context.selectionStack.currentSelection(), [](const auto& obj) {
+       return qobject_cast<const Process::ProcessModel*>(obj.data());
+     }))
+  {
+    menu.addSeparator();
+    auto save = menu.addAction(tr("Save selection as snippet"));
+    connect(save, &QAction::triggered, this, [self] {
+      if(self)
+        saveSelectionAsSnippet(self->m_context, QApplication::activeWindow());
+    });
+  }
   menu.exec(event->screenPos());
 }
 

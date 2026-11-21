@@ -6,6 +6,10 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Process/Dataflow/NodeItem.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
@@ -46,6 +50,8 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QPainter>
 #include <QPixmap>
 #include <QPlainTextEdit>
@@ -106,6 +112,24 @@ std::optional<QString> writeSnippet(
 
 namespace
 {
+//! `rect` of `scene` as it is drawn, small enough for the library.
+QImage renderRect(QGraphicsScene& scene, QRectF rect)
+{
+  if(rect.width() < 1. || rect.height() < 1.)
+    return {};
+
+  const QSize size = rect.size().scaled(QSizeF{320., 180.}, Qt::KeepAspectRatio).toSize();
+  if(size.isEmpty())
+    return {};
+  QImage img{size, QImage::Format_ARGB32_Premultiplied};
+  img.fill(Qt::transparent);
+  QPainter p{&img};
+  p.setRenderHint(QPainter::Antialiasing);
+  p.setRenderHint(QPainter::SmoothPixmapTransform);
+  scene.render(&p, QRectF{QPointF{}, QSizeF{size}}, rect);
+  return img;
+}
+
 //! The boxes selected in the focused timeline as they are drawn, small.
 QImage renderSelection(const score::DocumentContext& ctx)
 {
@@ -124,19 +148,24 @@ QImage renderSelection(const score::DocumentContext& ctx)
     const auto* v = itv.view();
     rect |= v->mapRectToScene(v->boundingRect() | v->childrenBoundingRect());
   }
-  if(rect.width() < 1. || rect.height() < 1.)
-    return {};
+  return renderRect(*pres->view().scene(), rect);
+}
 
-  const QSize size = rect.size().scaled(QSizeF{320., 180.}, Qt::KeepAspectRatio).toSize();
-  if(size.isEmpty())
+//! The nodes selected in the node view as they are drawn, small.
+QImage renderSelectedNodes(const score::DocumentContext& ctx)
+{
+  auto pres = score::IDocument::presenterDelegate<ScenarioDocumentPresenter>(ctx.document);
+  if(!pres)
     return {};
-  QImage img{size, QImage::Format_ARGB32_Premultiplied};
-  img.fill(Qt::transparent);
-  QPainter p{&img};
-  p.setRenderHint(QPainter::Antialiasing);
-  p.setRenderHint(QPainter::SmoothPixmapTransform);
-  pres->view().scene()->render(&p, QRectF{QPointF{}, QSizeF{size}}, rect);
-  return img;
+  auto* scene = pres->view().view().scene();
+  if(!scene)
+    return {};
+  QRectF rect;
+  for(QGraphicsItem* item : scene->items())
+    if(auto node = dynamic_cast<Process::NodeItem*>(item))
+      if(node->model().selection.get())
+        rect |= node->sceneBoundingRect();
+  return renderRect(*scene, rect);
 }
 
 struct SnippetForm
@@ -194,31 +223,30 @@ std::optional<SnippetForm> askSnippet(QWidget* parent, const QImage& thumbnail)
 std::optional<QString>
 saveSelectionAsSnippet(const score::DocumentContext& ctx, QWidget* parent)
 {
-  auto si = focusedScenarioInterface(ctx);
-  if(!si)
-    return std::nullopt;
-
-  // What Copy puts in the clipboard: the selected boxes, states and the
-  // cables between their processes.
+  // What Copy puts in the clipboard: in the timeline the selected boxes,
+  // states and the cables between their processes; in the node view the
+  // selected processes and the cables between them.
   JSONReader r;
-  copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), ctx);
+  if(auto si = focusedScenarioInterface(ctx))
+    copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), ctx);
+  else if(!copySelectedProcesses(r, ctx))
+    return std::nullopt;
   if(r.empty())
     return std::nullopt;
   const QByteArray json = r.toByteArray();
   {
     const auto doc = readJson(json);
-    const auto intervals = doc.FindMember("Intervals");
-    const auto states = doc.FindMember("States");
-    const bool has_content
-        = (intervals != doc.MemberEnd() && intervals->value.IsArray()
-           && !intervals->value.Empty())
-          || (states != doc.MemberEnd() && states->value.IsArray()
-              && !states->value.Empty());
-    if(!has_content)
+    const auto nonEmpty = [&](const char* key) {
+      const auto it = doc.FindMember(key);
+      return it != doc.MemberEnd() && it->value.IsArray() && !it->value.Empty();
+    };
+    if(!nonEmpty("Intervals") && !nonEmpty("States") && !nonEmpty("Processes"))
       return std::nullopt;
   }
 
-  const auto form = askSnippet(parent, renderSelection(ctx));
+  const bool fromTimeline = readJson(json).HasMember("TimeNodes");
+  const auto form = askSnippet(
+      parent, fromTimeline ? renderSelection(ctx) : renderSelectedNodes(ctx));
   if(!form)
     return std::nullopt;
 
@@ -236,6 +264,15 @@ bool insertSnippet(const ScenarioPresenter& pres, QPointF pos, const QString& pa
   auto json = readJson(f.readAll());
   if(!json.IsObject())
     return false;
+
+  // Processes saved from the node view go in a new box there.
+  if(!json.HasMember("TimeNodes"))
+  {
+    if(!json.HasMember("Processes") || !json.HasMember("Cables"))
+      return false;
+    return pasteProcessesInNewBox(
+        pres.model(), pres.toScenarioPoint(pos), json, pres.context().context);
+  }
 
   CommandDispatcher<> d{pres.context().context.commandStack};
   d.submit(
@@ -257,67 +294,90 @@ std::vector<ObjectPath> loadSnippet(
   auto json = readJson(f.readAll());
   if(!json.IsObject())
     return {};
-  const auto intervals_it = json.FindMember("Intervals");
-  if(intervals_it == json.MemberEnd() || !intervals_it->value.IsArray()
-     || intervals_it->value.Empty())
+
+  // A snippet saved from the timeline holds boxes; one saved from the node
+  // view holds processes, as copied there, with no box around them.
+  const bool boxes = json.HasMember("Intervals");
+  std::vector<rapidjson::Value*> processLists;
+  if(boxes)
+  {
+    if(!json["Intervals"].IsArray())
+      return {};
+    for(auto& itv : json["Intervals"].GetArray())
+      if(itv.HasMember("Processes") && itv["Processes"].IsArray() && itv.HasMember("id"))
+        processLists.push_back(&itv["Processes"]);
+  }
+  else if(json.HasMember("Processes") && json["Processes"].IsArray())
+  {
+    processLists.push_back(&json["Processes"]);
+  }
+  if(processLists.empty())
     return {};
-  auto intervals = intervals_it->value.GetArray();
 
-  // Where the boxes were: the anchors between their processes are found from it.
-  ObjectPath origin;
-  if(auto it = json.FindMember("Origin"); it != json.MemberEnd())
-    origin <<= JsonValue{it->value};
-
-  // The nodes of all the boxes move together, their top-left one to nodePos.
+  // The nodes move together, their top-left one to nodePos.
   {
     double x0 = std::numeric_limits<double>::max();
     double y0 = std::numeric_limits<double>::max();
-    for(auto& itv : intervals)
-      if(itv.HasMember("Processes") && itv["Processes"].IsArray())
-        for(auto& proc : itv["Processes"].GetArray())
+    for(auto* procs : processLists)
+      for(auto& proc : procs->GetArray())
+        if(proc.HasMember("Pos") && proc["Pos"].IsArray() && proc["Pos"].Size() == 2)
+        {
+          x0 = std::min(x0, proc["Pos"][0].GetDouble());
+          y0 = std::min(y0, proc["Pos"][1].GetDouble());
+        }
+    if(x0 != std::numeric_limits<double>::max())
+      for(auto* procs : processLists)
+        for(auto& proc : procs->GetArray())
           if(proc.HasMember("Pos") && proc["Pos"].IsArray() && proc["Pos"].Size() == 2)
           {
-            x0 = std::min(x0, proc["Pos"][0].GetDouble());
-            y0 = std::min(y0, proc["Pos"][1].GetDouble());
+            proc["Pos"][0].SetDouble(proc["Pos"][0].GetDouble() - x0 + nodePos.x());
+            proc["Pos"][1].SetDouble(proc["Pos"][1].GetDouble() - y0 + nodePos.y());
           }
-    if(x0 != std::numeric_limits<double>::max())
-      for(auto& itv : intervals)
-        if(itv.HasMember("Processes") && itv["Processes"].IsArray())
-          for(auto& proc : itv["Processes"].GetArray())
-            if(proc.HasMember("Pos") && proc["Pos"].IsArray() && proc["Pos"].Size() == 2)
-            {
-              proc["Pos"][0].SetDouble(proc["Pos"][0].GetDouble() - x0 + nodePos.x());
-              proc["Pos"][1].SetDouble(proc["Pos"][1].GetDouble() - y0 + nodePos.y());
-            }
   }
 
-  // (box, process) in the snippet -> process in `interval`
+  // (box, process) in the snippet -> process in `interval`; the box is -1 for
+  // processes saved without one.
   std::map<std::pair<int32_t, int32_t>, int32_t> ids;
   std::vector<ObjectPath> pasted;
-  for(auto& itv : intervals)
+  if(boxes)
   {
-    if(!itv.HasMember("Processes") || !itv["Processes"].IsArray() || !itv.HasMember("id"))
-      continue;
-    const int32_t itv_id = itv["id"].GetInt();
+    // Where the boxes were: the anchors between their processes are found from it.
+    ObjectPath origin;
+    if(auto it = json.FindMember("Origin"); it != json.MemberEnd())
+      origin <<= JsonValue{it->value};
 
-    rapidjson::Document copy;
-    copy.SetObject();
-    auto& calloc = copy.GetAllocator();
-    copy.AddMember("Processes", rapidjson::Value(itv["Processes"], calloc), calloc);
+    for(auto& itv : json["Intervals"].GetArray())
     {
-      ObjectPath parent = origin;
-      parent.vec().push_back(ObjectIdentifier{"Scenario::IntervalModel", itv_id});
-      JSONReader r;
-      r.readFrom(parent);
-      const auto parent_json = readJson(r.toByteArray());
-      copy.AddMember("ProcessesParent", rapidjson::Value(parent_json, calloc), calloc);
-    }
+      if(!itv.HasMember("Processes") || !itv["Processes"].IsArray() || !itv.HasMember("id"))
+        continue;
+      const int32_t itv_id = itv["id"].GetInt();
 
+      rapidjson::Document copy;
+      copy.SetObject();
+      auto& calloc = copy.GetAllocator();
+      copy.AddMember("Processes", rapidjson::Value(itv["Processes"], calloc), calloc);
+      {
+        ObjectPath parent = origin;
+        parent.vec().push_back(ObjectIdentifier{"Scenario::IntervalModel", itv_id});
+        JSONReader r;
+        r.readFrom(parent);
+        const auto parent_json = readJson(r.toByteArray());
+        copy.AddMember("ProcessesParent", rapidjson::Value(parent_json, calloc), calloc);
+      }
+
+      std::vector<std::pair<int32_t, int32_t>> map;
+      auto paths = loadCopiedProcesses(m, interval, copy, map, ctx);
+      pasted.insert(pasted.end(), paths.begin(), paths.end());
+      for(auto [old_id, new_id] : map)
+        ids[{itv_id, old_id}] = new_id;
+    }
+  }
+  else
+  {
     std::vector<std::pair<int32_t, int32_t>> map;
-    auto paths = loadCopiedProcesses(m, interval, copy, map, ctx);
-    pasted.insert(pasted.end(), paths.begin(), paths.end());
+    pasted = loadCopiedProcesses(m, interval, json, map, ctx);
     for(auto [old_id, new_id] : map)
-      ids[{itv_id, old_id}] = new_id;
+      ids[{-1, old_id}] = new_id;
   }
   if(pasted.empty())
     return {};
@@ -331,24 +391,40 @@ std::vector<ObjectPath> loadSnippet(
     auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
     const auto relocate = [&](ObjectPath& p) {
       auto& vec = p.vec();
-      if(vec.size() < 2 || vec[0].objectName() != "Scenario::IntervalModel")
+      if(boxes)
+      {
+        if(vec.size() < 2 || vec[0].objectName() != "Scenario::IntervalModel")
+          return false;
+        auto it = ids.find({vec[0].id(), vec[1].id()});
+        if(it == ids.end())
+          return false;
+        vec.erase(vec.begin());
+        vec.front() = ObjectIdentifier{vec.front().objectName(), it->second};
+        return true;
+      }
+      // Copied from the node view: the path starts at the process.
+      if(vec.empty())
         return false;
-      auto it = ids.find({vec[0].id(), vec[1].id()});
+      auto it = ids.find({-1, vec[0].id()});
       if(it == ids.end())
         return false;
-      vec.erase(vec.begin());
       vec.front() = ObjectIdentifier{vec.front().objectName(), it->second};
       return true;
     };
+
+    // Identifiers that neither the document's cables nor the ones added
+    // before have.
+    std::vector<Id<Process::Cable>> taken;
+    for(const auto& c : document.cables)
+      taken.push_back(c.id());
 
     Dataflow::SerializedCables cables;
     for(Process::CableData cd : copied)
     {
       if(relocate(cd.source.unsafePath()) && relocate(cd.sink.unsafePath()))
       {
-        Id<Process::Cable> id = getStrongId(document.cables);
-        while(ossia::any_of(cables, [&](const auto& c) { return c.first == id; }))
-          id = getStrongId(document.cables);
+        const auto id = getStrongId(taken);
+        taken.push_back(id);
         cables.emplace_back(id, std::move(cd));
       }
     }

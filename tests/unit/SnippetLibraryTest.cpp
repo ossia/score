@@ -10,6 +10,8 @@
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <Scenario/Library/Snippets.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -18,6 +20,7 @@
 #include <Media/Step/Model.hpp>
 
 #include <score/document/DocumentInterface.hpp>
+#include <score/selection/SelectionStack.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -319,3 +322,145 @@ TEST_CASE("A snippet put on a cable goes in between its two ends", "[snippets]")
         == step->inlets().front());
   });
 }
+
+TEST_CASE(
+    "A snippet saved from nodes goes in a box with its cables, or in the timeline "
+    "in a new box",
+    "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenario = score::test::base_scenario(*doc);
+    auto& document
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->context().document);
+
+    // An automation driving a step sequencer, in one box.
+    const Process::ProcessModel* autom{};
+    const Process::ProcessModel* step{};
+    Scenario::IntervalModel* target{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& box
+          = m.createBox(scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(3000), 0.1);
+      target
+          = &m.createBox(scenario, TimeVal::fromMsecs(5000), TimeVal::fromMsecs(8000), 0.5);
+      autom = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), QString{});
+      step = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Step::Model>::get(), QString{});
+      REQUIRE(autom);
+      REQUIRE(step);
+      m.createCable(
+          document, *autom->outlets().front(), *step->inlets().front(),
+          Process::CableType::ImmediateGlutton);
+      m.commit();
+    }
+
+    // Selected as nodes, and saved.
+    doc->context().selectionStack.pushNewSelection(
+        Selection{const_cast<Process::ProcessModel*>(autom),
+                  const_cast<Process::ProcessModel*>(step)});
+    JSONReader r;
+    REQUIRE(Scenario::copySelectedProcesses(r, doc->context()));
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const auto file = Scenario::writeSnippet(r.toByteArray(), dir.path(), "Nodes", nullptr);
+    REQUIRE(file);
+    {
+      QFile f{*file};
+      REQUIRE(f.open(QIODevice::ReadOnly));
+      const auto json = readJson(f.readAll());
+      CHECK_FALSE(json.HasMember("Intervals"));
+      CHECK(json.HasMember("Processes"));
+    }
+
+    // In a box: both, and the cable between the copies.
+    const auto cables_before = document.cables.size();
+    REQUIRE(Scenario::insertSnippetInInterval(
+        doc->context(), *target, QPointF{100., 100.}, *file));
+    REQUIRE(target->processes.size() == 2);
+    CHECK(document.cables.size() == cables_before + 1);
+    for(auto& p : target->processes)
+      if(qobject_cast<const Automation::ProcessModel*>(&p))
+      {
+        REQUIRE(p.outlets().front()->cables().size() == 1);
+        const auto& c = p.outlets().front()->cables().front().find(doc->context());
+        CHECK(Process::parentProcess(&c.sink().find(doc->context()))->parent() == target);
+      }
+
+    // In the timeline: a new box holding them.
+    const auto boxes_before = scenario.intervals.size();
+    QFile f{*file};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    auto json = readJson(f.readAll());
+    REQUIRE(Scenario::pasteProcessesInNewBox(
+        scenario, Scenario::Point{TimeVal::fromMsecs(9000), 0.7}, json, doc->context()));
+    REQUIRE(scenario.intervals.size() == boxes_before + 1);
+    bool found = false;
+    for(auto& itv : scenario.intervals)
+      if(itv.date() == TimeVal::fromMsecs(9000))
+      {
+        found = true;
+        CHECK(itv.processes.size() == 2);
+      }
+    CHECK(found);
+  });
+}
+
+TEST_CASE("A snippet with several cables goes in with all of them", "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenario = score::test::base_scenario(*doc);
+    auto& document
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(doc->context().document);
+
+    // A chain of three: automation -> step -> step, two cables.
+    std::vector<const Process::ProcessModel*> chain;
+    Scenario::IntervalModel* target{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& box
+          = m.createBox(scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(3000), 0.1);
+      target
+          = &m.createBox(scenario, TimeVal::fromMsecs(5000), TimeVal::fromMsecs(8000), 0.5);
+      chain.push_back(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), QString{}));
+      chain.push_back(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Step::Model>::get(), QString{}));
+      chain.push_back(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Step::Model>::get(), QString{}));
+      for(auto p : chain)
+        REQUIRE(p);
+      m.createCable(
+          document, *chain[0]->outlets().front(), *chain[1]->inlets().front(),
+          Process::CableType::ImmediateGlutton);
+      m.createCable(
+          document, *chain[1]->outlets().front(), *chain[2]->inlets().front(),
+          Process::CableType::ImmediateGlutton);
+      m.commit();
+    }
+
+    doc->context().selectionStack.pushNewSelection(Selection{
+        const_cast<Process::ProcessModel*>(chain[0]),
+        const_cast<Process::ProcessModel*>(chain[1]),
+        const_cast<Process::ProcessModel*>(chain[2])});
+    JSONReader r;
+    REQUIRE(Scenario::copySelectedProcesses(r, doc->context()));
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const auto file = Scenario::writeSnippet(r.toByteArray(), dir.path(), "Chain", nullptr);
+    REQUIRE(file);
+
+    const auto cables_before = document.cables.size();
+    REQUIRE(Scenario::insertSnippetInInterval(
+        doc->context(), *target, QPointF{0., 0.}, *file));
+    CHECK(target->processes.size() == 3);
+    CHECK(document.cables.size() == cables_before + 2);
+  });
+}
+
