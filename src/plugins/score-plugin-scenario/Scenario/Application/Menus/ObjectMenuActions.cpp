@@ -55,6 +55,7 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QAction>
+#include <QPointer>
 #include <QClipboard>
 #include <QGraphicsView>
 #include <QKeySequence>
@@ -384,6 +385,17 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     objectMenu->addAction(m_pasteElementsAfter);
     objectMenu->addAction(m_duplicate);
     objectMenu->addAction(m_saveSnippet);
+
+    // Where the menu was opened.
+    {
+      auto snippets = menu.addMenu(tr("Add snippet"));
+      const QPointF viewPos = scenario->view().mapFromScene(scenePoint);
+      QPointer<const ScenarioPresenter> sp{scenario};
+      fillSnippetsMenu(*snippets, [sp, viewPos](const QString& path) {
+        if(sp)
+          insertSnippet(*sp, viewPos, path);
+      });
+    }
     objectMenu->addSeparator();
     objectMenu->addAction(m_encapsulate);
     objectMenu->addAction(m_decapsulate);

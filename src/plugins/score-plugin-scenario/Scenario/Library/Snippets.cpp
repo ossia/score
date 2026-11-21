@@ -36,7 +36,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QAction>
 #include <QDialog>
+#include <QMenu>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QLabel>
@@ -354,5 +356,53 @@ bool insertSnippetInInterval(
   m.showRack(interval);
   m.commit();
   return true;
+}
+
+void fillSnippetsMenu(QMenu& menu, std::function<void(const QString&)> insert)
+{
+  auto panel = score::GUIAppContext().findPanel<Library::ProcessPanel>();
+  const Library::ProcessNode* root{};
+  if(panel)
+  {
+    // The branch the snippets are listed under: the one holding them.
+    for(const auto& top : panel->processWidget().processModel().rootNode())
+    {
+      bool found = false;
+      top.visit([&](const Library::ProcessNode& n) {
+        found = found || n.key == Library::snippetKey();
+      });
+      if(found)
+      {
+        root = &top;
+        break;
+      }
+    }
+  }
+
+  if(!root)
+  {
+    auto none = menu.addAction(QObject::tr("No snippets in the library"));
+    none->setEnabled(false);
+    return;
+  }
+
+  const auto shared = std::make_shared<std::function<void(const QString&)>>(std::move(insert));
+  const std::function<void(QMenu&, const Library::ProcessNode&)> fill
+      = [&](QMenu& m, const Library::ProcessNode& node) {
+    for(const auto& child : node)
+    {
+      if(child.key == Library::snippetKey())
+      {
+        auto act = m.addAction(child.prettyName);
+        const QString path = child.customData;
+        QObject::connect(act, &QAction::triggered, &m, [shared, path] { (*shared)(path); });
+      }
+      else if(child.childCount() > 0)
+      {
+        fill(*m.addMenu(child.prettyName), child);
+      }
+    }
+  };
+  fill(menu, *root);
 }
 }

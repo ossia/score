@@ -4,9 +4,11 @@
 
 #include <score_plugin_scenario_export.h>
 
+#include <functional>
 #include <optional>
 
 class QWidget;
+class QMenu;
 namespace score
 {
 struct DocumentContext;
@@ -42,4 +44,9 @@ SCORE_PLUGIN_SCENARIO_EXPORT
 bool insertSnippetInInterval(
     const score::DocumentContext& ctx, const IntervalModel& interval, QPointF nodePos,
     const QString& path);
+
+//! The snippets of the library in `menu`, their folders as sub-menus: picking
+//! one calls `insert` with its file.
+SCORE_PLUGIN_SCENARIO_EXPORT
+void fillSnippetsMenu(QMenu& menu, std::function<void(const QString&)> insert);
 }

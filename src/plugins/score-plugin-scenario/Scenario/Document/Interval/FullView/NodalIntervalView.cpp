@@ -9,6 +9,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
+#include <Scenario/Library/Snippets.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -27,6 +28,7 @@
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
+#include <QMenu>
 #include <QGraphicsRectItem>
 #include <QPointer>
 #include <QGraphicsSceneDragDropEvent>
@@ -630,6 +632,24 @@ void NodalIntervalView::openProcessPicker(QPointF nodePos)
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
+  // The canvas of the node view: what can be added where the menu opens.
+  if(m_itemsToShow != AllItems)
+    return;
+
+  const QPointF nodePos = m_container->mapFromParent(event->pos());
+  QPointer<NodalIntervalView> self = this;
+  QMenu menu;
+  auto addProcess = menu.addAction(tr("Add process"));
+  connect(addProcess, &QAction::triggered, this, [self, nodePos] {
+    if(self)
+      self->openProcessPicker(nodePos);
+  });
+  auto snippets = menu.addMenu(tr("Add snippet"));
+  fillSnippetsMenu(*snippets, [self, nodePos](const QString& path) {
+    if(self)
+      insertSnippetInInterval(self->m_context, self->m_model, nodePos, path);
+  });
+  menu.exec(event->screenPos());
 }
 
 void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
