@@ -57,6 +57,7 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <QApplication>
+#include <QMouseEvent>
 #include <QGraphicsView>
 #include <QDialogButtonBox>
 #include <QDrag>
@@ -815,6 +816,64 @@ TEST_CASE("Hover previews of ports can be turned off", "[integration][nodal][gui
     run_events_for(300);
     settings.setHoverProbes(initial);
 
+  });
+}
+
+TEST_CASE(
+    "A click anywhere but on a port's preview closes it, or the one about to open",
+    "[integration][nodal][gui][probe]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    TwoNodes t{app};
+    auto& scene = documentScene(*t.doc);
+    auto* port = portItemOf(*t.doc, *t.a->outlets()[0]);
+    REQUIRE(port);
+    auto& settings = Process::PreviewSettings::instance();
+    const bool initial = settings.hoverProbes();
+    settings.setHoverProbes(true);
+
+    auto probes = [&] {
+      int n = 0;
+      for(auto* item : scene.items())
+        if(dynamic_cast<Process::PortProbeItem*>(item))
+          n++;
+      return n;
+    };
+    auto enter = [&] {
+      Process::PortProbeHover::instance().enter(
+          port->port(),
+          score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*t.doc)
+              ->context(),
+          scene, port->sceneCenter());
+    };
+    // A press, wherever it is, as the window gets it
+    auto press = [&] {
+      QWidget* target = scene.views().front()->viewport();
+      QMouseEvent ev{
+          QEvent::MouseButtonPress, QPointF{2., 2.}, target->mapToGlobal(QPointF{2., 2.}),
+          Qt::LeftButton, Qt::LeftButton, Qt::NoModifier};
+      QApplication::sendEvent(target, &ev);
+    };
+
+    enter();
+    run_events_for(500);
+    REQUIRE(probes() > 0);
+    press();
+    run_events_for(50);
+    CHECK(probes() == 0);
+
+    // Pressed before it opens: it does not open
+    Process::PortProbeHover::instance().leave();
+    run_events_for(300);
+    enter();
+    run_events_for(50);
+    press();
+    run_events_for(500);
+    CHECK(probes() == 0);
+
+    Process::PortProbeHover::instance().leave();
+    run_events_for(300);
+    settings.setHoverProbes(initial);
   });
 }
 

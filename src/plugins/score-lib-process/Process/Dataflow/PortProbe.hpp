@@ -43,7 +43,8 @@ public:
 
 /**
  * The one probe the cursor opens: after it rests on a port, until it leaves
- * the port and the probe, or the port, or the item it rested on, is gone.
+ * the port and the probe, a mouse button is pressed elsewhere, or the port,
+ * or the item it rested on, is gone.
  */
 class SCORE_LIB_PROCESS_EXPORT PortProbeHover final : public QObject
 {
@@ -60,6 +61,10 @@ private:
   PortProbeHover();
   void open();
   void close();
+  //! A press anywhere but on the probe closes it, or the one about to open:
+  //! the cursor went to do something else.
+  bool eventFilter(QObject* watched, QEvent* event) override;
+  void watchPresses(bool);
   void closeUnlessHeld();
   //! A deleted item gets no hover leave: while a probe is open, it closes
   //! once the cursor is neither over it nor over a port or a cable.
