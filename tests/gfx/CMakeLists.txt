@@ -1048,6 +1048,16 @@ score_add_gfx_test(profiler_rebuild GfxProfilerRebuild.cpp)
 # freedesktop inhibition survives replies that arrive after a release.
 score_add_gfx_test(idle_inhibitor GfxIdleInhibitor.cpp)
 
+# The per-output calibration stage: UV warp map, alpha / beta maps, colour,
+# blending in linear light and the live corner warp, read back from the
+# presented swap chain.
+score_add_gfx_test(multi_window_calibration MultiWindowCalibration.cpp)
+score_add_gfx_test(multi_window_photometric MultiWindowPhotometric.cpp)
+
+# Calibration map files: PFM layout and the xyz + valid split, 16-bit images,
+# Paul Bourke warp meshes and MPCDI archives.
+score_add_gfx_test(float_map_files FloatMapFiles.cpp)
+
 # Randomised sequences of the window disruptions a user can inflict -- hide,
 # re-show, resize, render-size override, full screen -- across all three output
 # modes and both clocks. The paths that set m_running / m_hasSwapChain /
@@ -2387,6 +2397,10 @@ score_add_gfx_test(raw_raster_size_clamp GfxRawRasterSizeClamp.cpp)
 # TYPE cubemap resource is a samplerCube.
 score_add_gfx_test(csf_resource_fixes GfxCsfResourceFixes.cpp)
 
+# Output-stage quality of the multi-window output: colour LUT, blue-noise
+# dither, Catmull-Rom warp maps, mip / anisotropic canvas sampling.
+score_add_gfx_test(multi_window_quality MultiWindowQuality.cpp)
+
 # Script values convert to a texture inlet's optional sampler settings.
 score_add_test(test_gfx_texture_port_converters
   SOURCES GfxTexturePortConverters.cpp
@@ -2397,3 +2411,7 @@ score_add_test(test_gfx_texture_port_converters
 score_add_test(test_gfx_texture_port_converters_at_load
   SOURCES GfxTexturePortConvertersAtLoad.cpp
   PLUGINS score_plugin_gfx)
+
+# Crafted calibration files: truncated / CRLF PFM, oversized Bourke meshes,
+# nested MPCDI filesets, bad 1D .cube and response.json tables.
+score_add_gfx_test(calibration_file_hardening CalibrationFileHardening.cpp)

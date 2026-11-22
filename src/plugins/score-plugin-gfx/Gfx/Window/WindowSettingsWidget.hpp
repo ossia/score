@@ -1,6 +1,9 @@
 #pragma once
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Gfx/Window/WindowSettings.hpp>
+
+#include <score/tools/ProjectFiles.hpp>
 
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -24,6 +27,8 @@
 #include <QVBoxLayout>
 #include <qcheckbox.h>
 
+#include <optional>
+
 namespace Gfx
 {
 class DesktopLayoutCanvas;
@@ -39,6 +44,15 @@ public:
   Device::DeviceSettings getSettings() const override;
 
   void setSettings(const Device::DeviceSettings& settings) override;
+
+  //! Points output `outputIndex` at the calibration of `path` (CalibrationSet.hpp).
+  bool assignCalibration(int outputIndex, const QString& path);
+  //! Output k gets calibrationSetName(base of `path`, k); returns how many exist.
+  int assignCalibrationSet(const QString& path);
+
+  //! The roots map files are stored against: the current document's, unless set.
+  score::PathRoots pathRoots() const;
+  void setPathRoots(std::optional<score::PathRoots> roots);
 
 private:
   void onModeChanged(int index);
@@ -78,6 +92,29 @@ private:
   QDoubleSpinBox* m_blendTopG{};
   QDoubleSpinBox* m_blendBottomW{};
   QDoubleSpinBox* m_blendBottomG{};
+
+  void updateMapsStatus(const OutputMaps& maps);
+  std::optional<score::PathRoots> m_pathRoots;
+  QLabel* m_mapsStatus{};
+  QLineEdit* m_calibrationEdit{};
+  QLabel* m_calibrationSetStatus{};
+  QLineEdit* m_warpMapEdit{};
+  QLineEdit* m_alphaMapEdit{};
+  QLineEdit* m_betaMapEdit{};
+  QLineEdit* m_lutEdit{};
+  QLineEdit* m_responseEdit{};
+  QLineEdit* m_compensationEdit{};
+  QComboBox* m_blendSpaceCombo{};
+
+  QComboBox* m_samplingCombo{};
+  QComboBox* m_warpInterpCombo{};
+  QComboBox* m_ditherCombo{};
+  QSpinBox* m_maxAnisotropy{};
+
+  QDoubleSpinBox* m_gain[3]{};
+  QDoubleSpinBox* m_offset[3]{};
+  QDoubleSpinBox* m_gamma{};
+  QCheckBox* m_linearBlendCheck{};
 
   QComboBox* m_lockModeCombo{};
   QComboBox* m_rotationCombo{};

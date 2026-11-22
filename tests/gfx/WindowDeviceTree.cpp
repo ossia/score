@@ -13,8 +13,11 @@
 
 #include "WindowedOutputCommon.hpp"
 
+#include <Gfx/Graph/FloatImageIO.hpp>
+#include <Gfx/Graph/MultiWindowNode.hpp>
 #include <Gfx/Graph/ScreenNode.hpp>
 #include <Gfx/GfxParameter.hpp>
+#include <Gfx/Window/MultiWindowDevice.hpp>
 #include <Gfx/WindowDevice.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -25,7 +28,10 @@
 #include <ossia/network/base/node_functions.hpp>
 #include <ossia/network/base/parameter.hpp>
 
+#include <QDateTime>
+#include <QFile>
 #include <QKeyEvent>
+#include <QTemporaryDir>
 #include <QMouseEvent>
 
 #include <catch2/catch_approx.hpp>
@@ -430,4 +436,293 @@ TEST_CASE("Multi-window device parameter tree", "[gfx][window][device]")
 
   CHECK(offscreenAfter == QSize{640, 360});
   CHECK(win0SizeAfter == QSize{260, 200});
+}
+
+TEST_CASE("Multi-window device warp, color and maps parameters", "[gfx][window][device]")
+{
+  Outcome o;
+  bool connected{};
+  std::vector<std::string> missing;
+  QPointF tl, br;
+  Gfx::OutputColor color;
+  bool alphaLoaded{};
+  float storedGain{};
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString alpha = dir.filePath("alpha.pfm");
+  {
+    score::gfx::FloatImage img;
+    img.width = 4;
+    img.height = 4;
+    img.channels = 1;
+    img.data.assign(16, 0.5f);
+    REQUIRE(score::gfx::writePFM(alpha, img));
+  }
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {192, 144};
+    m.cornerWarp.bottomRight = {0.9, 0.95};
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinCal"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    auto* d = dev.getDevice();
+    REQUIRE(d != nullptr);
+    pump_for(400);
+
+    for(const char* p :
+        {"/0/warp/tl", "/0/warp/tr", "/0/warp/bl", "/0/warp/br", "/0/color/gain",
+         "/0/color/offset", "/0/color/gamma", "/0/color/linear", "/0/maps/warp",
+         "/0/maps/alpha", "/0/maps/beta", "/0/maps/blend_space"})
+      if(!hasNode(*d, p))
+        missing.emplace_back(p);
+
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
+    REQUIRE(node);
+    REQUIRE(!node->windowOutputs().empty());
+
+    if(auto* p = param(*d, "/0/warp/br"))
+    {
+      const auto val = p->value();
+      const auto v = val.target<ossia::vec2f>();
+      CHECK(v);
+      if(v)
+        CHECK((*v)[0] == Approx(0.9f));
+    }
+
+    push(param(*d, "/0/warp/tl"), vec2(0.1f, 0.2f));
+    push(param(*d, "/0/color/gain"), ossia::vec3f{0.5f, 0.6f, 0.7f});
+    push(param(*d, "/0/color/offset"), ossia::vec3f{0.01f, 0.02f, 0.03f});
+    push(param(*d, "/0/color/gamma"), 2.2f);
+    push(param(*d, "/0/color/linear"), true);
+    push(param(*d, "/0/maps/alpha"), alpha.toStdString());
+    pump_until([&] { return !node->mapsLoading(); }, 10000);
+
+    {
+      const auto& wo = node->windowOutputs()[0];
+      tl = wo.cornerWarp.topLeft;
+      br = wo.cornerWarp.bottomRight;
+      color = wo.color;
+      alphaLoaded = wo.alphaMap && wo.alphaMap->width == 4;
+      storedGain = node->mappings()[0].color.gain[1];
+    }
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+
+  REQUIRE(connected);
+  for(auto& m : missing)
+    UNSCOPED_INFO("  missing " << m);
+  CHECK(missing.empty());
+  CHECK(tl.x() == Approx(0.1).margin(1e-4));
+  CHECK(tl.y() == Approx(0.2).margin(1e-4));
+  CHECK(br.x() == Approx(0.9).margin(1e-4));
+  CHECK(br.y() == Approx(0.95).margin(1e-4));
+  CHECK(color.gain[1] == Approx(0.6f));
+  CHECK(color.offset[2] == Approx(0.03f));
+  CHECK(color.gamma == Approx(2.2f));
+  CHECK(color.linearBlend);
+  CHECK(alphaLoaded);
+  // Kept by the node across an output rebuild.
+  CHECK(storedGain == Approx(0.6f));
+}
+
+TEST_CASE("Multi-window device locates map files and matches calibration suffixes", "[gfx][window][device][calibration]")
+{
+  score::PathRoots roots;
+  roots.documentFile = QStringLiteral("/shows/hall/hall.score");
+  OutputMaps m;
+  m.alpha = QStringLiteral("cal/room.alpha.pfm");
+  m.warp = QStringLiteral("<PROJECT>:/cal/room.mpcdi#proj1");
+  m.lut = QStringLiteral("/abs/grade.cube");
+  const auto l = locatedMaps(m, roots);
+  CHECK(l.alpha == QStringLiteral("/shows/hall/cal/room.alpha.pfm"));
+  CHECK(l.warp == QStringLiteral("/shows/hall/cal/room.mpcdi#proj1"));
+  CHECK(l.lut == m.lut);
+  CHECK(l.beta.isEmpty());
+
+  const auto& slots = calibrationFileSlots();
+  CHECK(isCalibrationFileOf("/a/room.ALPHA.pfm", "/a/room", slots[0]));
+  CHECK(calibrationBase("/a/room.ALPHA.pfm") == "/a/room");
+  CHECK_FALSE(isCalibrationFileOf("/a/Room.alpha.pfm", "/a/room", slots[0]));
+  CHECK_FALSE(isCalibrationFileOf("/a/room.beta.pfm", "/a/room", slots[0]));
+}
+
+TEST_CASE("Multi-window device follows its calibration files on disk", "[gfx][window][device][calibration]")
+{
+  Outcome o;
+  bool connected{};
+  int alphaAtStart{}, alphaAfterRewrite{}, betaAfterCreate{}, alphaOther{};
+  std::string alphaParam, calibrationParam;
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("room");
+  const QString other = dir.filePath("other");
+  auto writeGrey = [](const QString& path, int size, float v) {
+    score::gfx::FloatImage img;
+    img.width = size;
+    img.height = size;
+    img.channels = 1;
+    img.data.assign(size * size, v);
+    REQUIRE(score::gfx::writePFM(path, img));
+  };
+  writeGrey(base + ".alpha.pfm", 4, 0.5f);
+  writeGrey(other + ".alpha.pfm", 6, 0.25f);
+  {
+    QFile f{base + ".json"};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write("{}");
+  }
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {160, 120};
+    m.maps.calibration = base + ".json";
+
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinLive"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    auto* d = dev.getDevice();
+    REQUIRE(d != nullptr);
+    pump_for(400);
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
+    REQUIRE(node);
+    REQUIRE(!node->windowOutputs().empty());
+    auto alphaWidth = [&] {
+      const auto& a = node->windowOutputs()[0].alphaMap;
+      return a ? a->width : 0;
+    };
+    auto betaWidth = [&] {
+      const auto& b = node->windowOutputs()[0].betaMap;
+      return b ? b->width : 0;
+    };
+    alphaAtStart = alphaWidth();
+
+    // The watcher debounces 300 ms, and polls once a second without inotify.
+    QFile::remove(base + ".alpha.pfm");
+    pump_for(50);
+    writeGrey(base + ".alpha.pfm", 8, 0.5f);
+    pump_until([&] { return alphaWidth() == 8; }, 5000);
+    alphaAfterRewrite = alphaWidth();
+
+    writeGrey(base + ".beta.pfm", 5, 0.01f);
+    pump_until([&] { return betaWidth() == 5; }, 5000);
+    betaAfterCreate = betaWidth();
+
+    push(param(*d, "/0/maps/calibration"), QString(other + ".json").toStdString());
+    pump_until([&] { return !node->mapsLoading(); }, 10000);
+    alphaOther = alphaWidth();
+    if(auto* p = param(*d, "/0/maps/alpha"))
+      alphaParam = ossia::convert<std::string>(p->value());
+    if(auto* p = param(*d, "/0/maps/calibration"))
+      calibrationParam = ossia::convert<std::string>(p->value());
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  CHECK(alphaAtStart == 4);
+  CHECK(alphaAfterRewrite == 8);
+  CHECK(betaAfterCreate == 5);
+  CHECK(alphaOther == 6);
+  CHECK(alphaParam == QString(other + ".alpha.pfm").toStdString());
+  CHECK(calibrationParam == QString(other + ".json").toStdString());
+}
+
+TEST_CASE("A calibration fills only the slots its last run wrote", "[gfx][window][calibration]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("room");
+  auto write = [](const QString& path, const QByteArray& bytes) {
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write(bytes);
+  };
+  auto setTime = [](const QString& path, const QDateTime& t) {
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::ReadWrite));
+    REQUIRE(f.setFileTime(t, QFileDevice::FileModificationTime));
+  };
+  for(const char* s : {".response.json", ".comp.json", ".alpha.pfm", ".beta.pfm", ".cube"})
+    write(base + s, "x");
+  write(base + ".json", R"({"files":["room.xyz.pfm","room.response.json"]})");
+  write(base + ".blend.json", R"({"alphaMap":"room.alpha.pfm","betaMap":"room.beta.pfm"})");
+  const auto t0 = QDateTime::currentDateTime().addSecs(-60);
+  setTime(base + ".json", t0);
+  setTime(base + ".blend.json", t0.addSecs(10));
+
+  OutputMaps m;
+  applyCalibration(m, base + ".json");
+  CHECK(m.response == base + ".response.json");
+  CHECK(m.compensation.isEmpty());
+  CHECK(m.alpha == base + ".alpha.pfm");
+  CHECK(m.beta == base + ".beta.pfm");
+  CHECK(m.lut == base + ".cube");
+
+  // A newer run without a blend: the old blend maps are no longer its own.
+  setTime(base + ".json", t0.addSecs(20));
+  CHECK(refreshCalibration(m));
+  CHECK(m.alpha.isEmpty());
+  CHECK(m.beta.isEmpty());
+  CHECK(m.response == base + ".response.json");
+  CHECK(m.compensation.isEmpty());
+
+  // A calibration that lists nothing takes what it finds.
+  write(base + ".json", "{}");
+  CHECK(refreshCalibration(m));
+  CHECK(m.compensation == base + ".comp.json");
+  CHECK(m.alpha == base + ".alpha.pfm");
 }

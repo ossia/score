@@ -221,6 +221,7 @@ set(HDRS
     Gfx/Graph/ImageNode.hpp
     Gfx/Graph/Mesh.hpp
     Gfx/Graph/MultiWindowNode.hpp
+    Gfx/Graph/OutputQuality.hpp
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
@@ -244,6 +245,7 @@ set(HDRS
     Gfx/Graph/NodeProfiler.hpp
     Gfx/Graph/ScenePreprocessorNode.hpp
     Gfx/Graph/CameraMath.hpp
+    Gfx/Graph/FloatImageIO.hpp
     Gfx/Calibration/ProjectorModel.hpp
     Gfx/Calibration/EPnP.hpp
     Gfx/Calibration/PlaneFitting.hpp
@@ -252,6 +254,8 @@ set(HDRS
     Gfx/Calibration/Registration.hpp
     Gfx/Calibration/OffAxis.hpp
     Gfx/Calibration/LedMapping.hpp
+    Gfx/Graph/WarpImport.hpp
+    Gfx/Graph/PhotometricMaps.hpp
     Gfx/Graph/SceneFilterNode.hpp
     Gfx/Graph/FlattenedSceneFilterNode.hpp
     Gfx/Graph/MergeGeometriesNode.hpp
@@ -543,6 +547,7 @@ set(SRCS
     Gfx/Graph/ImageNode.cpp
     Gfx/Graph/Mesh.cpp
     Gfx/Graph/MultiWindowNode.cpp
+    Gfx/Graph/OutputQuality.cpp
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
@@ -569,6 +574,10 @@ set(SRCS
     Gfx/Calibration/PlaneFitting.cpp
     Gfx/Calibration/ProjectorModel.cpp
     Gfx/Calibration/Registration.cpp
+
+    Gfx/Graph/FloatImageIO.cpp
+    Gfx/Graph/WarpImport.cpp
+    Gfx/Graph/PhotometricMaps.cpp
     Gfx/Graph/SceneFilterNode.cpp
     Gfx/Graph/FlattenedSceneFilterNode.cpp
     Gfx/Graph/MergeGeometriesNode.cpp

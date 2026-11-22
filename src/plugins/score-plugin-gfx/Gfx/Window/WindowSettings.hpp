@@ -4,6 +4,8 @@
 #include <QSize>
 #include <QString>
 
+#include <array>
+
 namespace Gfx
 {
 
@@ -62,6 +64,113 @@ struct CornerWarp
   }
 };
 
+struct OutputColor
+{
+  std::array<float, 3> gain{1.f, 1.f, 1.f};
+  std::array<float, 3> offset{0.f, 0.f, 0.f};
+  //! Applied last: out = pow(c, 1 / gamma).
+  float gamma{1.f};
+  //! Apply the edge blend ramps in linear light too: decode the content with
+  //! a 2.2 power before them, re-encode after. The alpha and beta maps follow
+  //! OutputMaps::blendSpace.
+  bool linearBlend{false};
+
+  bool isIdentity() const noexcept
+  {
+    return gain == std::array<float, 3>{1.f, 1.f, 1.f}
+           && offset == std::array<float, 3>{0.f, 0.f, 0.f} && gamma == 1.f
+           && !linearBlend;
+  }
+};
+
+//! The space the alpha and beta maps apply in: out = content * alpha + beta.
+enum class BlendMapSpace : int
+{
+  //! Linear light for float maps (PFM, EXR, Bourke mesh intensities) and an
+  //! MPCDI alpha (decoded with its gammaEmbedded); signal space for 8 and 16-bit
+  //! images, which hold gamma-encoded values as media servers blend them.
+  Auto = 0,
+  Linear = 1,
+  //! On the gamma-encoded signal, after the encode.
+  Signal = 2
+};
+
+//! Calibration files of an output, in its screen space (v = 0 at the top).
+struct OutputMaps
+{
+  //! UV lookup per output pixel, like alpha and beta (xy = source UV in the
+  //! output's source rect, w = valid); rotation, mirror and corner warp then
+  //! move the UV it gives.
+  QString warp;
+  //! Blend weight per RGB channel (a grey map broadcasts), in blendSpace.
+  QString alpha;
+  //! Black level per RGB channel, added after the alpha, in blendSpace.
+  QString beta;
+  //! Colour lookup table (.cube, Adobe Cube LUT 1.0), applied last.
+  QString lut;
+  //! Measured projector response (.response.json or 1D .cube): blending then
+  //! runs in linear light, and its inverse is the encode back to projector codes.
+  QString response;
+  //! Radiometric compensation (.comp.json): per pixel 3x3 matrix and offset
+  //! applied to the linear content before the alpha.
+  QString compensation;
+  //! name.json of the calibration the files above follow (CalibrationSet.hpp).
+  QString calibration;
+  BlendMapSpace blendSpace{BlendMapSpace::Auto};
+
+  bool empty() const noexcept
+  {
+    return warp.isEmpty() && alpha.isEmpty() && beta.isEmpty() && lut.isEmpty()
+           && response.isEmpty() && compensation.isEmpty();
+  }
+};
+
+//! How the output reads the canvas.
+enum class OutputSampling : int
+{
+  //! Anisotropic when a warp map samples the canvas at more than 1.5 canvas
+  //! texels per output pixel, measured on the map for the output's size; Linear
+  //! otherwise, a corner warp included.
+  Auto = 0,
+  Linear = 1,
+  //! Trilinear, at the level of detail of the warp's screen-space Jacobian.
+  Mipmapped = 2,
+  //! Up to maxAnisotropy trilinear taps along the footprint's major axis.
+  Anisotropic = 3
+};
+
+enum class WarpInterpolation : int
+{
+  //! Bilinear, weighted by the valid flag of each texel.
+  Bilinear = 0,
+  //! Catmull-Rom where the 16 texels are valid, else Bilinear.
+  Bicubic = 1
+};
+
+enum class OutputDither : int
+{
+  //! On for an 8 or 10-bit output when an alpha, beta, response or compensation
+  //! map, a LUT or the colour stage is active; the edge ramps alone do not count.
+  Auto = 0,
+  Off = 1,
+  On = 2
+};
+
+struct OutputQuality
+{
+  OutputSampling sampling{OutputSampling::Auto};
+  WarpInterpolation warpInterpolation{WarpInterpolation::Bicubic};
+  OutputDither dither{OutputDither::Auto};
+  int maxAnisotropy{8};
+
+  bool isDefault() const noexcept
+  {
+    return sampling == OutputSampling::Auto
+           && warpInterpolation == WarpInterpolation::Bicubic
+           && dither == OutputDither::Auto && maxAnisotropy == 8;
+  }
+};
+
 enum class OutputLockMode : int
 {
   Free = 0,       // No constraints
@@ -111,6 +220,10 @@ struct OutputMapping
   int rotation{0};     // 0, 90, 180, 270 degrees clockwise
   bool mirrorX{false}; // Flip output horizontally (after rotation)
   bool mirrorY{false}; // Flip output vertically (after rotation)
+
+  OutputMaps maps;
+  OutputColor color;
+  OutputQuality quality;
 };
 
 }
