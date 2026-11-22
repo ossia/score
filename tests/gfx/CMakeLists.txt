@@ -1032,6 +1032,10 @@ score_add_test(test_gfx_window_layout
 score_add_gfx_test(screen_output      ScreenOutput.cpp)
 score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 
+# An output window keeps the display awake while it is shown, and the
+# freedesktop inhibition survives replies that arrive after a release.
+score_add_gfx_test(idle_inhibitor GfxIdleInhibitor.cpp)
+
 # Randomised sequences of the window disruptions a user can inflict -- hide,
 # re-show, resize, render-size override, full screen -- across all three output
 # modes and both clocks. The paths that set m_running / m_hasSwapChain /
