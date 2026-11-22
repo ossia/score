@@ -69,6 +69,8 @@ public:
   //! Rebuilds the drop-down from the devices.
   void reload();
 
+  void showPopup() override;
+
   void addressChanged(const State::AddressAccessor& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, arg_1)
 
