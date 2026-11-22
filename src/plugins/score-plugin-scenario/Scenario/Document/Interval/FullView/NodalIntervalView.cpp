@@ -29,6 +29,9 @@
 
 #include <QApplication>
 #include <QMenu>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/CableItem.hpp>
 #include <QGraphicsRectItem>
 #include <QPointer>
 #include <QGraphicsSceneDragDropEvent>
@@ -636,6 +639,49 @@ Process::NodeItem* NodalIntervalView::nodeAt(QPointF scenePos) const
   return nullptr;
 }
 
+const Process::Cable* NodalIntervalView::cableAt(QPointF scenePos) const
+{
+  if(!scene())
+    return nullptr;
+  for(QGraphicsItem* item : scene()->items(scenePos))
+  {
+    if(item->type() == Process::NodeItem::Type)
+      return nullptr; // a node over the cable takes the click
+    if(item->type() == Dataflow::CableItem::Type)
+    {
+      auto& cable = static_cast<Dataflow::CableItem*>(item)->model();
+      // One of this box's cables: both its ends in it
+      auto* src = cable.source().try_find(m_context);
+      if(src && Scenario::closestParentInterval(src) == &m_model)
+        return &cable;
+    }
+  }
+  return nullptr;
+}
+
+void NodalIntervalView::openCablePicker(const Process::Cable& cable)
+{
+  QPointer<NodalIntervalView> self = this;
+  QPointer<const Process::Cable> target = &cable;
+  Library::PickerOptions options;
+  if(auto src = cable.source().try_find(m_context))
+    options.ports = Library::PortFilter{src->type(), true};
+  pickProcess(
+      m_context.app, Process::ProcessFlags::SupportsTemporal,
+      [self, target](const Library::PickedProcess& p) {
+    if(!self || !target)
+      return;
+    auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+        self->m_context.document);
+    if(p.preset)
+      Scenario::loadPresetInCable(self->m_context, doc, *p.preset, *target);
+    else
+      Scenario::createProcessInCable(
+          self->m_context, doc, Process::ProcessData{p.key, p.name, p.customData}, {},
+          {}, *target);
+  }, std::move(options));
+}
+
 void NodalIntervalView::openReplacePicker(const Process::NodeItem& node)
 {
   QPointer<NodalIntervalView> self = this;
@@ -678,6 +724,21 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     if(self)
       insertSnippetInInterval(self->m_context, self->m_model, nodePos, path);
   });
+
+  // On a cable: a process in it, as dropped on it
+  if(auto cable = cableAt(event->scenePos()))
+  {
+    score::SelectionDispatcher{m_context.selectionStack}.select(*cable);
+    QPointer<const Process::Cable> target = cable;
+    menu.insertAction(menu.actions().front(), [&] {
+      auto add = new QAction{tr("Add process in the cable"), &menu};
+      connect(add, &QAction::triggered, this, [self, target] {
+        if(self && target)
+          self->openCablePicker(*target);
+      });
+      return add;
+    }());
+  }
 
   // On a node: what a process or preset dropped on it does
   if(auto node = nodeAt(event->scenePos()))

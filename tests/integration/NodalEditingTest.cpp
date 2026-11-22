@@ -1466,3 +1466,89 @@ TEST_CASE(
     CHECK(scenario.timeSyncs.size() == before.size());
   });
 }
+
+TEST_CASE(
+    "A right click on a cable adds a process in it",
+    "[integration][nodal][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    const auto merger = UuidKey<Process::ProcessModel>::fromString(
+        QStringLiteral("fa02fc21-80ab-41e7-a3c9-5d2fa34ecda7"));
+    const auto add = [&](QPointF pos) {
+      Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, doc->context()};
+      auto proc = m.createProcessInNewSlot(itv, merger, {}, pos);
+      m.commit();
+      run_events_for(100);
+      return proc;
+    };
+    auto* from = add(QPointF{100, 100});
+    auto* to = add(QPointF{500, 100});
+    REQUIRE(from);
+    REQUIRE(to);
+    auto& cable = connect(*doc, *from, *to);
+
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(pr);
+    pr->setDisplayedInterval(&itv);
+    pr->setNodalMode(true);
+    run_events_for(200);
+
+    // The middle of the cable
+    Dataflow::CableItem* item{};
+    for(auto* i : documentScene(*doc).items())
+      if(i->type() == Dataflow::CableItem::Type
+         && &static_cast<Dataflow::CableItem*>(i)->model() == &cable)
+        item = static_cast<Dataflow::CableItem*>(i);
+    REQUIRE(item);
+    const QGraphicsItem& g = *item;
+    const QPointF at = g.mapToScene(g.boundingRect().center());
+    REQUIRE(g.contains(g.mapFromScene(at)));
+    auto& gv = pr->view().view();
+    gv.centerOn(at);
+    run_events_for(30);
+    const QPoint vp = gv.mapFromScene(at);
+
+    bool found = false;
+    QTimer::singleShot(50, [&] {
+      auto m = qobject_cast<QMenu*>(QApplication::activePopupWidget());
+      if(!m)
+        return;
+      for(auto* a : m->actions())
+        if(a->text() == "Add process in the cable")
+        {
+          found = true;
+          m->close();
+          a->trigger();
+          return;
+        }
+      m->close();
+    });
+    QContextMenuEvent ev{QContextMenuEvent::Mouse, vp, gv.viewport()->mapToGlobal(vp)};
+    QApplication::sendEvent(gv.viewport(), &ev);
+    run_events_for(100);
+    REQUIRE(found);
+
+    // Only what takes what the cable carries
+    auto* picker = dynamic_cast<Library::ProcessPicker*>(QApplication::activePopupWidget());
+    REQUIRE(picker);
+    CHECK(picker->findChild<QToolButton*>("ProcessPickerChipClear"));
+    picker->setSearch(app.interfaces<Process::ProcessFactoryList>().get(merger)->prettyName());
+    const auto before = itv.processes.size();
+    REQUIRE(picker->accept());
+    run_events_for(100);
+
+    // In between the two
+    REQUIRE(itv.processes.size() == before + 1);
+    const Process::ProcessModel* middle{};
+    for(auto& p : itv.processes)
+      if(&p != from && &p != to)
+        middle = &p;
+    REQUIRE(middle);
+    CHECK(cableBetween(*doc, *from, *middle));
+    CHECK(cableBetween(*doc, *middle, *to));
+    CHECK_FALSE(cableBetween(*doc, *from, *to));
+  });
+}

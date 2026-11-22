@@ -869,8 +869,16 @@ void ScenarioDocumentPresenter::pickProcessToAdd()
     // from, as from that outlet
     Library::PickerOptions options;
     if(auto proc = qobject_cast<const Process::ProcessModel*>(selection.at(0).data()))
+    {
       if(auto out = firstSignalOutlet(*proc))
         options.ports = portFilter(*out);
+    }
+    // In a cable, what can take what its source sends
+    else if(auto cable = qobject_cast<const Process::Cable*>(selection.at(0).data()))
+    {
+      if(auto src = cable->source().try_find(context()))
+        options.ports = portFilter(*src);
+    }
 
     QPointer<ScenarioDocumentPresenter> self = this;
     pickProcess(

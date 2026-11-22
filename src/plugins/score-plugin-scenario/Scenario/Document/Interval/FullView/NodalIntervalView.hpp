@@ -87,6 +87,10 @@ private:
   void on_processAdded(const Process::ProcessModel& proc);
   void on_processRemoving(const Process::ProcessModel& model);
   void on_zoomRatioChanged(ZoomRatio ratio);
+  //! The cable of this view the scene position is on, if no node is over it
+  const Process::Cable* cableAt(QPointF scenePos) const;
+  //! The process picker, to put a process in `cable` as dropping on it does
+  void openCablePicker(const Process::Cable& cable);
   //! The node the scene position is on, if any
   Process::NodeItem* nodeAt(QPointF scenePos) const;
   //! The process picker, to replace `node` as dropping on it does
