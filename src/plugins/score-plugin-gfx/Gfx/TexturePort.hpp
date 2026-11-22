@@ -22,6 +22,7 @@ UUID_METADATA(
     , Process::Port, Gfx::TextureOutlet, "f1c71046-b754-49a5-8e66-d01374773dfc")
 namespace Gfx
 {
+SCORE_PLUGIN_GFX_EXPORT void registerTexturePortConverters();
 
 class SCORE_PLUGIN_GFX_EXPORT TextureInlet : public Process::Inlet
 {

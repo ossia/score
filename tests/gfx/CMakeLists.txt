@@ -2356,3 +2356,14 @@ score_add_gfx_test(raw_raster_size_clamp GfxRawRasterSizeClamp.cpp)
 # CSF: a write-only image after a PERSISTENT one publishes its own content; a
 # TYPE cubemap resource is a samplerCube.
 score_add_gfx_test(csf_resource_fixes GfxCsfResourceFixes.cpp)
+
+# Script values convert to a texture inlet's optional sampler settings.
+score_add_test(test_gfx_texture_port_converters
+  SOURCES GfxTexturePortConverters.cpp
+  PLUGINS score_plugin_gfx)
+
+# The converters are there once the gfx library is loaded, with no call of
+# its own: a process of its own, so no other test registers them first.
+score_add_test(test_gfx_texture_port_converters_at_load
+  SOURCES GfxTexturePortConvertersAtLoad.cpp
+  PLUGINS score_plugin_gfx)
