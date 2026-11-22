@@ -1,7 +1,12 @@
 #include "CameraDevice.hpp"
 
+#include <Gfx/CameraControls.hpp>
 #include <Gfx/CameraDeviceEnumerator.hpp>
 #include <Gfx/CameraFormatName.hpp>
+
+#include <QDebug>
+
+#include <cmath>
 
 extern "C" {
 #include <libavcodec/codec_id.h>
@@ -357,6 +362,21 @@ static void enumerateCameraFormats(
   pFilter->Release();
 }
 
+static QString propertyBagName(IPropertyBag& bag)
+{
+  VARIANT var;
+  VariantInit(&var);
+  HRESULT hr = bag.Read(L"Description", &var, 0);
+  if(FAILED(hr))
+    hr = bag.Read(L"FriendlyName", &var, 0);
+
+  QString name;
+  if(SUCCEEDED(hr) && var.vt == VT_BSTR && var.bstrVal)
+    name = QString::fromWCharArray(var.bstrVal, int(wcsnlen(var.bstrVal, 1024)));
+  VariantClear(&var);
+  return name;
+}
+
 struct DShowCameraEnumerator : public Device::DeviceEnumerator
 {
   std::shared_ptr<CameraDeviceEnumerator> parent;
@@ -457,25 +477,15 @@ struct DShowCameraDeviceEnumerator : public CameraDeviceEnumerator
         continue;
       }
 
-      VARIANT var;
-      VariantInit(&var);
-
-      hr = pPropBag->Read(L"Description", &var, 0);
-      if(FAILED(hr))
-        hr = pPropBag->Read(L"FriendlyName", &var, 0);
-      if(FAILED(hr) || var.bstrVal == nullptr || wcsnlen(var.bstrVal, 1024) <= 0)
+      auto prettyName = propertyBagName(*pPropBag);
+      if(prettyName.isEmpty())
       {
-        VariantClear(&var);
+        pPropBag->Release();
+        pMoniker->Release();
         continue;
       }
-
-      auto prettyName = QString::fromWCharArray(var.bstrVal);
-      if(prettyName.isEmpty())
-        continue;
       enums.push_back(
           {prettyName, new DShowCameraEnumerator{self, pMoniker, pPropBag, prettyName}});
-
-      VariantClear(&var);
     }
   }
 };
@@ -497,5 +507,196 @@ void enumerateCameraDevices(std::function<void(CameraSettings, QString)> func)
 std::shared_ptr<CameraDeviceEnumerator> make_camera_enumerator()
 {
   return std::make_shared<DShowCameraDeviceEnumerator>();
+}
+
+namespace
+{
+struct DShowControlSpec
+{
+  const char* name;
+  const char* auto_name;
+  bool procamp;
+  long property;
+  bool exposure;
+};
+
+static constexpr DShowControlSpec dshow_controls[] = {
+    {CameraControlNames::exposure, CameraControlNames::auto_exposure, false,
+     CameraControl_Exposure, true},
+    {CameraControlNames::focus, CameraControlNames::auto_focus, false, CameraControl_Focus,
+     false},
+    {CameraControlNames::gain, nullptr, true, VideoProcAmp_Gain, false},
+    {CameraControlNames::white_balance, CameraControlNames::auto_white_balance, true,
+     VideoProcAmp_WhiteBalance, false},
+    {CameraControlNames::backlight_compensation, nullptr, true,
+     VideoProcAmp_BacklightCompensation, false},
+};
+
+// CameraControl_Flags_* and VideoProcAmp_Flags_* have the same values
+static constexpr long dshow_flag_auto = 0x1;
+static constexpr long dshow_flag_manual = 0x2;
+
+class DShowControlBackend final : public CameraControlBackend
+{
+public:
+  explicit DShowControlBackend(QString name)
+      : m_name{std::move(name)}
+  {
+  }
+
+  std::vector<Control> open() override
+  {
+    m_com = SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+
+    std::vector<Control> controls;
+    IBaseFilter* filter = bind();
+    if(!filter)
+      return controls;
+    filter->QueryInterface(IID_IAMCameraControl, (void**)&m_camera);
+    filter->QueryInterface(IID_IAMVideoProcAmp, (void**)&m_procamp);
+    filter->Release();
+
+    for(auto& spec : dshow_controls)
+    {
+      Range r{&spec};
+      long step{}, def{}, caps{};
+      HRESULT ok = E_FAIL;
+      if(spec.procamp && m_procamp)
+        ok = m_procamp->GetRange(spec.property, &r.min, &r.max, &step, &def, &caps);
+      else if(!spec.procamp && m_camera)
+        ok = m_camera->GetRange(spec.property, &r.min, &r.max, &step, &def, &caps);
+      if(FAILED(ok) || r.min > r.max)
+        continue;
+
+      Control c;
+      c.name = spec.name;
+      if(spec.auto_name && (caps & dshow_flag_auto))
+        c.auto_name = spec.auto_name;
+      c.is_float = spec.exposure;
+      c.min = toUnits(r, r.min);
+      c.max = toUnits(r, r.max);
+      m_ranges.push_back(r);
+      controls.push_back(std::move(c));
+    }
+    return controls;
+  }
+
+  std::optional<State> get(std::size_t i) override
+  {
+    const Range& r = m_ranges[i];
+    long value{}, flags{};
+    const HRESULT hr = r.spec->procamp ? m_procamp->Get(r.spec->property, &value, &flags)
+                                       : m_camera->Get(r.spec->property, &value, &flags);
+    if(FAILED(hr))
+      return std::nullopt;
+    return State{toUnits(r, value), bool(flags & dshow_flag_auto)};
+  }
+
+  bool set(std::size_t i, double value, bool automatic) override
+  {
+    const Range& r = m_ranges[i];
+    long raw{};
+    if(r.spec->exposure)
+    {
+      const auto stop = dshow::exposureStop(value, r.min, r.max);
+      if(!stop)
+        return false;
+      raw = *stop;
+    }
+    else
+    {
+      raw = long(std::lround(std::clamp(value, double(r.min), double(r.max))));
+    }
+    if(!automatic && (value < toUnits(r, r.min) || value > toUnits(r, r.max)))
+      qDebug() << "Camera" << m_name << r.spec->name << ":" << value << "clamped to"
+               << toUnits(r, raw);
+
+    const long flags = automatic ? dshow_flag_auto : dshow_flag_manual;
+    const HRESULT hr = r.spec->procamp ? m_procamp->Set(r.spec->property, raw, flags)
+                                       : m_camera->Set(r.spec->property, raw, flags);
+    return SUCCEEDED(hr);
+  }
+
+  void close() override
+  {
+    if(m_camera)
+      m_camera->Release();
+    if(m_procamp)
+      m_procamp->Release();
+    m_camera = nullptr;
+    m_procamp = nullptr;
+    if(m_com)
+      CoUninitialize();
+    m_com = false;
+  }
+
+private:
+  struct Range
+  {
+    const DShowControlSpec* spec{};
+    long min{}, max{};
+  };
+
+  static double toUnits(const Range& r, long raw)
+  {
+    return r.spec->exposure ? dshow::exposureMicroseconds(raw) : double(raw);
+  }
+
+  //! The first camera of that name, as ffmpeg's "video=<name>" opens it.
+  IBaseFilter* bind()
+  {
+    ICreateDevEnum* devices{};
+    if(FAILED(CoCreateInstance(
+           CLSID_SystemDeviceEnum, nullptr, CLSCTX_INPROC_SERVER,
+           IID_PPV_ARGS(&devices))))
+      return nullptr;
+
+    IEnumMoniker* monikers{};
+    const HRESULT hr
+        = devices->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &monikers, 0);
+    devices->Release();
+    if(hr != S_OK || !monikers)
+      return nullptr;
+
+    IBaseFilter* filter{};
+    IMoniker* moniker{};
+    while(monikers->Next(1, &moniker, nullptr) == S_OK)
+    {
+      bool found = false;
+      IPropertyBag* bag{};
+      if(SUCCEEDED(moniker->BindToStorage(0, 0, IID_PPV_ARGS(&bag))))
+      {
+        found = propertyBagName(*bag) == m_name;
+        bag->Release();
+      }
+      if(found)
+        moniker->BindToObject(nullptr, nullptr, IID_IBaseFilter, (void**)&filter);
+      moniker->Release();
+      if(found)
+        break;
+    }
+    monikers->Release();
+    return filter;
+  }
+
+  QString m_name;
+  IAMCameraControl* m_camera{};
+  IAMVideoProcAmp* m_procamp{};
+  std::vector<Range> m_ranges;
+  bool m_com{};
+};
+}
+
+std::shared_ptr<CameraControls> make_camera_controls(const CameraSettings& set)
+{
+  static const QString prefix = QStringLiteral("video=");
+  if(set.input != "dshow" || !set.device.startsWith(prefix))
+    return {};
+
+  auto controls = std::make_shared<CameraControls>(
+      std::make_unique<DShowControlBackend>(set.device.mid(prefix.size())));
+  if(controls->empty())
+    return {};
+  return controls;
 }
 }
