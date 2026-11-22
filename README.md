@@ -24,8 +24,6 @@ Releases are available for [Windows, Linux (via AppImage) and macOS](https://git
 
 ## Build status
 
-[PR CI](.github/workflows/pr.yml) runs Nix first. If it passes, the remaining builds start in parallel; a new commit cancels the previous run for that PR. Pushes to `master` and release tags keep their independent workflows.
-
 | Platform                          | Status                                                                                                                                                                           |
 |-----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | AppImage (x86-64 & AArch64)       | [![AppImage](https://github.com/ossia/score/actions/workflows/appimage.yml/badge.svg)](https://github.com/ossia/score/actions/workflows/appimage.yml)                            |
