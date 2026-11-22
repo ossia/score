@@ -109,10 +109,17 @@ CalibrationFile loadCalibration(const QString& path);
 CalibrationWrite calibrationWrite(const CalibrationFile& c);
 bool saveCalibration(const CalibrationFile& c, QString* error = nullptr);
 
+//! Adds files already written next to the calibration `base` to its
+//! name.json's "files", replaced atomically; false, with `error`, when
+//! name.json is missing or not a JSON object.
+bool listCalibrationFiles(const QString& base, const QStringList& names, QString* error = nullptr);
+
 //! Replaces `path` atomically.
 bool writeJsonFile(const QString& path, const QJsonObject& o, QString* error = nullptr);
 //! Empty when missing or not a JSON object.
 QJsonObject readJsonFile(const QString& path);
+//! nullopt, with `error`, when missing or not a JSON object.
+std::optional<QJsonObject> parseJsonFile(const QString& path, QString* error = nullptr);
 
 //! `base` with `tag` before its projector index, so that it stays in a set
 //! (Gfx::calibrationSetBase): room_p2 + "_reg" -> room_reg_p2.

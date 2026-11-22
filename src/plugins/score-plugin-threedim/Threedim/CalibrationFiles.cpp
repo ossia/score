@@ -96,6 +96,39 @@ bool writeJsonFile(const QString& path, const QJsonObject& o, QString* error)
   return true;
 }
 
+std::optional<QJsonObject> parseJsonFile(const QString& path, QString* error)
+{
+  QFile f{path};
+  if(!f.open(QIODevice::ReadOnly))
+  {
+    fail(error, QStringLiteral("cannot read %1").arg(path));
+    return std::nullopt;
+  }
+  QJsonParseError pe{};
+  const auto doc = QJsonDocument::fromJson(f.readAll(), &pe);
+  if(pe.error != QJsonParseError::NoError || !doc.isObject())
+  {
+    fail(
+        error, QStringLiteral("%1 is not a JSON object: %2").arg(path, pe.errorString()));
+    return std::nullopt;
+  }
+  return doc.object();
+}
+
+bool listCalibrationFiles(const QString& base, const QStringList& names, QString* error)
+{
+  const QString jsonPath = base + QStringLiteral(".json");
+  auto o = parseJsonFile(jsonPath, error);
+  if(!o)
+    return false;
+  auto files = o->value(QStringLiteral("files")).toArray();
+  for(const QString& name : names)
+    if(!files.contains(name))
+      files.append(name);
+  o->insert(QStringLiteral("files"), files);
+  return writeJsonFile(jsonPath, *o, error);
+}
+
 QJsonObject readJsonFile(const QString& path)
 {
   QFile f{path};
