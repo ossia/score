@@ -2352,3 +2352,6 @@ score_add_gfx_test(cube_face_implicit_depth GfxCubeFaceImplicitDepth.cpp)
 
 # A raw raster's own storage images are clamped to the device's TextureSizeMax.
 score_add_gfx_test(raw_raster_size_clamp GfxRawRasterSizeClamp.cpp)
+
+# CSF: a TYPE cubemap resource is a samplerCube.
+score_add_gfx_test(csf_resource_fixes GfxCsfResourceFixes.cpp)

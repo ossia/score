@@ -9062,6 +9062,17 @@ void parser::parse_csf()
       tex.sampler = img->sampler;
       inp.data = std::move(tex);
     }
+    else if(auto* cube = ossia::get_if<cubemap_input>(&inp.data))
+    {
+      if(cube->depth)
+        throw invalid_file{
+            "CSF input \"" + inp.name
+            + "\": TYPE cubemap with IS_DEPTH is not supported in a compute shader."};
+      texture_input tex;
+      tex.cube = true;
+      tex.sampler = cube->sampler;
+      inp.data = std::move(tex);
+    }
     else if(auto* st = ossia::get_if<storage_input>(&inp.data); st && st->layout.empty())
     {
       // A compute shader declares every storage buffer, BUFFER_USAGE ones
