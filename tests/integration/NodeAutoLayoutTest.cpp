@@ -13,6 +13,8 @@
 
 #include <score/command/CommandData.hpp>
 
+#include <JS/Qml/EditContext.hpp>
+
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -175,3 +177,38 @@ TEST_CASE("a folded node is estimated at its folded size", "[integration][nodal]
   });
 }
 
+TEST_CASE("Score.autoLayout and Score.setFolded are undoable and skip no-ops", "[integration][nodal][js]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& itv = docModel(*doc).baseInterval();
+    auto* a = createMapping(*doc, itv, {800., 800.});
+    auto* b = createMapping(*doc, itv, {100., 100.});
+    auto* c = createMapping(*doc, itv, {2000., 100.});
+    connect(*doc, *a, *b);
+    auto& stack = doc->commandStack();
+
+    JS::EditJsContext js;
+    const QPointF cPos = c->position();
+    const int start = stack.currentIndex();
+    js.autoLayout(&itv, QVariantList{QVariant::fromValue<QObject*>(a), QVariant::fromValue<QObject*>(b)});
+    CHECK(stack.currentIndex() == start + 1);
+    CHECK(c->position() == cPos);
+    CHECK(footprint(*a).right() <= footprint(*b).left());
+
+    js.autoLayout(&itv);
+    const int afterAll = stack.currentIndex();
+    CHECK(afterAll == start + 2);
+    js.autoLayout(&itv);
+    CHECK(stack.currentIndex() == afterAll);
+
+    js.setFolded(a, true);
+    CHECK(a->foldMode() == Process::FoldMode::Folded);
+    const int folded = stack.currentIndex();
+    js.setFolded(a, true);
+    CHECK(stack.currentIndex() == folded);
+    stack.undo();
+    CHECK(a->foldMode() != Process::FoldMode::Folded);
+  });
+}
