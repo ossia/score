@@ -1,4 +1,7 @@
 #include "Snippets.hpp"
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 
 #include <Process/Dataflow/CableCopy.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
@@ -296,9 +299,25 @@ bool insertSnippet(const ScenarioPresenter& pres, QPointF pos, const QString& pa
         pres.model(), pres.toScenarioPoint(pos), json, pres.context().context);
   }
 
-  CommandDispatcher<> d{pres.context().context.commandStack};
-  d.submit(
-      new Command::ScenarioPasteElements(pres.model(), json, pres.toScenarioPoint(pos)));
+  // What nothing leads into starts when the score plays, as a state made by
+  // double-clicking does
+  const auto& scenario = pres.model();
+  Command::Macro m{new Command::InsertSnippetMacro, pres.context().context};
+  auto paste
+      = new Command::ScenarioPasteElements(scenario, json, pres.toScenarioPoint(pos));
+  m.submit(paste);
+  const auto ledInto = [&](const TimeSyncModel& ts) {
+    return ossia::any_of(ts.events(), [&](const auto& ev) {
+      return ossia::any_of(scenario.event(ev).states(), [&](const auto& st) {
+        return bool(scenario.state(st).previousInterval());
+      });
+    });
+  };
+  for(const auto& id : paste->pastedTimeSyncs())
+    if(auto ts = scenario.timeSyncs.find(id); ts != scenario.timeSyncs.end())
+      if(!ledInto(*ts))
+        addStartOnPlayTrigger(m, *ts);
+  m.commit();
   return true;
 }
 
@@ -463,6 +482,32 @@ bool insertSnippetInInterval(
     return false;
   m.submit(new Command::FollowPasted{std::move(pasted)});
   m.showRack(interval);
+  m.commit();
+  return true;
+}
+
+bool insertSnippetAfter(
+    const score::DocumentContext& ctx, const Scenario::ProcessModel& scenario,
+    const StateModel& state, double y, const QString& path)
+{
+  // As long as a box made by Tab
+  constexpr auto duration = TimeVal::fromMsecs(10000.);
+
+  Command::Macro m{new Command::InsertSnippetMacro, ctx};
+  // A state already followed by a box: another state on its event starts it
+  const StateModel* from = &state;
+  if(state.nextInterval())
+    from = &m.createState(scenario, state.eventId(), y);
+  const auto date = scenario.event(from->eventId()).date();
+  auto& box = m.createIntervalAfter(
+      scenario, from->id(), Scenario::Point{date + duration, from->heightPercentage()});
+
+  auto pasted = loadSnippet(m, ctx, box, QPointF{}, path);
+  if(pasted.empty())
+    return false;
+  m.submit(new Command::FollowPasted{std::move(pasted)});
+  m.showRack(box);
+  m.submit(new Command::ChangeElementName{box, QFileInfo{path}.completeBaseName()});
   m.commit();
   return true;
 }

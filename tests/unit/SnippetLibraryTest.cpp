@@ -680,3 +680,70 @@ TEST_CASE("A malformed snippet is refused, not half inserted", "[snippets]")
     CHECK(doc->commandStack().size() == steps);
   });
 }
+
+TEST_CASE(
+    "A snippet added from a state goes in a new box starting there",
+    "[snippets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenario = score::test::base_scenario(*doc);
+
+    Scenario::IntervalModel* a{};
+    {
+      Scenario::Command::Macro m{
+          new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      a = &m.createBox(scenario, TimeVal::fromMsecs(1000), TimeVal::fromMsecs(3000), 0.1);
+      REQUIRE(m.createProcessInNewSlot(
+          *a, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), QString{}));
+      m.commit();
+    }
+    a->selection.set(true);
+    JSONReader r;
+    Scenario::copySelectedScenarioElements(r, scenario);
+    a->selection.set(false);
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const auto file = Scenario::writeSnippet(r.toByteArray(), dir.path(), "Swell", nullptr);
+    REQUIRE(file);
+
+    const auto& end = scenario.state(a->endState());
+    const auto newBoxes = [&](const std::vector<const Scenario::IntervalModel*>& before) {
+      std::vector<const Scenario::IntervalModel*> res;
+      for(auto& i : scenario.intervals)
+        if(std::find(before.begin(), before.end(), &i) == before.end())
+          res.push_back(&i);
+      return res;
+    };
+    std::vector<const Scenario::IntervalModel*> before;
+    for(auto& i : scenario.intervals)
+      before.push_back(&i);
+
+    // From a state nothing starts from: that state starts the box
+    REQUIRE(Scenario::insertSnippetAfter(doc->context(), scenario, end, 0.5, *file));
+    auto added = newBoxes(before);
+    REQUIRE(added.size() == 1);
+    const auto& box = *added.front();
+    CHECK(box.startState() == end.id());
+    CHECK(box.date() == a->date() + a->duration.defaultDuration());
+    CHECK(box.metadata().getName() == "Swell");
+    REQUIRE(box.processes.size() == 1);
+    CHECK(qobject_cast<const Automation::ProcessModel*>(&*box.processes.begin()));
+
+    // From it again: a new state on the same event starts another box
+    for(auto& i : scenario.intervals)
+      before.push_back(&i);
+    REQUIRE(Scenario::insertSnippetAfter(doc->context(), scenario, end, 0.7, *file));
+    added = newBoxes(before);
+    REQUIRE(added.size() == 1);
+    const auto& second = scenario.state(added.front()->startState());
+    CHECK(second.id() != end.id());
+    CHECK(second.eventId() == end.eventId());
+
+    // One undo step each
+    doc->commandStack().undo();
+    CHECK(newBoxes(before).empty());
+    CHECK(end.nextInterval());
+  });
+}

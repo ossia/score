@@ -34,6 +34,12 @@
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioSelection.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
@@ -341,6 +347,51 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   scenariodocument_cond.add<Actions::GoToParent>();
 }
 
+//! The state something added after what the menu was opened on starts from:
+//! that state, or one of that event, or of that time sync. A right click
+//! selects nothing in the timeline: what is under it is looked for.
+static const StateModel* startStateAt(const ScenarioPresenter& pres, QPointF scenePoint)
+{
+  const auto& scenario = pres.model();
+  auto scene = pres.view().scene();
+  if(!scene)
+    return nullptr;
+  const auto ofEvent = [&](const EventModel& ev) -> const StateModel* {
+    return ev.states().empty() ? nullptr : &scenario.state(ev.states().front());
+  };
+  for(QGraphicsItem* item : scene->items(scenePoint))
+  {
+    const QObject* model{};
+    const StateModel* state{};
+    switch(item->type())
+    {
+      case StateView::Type:
+        state = &static_cast<StateView*>(item)->presenter().model();
+        model = state;
+        break;
+      case EventView::Type: {
+        auto& ev = static_cast<EventView*>(item)->presenter().model();
+        model = &ev;
+        state = ofEvent(ev);
+        break;
+      }
+      case TimeSyncView::Type: {
+        auto& ts = static_cast<TimeSyncView*>(item)->presenter().model();
+        model = &ts;
+        if(!ts.events().empty())
+          state = ofEvent(scenario.event(ts.events().front()));
+        break;
+      }
+      default:
+        continue;
+    }
+    // Of this scenario, not of one inside one of its boxes
+    if(model->parent() == &scenario)
+      return state;
+  }
+  return nullptr;
+}
+
 void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
   using namespace Process;
@@ -386,13 +437,21 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     objectMenu->addAction(m_duplicate);
     objectMenu->addAction(m_saveSnippet);
 
-    // Where the menu was opened.
+    // Where the menu was opened: after the state, event or time sync it was
+    // opened on, else there in a new box
     {
       auto snippets = menu.addMenu(tr("Add snippet"));
       const QPointF viewPos = scenario->view().mapFromScene(scenePoint);
       QPointer<const ScenarioPresenter> sp{scenario};
-      fillSnippetsMenu(*snippets, [sp, viewPos](const QString& path) {
-        if(sp)
+      QPointer<const StateModel> after = startStateAt(*scenario, scenePoint);
+      fillSnippetsMenu(*snippets, [sp, viewPos, after](const QString& path) {
+        if(!sp)
+          return;
+        if(after)
+          insertSnippetAfter(
+              sp->context().context, sp->model(), *after,
+              sp->toScenarioPoint(viewPos).y, path);
+        else
           insertSnippet(*sp, viewPos, path);
       });
     }

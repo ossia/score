@@ -76,6 +76,9 @@
 #include <QMimeData>
 #include <QPushButton>
 #include <QTimer>
+#include <score/serialization/JSONVisitor.hpp>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <QTemporaryDir>
 #include <QToolButton>
 
 #include <catch2/catch_test_macros.hpp>
@@ -1398,5 +1401,68 @@ TEST_CASE(
     run_events_for(50);
     CHECK(itv.processes.size() == before);
     CHECK(processesBut(itv, source).front()->position() == oldPos);
+  });
+}
+
+namespace
+{
+const Scenario::ScenarioPresenter* presenterOf(score::Document& doc, const Scenario::ProcessModel& scenario)
+{
+  auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(doc);
+  if(!pr)
+    return nullptr;
+  for(auto item : pr->view().view().scene()->items())
+    if(item->type() == Scenario::ScenarioView::Type)
+      if(auto v = static_cast<const Scenario::ScenarioView*>(item);
+         v->presenter() && &v->presenter()->model() == &scenario)
+        return v->presenter();
+  return nullptr;
+}
+}
+
+TEST_CASE(
+    "A snippet added in the emptiness of a scenario starts on play, as a state made by "
+    "double-clicking",
+    "[integration][snippets][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    run_events_for(200);
+    auto& scenario = score::test::base_scenario(*doc);
+
+    // A box saved as a snippet
+    auto& itv = newInterval(*doc);
+    itv.selection.set(true);
+    JSONReader r;
+    Scenario::copySelectedScenarioElements(r, scenario);
+    itv.selection.set(false);
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const auto file = Scenario::writeSnippet(r.toByteArray(), dir.path(), "Box", nullptr);
+    REQUIRE(file);
+
+    auto* sp = presenterOf(*doc, scenario);
+    REQUIRE(sp);
+    std::vector<const Scenario::TimeSyncModel*> before;
+    for(auto& ts : scenario.timeSyncs)
+      before.push_back(&ts);
+    REQUIRE(Scenario::insertSnippet(*sp, QPointF{400., 200.}, *file));
+
+    std::vector<const Scenario::TimeSyncModel*> added;
+    for(auto& ts : scenario.timeSyncs)
+      if(std::find(before.begin(), before.end(), &ts) == before.end())
+        added.push_back(&ts);
+    REQUIRE(added.size() == 2);
+    // Its start starts on play, not its end
+    int starting = 0;
+    for(auto* ts : added)
+      if(ts->isStartPoint() && ts->active())
+        starting++;
+    CHECK(starting == 1);
+
+    // One undo step
+    doc->commandStack().undo();
+    CHECK(scenario.timeSyncs.size() == before.size());
   });
 }

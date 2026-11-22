@@ -21,6 +21,8 @@ namespace Scenario
 {
 class ScenarioPresenter;
 class IntervalModel;
+class ProcessModel;
+class StateModel;
 
 //! Saves what is selected in the focused timeline as a snippet of the user
 //! library, under a name the user gives ("Folder/Name" makes a folder).
@@ -40,6 +42,14 @@ std::optional<QString> writeSnippet(
 //! in the scenario view's coordinates.
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool insertSnippet(const ScenarioPresenter& pres, QPointF pos, const QString& path);
+
+//! The snippet at `path` in a new box starting from `state`'s event, at
+//! the height `y`: what the menu of a state, event or time sync adds. The
+//! state itself starts it when nothing starts from it yet.
+SCORE_PLUGIN_SCENARIO_EXPORT
+bool insertSnippetAfter(
+    const score::DocumentContext& ctx, const Scenario::ProcessModel& scenario,
+    const StateModel& state, double y, const QString& path);
 
 //! Adds the processes of every box of the snippet at `path` to `interval`,
 //! with the cables between them: what the node view shows of a snippet. Their
