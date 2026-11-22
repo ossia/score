@@ -4571,10 +4571,11 @@ static void check_input_names(const descriptor& d)
       "TEX_DIMENSIONS_2D", "TEX_DIMENSIONS_3D", "LAYER_TEXEL", "main"};
   // vec4, dmat2x3, usampler2DArray, image3D, textureCube, subpassInputMS...
   const auto glsl_type = [](std::string_view n) -> bool {
-    return ctre::match<
-        "([iubd]?vec[234]|d?mat[234](x[234])?"
-        "|[iu]?(sampler|image|texture)(1D|2D|3D|Cube|2DRect|Buffer|2DMS)(Array)?(Shadow)?"
-        "|samplerShadow|sampler|[iu]?subpassInput(MS)?)">(n);
+    // Keep the alternatives separate so CTRE stays within MSVC's template depth.
+    return ctre::match<"[iubd]?vec[234]|d?mat[234](x[234])?">(n)
+           || ctre::match<
+               "[iu]?(sampler|image|texture)(1D|2D|3D|Cube|2DRect|Buffer|2DMS)(Array)?(Shadow)?">(n)
+           || ctre::match<"samplerShadow|sampler|[iu]?subpassInput(MS)?">(n);
   };
 
   ossia::flat_set<std::string_view> seen;
