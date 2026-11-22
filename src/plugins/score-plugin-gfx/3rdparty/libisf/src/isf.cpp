@@ -6184,6 +6184,7 @@ void parser::parse_raw_raster_pipeline()
   if(mv_fragment_plumbing)
   {
     m_vertex += "#extension GL_EXT_multiview : require\n";
+    m_vertex += "#define gl_ViewIndex int(uint(gl_ViewIndex))\n";
   }
 
   {
