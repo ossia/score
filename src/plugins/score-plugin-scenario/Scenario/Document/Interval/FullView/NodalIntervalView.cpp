@@ -5,10 +5,11 @@
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/DialogWidget/PickProcess.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
+#include <Scenario/Library/Snippets.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -27,6 +28,10 @@
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
+#include <QMenu>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/CableItem.hpp>
 #include <QGraphicsRectItem>
 #include <QPointer>
 #include <QGraphicsSceneDragDropEvent>
@@ -609,27 +614,156 @@ void NodalIntervalView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e)
 
 void NodalIntervalView::openProcessPicker(QPointF nodePos)
 {
-  auto& fact = m_context.app.interfaces<Process::ProcessFactoryList>();
-  auto dialog = new AddProcessDialog{
-      fact, Process::ProcessFlags::SupportsTemporal, QApplication::activeWindow()};
-
-  // The dialog runs its own event loop, which may close the document.
+  // The document may be closed before a process is picked.
   QPointer<NodalIntervalView> self = this;
-  dialog->on_okPressed = [self, nodePos](const AddProcessDialog::Key& key, QString data) {
+  pickProcess(
+      m_context.app, Process::ProcessFlags::SupportsTemporal,
+      [self, nodePos](const Library::PickedProcess& p) {
     if(!self)
       return;
     Command::Macro m{new Command::DropProcessInIntervalMacro, self->m_context};
-    if(m.createProcessInNewSlot(self->m_model, key, data, nodePos))
+    if(addPickedProcess(m, self->m_model, p, nodePos))
       m.commit();
-  };
+  });
+}
 
-  dialog->launchWindow();
-  dialog->deleteLater();
+Process::NodeItem* NodalIntervalView::nodeAt(QPointF scenePos) const
+{
+  if(!scene())
+    return nullptr;
+  // The topmost: the one the click is on
+  for(QGraphicsItem* item : scene()->items(scenePos))
+    if(item->type() == Process::NodeItem::Type)
+      if(auto node = static_cast<Process::NodeItem*>(item); ossia::contains(m_nodeItems, node))
+        return node;
+  return nullptr;
+}
+
+const Process::Cable* NodalIntervalView::cableAt(QPointF scenePos) const
+{
+  if(!scene())
+    return nullptr;
+  for(QGraphicsItem* item : scene()->items(scenePos))
+  {
+    if(item->type() == Process::NodeItem::Type)
+      return nullptr; // a node over the cable takes the click
+    if(item->type() == Dataflow::CableItem::Type)
+    {
+      auto& cable = static_cast<Dataflow::CableItem*>(item)->model();
+      // One of this box's cables: both its ends in it
+      auto* src = cable.source().try_find(m_context);
+      if(src && Scenario::closestParentInterval(src) == &m_model)
+        return &cable;
+    }
+  }
+  return nullptr;
+}
+
+void NodalIntervalView::openCablePicker(const Process::Cable& cable)
+{
+  QPointer<NodalIntervalView> self = this;
+  QPointer<const Process::Cable> target = &cable;
+  Library::PickerOptions options;
+  if(auto src = cable.source().try_find(m_context))
+    options.ports = Library::PortFilter{src->type(), true};
+  pickProcess(
+      m_context.app, Process::ProcessFlags::SupportsTemporal,
+      [self, target](const Library::PickedProcess& p) {
+    if(!self || !target)
+      return;
+    auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+        self->m_context.document);
+    if(p.preset)
+      Scenario::loadPresetInCable(self->m_context, doc, *p.preset, *target);
+    else
+      Scenario::createProcessInCable(
+          self->m_context, doc, Process::ProcessData{p.key, p.name, p.customData}, {},
+          {}, *target);
+  }, std::move(options));
+}
+
+void NodalIntervalView::openReplacePicker(const Process::NodeItem& node)
+{
+  QPointer<NodalIntervalView> self = this;
+  QPointer<const Process::NodeItem> target = &node;
+  Library::PickerOptions options;
+  options.action = tr("Replace %1").arg(node.model().metadata().getName());
+  pickProcess(
+      m_context.app, Process::ProcessFlags::SupportsTemporal,
+      [self, target](const Library::PickedProcess& p) {
+    if(!self || !target)
+      return;
+    auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+        self->m_context.document);
+    Scenario::DropOnNode replace{*target, doc, self->m_context};
+    if(!replace.prepare())
+      return;
+    if(p.preset)
+      replace.createPreset(*p.preset);
+    else
+      replace.createProcess({Process::ProcessData{p.key, p.name, p.customData}, {}, {}});
+  }, std::move(options));
 }
 
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
+  // The canvas of the node view, or of a box's slot: what can be added to the
+  // interval where the menu opens.
+
+  const QPointF nodePos = m_container->mapFromParent(event->pos());
+  QPointer<NodalIntervalView> self = this;
+  QMenu menu;
+  auto addProcess = menu.addAction(tr("Add process"));
+  connect(addProcess, &QAction::triggered, this, [self, nodePos] {
+    if(self)
+      self->openProcessPicker(nodePos);
+  });
+  auto snippets = menu.addMenu(tr("Add snippet"));
+  fillSnippetsMenu(*snippets, [self, nodePos](const QString& path) {
+    if(self)
+      insertSnippetInInterval(self->m_context, self->m_model, nodePos, path);
+  });
+
+  // On a cable: a process in it, as dropped on it
+  if(auto cable = cableAt(event->scenePos()))
+  {
+    score::SelectionDispatcher{m_context.selectionStack}.select(*cable);
+    QPointer<const Process::Cable> target = cable;
+    menu.insertAction(menu.actions().front(), [&] {
+      auto add = new QAction{tr("Add process in the cable"), &menu};
+      connect(add, &QAction::triggered, this, [self, target] {
+        if(self && target)
+          self->openCablePicker(*target);
+      });
+      return add;
+    }());
+  }
+
+  // On a node: what a process or preset dropped on it does
+  if(auto node = nodeAt(event->scenePos()))
+  {
+    QPointer<Process::NodeItem> target = node;
+    auto replace = menu.addAction(tr("Replace"));
+    connect(replace, &QAction::triggered, this, [self, target] {
+      if(self && target)
+        self->openReplacePicker(*target);
+    });
+  }
+
+  // The nodes selected, with the cables between them.
+  if(ossia::any_of(m_context.selectionStack.currentSelection(), [](const auto& obj) {
+       return qobject_cast<const Process::ProcessModel*>(obj.data());
+     }))
+  {
+    menu.addSeparator();
+    auto save = menu.addAction(tr("Save selection as snippet"));
+    connect(save, &QAction::triggered, this, [self] {
+      if(self)
+        saveSelectionAsSnippet(self->m_context, QApplication::activeWindow());
+    });
+  }
+  menu.exec(event->screenPos());
 }
 
 void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)

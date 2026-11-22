@@ -236,6 +236,17 @@ public:
 
   auto erase(const_iterator it) noexcept { return m_children.erase(it); }
 
+  //! The child at `from` put before the one at `before` (the end if it is the
+  //! count), as QAbstractItemModel::beginMoveRows counts them.
+  void moveChild(int from, int before) noexcept
+  {
+    auto src = m_children.begin();
+    std::advance(src, from);
+    auto dst = m_children.begin();
+    std::advance(dst, before);
+    m_children.splice(dst, m_children, src);
+  }
+
   auto erase(const_iterator it_beg, const_iterator it_end) noexcept
   {
     return m_children.erase(it_beg, it_end);

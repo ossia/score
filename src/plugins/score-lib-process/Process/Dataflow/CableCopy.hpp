@@ -2,11 +2,65 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/tools/IdentifierGeneration.hpp>
+
 #include <ossia/detail/ptr_set.hpp>
 
 namespace Dataflow
 {
 using SerializedCables = std::vector<std::pair<Id<Process::Cable>, Process::CableData>>;
+
+//! Moves a copied cable's end to the copy of the process it starts at: `ids`
+//! gives the copy's identifier for the original's. False when that process
+//! was not copied.
+inline bool
+relocateToCopy(ObjectPath& path, const std::vector<std::pair<int32_t, int32_t>>& ids)
+{
+  auto& vec = path.vec();
+  if(vec.empty())
+    return false;
+  for(auto [old_id, new_id] : ids)
+    if(vec.front().id() == old_id)
+    {
+      vec.front() = ObjectIdentifier{vec.front().objectName(), new_id};
+      return true;
+    }
+  return false;
+}
+
+namespace detail
+{
+inline Process::CableData& cableData(Process::CableData& c) noexcept { return c; }
+inline Process::CableData& cableData(SerializedCables::value_type& c) noexcept
+{
+  return c.second;
+}
+}
+
+//! The copied cables both ends of which `relocate` moves to the copies, under
+//! identifiers new among the document's `existing` cables. The others are
+//! left out: an end that kept its path would land on whatever has it here.
+template <typename Cables, typename Relocate, typename Existing>
+SerializedCables
+keepCopiedCables(Cables&& cables, Relocate&& relocate, const Existing& existing)
+{
+  std::vector<Process::CableData> kept;
+  kept.reserve(cables.size());
+  for(auto& c : cables)
+  {
+    auto& cd = detail::cableData(c);
+    if(relocate(cd.source.unsafePath()) && relocate(cd.sink.unsafePath()))
+      kept.push_back(std::move(cd));
+  }
+
+  // One identifier each: the document's cables do not change meanwhile
+  const auto ids = getStrongIdRange<Process::Cable>(kept.size(), existing);
+  SerializedCables res;
+  res.reserve(kept.size());
+  for(std::size_t i = 0; i < kept.size(); i++)
+    res.emplace_back(ids[i], std::move(kept[i]));
+  return res;
+}
 }
 namespace Process
 {

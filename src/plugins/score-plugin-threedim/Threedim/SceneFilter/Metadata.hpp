@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Filter the hierarchy of a scene_spec (visibility, names)",
     "ossia team",
     (QStringList{"gfx", "scene", "filter", "3d", "hierarchy"}),
-    {},
-    {},
+    (std::vector<Process::PortType>{Process::PortType::Geometry, Process::PortType::Message}),
+    {std::vector<Process::PortType>{Process::PortType::Geometry}},
     QUrl{},
     Process::ProcessFlags::SupportsAll
 )

@@ -10,9 +10,15 @@
 
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
+#include <Device/Protocol/DeviceInterface.hpp>
+
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <Execution/DocumentPlugin.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Gfx/GfxContext.hpp>
+#include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/TexturePort.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -49,19 +55,30 @@ bool executionUpdates()
 {
   return score::AppContext().settings<Scenario::Settings::Model>().getExecutionUpdate();
 }
+}
 
-//! The texture outlet a texture port shows: itself, or the source of its
-//! first cable.
-const Gfx::TextureOutlet* textureSource(const Process::Port& port, const score::DocumentContext& doc)
+ossia::gfx::port_index probedTexture(const Process::Port& port, const score::DocumentContext& doc)
 {
+  constexpr ossia::gfx::port_index none{score::gfx::invalid_node_index, 0};
   if(auto* out = qobject_cast<const Gfx::TextureOutlet*>(&port))
-    return out;
+    return out->graphicsPort();
   for(const auto& path : port.cables())
     if(auto* cable = path.try_find(doc))
       if(auto* src = qobject_cast<Gfx::TextureOutlet*>(cable->source().try_find(doc)))
-        return src;
-  return nullptr;
-}
+        return src->graphicsPort();
+
+  const auto& addr = port.address().address;
+  auto* devices = doc.findPlugin<Explorer::DeviceDocumentPlugin>();
+  if(!devices || addr.device.isEmpty())
+    return none;
+  auto* dev = devices->list().findDevice(addr.device);
+  auto* ossia_dev = dev ? dev->getDevice() : nullptr;
+  if(!ossia_dev)
+    return none;
+  if(auto* node = Device::findNodeFromPath(addr.path, *ossia_dev))
+    if(auto* p = dynamic_cast<Gfx::texture_source_parameter*>(node->get_parameter()))
+      return p->source();
+  return none;
 }
 
 ProbeItem::ProbeItem(const Process::Port& port, const Process::Context& ctx)
@@ -96,13 +113,13 @@ void ProbeItem::attach()
   if(type == Process::PortType::Texture)
   {
     auto* plug = m_context.findPlugin<Gfx::DocumentPlugin>();
-    const auto* src = textureSource(*m_port, m_context);
-    if(plug && src && src->graphicsPort().node != score::gfx::invalid_node_index)
+    const auto src = probedTexture(*m_port, m_context);
+    if(plug && src.node != score::gfx::invalid_node_index)
     {
       if(!m_texture.attached())
-        m_texture.attach(&plug->context, src->graphicsPort(), QSize{int(width) - 8, int(height - header) - 6});
+        m_texture.attach(&plug->context, src, QSize{int(width) - 8, int(height - header) - 6});
       else
-        m_texture.setProducer(src->graphicsPort());
+        m_texture.setProducer(src);
     }
     return;
   }

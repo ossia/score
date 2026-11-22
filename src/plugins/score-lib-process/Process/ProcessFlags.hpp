@@ -92,6 +92,10 @@ enum ProcessFlags : int64_t
   //! See ProcessModel::externalSourceOutOfDate().
   ExternalSourceRefreshable = SCORE_FLAG(22),
 
+  //! Other processes live in it, as nodes: what is pasted in it goes in it,
+  //! not in the interval holding it. Per-type flag.
+  HoldsProcesses = SCORE_FLAG(23),
+
   // clang-format off
   SupportsLasting = SupportsTemporal | TimeIndependent,
   ExternalEffect  = SupportsTemporal | TimeIndependent | RequiresCustomData | ControlSurface,

@@ -833,27 +833,15 @@ void FullViewIntervalPresenter::updateTimeBars()
   this->m_timebars->timebar->setModel(model, timeDelta);
   this->m_timebars->timebar->setZoomRatio(m_zoomRatio);
 
-  if(!model || !this->m_settings.getMeasureBars())
-  {
-    if(this->m_timebars->timebar->isEnabled())
-    {
-      this->m_timebars->lightBars->setVisible(false);
-      this->m_timebars->lighterBars->setVisible(false);
-      this->m_timebars->timebar->setEnabled(true);
-      this->m_timebars->timebar->setVisible(true);
-    }
+  // The lines follow whether there are bars to draw right now: an interval
+  // given a time signature while shown must get them.
+  const bool showBars = model && this->m_settings.getMeasureBars();
+  this->m_timebars->lightBars->setVisible(showBars);
+  this->m_timebars->lighterBars->setVisible(showBars);
+  this->m_timebars->timebar->setEnabled(true);
+  this->m_timebars->timebar->setVisible(true);
+  if(!showBars)
     return;
-  }
-  else
-  {
-    if(!this->m_timebars->timebar->isEnabled())
-    {
-      this->m_timebars->lightBars->setVisible(true);
-      this->m_timebars->lighterBars->setVisible(true);
-      this->m_timebars->timebar->setEnabled(true);
-      this->m_timebars->timebar->setVisible(true);
-    }
-  }
 
   auto scene_x0 = m_view->mapToScene(QPointF{}).x();
 

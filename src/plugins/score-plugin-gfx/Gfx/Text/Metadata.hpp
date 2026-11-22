@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Display text",                   // Description
     "ossia team",                     // Author
     (QStringList{"gfx", "text"}),     // Tags
-    {},                               // Inputs
-    {},                               // Outputs
+    {std::vector<Process::PortType>{Process::PortType::Message}}, // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Texture}}, // Outputs
     QUrl("https://ossia.io/score-docs/processes/text.html"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
 )

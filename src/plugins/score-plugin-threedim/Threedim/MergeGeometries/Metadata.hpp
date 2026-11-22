@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Concatenate N upstream geometry_specs into one for a single downstream renderer",
     "ossia team",
     (QStringList{"gfx", "geometry", "merge", "3d", "scene"}),
-    {},
-    {},
+    {std::vector<Process::PortType>{Process::PortType::Geometry}},
+    {std::vector<Process::PortType>{Process::PortType::Geometry}},
     QUrl{},
     Process::ProcessFlags::SupportsAll
 )

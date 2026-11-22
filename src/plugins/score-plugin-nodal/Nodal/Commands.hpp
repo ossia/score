@@ -97,4 +97,31 @@ private:
   QByteArray m_old_block, m_new_block;
   Dataflow::SerializedCables m_old_cables, m_new_cables;
 };
+
+//! Adds copied processes, with the cables between them, as nodes: the copy of
+//! copyProcesses, under new identifiers, their layout kept and moved by
+//! `offset`.
+class SCORE_PLUGIN_NODAL_TEST_EXPORT PasteNodes final : public score::Command
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), PasteNodes, "Paste nodes")
+public:
+  PasteNodes(const Nodal::Model& p, const rapidjson::Value& copy, QPointF offset);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+  const std::vector<Id<Process::ProcessModel>>& nodeIds() const noexcept
+  {
+    return m_ids;
+  }
+
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<Nodal::Model> m_path;
+  std::vector<QByteArray> m_nodes;
+  std::vector<Id<Process::ProcessModel>> m_ids;
+  Dataflow::SerializedCables m_cables;
+};
 }

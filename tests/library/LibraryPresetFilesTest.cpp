@@ -499,3 +499,43 @@ TEST_CASE(
     CHECK(lib.presets()[lib.row(name)].path == file);
   });
 }
+
+TEST_CASE(
+    "a preset of the user's library takes a description, kept in its file",
+    "[library][presets]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    TestLibrary lib{ctx};
+    Library::ProcessesItemModel processes{ctx, nullptr};
+    lib.waitFor({"Packaged", "Mine"});
+    Library::PresetItemModel presets{ctx, nullptr};
+    presets.setProcess(Process::ProcessIdentifier{
+        UuidKey<Process::ProcessModel>::fromString(pattern_uuid), {}});
+
+    // An installed package's preset stays as it was
+    CHECK(!presets.setDescription(lib.row("Packaged"), "Not mine"));
+
+    REQUIRE(presets.setDescription(lib.row("Mine"), "Four on the floor"));
+    CHECK(lib.presets()[lib.row("Mine")].description == "Four on the floor");
+    CHECK(
+        static_cast<QAbstractItemModel&>(presets)
+            .data(presets.indexOfPreset(lib.row("Mine")), Qt::ToolTipRole)
+            .toString()
+        == "Four on the floor");
+    {
+      QFile f{lib.user};
+      REQUIRE(f.open(QIODevice::ReadOnly));
+      auto p = Process::Preset::fromJson(
+          ctx.interfaces<Process::ProcessFactoryList>(), f.readAll());
+      REQUIRE(p);
+      CHECK(p->description == "Four on the floor");
+      CHECK(p->name == "Mine");
+    }
+    // Still one file, and read back as such
+    CHECK(QFileInfo{lib.user}.exists());
+    ctx.settings<Library::Settings::Model>().rescanLibrary();
+    lib.waitFor({"Packaged", "Mine"});
+    CHECK(lib.count("Mine") == 1);
+    CHECK(lib.presets()[lib.row("Mine")].description == "Four on the floor");
+  });
+}

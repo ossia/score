@@ -9,7 +9,9 @@
 #include <QStyleOptionViewItem>
 #endif
 
+#include <QContextMenuEvent>
 #include <QDrag>
+#include <QMenu>
 #include <QGuiApplication>
 #include <QMimeData>
 #include <QMouseEvent>
@@ -94,6 +96,30 @@ void ProcessTreeView::startDrag(Qt::DropActions)
 #endif
     drag->exec();
   }
+}
+
+void ProcessTreeView::contextMenuEvent(QContextMenuEvent* event)
+{
+  // What can be renamed: the snippets of the user's library. A double-click
+  // adds them to the score, so this and F2 are how they are renamed.
+  const auto index = indexAt(event->pos());
+  if(!index.isValid() || !(model()->flags(index) & Qt::ItemIsEditable))
+  {
+    QTreeView::contextMenuEvent(event);
+    return;
+  }
+  // Rows may come and go while the menu is open: the library is scanned
+  QMenu menu{this};
+  connect(
+      menu.addAction(tr("Rename")), &QAction::triggered, this,
+      [this, index = QPersistentModelIndex{index}] {
+    if(!index.isValid())
+      return;
+    setCurrentIndex(index);
+    edit(index);
+  });
+  menu.exec(event->globalPos());
+  event->accept();
 }
 
 void ProcessTreeView::mouseDoubleClickEvent(QMouseEvent* event)

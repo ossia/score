@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Display gaussian splats",           // Description
     "ossia team",                        // Author
     (QStringList{"gfx", "model", "3d"}), // Tags
-    {},                                  // Inputs
-    {},                                  // Outputs
+    (std::vector<Process::PortType>{Process::PortType::Texture, Process::PortType::Message}), // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Texture}}, // Outputs
     QUrl{},                              // Doc url
     // Replaced by the chain of Asset Loader, Scene Preprocessor, Flattened Scene
     // Filter, Compute Shader and Render Pipeline (examples/3d/3dgs.score).

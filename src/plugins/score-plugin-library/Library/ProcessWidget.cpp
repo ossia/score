@@ -6,8 +6,10 @@
 #include <Process/PreviewSettings.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <Library/Snippet.hpp>
 #include <Library/PresetFile.hpp>
 #include <Library/ItemModelFilterLineEdit.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <Library/LibraryWidget.hpp>
 #include <Library/PresetItemModel.hpp>
 #include <Library/ProcessesItemModel.hpp>
@@ -22,6 +24,7 @@
 #include <score/tools/ProjectFiles.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
@@ -33,7 +36,9 @@
 
 #include <QApplication>
 #include <QLabel>
+#include <QFile>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QMainWindow>
 #include <QScrollArea>
 #include <QTimer>
@@ -58,6 +63,8 @@ public:
     setFrameShape(QFrame::NoFrame);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setMaximumHeight(160);
+    // As tall as its text: the room left goes to the description being edited
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     auto content = new QWidget;
     auto lay = new score::MarginLess<QVBoxLayout>{content};
     lay->setAlignment(Qt::AlignTop);
@@ -99,14 +106,58 @@ public:
     return {QScrollArea::sizeHint().width(), std::min(h, maximumHeight())};
   }
 
-  void setData(const std::optional<ProcessData>& d)
+  //! A scroll area is otherwise never shorter than about four lines, however
+  //! little text it holds
+  QSize minimumSizeHint() const override
   {
+    return {QScrollArea::minimumSizeHint().width(), std::min(sizeHint().height(), 40)};
+  }
+
+  //! `snippet`: what the snippet `d` says of itself, if it is one
+  void setData(const std::optional<ProcessData>& d, const SnippetInfo* snippet = nullptr)
+  {
+    setContent(d, snippet);
+    updateVisibility();
+  }
+
+  //! The description of what is shown, hidden while an editable one is
+  void showDescription(bool on)
+  {
+    m_showDescription = on;
+    updateVisibility();
+  }
+
+private:
+  //! Empty lines take no room
+  void updateVisibility()
+  {
+    for(QLabel* l : {&m_author, &m_io, &m_tags, &m_documentationLink})
+      l->setVisible(!l->text().isEmpty());
+    m_description.setVisible(m_showDescription && !m_description.text().isEmpty());
     updateGeometry();
+  }
+
+  void setContent(const std::optional<ProcessData>& d, const SnippetInfo* snippet)
+  {
     m_author.setText(QString{});
     m_description.setText(QString{});
     m_io.setText(QString{});
     m_tags.setText(QString{});
     m_documentationLink.clear();
+
+    if(d && d->key == snippetKey())
+    {
+      setVisible(true);
+      m_name.setText(d->prettyName);
+      if(snippet)
+      {
+        // Hidden while the field below edits it
+        m_description.setText(snippet->description);
+        if(!snippet->tags.isEmpty())
+          m_tags.setText(tr("Tags: ") + snippet->tags.join(", "));
+      }
+      return;
+    }
 
     if(d)
     {
@@ -174,6 +225,27 @@ public:
   QLabel m_author;
   QLabel m_tags;
   QLabel m_documentationLink;
+  bool m_showDescription{true};
+};
+
+//! Calls `done` when it loses the focus: where an edit is finished.
+class DescriptionEdit final : public QPlainTextEdit
+{
+public:
+  DescriptionEdit(std::function<void()> done, QWidget* parent)
+      : QPlainTextEdit{parent}
+      , m_done{std::move(done)}
+  {
+    setTabChangesFocus(true);
+  }
+
+private:
+  void focusOutEvent(QFocusEvent* e) override
+  {
+    QPlainTextEdit::focusOutEvent(e);
+    m_done();
+  }
+  std::function<void()> m_done;
 };
 
 ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent)
@@ -215,6 +287,16 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     slay->addWidget(filter);
     slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
+    // Only snippets can be edited, by their name: F2 or their menu
+    m_tv.setEditTriggers(QAbstractItemView::EditKeyPressed);
+    // A renamed snippet is another file: what shows it is built again
+    connect(
+        m_processModel, &QAbstractItemModel::dataChanged, this,
+        [this, processFilterProxy](const QModelIndex& first, const QModelIndex&) {
+      if(m_tv.selectionModel()
+         && m_tv.selectionModel()->isSelected(processFilterProxy->mapFromSource(first)))
+        m_tv.reselect();
+    });
     m_tv.setStatusTip(statusTip());
     m_tv.setUniformRowHeights(true);
     setup_treeview(m_tv);
@@ -275,6 +357,7 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 
   {
     auto search = new QLineEdit{this};
+    m_presetSearch = search;
     search->setPlaceholderText(tr("Search presets"));
     search->setClearButtonEnabled(true);
     connect(search, &QLineEdit::textChanged, m_presetModel, &PresetItemModel::setFilterText);
@@ -302,9 +385,18 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
       m_tv.reselect();
   });
 
-  auto infoWidg = new InfoWidget{this};
+  auto infoWidg = m_info = new InfoWidget{this};
   score::setHelp(infoWidg, statusTip());
   slay->addWidget(infoWidg);
+
+  {
+    m_descriptionEdit = new DescriptionEdit{[this] { commitDescription(); }, this};
+    m_descriptionEdit->setPlaceholderText(tr("Description"));
+    m_descriptionEdit->setToolTip(tr("Saved in the file when the field loses the focus"));
+    m_descriptionEdit->setMinimumHeight(60);
+    m_descriptionEdit->hide();
+    slay->addWidget(m_descriptionEdit, 1);
+  }
 
   connect(
       &m_tv, &ProcessTreeView::selected, this,
@@ -321,8 +413,38 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
 #endif
     m_preview.hide();
 
-    // Update info widget
-    infoWidg->setData(pdata);
+    // A folder or a snippet has no presets: no list nor search for them.
+    const bool snippet = pdata && pdata->key == snippetKey();
+    const bool hasPresets = pdata && !snippet;
+    m_presets.setVisible(hasPresets);
+    m_presetSearch->setVisible(hasPresets);
+
+    // What a snippet says of itself, read once for all that shows it
+    std::optional<SnippetInfo> snippetInfo;
+    if(snippet)
+      snippetInfo = readSnippetInfoFile(pdata->customData, false);
+    infoWidg->setData(pdata, snippetInfo ? &*snippetInfo : nullptr);
+
+    // Only the user's own snippets are written to
+    if(snippet && isUserLibraryFile(pdata->customData))
+    {
+      editDescription(
+          snippetInfo->description,
+          [this, path = pdata->customData, tags = snippetInfo->tags](const QString& text) {
+        if(!writeSnippetDescription(path, text))
+        {
+          score::warning(
+              this, tr("Snippet"), tr("The description could not be saved in %1").arg(path));
+          return;
+        }
+        m_processModel->setSearchText(
+            snippetKey(), path, snippetSearchText(SnippetInfo{text, tags, {}}));
+      });
+    }
+    else
+    {
+      editDescription({}, {});
+    }
 
     // Another process chosen by the user: its presets no longer load into
     // the one whose button opened them
@@ -389,6 +511,17 @@ ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* p
     m_previewChild = nullptr;
 
     const auto& preset = *selected;
+
+    // Only the user's own presets are written to
+    if(const int row = m_presetModel->presetRow(m_presets.currentIndex());
+       m_presetModel->canEdit(row))
+      editDescription(
+          preset.description, [this, path = preset.path](const QString& text) {
+        // Rows move as presets come and go: found again by its file
+        m_presetModel->setDescription(m_presetModel->presetRowOf(path), text);
+      });
+    else
+      editDescription({}, {});
 
     const auto buildPreview = [this](const Process::Preset& p) {
       delete m_previewChild;
@@ -623,4 +756,28 @@ bool PresetLibraryHandler::onDrop(
   return writePresetData(filename, data);
 }
 
+
+void ProcessWidget::editDescription(
+    const QString& text, std::function<void(const QString&)> save)
+{
+  // What was typed for the previous item is saved before showing this one.
+  commitDescription();
+  m_saveDescription = std::move(save);
+  m_descriptionShown = text;
+  m_descriptionEdit->setPlainText(text);
+  m_descriptionEdit->setVisible(bool(m_saveDescription));
+  // Only the description that can be edited is shown, not the process's
+  m_info->showDescription(!m_saveDescription);
+}
+
+void ProcessWidget::commitDescription()
+{
+  if(!m_saveDescription)
+    return;
+  const QString text = m_descriptionEdit->toPlainText().trimmed();
+  if(text == m_descriptionShown)
+    return;
+  m_descriptionShown = text;
+  m_saveDescription(text);
+}
 }

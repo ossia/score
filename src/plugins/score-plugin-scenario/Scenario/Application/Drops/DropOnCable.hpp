@@ -10,15 +10,21 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 
+#include <Library/Snippet.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
+#include <Scenario/Library/Snippets.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <QFileInfo>
+#include <QMimeData>
+#include <QUrl>
 
 namespace Dataflow
 {
@@ -84,7 +90,17 @@ public:
     // the cableitem to be deleted too and thus it cannot finish the dropEvent without crashing.
     const auto& handlers = m_context.app.interfaces<Process::ProcessDropHandlerList>();
 
-    if(mime.hasFormat(score::mime::layerdata()))
+    if(mime.hasUrls() && mime.urls().size() == 1
+       && QFileInfo{mime.urls().first().toLocalFile()}.suffix()
+              == QLatin1String(Library::snippetSuffix()))
+    {
+      // A snippet: its processes in between the two ends.
+      const QString path = mime.urls().first().toLocalFile();
+      QMetaObject::invokeMethod(this, [path, this]() {
+        Scenario::insertSnippetInCable(this->m_context, cable, path);
+      }, Qt::QueuedConnection);
+    }
+    else if(mime.hasFormat(score::mime::layerdata()))
     {
       // TODO
     }
@@ -149,39 +165,49 @@ public:
   {
   }
 
+  //! The box of the node: what is replaced is taken out of it, what replaces
+  //! it put in
+  bool prepare()
+  {
+    if(!item)
+      return false;
+    m_interval = qobject_cast<Scenario::IntervalModel*>(item->model().parent());
+    return m_interval != nullptr;
+  }
+
   void createPreset(const QByteArray& presetData)
+  {
+    auto& procs = m_context.app.interfaces<Process::ProcessFactoryList>();
+    if(auto preset = Process::Preset::fromJson(procs, presetData))
+      createPreset(*preset);
+  }
+
+  void createPreset(const Process::Preset& preset)
   {
     if(!item)
       return;
     auto& old = item->model();
-    auto& procs = m_context.app.interfaces<Process::ProcessFactoryList>();
-    if(auto preset = Process::Preset::fromJson(procs, presetData))
+    if(preset.key.key == old.concreteKey() && old.effect() == preset.data)
     {
-      if(preset->key.key == old.concreteKey())
-      {
-        if(old.effect() == preset->data)
-        {
-          // Fast path for loading the preset for e.g. same VSTs, JS, shaders etc.
-          auto& load_preset_ifaces
-              = m_context.app.interfaces<Process::LoadPresetCommandFactoryList>();
+      // Fast path for loading the preset for e.g. same VSTs, JS, shaders etc.
+      auto& load_preset_ifaces
+          = m_context.app.interfaces<Process::LoadPresetCommandFactoryList>();
 
-          auto cmd = load_preset_ifaces.make(
-              &Process::LoadPresetCommandFactory::make, old, *preset, m_context);
-          CommandDispatcher<> disp{m_context.commandStack};
-          disp.submit(cmd);
-          return;
-        }
-      }
-      Scenario::Command::Macro m{
-          new Scenario::Command::DropProcessInIntervalMacro, m_context};
-      score::Dispatcher_T<Scenario::Command::Macro> disp{m};
-      if(auto p = m.loadProcessFromPreset(*m_interval, *preset, old.position()))
-      {
-        linkNewProcess(p, m);
-        keepUnfolded(p, m);
-        m.removeProcess(*m_interval, old.id());
-        m.commit();
-      }
+      auto cmd = load_preset_ifaces.make(
+          &Process::LoadPresetCommandFactory::make, old, preset, m_context);
+      CommandDispatcher<> disp{m_context.commandStack};
+      disp.submit(cmd);
+      return;
+    }
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, m_context};
+    score::Dispatcher_T<Scenario::Command::Macro> disp{m};
+    if(auto p = m.loadProcessFromPreset(*m_interval, preset, old.position()))
+    {
+      linkNewProcess(p, m);
+      keepUnfolded(p, m);
+      m.removeProcess(*m_interval, old.id());
+      m.commit();
     }
   }
 
@@ -377,11 +403,7 @@ public:
   void drop(const QMimeData& mime)
   {
     // FIXME drop in nodal vs drop in scenario
-    if(!item)
-      return;
-    auto& model = item->model();
-    m_interval = qobject_cast<Scenario::IntervalModel*>(model.parent());
-    if(!m_interval)
+    if(!prepare())
       return;
 
     // Something tricky here is that we have to separate mime data processing and command execution:

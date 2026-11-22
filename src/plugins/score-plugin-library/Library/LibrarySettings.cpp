@@ -1,6 +1,7 @@
 #include <Library/LibrarySettings.hpp>
 #include <Library/SupportPackages.hpp>
 
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
@@ -13,6 +14,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QStandardPaths>
@@ -41,6 +43,7 @@ static void initUserLibrary(const QDir& userlib)
   userlib.mkpath("./presets");
   userlib.mkpath("./devices");
   userlib.mkpath("./cues");
+  userlib.mkpath("./snippets");
 }
 
 Model::Model(
@@ -204,5 +207,22 @@ SETTINGS_UI_PATH_IMPL(RootPath)
 QWidget* View::getWidget()
 {
   return m_widg;
+}
+}
+
+namespace Library
+{
+bool isUserLibraryFile(const QString& path)
+{
+  if(path.isEmpty())
+    return false;
+  const QString user = QDir::cleanPath(
+      score::GUIAppContext().settings<Library::Settings::Model>().getUserLibraryPath());
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+  constexpr auto cs = Qt::CaseInsensitive;
+#else
+  constexpr auto cs = Qt::CaseSensitive;
+#endif
+  return QDir::cleanPath(QFileInfo{path}.absoluteFilePath()).startsWith(user + "/", cs);
 }
 }

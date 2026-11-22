@@ -98,3 +98,11 @@ private:
 SCORE_DECLARE_SETTINGS_FACTORY(
     Factory, Model, Presenter, View, "d6966670-f69f-48d0-96f6-72a5e2190cbc")
 }
+
+namespace Library
+{
+//! Whether `path` is in the user's own library, the only one score writes to:
+//! packages are replaced when they are updated.
+SCORE_PLUGIN_LIBRARY_EXPORT
+bool isUserLibraryFile(const QString& path);
+}

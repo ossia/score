@@ -76,6 +76,8 @@ public:
   bool canEdit(int presetRow) const;
   //! Moves its file to the trash
   bool removePreset(int presetRow);
+  //! Writes a new description in a preset of the user library
+  bool setDescription(int presetRow, const QString& description);
   //! Puts a preset in another category ("" for none, "A/B" for a subfolder)
   bool movePreset(int presetRow, const QString& category);
   //! An empty category of the shown process's presets, to move or save some

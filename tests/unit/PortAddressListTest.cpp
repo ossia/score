@@ -18,6 +18,7 @@
 
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
+#include <ossia/gfx/texture_parameter.hpp>
 #include <ossia/network/base/node_functions.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
@@ -46,6 +47,19 @@ struct typed_parameter final : ossia::net::generic_parameter
   {
     m_type = T;
   }
+};
+
+// A texture an address provides (GET) or one an output shows (SET), as the
+// gfx plug-in's texture_source_parameter and gfx_parameter_base.
+struct directed_texture final : ossia::gfx::texture_parameter
+{
+  ossia::access_mode access;
+  directed_texture(ossia::net::node_base& node, ossia::access_mode a)
+      : ossia::gfx::texture_parameter{node}
+      , access{a}
+  {
+  }
+  ossia::access_mode get_access() const noexcept override { return access; }
 };
 
 Device::DeviceSettings settingsNamed(const QString& name)
@@ -88,6 +102,12 @@ struct TestDevice final : Device::DeviceInterface
   {
     auto& n = node(path);
     n.set_parameter(std::make_unique<typed_parameter<T>>(n));
+  }
+
+  void addTexture(const std::string& path, ossia::access_mode a)
+  {
+    auto& n = node(path);
+    n.set_parameter(std::make_unique<directed_texture>(n, a));
   }
 
   void addHardwareAudio(const std::string& path, bool output)
@@ -246,4 +266,21 @@ TEST_CASE("A device carrying video and sound is listed for both", "[dataflow][po
   CHECK(strings(Process::listPortAddresses(libav, PortType::Audio, true)) == L{"libav:/audio"});
   CHECK(Process::listPortAddresses(libav, PortType::Audio, false).empty());
   CHECK(Process::listPortAddresses(libav, PortType::Texture, false).empty());
+}
+
+TEST_CASE("A device both showing and providing textures lists each for its direction", "[dataflow][port][address]")
+{
+  // A window: its root shows what an outlet sends, touch/history is read by
+  // inlets, a texture of no stated direction goes both ways.
+  TestDevice win{"win", NodeKind::TextureIn | NodeKind::TextureOut};
+  win.addTexture("/", ossia::access_mode::SET);
+  win.addTexture("/touch/history", ossia::access_mode::GET);
+  win.addTexture("/both", ossia::access_mode::BI);
+
+  CHECK(
+      strings(Process::listPortAddresses(win, PortType::Texture, true))
+      == L{"win:/touch/history", "win:/both"});
+  CHECK(
+      strings(Process::listPortAddresses(win, PortType::Texture, false))
+      == L{"win:/", "win:/both"});
 }

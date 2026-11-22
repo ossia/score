@@ -74,6 +74,18 @@ public:
   //! anchor's key so only their per-plugin children are user-creatable.
   void clearAnchorKey(const Process::ProcessModelFactory::ConcreteKey& key);
 
+  //! A top-level branch that entries anchor to with `key`, but which is not
+  //! itself something to drag: the snippets. Called from a handler's setup().
+  void addContainer(
+      const Process::ProcessModelFactory::ConcreteKey& key, const QString& name,
+      const QIcon& icon);
+
+  //! The words the search matches for the entry of this file, besides its
+  //! name, after they changed (a snippet's new description).
+  void setSearchText(
+      const Process::ProcessModelFactory::ConcreteKey& key, const QString& customData,
+      const QString& text);
+
   //! Immediately publish everything still buffered. Mostly for tests.
   void flushPending();
 
@@ -86,6 +98,10 @@ public:
 
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
+
+  //! Renames a snippet: its file, in the same folder, and its entry, kept
+  //! sorted. Refused for a name with a folder in it or taken by another file.
+  bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
   // Drag, drop, etc.
   QStringList mimeTypes() const override;

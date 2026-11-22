@@ -244,6 +244,36 @@ TEST_CASE(
       CHECK(aOut.propagate() == true);
     }
 
+    // A second process after an outlet that already feeds one starts another
+    // branch: the routing went to the first one, the new one has the routing
+    // of a process made on its own, not the outlet's.
+    {
+      const bool ownDefault = audioOut(addMerger(*doc, itv)).propagate();
+
+      auto& a = addMerger(*doc, itv);
+      auto& aOut = audioOut(a);
+      aOut.setPropagate(true);
+      before = mergers(itv);
+      Scenario::createProcessAfterPort(*presenter, data, {}, {}, a, aOut, true);
+      auto* first = newMerger(itv, before);
+      REQUIRE(first != nullptr);
+      REQUIRE(audioOut(*first).propagate() == true);
+      REQUIRE(aOut.propagate() == false);
+
+      before = mergers(itv);
+      Scenario::createProcessAfterPort(*presenter, data, {}, {}, a, aOut, true);
+      auto* second = newMerger(itv, before);
+      REQUIRE(second != nullptr);
+      CHECK(aOut.cables().size() == 2);
+      CHECK(audioOut(*second).propagate() == ownDefault);
+      CHECK(audioOut(*first).propagate() == true);
+      CHECK(aOut.propagate() == false);
+
+      stack.undo();
+      CHECK(newMerger(itv, before) == nullptr);
+      CHECK(aOut.cables().size() == 1);
+    }
+
     // The inspector's port widgets must go away while the document's device
     // list is still alive: a port address combo outlives it otherwise and
     // reloads itself against freed devices on the way out.

@@ -18,7 +18,7 @@
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/DialogWidget/PickProcess.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -1129,22 +1129,6 @@ void ObjectWidget::selectionChanged(
   }
 }
 
-struct ContextMenuCallback
-{
-  const score::DocumentContext& m_ctx;
-  const IntervalModel& cst;
-  void operator()(const AddProcessDialog::Key& proc, QString dat)
-  {
-    using namespace Scenario::Command;
-    Macro m{new AddProcessInNewSlot, m_ctx};
-
-    if(auto p = m.createProcessInNewSlot(cst, proc, dat); bool(p))
-    {
-      m.commit();
-    }
-  }
-};
-
 void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 {
   auto point = ev->pos();
@@ -1194,32 +1178,34 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
     {
       auto addproc = new QAction{tr("Add process"), m};
       m->addAction(addproc);
-      connect(addproc, &QAction::triggered, this, [this, &cst] {
-        auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
-        auto dialog
-            = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, this};
-        dialog->on_okPressed = ContextMenuCallback{m_ctx, *cst};
-
-        dialog->launchWindow();
-        dialog->deleteLater();
+      QPointer<Scenario::IntervalModel> itv = cst;
+      connect(addproc, &QAction::triggered, this, [this, itv] {
+        pickProcess(
+            m_ctx.app, Process::ProcessFlags::SupportsTemporal,
+            [ctx = &m_ctx, itv](const Library::PickedProcess& p) {
+          if(!itv)
+            return;
+          Command::Macro m{new Command::AddProcessInNewSlot, *ctx};
+          if(addPickedProcess(m, *itv, p))
+            m.commit();
+        });
       });
     }
     else if(auto state = qobject_cast<Scenario::StateModel*>(ptr))
     {
       auto addproc = new QAction{tr("Add process"), m};
       m->addAction(addproc);
-      connect(addproc, &QAction::triggered, this, [this, state] {
-        auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
-        auto dialog
-            = new AddProcessDialog{fact, Process::ProcessFlags::SupportsState, this};
-
-        dialog->on_okPressed = [&](const auto& proc, QString dat) {
-          CommandDispatcher<> disp{m_ctx.commandStack};
-          disp.submit<Scenario::Command::AddStateProcessToState>(*state, proc);
-        };
-
-        dialog->launchWindow();
-        dialog->deleteLater();
+      QPointer<Scenario::StateModel> st = state;
+      connect(addproc, &QAction::triggered, this, [this, st] {
+        // A state takes no preset, but a process made from a file keeps it
+        pickProcess(
+            m_ctx.app, Process::ProcessFlags::SupportsState,
+            [ctx = &m_ctx, st](const Library::PickedProcess& p) {
+          if(!st)
+            return;
+          CommandDispatcher<> disp{ctx->commandStack};
+          disp.submit<Scenario::Command::AddStateProcessToState>(*st, p.key, p.customData);
+        }, Library::PickerOptions{{}, false});
       });
     }
     else if(auto proc = qobject_cast<Process::ProcessModel*>(ptr))

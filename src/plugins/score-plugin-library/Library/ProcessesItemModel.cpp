@@ -1,19 +1,24 @@
 #include "ProcessesItemModel.hpp"
 
+#include <Library/Snippet.hpp>
+
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
+#include <Library/PresetFile.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/tools/RecursiveWatch.hpp>
 
 #include <QElapsedTimer>
+#include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
 #include <QPointer>
+#include <QUrl>
 #include <QTimer>
 
 namespace Library
@@ -431,6 +436,45 @@ void ProcessesItemModel::replaceChildren(
   }
 }
 
+void ProcessesItemModel::addContainer(
+    const Process::ProcessModelFactory::ConcreteKey& key, const QString& name,
+    const QIcon& icon)
+{
+  const auto pos = std::lower_bound(m_root.begin(), m_root.end(), name, LibraryNameSort{});
+  const int row = std::distance(m_root.begin(), pos);
+  if(!m_inReset)
+    beginInsertRows(QModelIndex{}, row, row);
+  // An empty key: the branch itself creates nothing.
+  auto& node = m_root.emplace(pos, ProcessData{{{}, name, {}}, icon}, &m_root);
+  if(!m_inReset)
+    endInsertRows();
+  m_anchors[key] = &node;
+}
+
+void ProcessesItemModel::setSearchText(
+    const Process::ProcessModelFactory::ConcreteKey& key, const QString& customData,
+    const QString& text)
+{
+  // Only below the branch of that kind, where its files are listed
+  const auto anchor = m_anchors.find(key);
+  if(anchor == m_anchors.end())
+    return;
+  const auto set = [&](const auto& self, ProcessNode& parent) -> void {
+    for(ProcessNode& n : parent)
+    {
+      if(n.key == key && n.customData == customData)
+      {
+        n.searchText = text;
+        // What the search matches changed: it is filtered again
+        const auto idx = indexFromNode(n);
+        dataChanged(idx, idx);
+      }
+      self(self, n);
+    }
+  };
+  set(set, *anchor->second);
+}
+
 void ProcessesItemModel::clearAnchorKey(
     const Process::ProcessModelFactory::ConcreteKey& key)
 {
@@ -466,6 +510,7 @@ QVariant ProcessesItemModel::data(const QModelIndex& index, int role) const
   switch(role)
   {
     case Qt::DisplayRole:
+    case Qt::EditRole:
       return node.prettyName;
     case Qt::DecorationRole:
       return node.icon;
@@ -492,7 +537,56 @@ Qt::ItemFlags ProcessesItemModel::flags(const QModelIndex& index) const
   else
     f = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 
+  if(node.key == snippetKey() && isUserLibraryFile(node.customData))
+    f |= Qt::ItemIsEditable;
+
   return f;
+}
+
+bool ProcessesItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if(!index.isValid() || role != Qt::EditRole)
+    return false;
+  auto& node = nodeFromModelIndex(index);
+  if(node.key != snippetKey())
+    return false;
+
+  const QString name = value.toString().trimmed();
+  if(name == node.prettyName || !isValidForFilename(name)
+     || !isUserLibraryFile(node.customData))
+    return false;
+
+  const QFileInfo old{node.customData};
+  const QString path
+      = old.absolutePath() + "/" + name + "." + old.suffix();
+  // Only the case changing is the same file on a case-insensitive disk
+  const bool sameFile
+      = QFileInfo{path}.canonicalFilePath() == old.canonicalFilePath();
+  if(QFileInfo::exists(path) && !sameFile)
+    return false;
+  if(!QFile::rename(old.absoluteFilePath(), path))
+    return false;
+
+  node.customData = path;
+  node.prettyName = name;
+  dataChanged(index, index);
+
+  // Where its new name sorts among the others
+  auto& parent = *node.parent();
+  const int from = parent.indexOfChild(&node);
+  int to = 0;
+  for(auto& sibling : parent)
+    if(&sibling != &node && LibraryNameSort{}(sibling, node))
+      to++;
+  if(to != from)
+  {
+    const int before = to > from ? to + 1 : to;
+    const auto parentIndex = index.parent();
+    beginMoveRows(parentIndex, from, from, parentIndex, before);
+    parent.moveChild(from, before);
+    endMoveRows();
+  }
+  return true;
 }
 
 QStringList ProcessesItemModel::mimeTypes() const
@@ -507,6 +601,12 @@ QMimeData* ProcessesItemModel::mimeData(const QModelIndexList& indexes) const
 
   const auto& index = indexes.first();
   const auto& node = nodeFromModelIndex(index);
+  if(node.key == snippetKey())
+  {
+    // A snippet is dropped as its file, wherever a .scenario file can go.
+    mimeData->setUrls({QUrl::fromLocalFile(node.customData)});
+    return mimeData;
+  }
   MimeReader<Process::ProcessData>{*mimeData}.serialize(node);
   return mimeData;
 }

@@ -79,15 +79,19 @@ void View::paint_impl(QPainter* p) const
     const auto bar_w = m_barWidth;
     const auto& steps = m_model.steps();
 
-    // The sequence, then its repetitions to the end of the layer.
-    std::size_t i = 0;
-    for(double x = 0.; x < w; x += bar_w, i++)
+    // The sequence, then its repetitions to the end of the layer. Each step
+    // is placed from its index, so that it stays on the timeline's grid
+    // however many come before it.
+    for(std::size_t i = 0;; i++)
     {
+      const double x = i * bar_w;
+      if(x >= w)
+        break;
       const auto idx = i % steps.size();
       const bool repeat = i >= steps.size();
       paintStep(
-          p, stepRect(x, bar_w, h), steps[idx], !repeat && int(idx) == m_playing,
-          repeat);
+          p, stepRect(x, (i + 1) * bar_w - x, h), steps[idx],
+          !repeat && int(idx) == m_playing, repeat);
     }
   }
   else

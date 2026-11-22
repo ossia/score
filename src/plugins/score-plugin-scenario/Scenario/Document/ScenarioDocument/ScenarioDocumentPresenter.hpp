@@ -8,6 +8,7 @@
 #include <Scenario/Document/ScenarioDocument/CentralIntervalDisplay.hpp>
 #include <Scenario/Document/ScenarioDocument/CentralNodalDisplay.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/PlayToolState.hpp>
 
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
@@ -41,6 +42,7 @@ namespace Scenario
 {
 class DisplayedElementsPresenter;
 class IntervalModel;
+class ProcessModel;
 class ScenarioDocumentModel;
 class ScenarioDocumentPresenter;
 class ScenarioDocumentView;
@@ -165,6 +167,12 @@ private:
 
   void on_addProcessFromLibrary(const Library::ProcessData& dat);
   void on_addPresetFromLibrary(const Process::Preset& dat);
+  //! Asks for a process to add where the user is: in the node view, under
+  //! the mouse; in the timeline, in the selected box, else in a new box under
+  //! the mouse in a scenario, else in the box shown.
+  void pickProcessToAdd();
+  //! The scenario whose emptiness is under the mouse, if any, and where in it
+  std::pair<const Scenario::ProcessModel*, Scenario::Point> scenarioUnderMouse() const;
 
   void on_cableItemCreated(Dataflow::CableItem* item);
   void on_dropOnCable(const QPointF& pos, const QMimeData& mime);

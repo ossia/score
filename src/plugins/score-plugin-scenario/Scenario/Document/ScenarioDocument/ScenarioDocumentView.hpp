@@ -115,6 +115,8 @@ public:
   void hoverMove(QHoverEvent* p) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverMove, p);
   void hoverLeave(QHoverEvent* p) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverLeave, p);
   void keyPress(QKeyEvent* e) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPress, e);
+  //! Tab was pressed: a process is to be added
+  void addProcessRequested() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, addProcessRequested);
   void keyRelease(QKeyEvent* e) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyRelease, e);
   void tabletMove(QTabletEvent* e) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tabletMove, e);
 

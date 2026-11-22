@@ -52,6 +52,7 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
       {"Impro", makeIcon(QStringLiteral(":/icons/controls.png"))},
       {"Script", makeIcon(QStringLiteral(":/icons/script.png"))},
       {"Structure", makeIcon(QStringLiteral(":/icons/structure.png"))},
+      {"Snippets", makeIcon(QStringLiteral(":/icons/snippet.png"))},
       {"Network", makeIcon(QStringLiteral(":/icons/sync.png"))},
       {"Monitoring", makeIcon(QStringLiteral(":/icons/ui.png"))},
       {"Spatial", makeIcon(QStringLiteral(":/icons/spatial.png"))},

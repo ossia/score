@@ -627,6 +627,13 @@ score_add_test(test_unit_midi_message
     APP
     PLUGINS score_plugin_midi score_lib_process)
 
+  # The piano roll draws the score's bar lines in musical mode.
+  score_add_test(test_unit_midi_bar_grid
+    SOURCES MidiBarGridTest.cpp
+    GUI
+    APP
+    PLUGINS score_plugin_midi score_plugin_scenario score_lib_process)
+
   # A MIDI file is placed by its quarters whatever its tempo, and a looper's
   # take keeps the tempo it was played at.
   if(TARGET score_plugin_fx)
@@ -1201,6 +1208,25 @@ score_add_test(test_unit_musical_grid
   SOURCES MusicalGridTest.cpp
   APP
   PLUGINS score_plugin_scenario)
+
+# Nodes of a Nodal process copy and paste with their cables.
+score_add_test(test_unit_nodal_copy_paste
+  SOURCES NodalCopyPasteTest.cpp
+  GUI
+  APP
+  PLUGINS score_plugin_nodal score_plugin_scenario score_plugin_automation score_plugin_media)
+
+# The process picker: search, keyboard navigation, presets.
+score_add_test(test_unit_process_picker
+  SOURCES ProcessPickerTest.cpp
+  APP
+  PLUGINS score_plugin_library score_plugin_automation)
+
+# Snippets: timeline content saved in the library and listed with the processes.
+score_add_test(test_unit_snippet_library
+  SOURCES SnippetLibraryTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_plugin_library score_plugin_automation score_plugin_media)
 
 # The time ruler's ticks are a few pixels apart and labelled with their time at
 # every zoom, on its graduation thresholds too.
@@ -3120,6 +3146,7 @@ if(TARGET score_plugin_gfx)
     SOURCES ShaderPointerBindingTest.cpp
     APP
     PLUGINS score_plugin_gfx score_lib_process score_plugin_deviceexplorer
+            $<$<TARGET_EXISTS:score_plugin_ui>:score_plugin_ui>
     LIBS ${QT_PREFIX}::Gui)
 endif()
 

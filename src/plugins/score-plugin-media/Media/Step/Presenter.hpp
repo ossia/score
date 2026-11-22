@@ -67,7 +67,9 @@ public:
     // then, the tempo the layer does not know.
     const auto d = ossia::convert<ossia::vec2f>(m.stepDuration->value());
     const double seconds = d[1] != 0.f ? d[0] * 4. * 60. / 120. : d[0];
-    m_view->setBarWidth(TimeVal::fromMsecs(seconds * 1000.).toPixels(r));
+    // Unrounded: the steps are placed from it one after the other, and a
+    // rounded width would drift away from the timeline's bar lines.
+    m_view->setBarWidth(TimeVal::fromMsecs(seconds * 1000.).toPixelsRaw(r));
   }
 
   void parentGeometryChanged() override { }

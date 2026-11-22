@@ -10,7 +10,7 @@
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/DialogWidget/PickProcess.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
@@ -71,14 +71,9 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
     if(selectedIntervalsInCurrentDocument(appContext).isEmpty())
       return;
 
-    auto& fact = appContext.interfaces<Process::ProcessFactoryList>();
-    auto dialog = new AddProcessDialog{
-        fact, Process::ProcessFlags::SupportsTemporal, qApp->activeWindow()};
-
-    dialog->on_okPressed
-        = [this](auto k, const QString& data) { addProcessInInterval(k, data); };
-    dialog->launchWindow();
-    dialog->deleteLater();
+    pickProcess(
+        appContext, Process::ProcessFlags::SupportsTemporal,
+        [this](const Library::PickedProcess& p) { addProcessInInterval(p); });
   });
 
   m_showRacks = new QAction{tr("Show Racks"), this};
@@ -146,8 +141,7 @@ void IntervalActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
   ctxm.insert(std::move(cm));
 }
 
-void IntervalActions::addProcessInInterval(
-    const UuidKey<Process::ProcessModel>& processName, const QString& data)
+void IntervalActions::addProcessInInterval(const Library::PickedProcess& picked)
 {
   auto selectedIntervals = selectedIntervalsInCurrentDocument(m_parent->context);
   if(selectedIntervals.isEmpty())
@@ -156,7 +150,7 @@ void IntervalActions::addProcessInInterval(
   using namespace Scenario::Command;
 
   Macro m{new AddProcessInNewSlot, m_parent->currentDocument()->context()};
-  if(m.createProcessInNewSlot(**selectedIntervals.begin(), processName, data))
+  if(addPickedProcess(m, **selectedIntervals.begin(), picked))
   {
     m.commit();
   }

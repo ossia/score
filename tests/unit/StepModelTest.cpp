@@ -489,3 +489,36 @@ TEST_CASE("step sequencer: mouse gestures on the bars, one undo step each", "[st
     }
   });
 }
+
+TEST_CASE(
+    "step sequencer: the layer's steps stay on the bars however many come before",
+    "[step]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* m = dynamic_cast<Model*>(score::test::add_process(
+        *doc, QStringLiteral("c953fa55-65f0-4b93-8bfc-54780250d2b8"), {}));
+    REQUIRE(m);
+    const ossia::float_vector start(8, 0.5f);
+    m->setSteps(start);
+
+    StepViews v{*doc, *m};
+    // Quarter-note steps 9.75 pixels wide: a width no whole number of pixels
+    // can stand for.
+    m->stepDuration->setValue(ossia::vec2f{0.25f, 1.f});
+    v.presenter->on_zoomRatioChanged(TimeVal::fromMsecs(500. / 9.75).impl);
+
+    // The 40th step is the first of the sixth pass, ten bars in: at 390
+    // pixels, where the timeline draws that bar line.
+    auto& stack = doc->commandStack();
+    drag(v.scene, *v.view, {{390.5, 25.}, {390.5, 25.}});
+    CHECK(m->steps()[0] == Catch::Approx(0.25f));
+    CHECK(m->steps()[7] == start[7]);
+    stack.undo();
+
+    drag(v.scene, *v.view, {{389.5, 25.}, {389.5, 25.}});
+    CHECK(m->steps()[7] == Catch::Approx(0.25f));
+    CHECK(m->steps()[0] == start[0]);
+  });
+}

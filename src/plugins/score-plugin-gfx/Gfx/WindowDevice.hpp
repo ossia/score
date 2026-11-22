@@ -63,7 +63,7 @@ class SCORE_PLUGIN_GFX_TEST_EXPORT WindowDevice final : public GfxOutputDevice
 {
   W_OBJECT(WindowDevice)
 public:
-  using GfxOutputDevice::GfxOutputDevice;
+  WindowDevice(const Device::DeviceSettings& settings, const score::DocumentContext& ctx);
   ~WindowDevice();
 
   score::gfx::Window* window() const noexcept;

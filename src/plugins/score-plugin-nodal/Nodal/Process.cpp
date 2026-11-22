@@ -2,7 +2,13 @@
 
 #include <Process/Dataflow/CableCopy.hpp>
 #include <Process/Dataflow/PortSerialization.hpp>
+#include <Process/LayerPresenter.hpp>
 #include <Process/ProcessList.hpp>
+
+#include <Effect/EffectLayer.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioEditor.hpp>
 
 #include <Nodal/Commands.hpp>
 
@@ -11,7 +17,11 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMapSerialization.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Invoke.hpp>
+
+#include <QMimeData>
 
 #include <QApplication>
 
@@ -72,19 +82,70 @@ void Model::ancestorTempoChanged()
     n.ancestorTempoChanged();
 }
 
+//! The nodal process `obj` is, or is in, unless a box is closer: what is
+//! pasted there goes in the box (ScenarioEditor).
+static const Model* closestNodal(const QObject* obj) noexcept
+{
+  for(; obj; obj = obj->parent())
+  {
+    if(auto m = qobject_cast<const Model*>(obj))
+      return m;
+    if(qobject_cast<const Scenario::IntervalModel*>(obj))
+      return nullptr;
+  }
+  return nullptr;
+}
+
 bool NodeEditor::copy(
     JSONReader& r, const Selection& s, const score::DocumentContext& ctx)
 {
-  SCORE_TODO;
-  return false;
+  // As processes anywhere are copied: they paste in a box as well.
+  std::vector<const Process::ProcessModel*> procs;
+  for(const auto& elt : s)
+  {
+    auto proc = qobject_cast<const Process::ProcessModel*>(elt.data());
+    if(!proc || !qobject_cast<const Model*>(proc->parent()))
+      return false;
+    procs.push_back(proc);
+  }
+  if(procs.empty())
+    return false;
+
+  r.stream.StartObject();
+  Process::copyProcesses(r, procs, ctx);
+  r.stream.EndObject();
+  return true;
 }
 
 bool NodeEditor::paste(
     QPoint pos, QObject* focusedObject, const QMimeData& mime,
     const score::DocumentContext& ctx)
 {
-  SCORE_TODO;
-  return false;
+  // From where any paste starts: the closest of a box and a nodal process
+  // takes what is pasted.
+  const Model* target = closestNodal(Scenario::pasteStart(focusedObject, ctx));
+  if(!target)
+    return false;
+
+  const auto json = readJson(mime.data("text/plain"));
+  if(!json.IsObject() || !json.HasMember("Processes") || !json.HasMember("Cables"))
+    return false;
+
+  // Next to the copied nodes, so that a copy in the same process shows.
+  constexpr QPointF pasteOffset{40., 40.};
+  auto cmd = std::make_unique<PasteNodes>(*target, json, pasteOffset);
+  if(cmd->nodeIds().empty())
+    return false;
+  const auto ids = cmd->nodeIds();
+  CommandDispatcher<>{ctx.commandStack}.submit(cmd.release());
+
+  // The pasted nodes are selected, as in the timeline
+  Selection pasted;
+  for(const auto& id : ids)
+    if(auto it = target->nodes.find(id); it != target->nodes.end())
+      pasted.append(&*it);
+  ctx.selectionStack.pushNewSelection(pasted);
+  return true;
 }
 
 bool NodeEditor::remove(

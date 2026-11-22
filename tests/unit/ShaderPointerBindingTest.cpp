@@ -170,3 +170,49 @@ TEST_CASE("without a window device nothing is bound", "[gfx][vsa][isf][touch][mo
     CHECK_FALSE(t->renderSize());
   });
 }
+
+#if __has_include(<Ui/PortProbe.hpp>)
+#include <Gfx/GfxInputDevice.hpp>
+
+#include <ossia/network/base/node_functions.hpp>
+
+#include <Ui/PortProbe.hpp>
+
+TEST_CASE(
+    "a touch input's hover preview shows the window's touch history",
+    "[gfx][isf][touch][probe]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const QString isfPath = writeShader(dir, "isf-probe.fs", kIsf);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    addWindow(*doc, "Win");
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* win = plug.list().findDevice("Win");
+    REQUIRE(win);
+    if(!win->reconnect() || !win->getDevice())
+      SKIP("the window device could not connect");
+
+    auto* n = ossia::net::find_node(win->getDevice()->get_root_node(), "/touch/history");
+    REQUIRE(n);
+    auto* history = dynamic_cast<Gfx::texture_source_parameter*>(n->get_parameter());
+    REQUIRE(history);
+    REQUIRE(history->source().node != score::gfx::invalid_node_index);
+
+    auto* isf = make<Gfx::Filter::Model>(ctx, *doc, isfPath);
+    REQUIRE(isf);
+    auto* touch = inlet(*isf, "touch");
+    REQUIRE(touch);
+    CHECK(Ui::probedTexture(*touch, doc->context()) == history->source());
+
+    // An inlet reading no address has nothing to show
+    touch->setAddress({});
+    CHECK(Ui::probedTexture(*touch, doc->context()).node == score::gfx::invalid_node_index);
+
+    win->disconnect();
+  });
+}
+#endif

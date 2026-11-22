@@ -31,6 +31,12 @@ public:
       const Scenario::ProcessModel& path, const rapidjson::Value& obj,
       const Scenario::Point& pt);
 
+  //! The time syncs it makes
+  const std::vector<Id<TimeSyncModel>>& pastedTimeSyncs() const noexcept
+  {
+    return m_ids_timesyncs;
+  }
+
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

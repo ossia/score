@@ -14,10 +14,13 @@
 #include "WindowedOutputCommon.hpp"
 
 #include <Gfx/Graph/ScreenNode.hpp>
+#include <Gfx/GfxInputDevice.hpp>
 #include <Gfx/GfxParameter.hpp>
 #include <Gfx/WindowDevice.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Process/Dataflow/PortAddressComboBox.hpp>
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -106,6 +109,8 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
   ossia::vec2f clipAfterMove{9.f, 9.f}, glAfterMove{9.f, 9.f};
   std::vector<ossia::value> pointsAfterMove, pointsAfterPress, pointsAfterRelease;
   bool historyIsTexture{};
+  bool historyHasNode{};
+  std::vector<QString> inletAddresses, outletAddresses;
 
   run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
     if(!can_present())
@@ -254,7 +259,16 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
       pointsAfterRelease = points();
       if(auto* p = param(*d, "/touch/history"))
         historyIsTexture = p->get_type() == ossia::parameter_type::TEXTURE;
+      if(auto* p = dynamic_cast<texture_source_parameter*>(param(*d, "/touch/history")))
+        historyHasNode = p->source().node != score::gfx::invalid_node_index;
     }
+
+    // What a texture inlet and a texture outlet can pick on this device: the
+    // window shows what an outlet sends it, an inlet reads touch/history.
+    for(const auto& a : Process::listPortAddresses(dev, Process::PortType::Texture, true))
+      inletAddresses.push_back(a.toString());
+    for(const auto& a : Process::listPortAddresses(dev, Process::PortType::Texture, false))
+      outletAddresses.push_back(a.toString());
 
     dev.disconnect();
     pump_for(120);
@@ -283,6 +297,9 @@ TEST_CASE("Window device parameter tree", "[gfx][window][device]")
   CHECK(slot0(pointsAfterRelease)[0] == Approx(-0.5f).margin(0.02f));
   CHECK(slot0(pointsAfterRelease)[2] == Approx(0.f));
   CHECK(historyIsTexture);
+  CHECK(historyHasNode);
+  CHECK(inletAddresses == std::vector<QString>{"Win:/touch/history"});
+  CHECK(outletAddresses == std::vector<QString>{"Win:/"});
   INFO("missing addresses: " << missing.size());
   for(auto& m : missing)
     UNSCOPED_INFO("  missing " << m);

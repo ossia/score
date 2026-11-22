@@ -1,4 +1,7 @@
+#include <Process/Dataflow/CableCopy.hpp>
 #include <Process/ProcessList.hpp>
+
+#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
 
 #include <Nodal/Commands.hpp>
 
@@ -7,6 +10,7 @@
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 namespace Nodal
@@ -77,10 +81,12 @@ ReplaceAllNodes::ReplaceAllNodes(const Model& p, const QByteArray& new_data)
 
   // Note: when saving, the port's associated cables aren't saved ; it's the cable
   // which carry this information.
-  for(auto& c : m_new_cables)
-  {
-    c.first = getStrongId(document.cables);
-  }
+  // One new identifier per cable: the document's cables do not change while
+  // they are being numbered.
+  const auto new_ids
+      = getStrongIdRange<Process::Cable>(m_new_cables.size(), document.cables);
+  for(std::size_t i = 0; i < m_new_cables.size(); i++)
+    m_new_cables[i].first = new_ids[i];
 
   // Note: it may not be that type but we don't care as we just need the string
   // without the last element
@@ -207,4 +213,90 @@ void RemoveNode::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_id >> m_block >> m_cables;
 }
 
+
+PasteNodes::PasteNodes(const Model& p, const rapidjson::Value& copy, QPointF offset)
+    : m_path{p}
+{
+  auto& ctx = score::IDocument::documentContext(p);
+  auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+
+  const auto procs = copy.FindMember("Processes");
+  if(procs == copy.MemberEnd() || !procs->value.IsArray())
+    return;
+
+  // As pasting in a box: only what loads here, under new identifiers, the
+  // references between them moved to the copies.
+  auto& nodal = const_cast<Model&>(p);
+  Scenario::ProcessesBeingCopied copied{procs->value.GetArray(), nodal, p.nodes, ctx};
+  if(Scenario::hasAnchors(procs->value))
+    copied.remapAnchors(copy, p, ctx);
+
+  std::vector<std::pair<int32_t, int32_t>> ids;
+  for(std::size_t i = 0; i < copied.processes.size(); i++)
+  {
+    std::unique_ptr<Process::ProcessModel> proc{copied.processes[i]};
+    const auto new_id = copied.processes_ids[i];
+
+    // Its cables are the pasted ones, given below; it lasts as its nodes do.
+    for(auto port : proc->findChildren<Process::Port*>())
+      while(!port->cables().empty())
+        port->removeCable(port->cables().back());
+    proc->setParentDuration(ExpandMode::GrowShrink, p.duration());
+    proc->setPosition(proc->position() + offset);
+
+    JSONReader r;
+    r.readFrom(*proc);
+    auto node = readJson(r.toByteArray());
+    node["id"].SetInt(new_id.val());
+
+    ids.emplace_back(proc->id().val(), new_id.val());
+    m_ids.push_back(new_id);
+    m_nodes.push_back(jsonToByteArray(node));
+  }
+
+  // The cables between them: their ends start at the copied process.
+  if(auto cables = copy.FindMember("Cables");
+     cables != copy.MemberEnd() && cables->value.IsArray())
+  {
+    m_cables = Dataflow::keepCopiedCables(
+        JsonValue{cables->value}.to<Dataflow::SerializedCables>(),
+        [&](ObjectPath& path) { return Dataflow::relocateToCopy(path, ids); },
+        document.cables);
+    Dataflow::unstripCables(m_path.unsafePath(), m_cables);
+  }
+}
+
+void PasteNodes::undo(const score::DocumentContext& ctx) const
+{
+  Dataflow::removeCables(m_cables, ctx);
+  auto& nodal = m_path.find(ctx);
+  // A node that did not load again is not there
+  for(const auto& id : m_ids)
+    if(nodal.nodes.find(id) != nodal.nodes.end())
+      nodal.nodes.remove(id);
+}
+
+void PasteNodes::redo(const score::DocumentContext& ctx) const
+{
+  auto& nodal = m_path.find(ctx);
+  auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
+  for(const auto& block : m_nodes)
+  {
+    const auto doc = readJson(block);
+    JSONObject::Deserializer deserializer{doc};
+    if(auto proc = deserialize_interface(pl, deserializer, ctx, &nodal))
+      nodal.nodes.add(proc);
+  }
+  Dataflow::restoreCables(m_cables, ctx);
+}
+
+void PasteNodes::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_nodes << m_ids << m_cables;
+}
+
+void PasteNodes::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_nodes >> m_ids >> m_cables;
+}
 }

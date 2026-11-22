@@ -8,7 +8,9 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <QCoreApplication>
 #include <QCursor>
+#include <QEvent>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
@@ -70,6 +72,7 @@ void PortProbeHover::enter(
   m_scene = &scene;
   m_pos = scenePos;
   m_openTimer.start();
+  watchPresses(true);
 }
 
 void PortProbeHover::leave()
@@ -77,6 +80,8 @@ void PortProbeHover::leave()
   m_openTimer.stop();
   if(m_item)
     m_closeTimer.start();
+  else
+    watchPresses(false);
 }
 
 void PortProbeHover::open()
@@ -112,6 +117,35 @@ void PortProbeHover::close()
   delete m_item.data();
   m_item = nullptr;
   m_port = nullptr;
+  watchPresses(false);
+}
+
+void PortProbeHover::watchPresses(bool on)
+{
+  if(!qApp)
+    return;
+  if(on)
+    qApp->installEventFilter(this);
+  else
+    qApp->removeEventFilter(this);
+}
+
+bool PortProbeHover::eventFilter(QObject* watched, QEvent* event)
+{
+  switch(event->type())
+  {
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonDblClick:
+    case QEvent::TabletPress:
+    case QEvent::TouchBegin:
+      if(m_item && m_item->isUnderMouse())
+        break;
+      close();
+      break;
+    default:
+      break;
+  }
+  return QObject::eventFilter(watched, event);
 }
 
 void PortProbeHover::closeUnlessHeld()

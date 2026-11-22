@@ -19,7 +19,13 @@
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
+#include <Scenario/DialogWidget/PickProcess.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
+#include <QCursor>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
@@ -39,6 +45,9 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Library/Panel/LibraryPanelDelegate.hpp>
@@ -131,6 +140,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
   con(view().view(), &ProcessGraphicsView::visibleRectChanged, this,
       &ScenarioDocumentPresenter::on_visibleRectChanged);
+  con(view().view(), &ProcessGraphicsView::addProcessRequested, this,
+      &ScenarioDocumentPresenter::pickProcessToAdd);
 
   // Emphasize what the selection refers to: the targets of a selected state,
   // the referrers of any other object
@@ -754,6 +765,190 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
   // Compute new zoom level
   const auto disptime = dur.impl * ((r - l) / map_w);
   return disptime / view_width;
+}
+
+//! The one process selected, if that is what is
+static const Process::ProcessModel* selectedProcess(const score::SelectionStack& sel)
+{
+  const auto& s = sel.currentSelection();
+  return s.size() == 1 ? qobject_cast<const Process::ProcessModel*>(s.at(0).data())
+                       : nullptr;
+}
+
+std::pair<const Scenario::ProcessModel*, Scenario::Point>
+ScenarioDocumentPresenter::scenarioUnderMouse() const
+{
+  auto& gv = view().view();
+  const QPoint at = gv.viewport()->mapFromGlobal(QCursor::pos());
+  if(!gv.viewport()->rect().contains(at))
+    return {};
+  for(QGraphicsItem* item : gv.items(at))
+  {
+    // What is drawn over the score and cannot be clicked is passed over
+    if(item->acceptedMouseButtons() == Qt::NoButton)
+      continue;
+    // The first that can be: a box, a state... is not the emptiness
+    if(item->type() != ScenarioView::Type)
+      return {};
+    auto view = static_cast<const ScenarioView*>(item);
+    auto pres = view->presenter();
+    if(!pres)
+      return {};
+    return {&pres->model(), pres->toScenarioPoint(view->mapFromScene(gv.mapToScene(at)))};
+  }
+  return {};
+}
+
+void ScenarioDocumentPresenter::pickProcessToAdd()
+{
+  const auto& selection = context().selectionStack.currentSelection();
+
+  // A port: what can be cabled to it, put beside its node and chained to it
+  // as the library does it. The new process's port of the same kind is then
+  // selected, so that Tab again goes on with the chain.
+  for(const auto& obj : selection)
+  {
+    auto port = qobject_cast<const Process::Port*>(obj.data());
+    if(!port)
+      continue;
+    auto proc = qobject_cast<const Process::ProcessModel*>(port->parent());
+    if(!proc || !closestParentInterval(port))
+      break;
+
+    QPointer<ScenarioDocumentPresenter> self = this;
+    QPointer<const Process::Port> from = port;
+    QPointer<const Process::ProcessModel> source = proc;
+    pickProcess(
+        context().app, Process::ProcessFlags::SupportsTemporal,
+        [self, from, source](const Library::PickedProcess& p) {
+      if(!self || !from || !source)
+        return;
+      auto& sel = self->context().selectionStack;
+      const auto type = from->type();
+      if(auto outlet = qobject_cast<const Process::Outlet*>(from.data()))
+      {
+        if(p.preset)
+          loadPresetAfterPort(*self, *p.preset, *source, *outlet);
+        else
+          createProcessAfterPort(
+              *self, Process::ProcessData{p.key, {}, p.customData}, std::nullopt, {},
+              *source, *outlet);
+        // They select the new process
+        if(auto added = selectedProcess(sel); added && added != source)
+          if(auto next = firstOutletOfType(*added, type))
+            sel.pushNewSelection({const_cast<Process::Outlet*>(next)});
+      }
+      else if(auto inlet = qobject_cast<const Process::Inlet*>(from.data()))
+      {
+        if(p.preset)
+          loadPresetBeforePort(*self, *p.preset, *source, *inlet);
+        else
+          createProcessBeforePort(
+              *self, Process::ProcessData{p.key, {}, p.customData}, std::nullopt, {},
+              *source, *inlet);
+        if(auto added = selectedProcess(sel); added && added != source)
+          if(auto next = firstInletOfType(*added, type))
+            sel.pushNewSelection({const_cast<Process::Inlet*>(next)});
+      }
+    },
+        Library::PickerOptions{portFilter(*port)});
+    return;
+  }
+
+  // A node or a cable: what the library adds when a process or preset is
+  // double-clicked in it, after the node or in the cable. A scenario that is
+  // selected is not one: clicking in it selects it.
+  const bool chains = ossia::any_of(selection, [](const auto& obj) {
+    auto proc = qobject_cast<const Process::ProcessModel*>(obj.data());
+    return (proc && !qobject_cast<const Scenario::ProcessModel*>(proc))
+           || qobject_cast<const Process::Cable*>(obj.data());
+  });
+  if(chains && selection.size() == 1)
+  {
+    // From a node, what can be cabled after the outlet it would be cabled
+    // from, as from that outlet
+    Library::PickerOptions options;
+    if(auto proc = qobject_cast<const Process::ProcessModel*>(selection.at(0).data()))
+    {
+      if(auto out = firstSignalOutlet(*proc))
+        options.ports = portFilter(*out);
+    }
+    // In a cable, what can take what its source sends
+    else if(auto cable = qobject_cast<const Process::Cable*>(selection.at(0).data()))
+    {
+      if(auto src = cable->source().try_find(context()))
+        options.ports = portFilter(*src);
+    }
+
+    QPointer<ScenarioDocumentPresenter> self = this;
+    pickProcess(
+        context().app, Process::ProcessFlags::SupportsTemporal,
+        [self](const Library::PickedProcess& p) {
+      if(!self)
+        return;
+      if(p.preset)
+        self->on_addPresetFromLibrary(*p.preset);
+      else
+        self->on_addProcessFromLibrary(
+            Library::ProcessData{{p.key, p.name, p.customData}, {}, {}});
+    }, std::move(options));
+    return;
+  }
+
+  if(auto nodal = ossia::get_if<CentralNodalDisplay>(&m_centralDisplay);
+     nodal && nodal->presenter)
+  {
+    auto& gv = view().view();
+    const QPointF scenePos = gv.mapToScene(gv.mapFromGlobal(QCursor::pos()));
+    nodal->presenter->openProcessPicker(nodal->presenter->pastePosition(scenePos));
+    return;
+  }
+
+  // A box, or the box of a process, selected: in it. A scenario that is
+  // selected is not one: clicking in it selects it.
+  const IntervalModel* target{};
+  for(const auto& obj : selection)
+  {
+    if(auto itv = qobject_cast<const IntervalModel*>(obj.data()))
+      target = itv;
+    else if(auto proc = qobject_cast<const Process::ProcessModel*>(obj.data());
+            proc && !qobject_cast<const Scenario::ProcessModel*>(proc))
+      target = qobject_cast<const IntervalModel*>(proc->parent());
+    if(target)
+      break;
+  }
+
+  const auto& ctx = context();
+  // Else, the mouse over the emptiness of a scenario: a new box there
+  if(!target)
+    if(auto [scenario, pt] = scenarioUnderMouse(); scenario)
+    {
+      QPointer<const Scenario::ProcessModel> s = scenario;
+      pickProcess(
+          ctx.app, Process::ProcessFlags::SupportsTemporal,
+          [s, pt, &ctx](const Library::PickedProcess& p) {
+        if(!s)
+          return;
+        if(auto box = addPickedProcessInNewBox(ctx, *s, pt, p))
+          score::SelectionDispatcher{ctx.selectionStack}.select(*box);
+      });
+      return;
+    }
+
+  if(!target)
+    target = &displayedInterval();
+
+  // The document may be closed before a process is picked.
+  QPointer<const IntervalModel> itv = target;
+  pickProcess(
+      ctx.app, Process::ProcessFlags::SupportsTemporal,
+      [itv, &ctx](const Library::PickedProcess& p) {
+    if(!itv)
+      return;
+    Command::Macro m{new Command::AddProcessInNewSlot, ctx};
+    if(addPickedProcess(m, *itv, p))
+      m.commit();
+  });
 }
 
 void ScenarioDocumentPresenter::on_addProcessFromLibrary(const Library::ProcessData& dat)

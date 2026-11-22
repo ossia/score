@@ -15,8 +15,8 @@ PROCESS_METADATA(
     "Display a set of images",        // Description
     "ossia team",                     // Author
     (QStringList{"gfx", "image"}),    // Tags
-    {},                               // Inputs
-    {},                               // Outputs
+    {std::vector<Process::PortType>{Process::PortType::Message}}, // Inputs
+    {std::vector<Process::PortType>{Process::PortType::Texture}}, // Outputs
     QUrl("https://ossia.io/score-docs/processes/image.html#image-process"),
     Process::ProcessFlags::SupportsAll | Process::ProcessFlags::ControlSurface // Flags
 )

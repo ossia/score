@@ -5,11 +5,15 @@
 
 #include <QPainter>
 #include <QPainterPath>
+#include <QPointer>
+
+#include <functional>
 
 #include <verdigris>
 
 namespace Midi
 {
+class BarGrid;
 class NoteView;
 class SCORE_PLUGIN_MIDI_EXPORT View final : public Process::LayerView
 {
@@ -25,6 +29,13 @@ public:
   std::pair<int, int> range() const { return {m_min, m_max}; }
   NoteData noteAtPos(QPointF point) const;
   int visibleCount() const;
+
+  //! Musical mode's bar lines are drawn over the rows, under the notes.
+  void setBarGrid(BarGrid* grid);
+
+  //! Where a time-related x lands: what magnetism makes of it, or `x`.
+  void setSnap(std::function<double(double)> snap) { m_snap = std::move(snap); }
+  double snap(double x) const { return m_snap ? m_snap(x) : x; }
 
 public:
   void deleteRequested() W_SIGNAL(deleteRequested);
@@ -51,6 +62,9 @@ private:
 
   QPixmap m_textCache;
   QPixmap m_bgCache;
+
+  QPointer<BarGrid> m_barGrid;
+  std::function<double(double)> m_snap;
 
   mutable std::vector<QPainter::PixmapFragment> m_fragmentCache;
 };

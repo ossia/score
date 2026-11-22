@@ -36,6 +36,13 @@ public:
     node_id = context->ui->register_node(std::unique_ptr<score::gfx::Node>{node});
   }
 
+  //! An output's texture is written by a texture outlet, never read: see
+  //! texture_source_parameter.
+  ossia::access_mode get_access() const noexcept override
+  {
+    return ossia::access_mode::SET;
+  }
+
   void push_texture(port_index idx)
   {
     port_index source = idx;

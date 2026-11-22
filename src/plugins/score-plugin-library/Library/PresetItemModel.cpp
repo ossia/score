@@ -537,18 +537,6 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
-static bool isValidForFilename(const QString& name)
-{
-  if(name.isEmpty())
-    return false;
-
-  for(QChar c : QStringLiteral(",^@=+{}[]~!?:&*\"|#%<>$\"';`'/\\"))
-    if(name.contains(c))
-      return false;
-
-  return true;
-}
-
 //! Writes the preset to `path`, made unique, under the name of the file. The
 //! file `replaced`, if `path` is it (a rename that only changes the case of
 //! its name on a file system that ignores it), is written over.
@@ -600,15 +588,7 @@ bool PresetItemModel::canEdit(int row) const
   const auto& path = presets[row].path;
   if(path.isEmpty())
     return false;
-  // Packages are replaced when they are updated: only the user's own files
-  const QString user = QDir::cleanPath(
-      score::GUIAppContext().settings<Library::Settings::Model>().getUserLibraryPath());
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
-  constexpr auto cs = Qt::CaseInsensitive;
-#else
-  constexpr auto cs = Qt::CaseSensitive;
-#endif
-  return QDir::cleanPath(QFileInfo{path}.absoluteFilePath()).startsWith(user + "/", cs);
+  return isUserLibraryFile(path);
 }
 
 bool PresetItemModel::removePreset(int row)
@@ -619,6 +599,27 @@ bool PresetItemModel::removePreset(int row)
   if(!QFile::moveToTrash(presets[row].path))
     return false;
   m_plugin->removePreset(row);
+  return true;
+}
+
+bool PresetItemModel::setDescription(int row, const QString& description)
+{
+  if(!canEdit(row))
+    return false;
+  auto& preset = presets[row];
+  if(preset.description == description)
+    return true;
+
+  auto edited = preset;
+  edited.description = description;
+  if(!writePresetFile(edited, preset.path, score::pathRoots(), preset.path))
+    return false;
+  preset = std::move(edited);
+  m_plugin->presetChanged(row);
+  // Its tooltip
+  const auto idx = indexOfPreset(row);
+  if(idx.isValid())
+    dataChanged(idx, idx);
   return true;
 }
 

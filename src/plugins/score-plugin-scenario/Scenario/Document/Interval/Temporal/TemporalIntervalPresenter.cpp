@@ -19,7 +19,7 @@
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/DialogWidget/PickProcess.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
@@ -270,32 +270,19 @@ void Scenario::TemporalIntervalPresenter::on_doubleClick()
     base->setDisplayedInterval(const_cast<IntervalModel*>(&this->m_model));
 }
 
-struct RequestOverlayMenuCallback
-{
-  const Process::ProcessFactoryList& fact;
-  TemporalIntervalPresenter& self;
-  void operator()(const AddProcessDialog::Key& key, QString dat)
-  {
-    using namespace Scenario::Command;
-
-    Macro m{new AddProcessInNewSlot, self.context()};
-    if(m.createProcessInNewSlot(self.model(), key, dat))
-    {
-      m.commit();
-    }
-  }
-};
-
 void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
 {
-  auto& fact = m_context.app.interfaces<Process::ProcessFactoryList>();
-  auto dialog = new AddProcessDialog{
-      fact, Process::ProcessFlags::SupportsTemporal, QApplication::activeWindow()};
-
-  dialog->on_okPressed = RequestOverlayMenuCallback{fact, *this};
-
-  dialog->launchWindow();
-  dialog->deleteLater();
+  // The document may be closed before a process is picked.
+  QPointer<TemporalIntervalPresenter> self = this;
+  pickProcess(
+      m_context.app, Process::ProcessFlags::SupportsTemporal,
+      [self](const Library::PickedProcess& p) {
+    if(!self)
+      return;
+    Command::Macro m{new Command::AddProcessInNewSlot, self->context()};
+    if(addPickedProcess(m, self->model(), p))
+      m.commit();
+  });
 }
 
 double TemporalIntervalPresenter::rackHeight() const

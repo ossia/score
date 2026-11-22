@@ -39,6 +39,10 @@ public:
 
   QRectF computeRect() const noexcept;
   QPointF closestPos(QPointF note) const noexcept;
+  //! Where the note starts once magnetism has applied to `x`.
+  double snappedX(double x) const noexcept;
+  //! The width that puts the note's end where magnetism takes it.
+  double snappedWidth(double width) const noexcept;
 
 private:
   bool canEdit() const;
