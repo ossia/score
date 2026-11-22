@@ -63,6 +63,8 @@ public:
   qreal height() const;
 
   const Process::ProcessModel& model() const noexcept;
+  const std::vector<Dataflow::PortItem*>& inletItems() const noexcept { return m_inlets; }
+  const std::vector<Dataflow::PortItem*>& outletItems() const noexcept { return m_outlets; }
 
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)

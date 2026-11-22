@@ -74,6 +74,29 @@ private:
   QPointF m_delta;
 };
 
+//! Puts nodes at given positions, as one undoable step.
+class SCORE_LIB_PROCESS_EXPORT SetNodePositions final : public score::Command
+{
+  SCORE_COMMAND_DECL(Process::CommandFactoryName(), SetNodePositions, "Lay out nodes")
+public:
+  explicit SetNodePositions(
+      const std::vector<std::pair<const ProcessModel*, QPointF>>& positions);
+
+  //! Whether any node is not already where it would be put.
+  bool movesAnything() const noexcept;
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  std::vector<std::pair<Path<ProcessModel>, QPointF>> m_before;
+  std::vector<QPointF> m_after;
+};
+
 class MoveNodesMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MoveNodesMacro, "Move nodes")

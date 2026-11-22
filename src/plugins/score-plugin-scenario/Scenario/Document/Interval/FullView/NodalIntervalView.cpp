@@ -1,5 +1,8 @@
 #include "NodalIntervalView.hpp"
 
+#include <Process/Dataflow/NodeItem.hpp>
+#include <Process/Dataflow/PortItem.hpp>
+
 #include <Scenario/Application/Drops/DropOnCable.hpp>
 #include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
@@ -8,6 +11,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/NodeLayout.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -26,11 +30,15 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QApplication>
 #include <QGraphicsRectItem>
 #include <QPointer>
+#include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
+#include <QMenu>
 #include <QPainter>
 #include <QScopedValueRollback>
 #include <QTimer>
@@ -630,6 +638,40 @@ void NodalIntervalView::openProcessPicker(QPointF nodePos)
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
+
+  std::vector<const Process::ProcessModel*> shown, selected;
+  if(m_itemsToShow == OnlyEffects)
+    for(auto* item : m_nodeItems)
+      shown.push_back(&item->model());
+  for(auto* p : filterSelectionByType<Process::ProcessModel>(
+          m_context.selectionStack.currentSelection()))
+    if(p->parent() == &m_model
+       && (m_itemsToShow == AllItems
+           || std::find(shown.begin(), shown.end(), p) != shown.end()))
+      selected.push_back(p);
+
+  QMenu menu;
+  QAction* recenterAction = m_itemsToShow == AllItems ? menu.addAction(tr("Recenter")) : nullptr;
+  QAction* layoutAll
+      = (m_itemsToShow == AllItems || !shown.empty()) ? menu.addAction(tr("Auto-layout")) : nullptr;
+  QAction* layoutSelection
+      = selected.size() > 1 ? menu.addAction(tr("Auto-layout selection")) : nullptr;
+
+  QPointer<NodalIntervalView> self{this};
+  auto* chosen = menu.exec(event->screenPos());
+  if(!self || !chosen)
+    return;
+
+  if(chosen == recenterAction)
+    recenter();
+  else if(chosen == layoutAll)
+  {
+    autoLayoutNodes(m_model, shown, m_context, nodeGeometry());
+    if(self && m_itemsToShow == AllItems)
+      recenter();
+  }
+  else if(chosen == layoutSelection)
+    autoLayoutNodes(m_model, selected, m_context, nodeGeometry());
 }
 
 void NodalIntervalView::wheelEvent(QGraphicsSceneWheelEvent* event)
@@ -697,6 +739,40 @@ void NodalIntervalView::zoomTo(double newZoomLevel)
   m_container->setPos(m_container->pos() + (anchor - newAnchorPos));
   const_cast<IntervalModel&>(m_model).setNodalScale(newScale);
   storeCenterFromContainer();
+}
+
+NodeGeometry NodalIntervalView::nodeGeometry() const
+{
+  auto items
+      = std::make_shared<ossia::hash_map<const Process::ProcessModel*, Process::NodeItem*>>();
+  for(auto* item : m_nodeItems)
+    (*items)[&item->model()] = item;
+
+  NodeGeometry g;
+  g.bounds = [items](const Process::ProcessModel& p) -> std::optional<QRectF> {
+    if(auto it = items->find(&p); it != items->end())
+      return static_cast<const QGraphicsItem*>(it->second)->boundingRect();
+    return std::nullopt;
+  };
+  g.portY = [items](const Process::Port& port) -> std::optional<double> {
+    for(const QObject* obj = port.parent(); obj; obj = obj->parent())
+    {
+      auto* proc = qobject_cast<const Process::ProcessModel*>(obj);
+      if(!proc)
+        continue;
+      auto it = items->find(proc);
+      if(it == items->end())
+        continue;
+      auto* item = it->second;
+      for(const auto* ports : {&item->inletItems(), &item->outletItems()})
+        for(auto* p : *ports)
+          if(&p->port() == &port)
+            return item->mapFromItem(p, p->boundingRect().center()).y();
+      return std::nullopt;
+    }
+    return std::nullopt;
+  };
+  return g;
 }
 
 void NodalIntervalView::setupNode(Process::NodeItem* item)
