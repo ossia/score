@@ -1,6 +1,6 @@
 name: Windows build
 on:
-  pull_request:
+  workflow_call:
   push:
     branches:
       - master
@@ -8,7 +8,7 @@ on:
       - v*
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: win-builds-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -247,7 +247,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       # MSYS2 no longer builds Qt for mingw64 (msys2/MINGW-packages#33701).
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'pull_request' }}
       matrix:
         include:
           - { sys: ucrt64,  env: ucrt-x86_64 }

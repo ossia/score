@@ -1,6 +1,6 @@
 name: WASM
 on:
-  pull_request:
+  workflow_call:
   push:
     branches:
       - master
@@ -8,7 +8,7 @@ on:
       - v*
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: wasm-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

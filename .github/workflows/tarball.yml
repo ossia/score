@@ -1,6 +1,11 @@
 name: Tarball
 on:
-  pull_request:
+  workflow_call:
+    secrets:
+      GPG_SIGN_PUBKEY:
+        required: false
+      GPG_SIGN_PRIVKEY:
+        required: false
   push:
     branches:
       - master
@@ -8,7 +13,7 @@ on:
       - v*
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: tarball-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

@@ -1,0 +1,65 @@
+name: PR CI
+on: pull_request
+
+concurrency:
+  group: pr-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  nix:
+    uses: ./.github/workflows/nix-builds.yaml
+
+  appimage:
+    needs: nix
+    uses: ./.github/workflows/appimage.yml
+
+  bsd:
+    needs: nix
+    uses: ./.github/workflows/bsd.yml
+
+  coverage:
+    needs: nix
+    uses: ./.github/workflows/coverage.yml
+
+  debian:
+    needs: nix
+    uses: ./.github/workflows/debian-builds.yaml
+
+  flatpak:
+    needs: nix
+    uses: ./.github/workflows/flatpak.yml
+
+  linux-distros:
+    needs: nix
+    uses: ./.github/workflows/builds.yaml
+
+  macos:
+    needs: nix
+    uses: ./.github/workflows/mac-builds.yaml
+    secrets:
+      MAC_CERT_B64: ${{ secrets.MAC_CERT_B64 }}
+      MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+      MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
+
+  tarball:
+    needs: nix
+    uses: ./.github/workflows/tarball.yml
+    secrets:
+      GPG_SIGN_PUBKEY: ${{ secrets.GPG_SIGN_PUBKEY }}
+      GPG_SIGN_PRIVKEY: ${{ secrets.GPG_SIGN_PRIVKEY }}
+
+  templates:
+    needs: nix
+    uses: ./.github/workflows/templates.yaml
+
+  ubuntu:
+    needs: nix
+    uses: ./.github/workflows/ubuntu-builds.yaml
+
+  wasm:
+    needs: nix
+    uses: ./.github/workflows/wasm.yaml
+
+  windows:
+    needs: nix
+    uses: ./.github/workflows/win-builds.yaml
