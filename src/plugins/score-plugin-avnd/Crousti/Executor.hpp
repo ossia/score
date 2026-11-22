@@ -160,7 +160,8 @@ concept stops_with_extra_tick = avnd::tag_process_exec<Node>
 template <typename Node>
 struct node_with_deferred_stop : exec_base_node_t<Node>
 {
-  using exec_base_node_t<Node>::exec_base_node_t;
+  using base = exec_base_node_t<Node>;
+  using base::base;
 
   //! Set by the process when it stops, from whichever thread stops it.
   std::atomic_bool stop_pending{};
@@ -178,7 +179,7 @@ struct node_with_deferred_stop : exec_base_node_t<Node>
   {
     if(tk.date == tk.prev_date && stop_pending.exchange(false))
       this->impl.effect.stop();
-    exec_base_node_t<Node>::run(tk, st);
+    base::run(tk, st);
   }
 };
 
