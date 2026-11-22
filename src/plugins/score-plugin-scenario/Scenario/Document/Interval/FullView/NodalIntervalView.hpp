@@ -87,6 +87,10 @@ private:
   void on_processAdded(const Process::ProcessModel& proc);
   void on_processRemoving(const Process::ProcessModel& model);
   void on_zoomRatioChanged(ZoomRatio ratio);
+  //! The node the scene position is on, if any
+  Process::NodeItem* nodeAt(QPointF scenePos) const;
+  //! The process picker, to replace `node` as dropping on it does
+  void openReplacePicker(const Process::NodeItem& node);
   void on_dropOnNode(const QPointF& pt, const QMimeData& mime);
 
   //! Part of this item shown in its view, in its coordinates; empty if none.

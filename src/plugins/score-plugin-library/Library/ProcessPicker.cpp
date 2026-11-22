@@ -123,8 +123,8 @@ struct LibraryFolder
   int begin{}, end{};
   //! The processes right in it: for a process with entries of its own, the
   //! process then its entries
-  std::vector<int> own;
-  std::vector<int> folders;
+  std::vector<int> own{};
+  std::vector<int> folders{};
 };
 
 //! What the picker lists of the library at one time
@@ -1243,6 +1243,15 @@ ProcessPicker::ProcessPicker(
     m->search->setFont(f);
   }
   top->addWidget(m->search, 1);
+
+  if(!m->options.action.isEmpty())
+  {
+    auto chip = new PortChip{pal.color(QPalette::Highlight), this};
+    auto chipLay = new QHBoxLayout{chip};
+    chipLay->setContentsMargins(8, 2, 8, 2);
+    chipLay->addWidget(new QLabel{m->options.action, chip});
+    top->addWidget(chip);
+  }
 
   if(const auto& ports = m->options.ports)
   {

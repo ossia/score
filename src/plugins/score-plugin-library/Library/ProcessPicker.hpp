@@ -46,6 +46,9 @@ struct PickerOptions
   std::optional<PortFilter> ports;
   //! Their presets, for where a preset can be loaded
   bool presets = true;
+  //! What the choice will do, shown beside the search when it is not adding
+  //! a process: "Replace Gain"
+  QString action{};
 };
 
 /**

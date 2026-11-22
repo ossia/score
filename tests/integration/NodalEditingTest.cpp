@@ -69,6 +69,7 @@
 #include <QDrag>
 #include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsSceneMouseEvent>
+#include <QLabel>
 #include <QListWidget>
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -1307,5 +1308,95 @@ TEST_CASE(
     // One undo step
     doc->commandStack().undo();
     CHECK(scenario.intervals.size() == intervalsBefore);
+  });
+}
+
+TEST_CASE(
+    "Replace in a node's menu picks what replaces it, as dropping on it does",
+    "[integration][nodal][picker][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& app) {
+    auto doc = score::test::new_document(app);
+    REQUIRE(doc);
+    auto& itv = newInterval(*doc);
+    // Audio processes: a drop keeps their signal cables
+    const auto merger = UuidKey<Process::ProcessModel>::fromString(
+        QStringLiteral("fa02fc21-80ab-41e7-a3c9-5d2fa34ecda7"));
+    const auto add = [&](QPointF pos) {
+      Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, doc->context()};
+      auto proc = m.createProcessInNewSlot(itv, merger, {}, pos);
+      m.commit();
+      run_events_for(100);
+      return proc;
+    };
+    auto* source = add(QPointF{100, 100});
+    auto* old = add(QPointF{300, 100});
+    REQUIRE(source);
+    REQUIRE(old);
+    connect(*doc, *source, *old);
+    const QPointF oldPos = old->position();
+    QPointer<Process::ProcessModel> gone = old;
+
+    auto pr = score::IDocument::try_presenterDelegate<Scenario::ScenarioDocumentPresenter>(*doc);
+    REQUIRE(pr);
+    pr->setDisplayedInterval(&itv);
+    pr->setNodalMode(true);
+    run_events_for(200);
+    auto* node = nodeOf(*doc, *old);
+    REQUIRE(node);
+    const QPointF at = node->mapToScene(QPointF{10., 6.});
+    auto& gv = pr->view().view();
+    gv.centerOn(at);
+    run_events_for(30);
+    const QPoint vp = gv.mapFromScene(at);
+
+    // Replace, from the menu of the node
+    bool found = false;
+    QTimer::singleShot(50, [&] {
+      auto m = qobject_cast<QMenu*>(QApplication::activePopupWidget());
+      if(!m)
+        return;
+      for(auto* a : m->actions())
+        if(a->text() == "Replace")
+        {
+          found = true;
+          m->close();
+          a->trigger();
+          return;
+        }
+      m->close();
+    });
+    QContextMenuEvent ev{QContextMenuEvent::Mouse, vp, gv.viewport()->mapToGlobal(vp)};
+    QApplication::sendEvent(gv.viewport(), &ev);
+    run_events_for(100);
+    REQUIRE(found);
+
+    // The picker says what it will do
+    auto* picker = dynamic_cast<Library::ProcessPicker*>(QApplication::activePopupWidget());
+    REQUIRE(picker);
+    bool says = false;
+    for(auto* l : picker->findChildren<QLabel*>())
+      says |= l->text().startsWith("Replace ");
+    CHECK(says);
+
+    const auto before = itv.processes.size();
+    picker->setSearch(app.interfaces<Process::ProcessFactoryList>().get(merger)->prettyName());
+    REQUIRE(picker->accept());
+    run_events_for(100);
+
+    // In its place, with its cable
+    CHECK(gone.isNull());
+    REQUIRE(itv.processes.size() == before);
+    const auto others = processesBut(itv, source);
+    REQUIRE(others.size() == 1);
+    const auto* replacement = others.front();
+    CHECK(QLineF{replacement->position(), oldPos}.length() < 1.);
+    CHECK(cableBetween(*doc, *source, *replacement));
+
+    // One undo step brings the old one back
+    doc->commandStack().undo();
+    run_events_for(50);
+    CHECK(itv.processes.size() == before);
+    CHECK(processesBut(itv, source).front()->position() == oldPos);
   });
 }

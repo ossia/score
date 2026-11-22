@@ -624,6 +624,41 @@ void NodalIntervalView::openProcessPicker(QPointF nodePos)
   });
 }
 
+Process::NodeItem* NodalIntervalView::nodeAt(QPointF scenePos) const
+{
+  if(!scene())
+    return nullptr;
+  // The topmost: the one the click is on
+  for(QGraphicsItem* item : scene()->items(scenePos))
+    if(item->type() == Process::NodeItem::Type)
+      if(auto node = static_cast<Process::NodeItem*>(item); ossia::contains(m_nodeItems, node))
+        return node;
+  return nullptr;
+}
+
+void NodalIntervalView::openReplacePicker(const Process::NodeItem& node)
+{
+  QPointer<NodalIntervalView> self = this;
+  QPointer<const Process::NodeItem> target = &node;
+  Library::PickerOptions options;
+  options.action = tr("Replace %1").arg(node.model().metadata().getName());
+  pickProcess(
+      m_context.app, Process::ProcessFlags::SupportsTemporal,
+      [self, target](const Library::PickedProcess& p) {
+    if(!self || !target)
+      return;
+    auto& doc = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+        self->m_context.document);
+    Scenario::DropOnNode replace{*target, doc, self->m_context};
+    if(!replace.prepare())
+      return;
+    if(p.preset)
+      replace.createPreset(*p.preset);
+    else
+      replace.createProcess({Process::ProcessData{p.key, p.name, p.customData}, {}, {}});
+  }, std::move(options));
+}
+
 void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
@@ -643,6 +678,17 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     if(self)
       insertSnippetInInterval(self->m_context, self->m_model, nodePos, path);
   });
+
+  // On a node: what a process or preset dropped on it does
+  if(auto node = nodeAt(event->scenePos()))
+  {
+    QPointer<Process::NodeItem> target = node;
+    auto replace = menu.addAction(tr("Replace"));
+    connect(replace, &QAction::triggered, this, [self, target] {
+      if(self && target)
+        self->openReplacePicker(*target);
+    });
+  }
 
   // The nodes selected, with the cables between them.
   if(ossia::any_of(m_context.selectionStack.currentSelection(), [](const auto& obj) {
