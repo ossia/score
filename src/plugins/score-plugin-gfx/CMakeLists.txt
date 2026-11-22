@@ -221,6 +221,7 @@ set(HDRS
     Gfx/Graph/Node.hpp
     Gfx/Graph/NodeRenderer.hpp
     Gfx/Graph/OutputNode.hpp
+    Gfx/Graph/GpuSelection.hpp
     Gfx/Graph/PointerState.hpp
     Gfx/Graph/TouchHistoryNode.hpp
     Gfx/Graph/RenderClock.hpp
@@ -531,6 +532,7 @@ set(SRCS
     Gfx/Graph/Node.cpp
     Gfx/Graph/NodeRenderer.cpp
     Gfx/Graph/OutputNode.cpp
+    Gfx/Graph/GpuSelection.cpp
     Gfx/Graph/RenderClock.cpp
     Gfx/Graph/DMACaptureInputNode.cpp
     Gfx/Graph/DirectVideoOutputBackend.cpp

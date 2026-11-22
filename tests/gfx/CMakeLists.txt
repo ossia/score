@@ -2345,3 +2345,6 @@ foreach(_t test_gfx_shader_include_path)
     set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
   endif()
 endforeach()
+
+# The Graphics settings' GPU index selects the Vulkan physical device.
+score_add_gfx_test(gpu_selection GfxGpuSelection.cpp)

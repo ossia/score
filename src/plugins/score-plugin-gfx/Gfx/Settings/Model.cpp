@@ -6,6 +6,7 @@
 #include <score/gfx/OpenGL.hpp>
 #include <score/gfx/Vulkan.hpp>
 
+#include <Gfx/Graph/GpuSelection.hpp>
 #include <Gfx/Graph/VulkanVideoDevice.hpp>
 
 #include <QDebug>
@@ -62,11 +63,12 @@ SETTINGS_PARAMETER_IMPL(DecodingThreads){
     QStringLiteral("score_plugin_gfx/VideoDecodingThreads"), 0};
 SETTINGS_PARAMETER_IMPL(VSync){QStringLiteral("score_plugin_gfx/VSync"), true};
 SETTINGS_PARAMETER_IMPL(Buffers){QStringLiteral("score_plugin_gfx/Buffers"), 3};
+SETTINGS_PARAMETER_IMPL(Gpu){QStringLiteral("score_plugin_gfx/Gpu"), QString{}};
 
 static auto list()
 {
   return std::tie(
-      GraphicsApi, HardwareDecode, DecodingThreads, Samples, Rate, VSync, Buffers);
+      GraphicsApi, HardwareDecode, DecodingThreads, Samples, Rate, VSync, Buffers, Gpu);
 }
 }
 
@@ -302,6 +304,10 @@ Model::Model(
 
   // Runs before afterStartup(), where --ui creates its windows.
   install_qtquick_device_extensions();
+
+  if(!m_Gpu.isEmpty())
+    score::gfx::selectGpu(m_Gpu);
+  con(*this, &Model::GpuChanged, this, [](const QString& key) { score::gfx::selectGpu(key); });
 }
 
 int Model::resolveSamples(score::gfx::GraphicsApi api) const noexcept
@@ -489,4 +495,5 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, Samples)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DecodingThreads)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VSync)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, Buffers)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Gpu)
 }
