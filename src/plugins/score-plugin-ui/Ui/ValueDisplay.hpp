@@ -158,6 +158,8 @@ struct Node
     // single entry.
     struct : raw_port<"Input", ossia::value_port>
     {
+      // Documents saved before the port was renamed keep their cables.
+      static constexpr std::string_view former_name() noexcept { return "in"; }
       halp_meta(description, "Values to display, including every event in a tick.")
     } port;
 
