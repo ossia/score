@@ -2346,5 +2346,9 @@ foreach(_t test_gfx_shader_include_path)
   endif()
 endforeach()
 
+# A PER_CUBE_FACE raw raster without a depth output depth-tests every face,
+# with its DEPTH_COMPARE.
+score_add_gfx_test(cube_face_implicit_depth GfxCubeFaceImplicitDepth.cpp)
+
 # A raw raster's own storage images are clamped to the device's TextureSizeMax.
 score_add_gfx_test(raw_raster_size_clamp GfxRawRasterSizeClamp.cpp)

@@ -2882,8 +2882,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
     int pipelineSamples = m_mrtRenderTarget.sampleCount() > 0
                               ? m_mrtRenderTarget.sampleCount()
                               : renderer.samples();
-    if(m_executionMode != ExecutionMode::Single && !m_mipRTs.empty()
-       && m_mipRTs[0].renderPass)
+    const bool iterated = m_executionMode != ExecutionMode::Single
+                          && !m_mipRTs.empty() && m_mipRTs[0].renderPass;
+    if(iterated)
     {
       pipelineRP = m_mipRTs[0].renderPass;
       pipelineColorCount = m_mipRTs[0].colorCount;
@@ -2942,7 +2943,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       ps->setDepthOp(QRhiGraphicsPipeline::Greater);
 
       const bool depthAvailable
-          = (m_mrtRenderTarget.depthTexture != nullptr)
+          = iterated || (m_mrtRenderTarget.depthTexture != nullptr)
             || (m_mrtRenderTarget.depthRenderBuffer != nullptr)
             || (m_mrtRenderTarget.msDepthTexture != nullptr);
       applyPipelineState(
@@ -2962,7 +2963,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       // applyPipelineState's depthAvailable; this legacy branch has no such
       // call, so ask directly).
       const bool depthAvailable
-          = (m_mrtRenderTarget.depthTexture != nullptr)
+          = iterated || (m_mrtRenderTarget.depthTexture != nullptr)
             || (m_mrtRenderTarget.depthRenderBuffer != nullptr)
             || (m_mrtRenderTarget.msDepthTexture != nullptr);
       ps->setDepthTest(depthAvailable);
