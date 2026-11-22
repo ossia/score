@@ -186,8 +186,7 @@ clone_addon https://github.com/ossia/score-addon-deuterium
 # Emulated synthesizers and console sound chips.
 clone_addon https://github.com/ossia/score-addon-emulation
 
-# Track the portable CMake build until ossia/score-addon-essentia#2 lands.
-clone_addon https://github.com/ossia/score-addon-essentia refs/pull/2/head
+clone_addon https://github.com/ossia/score-addon-essentia
 
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
