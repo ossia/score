@@ -18,6 +18,54 @@ QString corpus(const char* file)
 }
 
 TEST_CASE(
+    "a write-only image declared after a PERSISTENT image publishes its own content",
+    "[gfx][csf][persistent]")
+{
+  const auto be = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(be));
+  bool skipped{};
+  std::string error;
+  std::array<ReadbackImage, 2> shots;
+  score::test::run_in_gui_app([&](const score::GUIApplicationContext&) {
+    GfxPipeline p;
+    const int cs = p.addCsf(corpus("csf-persistent-then-writeonly.cs"));
+    if(cs < 0)
+    {
+      error = p.error();
+      return;
+    }
+    const int sink = p.addSink({16, 16});
+    p.wire(p.imageOut(cs, 1), p.sinkInput(sink));
+    if(!p.create(be))
+    {
+      skipped = p.skipped();
+      error = skipped ? std::string{} : p.error();
+      return;
+    }
+    p.render(1);
+    shots[0] = p.readback(sink);
+    p.render(2);
+    shots[1] = p.readback(sink);
+    if(error.empty())
+      error = p.error();
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  if(const char* why = compute_shader_skip_reason(be))
+    SKIP(std::string{backend_name(be)} + ": " + why);
+  INFO(error);
+  REQUIRE(error.empty());
+  for(const auto& img : shots)
+  {
+    REQUIRE(img.valid());
+    const auto px = img.at(img.width / 2, img.height / 2);
+    INFO(int(px[0]) << "," << int(px[1]) << "," << int(px[2]));
+    CHECK(px[0] < 50);
+    CHECK(px[1] > 200);
+  }
+}
+
+TEST_CASE(
     "a compute shader reads a TYPE cubemap resource",
     "[gfx][csf][cubemap]")
 {
