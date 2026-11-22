@@ -2345,3 +2345,6 @@ foreach(_t test_gfx_shader_include_path)
     set_property(TEST ${_t} APPEND PROPERTY RESOURCE_LOCK score_library_root)
   endif()
 endforeach()
+
+# A raw raster's own storage images are clamped to the device's TextureSizeMax.
+score_add_gfx_test(raw_raster_size_clamp GfxRawRasterSizeClamp.cpp)

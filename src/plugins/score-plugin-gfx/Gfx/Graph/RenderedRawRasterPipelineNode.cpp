@@ -988,6 +988,32 @@ static void compensateEpilogueMirror(
                                                     : QRhiGraphicsPipeline::CCW);
 }
 
+static QSize clampToTextureSizeMax(const QRhi& rhi, QSize sz, const char* what)
+{
+  const int maxSize = std::max(1, rhi.resourceLimit(QRhi::TextureSizeMax));
+  if(sz.width() > maxSize || sz.height() > maxSize)
+  {
+    qWarning() << "RawRaster:" << what << sz
+               << "exceeds the device limit" << maxSize
+               << "; clamped, the shader sees the smaller image";
+    sz = sz.boundedTo(QSize(maxSize, maxSize));
+  }
+  return sz;
+}
+
+static int clampToLimit(const QRhi& rhi, QRhi::ResourceLimit limit, int v, const char* what)
+{
+  const int maxV = std::max(1, rhi.resourceLimit(limit));
+  if(v > maxV)
+  {
+    qWarning() << "RawRaster:" << what << v
+               << "exceeds the device limit" << maxV
+               << "; clamped, the shader sees the smaller image";
+    return maxV;
+  }
+  return v;
+}
+
 // Diagnostic escape hatch, mirroring SCORE_GFX_NO_GPU_INDIRECT: set
 // SCORE_GFX_NO_AUX_PLACEHOLDER_ZERO=1 to leave an unbound AUXILIARY placeholder
 // created and never written. It exists so the resulting crash can be A/B'd on
@@ -1706,6 +1732,7 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       sz = QSize(edge, edge);
     }
   }
+  sz = clampToTextureSizeMax(*renderer.state.rhi, sz, "output size");
 
   // EXECUTION_MODEL resolution. Matters before allocation because
   // PER_MIP forces a MipMapped flag on the target output's texture,
@@ -1870,7 +1897,12 @@ void RenderedRawRasterPipelineNode::initMRTPass(
           continue;
         if(colorIdx == m_perMipOutputIndex)
         {
-          const int layers = out.is_cubemap ? 6 : out.layers;
+          const int layers = out.is_cubemap
+                                 ? 6
+                                 : std::min(
+                                     out.layers,
+                                     renderer.state.rhi->resourceLimit(
+                                         QRhi::TextureArraySizeMax));
           if(layers >= 2)
             m_perMipViews = std::min(mvDecl, layers);
           break;
@@ -1894,6 +1926,8 @@ void RenderedRawRasterPipelineNode::initMRTPass(
             renderer.state.api, renderer.state.version, mvCount);
   if(wantMultiview && mvCount > maxLayers)
     maxLayers = mvCount;
+  maxLayers = clampToLimit(
+      *renderer.state.rhi, QRhi::TextureArraySizeMax, maxLayers, "layer count");
 
   // MSAA uniform across colour attachments — pick the max SAMPLES declared
   // by any OUTPUT and apply it to the render pass; with none declared, the
@@ -1960,9 +1994,11 @@ void RenderedRawRasterPipelineNode::initMRTPass(
       QRhiTexture::Flags flags = QRhiTexture::RenderTarget
                                  | QRhiTexture::UsedWithLoadStore
                                  | QRhiTexture::UsedAsTransferSource;
-      const int layers
-          = std::max({1, out.layers, (wantMultiview ? mvCount : 1),
-                       (out.is_cubemap ? 6 : 1)});
+      const int layers = clampToLimit(
+          rhi, QRhi::TextureArraySizeMax,
+          std::max({1, out.layers, (wantMultiview ? mvCount : 1),
+                    (out.is_cubemap ? 6 : 1)}),
+          "layer count");
       // PER_MIP: flag the target output so QRhi allocates the full mip
       // chain. Downstream consumers that care about the mips (prefilter
       // sampling keyed on roughness) need them, and the per-mip render
@@ -2595,7 +2631,9 @@ void RenderedRawRasterPipelineNode::initMRTPass(
   if(m_executionMode == ExecutionMode::PerLayer && m_perLayerOutputIndex >= 0)
   {
     const auto& targetOut = outputs[m_perLayerOutputIndex];
-    int layerCount = std::max(1, targetOut.layers);
+    int layerCount = std::clamp(
+        targetOut.layers, 1,
+        std::max(1, renderer.state.rhi->resourceLimit(QRhi::TextureArraySizeMax)));
     if(m_perLayerViews > 0)
       layerCount = std::min(layerCount, m_perLayerViews);
 
@@ -3313,6 +3351,11 @@ void RenderedRawRasterPipelineNode::initState(
               = atx.dimensions == 3 ? atx.depth_expression : atx.layers_expression;
           if(!ext.empty())
             extent = resolveIntExpression(ext, 1);
+          size = clampToTextureSizeMax(rhi, size, "storage image size");
+          extent = clampToLimit(
+              rhi,
+              atx.dimensions == 3 ? QRhi::TextureSizeMax : QRhi::TextureArraySizeMax,
+              extent, "storage image extent");
         }
         ats.placeholder = createStorageImagePlaceholder(
             rhi, res, atx.format, atx.dimensions, atx.is_array, atx.is_cubemap, size,
@@ -3389,12 +3432,18 @@ void RenderedRawRasterPipelineNode::initState(
     }
     ensureStorageResources(
         *renderer.state.rhi, res, renderer, desc, m_storage,
-        renderer.state.renderSize, [this](const GraphicsStorageImage& e, QSize base) {
-      return QSize{
-          e.width_expression.empty() ? base.width()
-                                     : resolveIntExpression(e.width_expression, base.width()),
-          e.height_expression.empty() ? base.height()
-                                      : resolveIntExpression(e.height_expression, base.height())};
+        renderer.state.renderSize,
+        [this, &rhi = *renderer.state.rhi](const GraphicsStorageImage& e, QSize base) {
+      return clampToTextureSizeMax(
+          rhi,
+          QSize{
+              e.width_expression.empty()
+                  ? base.width()
+                  : resolveIntExpression(e.width_expression, base.width()),
+              e.height_expression.empty()
+                  ? base.height()
+                  : resolveIntExpression(e.height_expression, base.height())},
+          "storage image size");
     });
     bindUpstreamBuffers(renderer, n.input, m_storage);
     // Read-only csf_image_input adopts the matching upstream auxiliary_texture
