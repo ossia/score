@@ -9,32 +9,41 @@ jobs:
   nix:
     uses: ./.github/workflows/nix-builds.yaml
 
-  appimage:
+  approve-full-ci:
+    name: Approve full PR suite
     needs: nix
+    environment: full-ci
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - run: echo "Full CI approved for $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+  appimage:
+    needs: approve-full-ci
     uses: ./.github/workflows/appimage.yml
 
   bsd:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/bsd.yml
 
   coverage:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/coverage.yml
 
   debian:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/debian-builds.yaml
 
   flatpak:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/flatpak.yml
 
   linux-distros:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/builds.yaml
 
   macos:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/mac-builds.yaml
     secrets:
       MAC_CERT_B64: ${{ secrets.MAC_CERT_B64 }}
@@ -42,24 +51,24 @@ jobs:
       MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
 
   tarball:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/tarball.yml
     secrets:
       GPG_SIGN_PUBKEY: ${{ secrets.GPG_SIGN_PUBKEY }}
       GPG_SIGN_PRIVKEY: ${{ secrets.GPG_SIGN_PRIVKEY }}
 
   templates:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/templates.yaml
 
   ubuntu:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/ubuntu-builds.yaml
 
   wasm:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/wasm.yaml
 
   windows:
-    needs: nix
+    needs: approve-full-ci
     uses: ./.github/workflows/win-builds.yaml
