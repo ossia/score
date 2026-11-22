@@ -97,16 +97,21 @@ void applyOutletRouting(
 }
 
 //! Chain `proc` after `src`: the new process becomes the tail of the chain and
-//! takes over the routing `src` was carrying.
+//! takes over the routing `src` was carrying. When `src` already feeds
+//! something, its routing went there: the new process starts another branch,
+//! with the routing of a process made on its own.
 static void chainAfterOutlet(
     Command::Macro& m, const Scenario::ScenarioDocumentModel& sm,
     const Process::Outlet& src, const Process::Inlet& new_inlet,
     const Process::ProcessModel& proc)
 {
+  const bool branch = !src.cables().empty();
   const auto routing = outletRouting(src);
 
   m.createCable(sm, src, new_inlet, Process::CableType::ImmediateGlutton);
 
+  if(branch)
+    return;
   if(auto new_outlet = firstOutletOfType(proc, src.type()))
   {
     applyOutletRouting(m, *new_outlet, routing);
