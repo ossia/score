@@ -81,10 +81,8 @@ bool video_texture_input_protocol::update(ossia::net::node_base& node_base)
 
 video_texture_input_parameter::video_texture_input_parameter(
     ossia::net::node_base& n, video_texture_input_protocol& proto)
-    : ossia::gfx::texture_parameter{n}
+    : texture_source_parameter{n, proto.context}
     , proto{proto}
-    , context{proto.context}
-    , context_alive{proto.context ? proto.context->alive : nullptr}
 {
   camera = proto.camera;
 
@@ -92,16 +90,6 @@ video_texture_input_parameter::video_texture_input_parameter(
   node_id = context->ui->register_node(std::unique_ptr<score::gfx::CameraNode>{node});
 
   proto.camera_node = node;
-}
-
-void video_texture_input_parameter::pull_texture(ossia::gfx::port_index idx)
-{
-  context->setEdge(
-      port_index{this->node_id, 0}, idx, Process::CableType::ImmediateGlutton);
-
-  score::gfx::Message m;
-  m.node_id = node_id;
-  context->ui->send_message(std::move(m));
 }
 
 video_texture_input_parameter::~video_texture_input_parameter()

@@ -85,6 +85,13 @@ bool audioMatches(
   return true;
 }
 
+// A texture or geometry an address provides can only be read (a camera, a
+// window's touch/history), one an output shows only written (the window).
+bool accessMatches(const ossia::net::parameter_base& p, bool inlet) noexcept
+{
+  return p.get_access() != (inlet ? ossia::access_mode::SET : ossia::access_mode::GET);
+}
+
 bool nodeMatches(const ossia::net::node_base& n, PortType type, bool inlet) noexcept
 {
   auto p = n.get_parameter();
@@ -96,9 +103,9 @@ bool nodeMatches(const ossia::net::node_base& n, PortType type, bool inlet) noex
     case PortType::Audio:
       return p->get_type() == ossia::parameter_type::AUDIO && audioMatches(n, *p, inlet);
     case PortType::Texture:
-      return p->get_type() == ossia::parameter_type::TEXTURE;
+      return p->get_type() == ossia::parameter_type::TEXTURE && accessMatches(*p, inlet);
     case PortType::Geometry:
-      return p->get_type() == ossia::parameter_type::GEOMETRY;
+      return p->get_type() == ossia::parameter_type::GEOMETRY && accessMatches(*p, inlet);
     default:
       return false;
   }

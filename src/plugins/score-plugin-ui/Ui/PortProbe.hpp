@@ -3,10 +3,14 @@
 
 #include <Gfx/Widgets/TexturePreview.hpp>
 
+#include <ossia/gfx/port_index.hpp>
+
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/value/value.hpp>
 
 #include <QPointer>
+
+#include <score_plugin_ui_export.h>
 
 #include <boost/circular_buffer.hpp>
 #include <memory>
@@ -16,8 +20,19 @@ namespace Execution
 {
 class PortTap;
 }
+namespace score
+{
+struct DocumentContext;
+}
 namespace Ui
 {
+//! What a hover preview of a texture port shows: for an outlet, itself; for
+//! an inlet, the source of its first cable, else the texture its address
+//! provides (a camera, a window's touch/history). The node is
+//! score::gfx::invalid_node_index when there is nothing to show.
+SCORE_PLUGIN_UI_EXPORT ossia::gfx::port_index
+probedTexture(const Process::Port& port, const score::DocumentContext& doc);
+
 /**
  * What goes through a port, live: levels and a trace for audio, the latest
  * messages for MIDI, the latest values (and a trail when they are numbers)

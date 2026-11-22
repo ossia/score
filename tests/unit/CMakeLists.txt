@@ -3146,6 +3146,7 @@ if(TARGET score_plugin_gfx)
     SOURCES ShaderPointerBindingTest.cpp
     APP
     PLUGINS score_plugin_gfx score_lib_process score_plugin_deviceexplorer
+            $<$<TARGET_EXISTS:score_plugin_ui>:score_plugin_ui>
     LIBS ${QT_PREFIX}::Gui)
 endif()
 

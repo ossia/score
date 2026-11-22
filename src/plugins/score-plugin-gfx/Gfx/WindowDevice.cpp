@@ -90,6 +90,14 @@ score::gfx::Window* WindowDevice::window() const noexcept
   return nullptr;
 }
 
+WindowDevice::WindowDevice(
+    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    : GfxOutputDevice{settings, ctx}
+{
+  // What it shows, and what its pointers make: touch/history
+  m_capas.nodeKinds |= Device::NodeKind::TextureIn;
+}
+
 WindowDevice::~WindowDevice() { }
 
 void WindowDevice::addAddress(const Device::FullAddressSettings& settings)

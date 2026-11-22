@@ -451,41 +451,25 @@ void kinect2_camera::processDepth(libfreenect2::Frame* depthFrame)
   }
 }
 
-class kinect2_parameter : public ossia::gfx::texture_parameter
+class kinect2_parameter : public texture_source_parameter
 {
-  GfxExecutionAction* context{};
-  std::shared_ptr<bool> context_alive;
-
 public:
   std::shared_ptr<kinect2_decoder> decoder;
-  int32_t node_id{};
   score::gfx::CameraNode* node{};
 
   kinect2_parameter(
       const std::shared_ptr<kinect2_decoder>& dec, ossia::net::node_base& n,
       GfxExecutionAction& ctx)
-      : ossia::gfx::texture_parameter{n}
-      , context{&ctx}
-      , context_alive{ctx.alive}
+      : texture_source_parameter{n, &ctx}
       , decoder{dec}
       , node{new score::gfx::CameraNode(decoder, dec->filter)}
   {
     node_id = context->ui->register_node(std::unique_ptr<score::gfx::CameraNode>(node));
   }
 
-  void pull_texture(port_index idx) override
-  {
-    context->setEdge(
-        port_index{this->node_id, 0}, idx, Process::CableType::ImmediateGlutton);
-
-    score::gfx::Message m;
-    m.node_id = node_id;
-    context->ui->send_message(std::move(m));
-  }
-
   virtual ~kinect2_parameter()
   {
-    if(context_alive && *context_alive)
+    if(contextAlive())
       context->ui->unregister_node(node_id);
   }
 };

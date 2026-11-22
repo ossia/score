@@ -35,39 +35,71 @@ public:
   void stop_execution() override { }
 };
 
-class simple_texture_input_parameter : public ossia::gfx::texture_parameter
+/**
+ * @brief A texture an address provides, as a camera's or a window's
+ *        touch/history: a process reads it on a texture inlet.
+ *
+ * It can only be read (ossia::access_mode::GET), where the texture an output
+ * displays can only be written (gfx_parameter_base, SET): the address pickers
+ * of the ports tell them apart by that.
+ */
+class SCORE_PLUGIN_GFX_EXPORT texture_source_parameter
+    : public ossia::gfx::texture_parameter
 {
+protected:
   GfxExecutionAction* context{};
-
   std::shared_ptr<bool> context_alive;
 
-public:
-  int32_t node_id{score::gfx::invalid_node_index};
-  score::gfx::Node* node{};
+  bool contextAlive() const noexcept
+  {
+    return context && context_alive && *context_alive;
+  }
 
-  simple_texture_input_parameter(
-      score::gfx::Node* gfx_n, GfxExecutionAction* ctx, ossia::net::node_base& n)
+public:
+  //! The render node that makes the texture, on its output 0.
+  int32_t node_id{score::gfx::invalid_node_index};
+
+  texture_source_parameter(ossia::net::node_base& n, GfxExecutionAction* ctx)
       : ossia::gfx::texture_parameter{n}
       , context{ctx}
       , context_alive{ctx ? ctx->alive : nullptr}
-      , node{gfx_n}
   {
-    node_id = context->ui->register_node(std::unique_ptr<score::gfx::Node>{gfx_n});
+  }
+
+  //! What a preview of this address shows.
+  port_index source() const noexcept { return port_index{node_id, 0}; }
+
+  ossia::access_mode get_access() const noexcept override
+  {
+    return ossia::access_mode::GET;
   }
 
   void pull_texture(ossia::gfx::port_index idx) override
   {
-    context->setEdge(
-        port_index{this->node_id, 0}, idx, Process::CableType::ImmediateGlutton);
+    context->setEdge(source(), idx, Process::CableType::ImmediateGlutton);
 
     score::gfx::Message m;
     m.node_id = node_id;
     context->ui->send_message(std::move(m));
   }
+};
+
+class simple_texture_input_parameter : public texture_source_parameter
+{
+public:
+  score::gfx::Node* node{};
+
+  simple_texture_input_parameter(
+      score::gfx::Node* gfx_n, GfxExecutionAction* ctx, ossia::net::node_base& n)
+      : texture_source_parameter{n, ctx}
+      , node{gfx_n}
+  {
+    node_id = context->ui->register_node(std::unique_ptr<score::gfx::Node>{gfx_n});
+  }
 
   virtual ~simple_texture_input_parameter()
   {
-    if(context_alive && *context_alive)
+    if(contextAlive())
       context->ui->unregister_node(node_id);
   }
 };
@@ -264,20 +296,16 @@ public:
 };
 
 class SCORE_PLUGIN_GFX_EXPORT video_texture_input_parameter
-    : public ossia::gfx::texture_parameter
+    : public texture_source_parameter
 {
   video_texture_input_protocol& proto;
-  GfxExecutionAction* context{};
-  std::shared_ptr<bool> context_alive;
 
 public:
   std::shared_ptr<::Video::ExternalInput> camera;
-  int32_t node_id{};
   score::gfx::CameraNode* node{};
 
   video_texture_input_parameter(
       ossia::net::node_base& n, video_texture_input_protocol& proto);
-  void pull_texture(ossia::gfx::port_index idx) override;
 
   ~video_texture_input_parameter();
 };

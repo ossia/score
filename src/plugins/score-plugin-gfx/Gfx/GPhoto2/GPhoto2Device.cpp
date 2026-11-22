@@ -1038,22 +1038,16 @@ public:
   void stop_execution() override;
 };
 
-class gphoto2_parameter : public ossia::gfx::texture_parameter
+class gphoto2_parameter : public texture_source_parameter
 {
-  GfxExecutionAction* context{};
-  std::shared_ptr<bool> context_alive;
-
 public:
   std::shared_ptr<gphoto2_decoder> decoder;
-  int32_t node_id{};
   score::gfx::CameraNode* node{};
 
   gphoto2_parameter(
       const std::shared_ptr<gphoto2_decoder>& dec, ossia::net::node_base& n,
       GfxExecutionAction& ctx)
-      : ossia::gfx::texture_parameter{n}
-      , context{&ctx}
-      , context_alive{ctx.alive}
+      : texture_source_parameter{n, &ctx}
       , decoder{dec}
       , node{new score::gfx::CameraNode(decoder)}
   {
@@ -1066,20 +1060,14 @@ public:
     pull_calls++;
     if(pull_calls % 100 == 0)
       qDebug("GPhoto2 param: pull_texture called %d times", pull_calls);
-
-    context->setEdge(
-        port_index{this->node_id, 0}, idx, Process::CableType::ImmediateGlutton);
-
-    score::gfx::Message m;
-    m.node_id = node_id;
-    context->ui->send_message(std::move(m));
+    texture_source_parameter::pull_texture(idx);
   }
 
   int pull_calls{};
 
   virtual ~gphoto2_parameter()
   {
-    if(context_alive && *context_alive)
+    if(contextAlive())
       context->ui->unregister_node(node_id);
   }
 };
