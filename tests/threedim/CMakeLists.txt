@@ -617,6 +617,14 @@ score_add_test(test_threedim_projector_blend_process
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_projector_blend_process)
 
+# Register Calibrations: the transform between two camera frames.
+score_add_test(test_threedim_calibration_registration
+  SOURCES CalibrationRegistration.cpp
+    "${THREEDIM_DIR}/CalibrationRegistration.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_registration)
+
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
   SOURCES Photometric.cpp

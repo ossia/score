@@ -14,6 +14,7 @@
 #include <Threedim/ArrayToTexture.hpp>
 #include <Threedim/FloatTextureIO.hpp>
 #include <Threedim/ProjectorBlend.hpp>
+#include <Threedim/CalibrationRegistration.hpp>
 #include <Threedim/CubemapComposer.hpp>
 #include <Threedim/CubemapLoader.hpp>
 #include <Threedim/BufferLoader.hpp>
@@ -391,6 +392,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::LoadFloatTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::SaveFloatTexture>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ProjectorBlendMaps>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::RegisterCalibrations>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryLoader>(fx, ctx, key);
