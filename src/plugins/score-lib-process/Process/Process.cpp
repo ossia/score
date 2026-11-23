@@ -306,6 +306,15 @@ void ProcessModel::setScriptable(bool b)
   }
 }
 
+void ProcessModel::setMuted(bool b)
+{
+  if(b != m_muted)
+  {
+    m_muted = b;
+    mutedChanged(b);
+  }
+}
+
 void ProcessModel::setLoops(bool b)
 {
   if(b != m_loops)

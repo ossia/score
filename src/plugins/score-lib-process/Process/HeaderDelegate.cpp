@@ -1,3 +1,4 @@
+#include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -9,6 +10,7 @@
 #include <Effect/EffectLayer.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/graphics/YPos.hpp>
@@ -118,6 +120,24 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
   {
     m_ui->setPos({m_portStartX, 2});
     m_portStartX += 12;
+  }
+
+  {
+    // Mute: the process does not run. Undoable, as choosing between the
+    // alternative takes of a recording is.
+    auto mute_btn
+        = new score::QGraphicsPixmapToggle{pixmaps.muted, pixmaps.unmuted, this};
+    mute_btn->setToolTip(tr("Mute\nThe process does not run while muted."));
+    if(m_model.muted())
+      mute_btn->toggle();
+    mute_btn->setPos(m_portStartX, 0);
+    m_portStartX += mute_btn->boundingRect().width() + 2;
+    connect(mute_btn, &score::QGraphicsPixmapToggle::toggled, this, [this](bool b) {
+      if(b != m_model.muted())
+        CommandDispatcher<>{m_context.commandStack}.submit<SetProcessMuted>(m_model, b);
+    });
+    con(m_model, &Process::ProcessModel::mutedChanged, mute_btn,
+        [mute_btn](bool b) { mute_btn->setState(b); });
   }
 
   if(flags & Process::ProcessFlags::Recordable)

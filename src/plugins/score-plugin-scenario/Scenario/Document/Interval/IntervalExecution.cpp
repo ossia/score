@@ -621,6 +621,15 @@ IntervalComponentBase::make(ProcessComponentFactory& fac, Process::ProcessModel&
               [p, t = ctx->time(t)] { p->set_loop_duration(t); });
       });
 
+      // The process's own mute; its box's is applied by the interval.
+      if(proc.muted())
+        oproc->mute(true);
+      con(proc, &Process::ProcessModel::mutedChanged, this,
+          [qex_ptr = weak_exec, p = oproc](bool b) {
+        if(auto qex = qex_ptr.lock())
+          qex->enqueue([p, b] { p->mute(b); });
+      });
+
       oproc->set_start_offset(system().time(proc.startOffset()));
       con(proc, &Process::ProcessModel::startOffsetChanged, this,
           [ctx_ptr = system().weakSelf(), p = oproc](TimeVal t) {

@@ -1890,6 +1890,13 @@ if(TARGET score_plugin_avnd AND TARGET score_plugin_engine)
   target_include_directories(test_unit_avnd_dynamic_ports_exec PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/3rdparty/avendish")
 
+  # A process muted on its own: an undoable, saved edit that reaches the
+  # running process, and that muting / unmuting its containers keeps.
+  score_add_test(test_unit_process_mute
+    SOURCES ProcessMuteTest.cpp
+    APP
+    PLUGINS score_plugin_automation score_plugin_engine score_plugin_scenario score_lib_process)
+
   # A modulation source cabled into a control whose range is much wider than
   # its own: the value has to reach the control rescaled.
   if(TARGET score_plugin_fx AND TARGET score_plugin_threedim)

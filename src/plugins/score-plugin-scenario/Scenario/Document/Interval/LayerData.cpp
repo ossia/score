@@ -61,6 +61,13 @@ void LayerData::addView(
   presenter->on_zoomRatioChanged(zoomRatio);
   presenter->setFullView();
 
+  // A muted process, e.g. a recording's alternative take, is drawn dimmed
+  constexpr double muted_opacity = 0.35;
+  container->setOpacity(m_model->muted() ? muted_opacity : 1.);
+  QObject::connect(
+      m_model, &Process::ProcessModel::mutedChanged, presenter,
+      [container](bool muted) { container->setOpacity(muted ? muted_opacity : 1.); });
+
   m_layers.push_back({presenter, container, view});
 }
 

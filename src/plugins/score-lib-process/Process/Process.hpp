@@ -223,6 +223,14 @@ public:
   PROPERTY(
       bool, scriptable W_READ scriptable W_WRITE setScriptable W_NOTIFY scriptableChanged)
 
+  //! A muted process does not run: its node is left out of the graph
+  //! (ossia::time_process::mute). Alternative takes of a recording are
+  //! separate processes of which only one is unmuted.
+  bool muted() const noexcept { return m_muted; }
+  void setMuted(bool b);
+  void mutedChanged(bool b) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, mutedChanged, b)
+  PROPERTY(bool, muted W_READ muted W_WRITE setMuted W_NOTIFY mutedChanged)
+
   // Clip duration things
   bool loops() const noexcept { return m_loops; }
   void setLoops(bool b);
@@ -350,6 +358,7 @@ private:
   QString m_processUIPlacement;
   std::shared_ptr<Monitor> m_monitor;
   bool m_loops{};
+  bool m_muted{};
   bool m_scriptable{};
   bool m_executing{};
   FoldMode m_foldMode{FoldMode::Auto};

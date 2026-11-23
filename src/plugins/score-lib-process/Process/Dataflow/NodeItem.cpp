@@ -132,6 +132,10 @@ void NodeItem::createWithDecorations()
       &NodeItem::updateLabel);
 
   con(process, &Process::ProcessModel::loopsChanged, this, [&] { updateZoomRatio(); });
+  // A muted process, e.g. a recording's alternative take, is drawn dimmed
+  setOpacity(process.muted() ? 0.35 : 1.);
+  con(process, &Process::ProcessModel::mutedChanged, this,
+      [this](bool muted) { setOpacity(muted ? 0.35 : 1.); });
   con(process, &Process::ProcessModel::loopDurationChanged, this,
       [&] { updateZoomRatio(); });
   con(process, &Process::ProcessModel::startOffsetChanged, this,

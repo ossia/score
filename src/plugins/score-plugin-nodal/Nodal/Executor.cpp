@@ -117,6 +117,9 @@ struct node_graph_process final : public looping_process<node_graph_process>
     node->set_mute(b);
     for(auto& node : nodes)
       node->set_mute(b);
+    // A child muted on its own stays muted when the graph is unmuted.
+    for(auto& process : processes)
+      process->mute_from_parent(b);
   }
   ossia::flat_set<std::shared_ptr<ossia::graph_node>> nodes;
   ossia::flat_set<std::shared_ptr<ossia::time_process>> processes;
@@ -217,6 +220,12 @@ Execution::ProcessComponent* NodalExecutorBase::make(
           [this, p = oproc](TimeVal t) {
         in_exec([p, t = system().time(t)] { p->set_loop_duration(t); });
       });
+
+      // The child's own mute; the graph's is applied by the graph.
+      if(proc.muted())
+        oproc->mute(true);
+      con(proc, &Process::ProcessModel::mutedChanged, this,
+          [this, p = oproc](bool b) { in_exec([p, b] { p->mute(b); }); });
 
       oproc->set_start_offset(system().time(proc.startOffset()));
       con(proc, &Process::ProcessModel::startOffsetChanged, this,

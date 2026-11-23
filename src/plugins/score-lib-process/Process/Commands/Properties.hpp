@@ -10,6 +10,8 @@
 
 PROPERTY_COMMAND_T(Process, SetLoop, ProcessModel::p_loops, "Set process looping")
 SCORE_COMMAND_DECL_T(Process::SetLoop)
+PROPERTY_COMMAND_T(Process, SetProcessMuted, ProcessModel::p_muted, "Mute process")
+SCORE_COMMAND_DECL_T(Process::SetProcessMuted)
 PROPERTY_COMMAND_T(
     Process, SetProcessScriptable, ProcessModel::p_scriptable, "Set process scriptable")
 SCORE_COMMAND_DECL_T(Process::SetProcessScriptable)
