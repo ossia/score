@@ -2427,3 +2427,11 @@ if(TARGET score_plugin_avnd)
     SOURCES CroustiReadbackGate.cpp
     PLUGINS score_plugin_avnd)
 endif()
+
+# An analysis node runs while the transport is paused for a control, an
+# impulse or a worker result that reached it.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_analysis_paused
+    SOURCES CroustiAnalysisPaused.cpp
+    PLUGINS score_plugin_avnd)
+endif()

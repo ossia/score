@@ -73,6 +73,8 @@ struct GpuWorker
     ossia::mpmc_queue<Result> queue;
     std::atomic<uint64_t> pushed{};
     std::atomic<int> inflight{};
+    std::atomic<uint64_t> completed{};
+    uint64_t applied{};
 
     void push(std::function<void()> f)
     {
@@ -88,6 +90,7 @@ struct GpuWorker
       std::ranges::sort(batch, {}, &Result::order);
       for(auto& res : batch)
         res.apply();
+      applied += batch.size();
     }
 
     // Waits for the jobs in flight, and for those that the results applied
@@ -126,6 +129,7 @@ struct GpuWorker
       {
         if(auto p = results.lock())
         {
+          p->completed.fetch_add(1);
           p->inflight.fetch_sub(1);
           p->inflight.notify_all();
         }
@@ -157,6 +161,20 @@ struct GpuWorker
       m_workerResults->settle();
     else
       m_workerResults->drain();
+  }
+
+  //! Whether the worker has run, or still runs, something since `seen`
+  //! results were applied.
+  bool workerActivity(uint64_t& seen) const noexcept
+  {
+    if(!m_workerResults)
+      return false;
+    const auto& w = *m_workerResults;
+    const uint64_t done = w.completed.load() + w.applied;
+    const bool active
+        = w.inflight.load() > 0 || w.queue.size_approx() > 0 || done != seen;
+    seen = done;
+    return active;
   }
 
   template <typename T>
@@ -2032,6 +2050,7 @@ struct texture_inputs_storage<T>
 {
   static void init(auto&&...) { }
   static void runInitialPasses(auto&&...) { }
+  static constexpr bool readbackGated() noexcept { return false; }
   static bool takeReadbackQueued() noexcept { return true; }
   static void release(auto&&...) { }
   static void inputAboutToFinish(auto&&...) { }

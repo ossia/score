@@ -17,6 +17,8 @@ struct GfxRenderer<Node_T> final
   std::shared_ptr<Node_T> state;
   GpuMessageState m_last_message{};
   ossia::time_value m_last_time{-1};
+  bool m_inputsChanged{};
+  uint64_t m_workerSeen{};
 
   AVND_NO_UNIQUE_ADDRESS texture_inputs_storage<Node_T> texture_ins;
   AVND_NO_UNIQUE_ADDRESS buffer_inputs_storage<Node_T> buffer_ins;
@@ -95,6 +97,7 @@ struct GfxRenderer<Node_T> final
       score::gfx::Edge* e) override
   {
     auto& parent = node();
+    m_inputsChanged |= m_last_message.generation != parent.last_message.generation;
     parent.processControlIn(
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
@@ -222,10 +225,16 @@ struct GfxRenderer<Node_T> final
     if(m_waitedForReadback)
       rhi.finish();
 
-    // If we are paused, we don't run the processor implementation.
-    if(parent.last_message.message.token.date == m_last_time)
+    // If we are paused, the processor only runs for what reached it meanwhile:
+    // a control, a readback it asked for, a result of its worker.
+    m_inputsChanged |= m_last_message.generation != parent.last_message.generation;
+    const bool worker = parent.workerActivity(m_workerSeen);
+    if(parent.last_message.message.token.date == m_last_time && !m_inputsChanged
+       && !worker
+       && !(texture_inputs_storage<Node_T>::readbackGated() && m_waitedForReadback))
       return;
     m_last_time = parent.last_message.message.token.date;
+    m_inputsChanged = false;
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
       texture_ins.runInitialPasses(*this, renderer);
