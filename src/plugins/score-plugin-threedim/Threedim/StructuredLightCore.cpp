@@ -281,6 +281,18 @@ StructuredLightCore::Result StructuredLightCore::compute(Job job)
   else
   {
     const auto& k = job.cameraIntrinsics;
+    if(!(k[0] > 0.f && k[1] > 0.f) || k[2] < 0.f || k[3] < 0.f || k[2] > float(cw)
+       || k[3] > float(ch))
+    {
+      char buf[200];
+      std::snprintf(
+          buf, sizeof(buf),
+          "Failed: the camera intrinsics (fx %.1f fy %.1f cx %.1f cy %.1f) are not those "
+          "of a %d x %d camera",
+          k[0], k[1], k[2], k[3], cw, ch);
+      r.status = buf;
+      return r;
+    }
     const std::array<double, 4> K{k[0], k[1], k[2], k[3]};
     const Eigen::Matrix3d R = M.topLeftCorner<3, 3>();
     for(std::size_t i = 0; i < dec.size(); i++)

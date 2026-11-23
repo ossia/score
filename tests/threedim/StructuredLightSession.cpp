@@ -370,3 +370,27 @@ TEST_CASE("A session reads the camera only while it captures", "[threedim][struc
   CHECK(session.wantsCamera());
   CHECK(session.wantsPositions());
 }
+
+TEST_CASE("Camera intrinsics of another camera size are refused", "[threedim][structuredlight]")
+{
+  Bench b{1};
+  auto s = b.settings();
+  s.mode = StructuredLightSession::ViewerCamera;
+  auto runWith = [&](std::array<float, 4> k) {
+    StructuredLightSession session;
+    s.cameraIntrinsics = k;
+    double now = 0.;
+    StructuredLightSession::Events ev;
+    REQUIRE(session.start(s, {}, now, ev));
+    run(session, s, b, now);
+    REQUIRE(session.results().size() == 1);
+    return *session.results()[0];
+  };
+  const auto good = runWith({float(b.fx), float(b.fy), float(b.cx), float(b.cy)});
+  INFO(good.status);
+  CHECK(good.ok);
+  const auto wrong = runWith({float(b.fx), float(b.fy), 2.f * CW, float(b.cy)});
+  INFO(wrong.status);
+  CHECK_FALSE(wrong.ok);
+  CHECK(wrong.status.find("not those of a 480 x 200 camera") != std::string::npos);
+}
