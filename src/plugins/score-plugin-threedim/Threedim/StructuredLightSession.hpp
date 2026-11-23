@@ -135,6 +135,7 @@ public:
   bool wantsCamera() const noexcept;
   bool wantsPositions() const noexcept;
   const std::string& status() const noexcept { return m_status; }
+  void setStatus(std::string s) { m_status = std::move(s); }
   float progress() const noexcept { return m_progress; }
 
   //! The image of projector p: its pattern while it is captured, black while
@@ -217,7 +218,7 @@ private:
   int m_framesBefore{}, m_framesTotal{1};
   double m_settleMs{};
   double m_latency{};
-  float m_whiteMean{};
+  std::vector<float> m_white;
   float m_exposureSent{};
   std::vector<Extra> m_extras;
   std::vector<Job> m_held;

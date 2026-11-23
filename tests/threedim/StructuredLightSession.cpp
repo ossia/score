@@ -107,6 +107,20 @@ TEST_CASE("A session waits for a late camera and measures its latency", "[threed
   CHECK(r.status.find("camera latency") != std::string::npos);
 }
 
+TEST_CASE("The latency measured is the camera's, not the settle time", "[threedim][structuredlight]")
+{
+  Bench b{1};
+  StructuredLightSession session;
+  auto s = b.settings();
+  s.settleMs = 300;
+  double now = 0.;
+  StructuredLightSession::Events ev;
+  REQUIRE(session.start(s, {}, now, ev));
+  REQUIRE(run(session, s, b, now).done);
+  CHECK(session.latency() < 60.);
+  CHECK(session.results()[0]->ok);
+}
+
 TEST_CASE("A session stops when the camera delivers nothing", "[threedim][structuredlight]")
 {
   Bench b{1};

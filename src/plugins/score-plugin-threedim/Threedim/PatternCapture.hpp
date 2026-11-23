@@ -30,10 +30,15 @@ public:
     double intervalMs{30.};
     //! The first frame must differ from the last one of the previous pattern.
     bool requireChange{};
-    //! The first frame's mean luminance must be under this; < 0: off.
-    float darkerThan{-1.f};
+    //! The first frame must be darker than this luminance (a previous
+    //! capture's) on its bright pixels, those above the middle of its range:
+    //! under `darker` times their mean.
+    const std::vector<float>* darkerThan{};
+    float darker{0.7f};
     //! Per channel, raw camera value -> linear, sampled at i / (size - 1).
     const std::array<std::vector<float>, 3>* linearise{};
+    //! Frames taken but left out of the average, after the change was seen.
+    int discard{};
     //! Keep the average raw RGB too.
     bool rgb{};
     //! Raw values at or above are clipped.
@@ -81,7 +86,8 @@ public:
 private:
   float linear(int c, float v) const noexcept;
   uint64_t signature(const CameraFrame& f) const noexcept;
-  float sampledMean(const CameraFrame& f) const noexcept;
+  void sampleReference();
+  bool darker(const CameraFrame& f) const noexcept;
 
   Options m_opt;
   State m_state{State::Done};
@@ -89,6 +95,7 @@ private:
   uint64_t m_lastSerial{};
   int m_w{}, m_h{};
   int m_taken{};
+  int m_discarded{};
   bool m_accepted{};
   bool m_sawFrame{};
   bool m_hasPrevious{};
@@ -96,6 +103,8 @@ private:
   std::vector<float> m_lum, m_rgb;
   std::vector<uint8_t> m_clipped;
   float m_mean{};
+  std::vector<std::size_t> m_refPixels;
+  float m_refMean{};
   double m_latency{};
 };
 }

@@ -419,11 +419,12 @@ void StructuredLightSession::beginPattern(const Settings& s, double now, Events&
 {
   showPattern(m_k, s.level);
   PatternCapture::Options o;
-  o.settleMs = std::max(s.settleMs, 1.25 * m_latency);
+  o.settleMs = m_k == 1 ? 0. : std::max(s.settleMs, 1.25 * m_latency);
   o.frames = s.frames;
-  o.timeoutMs = std::max(s.timeoutMs, 2. * m_latency);
+  o.discard = m_k == 1 ? 1 : 0;
+  o.timeoutMs = std::max(s.timeoutMs, 2. * m_latency + s.settleMs);
   o.requireChange = (m_projector > 0 || m_k > 0) && m_k < m_seq.count();
-  o.darkerThan = m_k == 1 ? 0.9f * m_whiteMean : -1.f;
+  o.darkerThan = m_k == 1 && !m_white.empty() ? &m_white : nullptr;
   o.linearise = &m_linear;
   o.rgb = m_k <= 1 || m_k >= m_seq.count();
   o.clipLevel = 0.985f;
@@ -770,7 +771,7 @@ void StructuredLightSession::tick(
           const bool extra = m_k >= m_seq.count();
           if(m_k == 0)
           {
-            m_whiteMean = m_capture.mean();
+            m_white = m_capture.luminance();
             m_job.whiteRGB = std::move(m_capture.rgb());
           }
           else if(m_k == 1)

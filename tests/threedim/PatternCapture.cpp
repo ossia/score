@@ -108,9 +108,10 @@ TEST_CASE("A capture waiting for a darker frame measures the latency", "[threedi
 {
   PatternCapture c;
   c.reset();
+  const std::vector<float> white(16, 0.8f);
   PatternCapture::Options o;
   o.settleMs = 0.;
-  o.darkerThan = 0.3f;
+  o.darkerThan = &white;
   auto bright = uniform(4, 4, 0.8f), dark = uniform(4, 4, 0.05f);
   c.begin(0., o);
   CHECK(c.feed(0., {bright.data(), 4, 4}) == State::Capturing);
@@ -155,4 +156,38 @@ TEST_CASE("Frames that never change time out as unchanged, not as missing", "[th
   for(double t = 10.; t < 400. && !c.failed(); t += 16.7)
     c.feed(t, {a.data(), 4, 4});
   CHECK(c.state() == State::Unchanged);
+}
+
+TEST_CASE("A capture can leave the first changed frame out of the average", "[threedim][capture]")
+{
+  PatternCapture c;
+  c.reset();
+  const std::vector<float> white(4, 0.9f);
+  PatternCapture::Options o;
+  o.settleMs = 0.;
+  o.darkerThan = &white;
+  o.discard = 1;
+  auto bright = uniform(2, 2, 0.9f), mid = uniform(2, 2, 0.3f), dark = uniform(2, 2, 0.1f);
+  c.begin(0., o);
+  CHECK(c.feed(0., {bright.data(), 2, 2}) == State::Capturing);
+  CHECK(c.feed(40., {mid.data(), 2, 2}) == State::Capturing);
+  CHECK(c.accepted());
+  CHECK(c.latency() == Approx(40.));
+  CHECK(c.feed(80., {dark.data(), 2, 2}) == State::Done);
+  CHECK(c.luminance()[0] == Approx(0.1f));
+}
+
+TEST_CASE("Darker is judged on the pixels the reference lit", "[threedim][capture]")
+{
+  PatternCapture c;
+  c.reset();
+  std::vector<float> white(100, 0.17f);
+  for(int i = 0; i < 25; i++)
+    white[i] = 0.96f;
+  PatternCapture::Options o;
+  o.settleMs = 0.;
+  o.darkerThan = &white;
+  auto frame = uniform(10, 10, 0.17f);
+  c.begin(0., o);
+  CHECK(c.feed(0., {frame.data(), 10, 10}) == State::Done);
 }

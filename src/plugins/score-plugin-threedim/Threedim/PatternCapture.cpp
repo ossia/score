@@ -35,10 +35,12 @@ void PatternCapture::begin(double now, const Options& o)
   m_state = State::Settling;
   m_shownAt = now;
   m_taken = 0;
+  m_discarded = 0;
   m_accepted = false;
   m_lum.clear();
   m_rgb.clear();
   m_clipped.clear();
+  sampleReference();
 }
 
 float PatternCapture::linear(int c, float v) const noexcept
@@ -68,16 +70,42 @@ uint64_t PatternCapture::signature(const CameraFrame& f) const noexcept
   return h;
 }
 
-float PatternCapture::sampledMean(const CameraFrame& f) const noexcept
+void PatternCapture::sampleReference()
 {
-  const std::size_t n = std::size_t(f.width) * f.height;
+  m_refPixels.clear();
+  m_refMean = 0.f;
+  const auto* ref = m_opt.darkerThan;
+  if(!ref || ref->empty())
+    return;
+  const std::size_t n = ref->size();
   const std::size_t step = std::max<std::size_t>(1, n / 4096);
+  std::vector<float> v;
+  for(std::size_t i = 0; i < n; i += step)
+    v.push_back((*ref)[i]);
+  const auto [lo, hi] = std::minmax_element(v.begin(), v.end());
+  const float top = *lo + 0.5f * (*hi - *lo);
   double sum = 0.;
-  std::size_t k = 0;
-  for(std::size_t i = 0; i < n; i += step, k++)
+  for(std::size_t i = 0, k = 0; i < n; i += step, k++)
+    if(v[k] >= top)
+    {
+      m_refPixels.push_back(i);
+      sum += v[k];
+    }
+  m_refMean = m_refPixels.empty() ? 0.f : float(sum / double(m_refPixels.size()));
+}
+
+bool PatternCapture::darker(const CameraFrame& f) const noexcept
+{
+  if(!m_opt.darkerThan)
+    return true;
+  if(m_refPixels.empty() || m_opt.darkerThan->size() != std::size_t(f.width) * f.height)
+    return true;
+  double sum = 0.;
+  for(std::size_t i : m_refPixels)
     for(int c = 0; c < 3; c++)
       sum += linear(c, f.rgba[i * 4 + c]);
-  return k ? float(sum / (3. * k)) : 0.f;
+  const double mean = sum / (3. * double(m_refPixels.size()));
+  return mean < m_opt.darker * m_refMean;
 }
 
 PatternCapture::State PatternCapture::feed(double now, const CameraFrame& f)
@@ -119,10 +147,10 @@ PatternCapture::State PatternCapture::feed(double now, const CameraFrame& f)
   m_lastAt = now;
 
   const uint64_t sig = signature(f);
-  if(m_taken == 0)
+  if(m_taken == 0 && m_discarded == 0)
   {
     const bool stale = m_opt.requireChange && m_hasPrevious && sig == m_previous;
-    const bool bright = m_opt.darkerThan >= 0.f && sampledMean(f) >= m_opt.darkerThan;
+    const bool bright = !darker(f);
     if(stale || bright)
     {
       if(now - m_waitFrom > m_opt.timeoutMs)
@@ -132,6 +160,15 @@ PatternCapture::State PatternCapture::feed(double now, const CameraFrame& f)
     m_latency = now - m_shownAt;
   }
 
+  if(m_discarded < m_opt.discard)
+  {
+    m_discarded++;
+    m_accepted = true;
+    m_last = sig;
+    m_waitFrom = now;
+    m_sawFrame = false;
+    return m_state;
+  }
   const std::size_t n = std::size_t(m_w) * m_h;
   if(m_lum.size() != n)
   {
