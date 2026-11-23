@@ -2451,3 +2451,10 @@ if(TARGET score_plugin_avnd)
     SOURCES CroustiSourceSizeReadback.cpp
     PLUGINS score_plugin_avnd)
 endif()
+
+# A GPU node's save paths and path lists are resolved against the document.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_gpu_path_controls
+    SOURCES CroustiGpuPathControls.cpp
+    PLUGINS score_plugin_avnd)
+endif()

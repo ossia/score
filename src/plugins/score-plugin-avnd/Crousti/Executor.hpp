@@ -18,6 +18,7 @@
 #include <Crousti/ProcessModel.hpp>
 
 #include <score/tools/Bind.hpp>
+#include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/dataflow/exec_state_facade.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
@@ -70,11 +71,46 @@ namespace oscr
 //! "<LIBRARY>:..." (what saving a document leaves) received the token itself
 //! and opened nothing. File and folder choosers resolve like the file ports
 //! do; any other control's value is not a path and is passed as is.
-[[nodiscard]] static ossia::value
-gpuControlValue(
-    const Process::ControlInlet& ctrl, const ossia::value& v,
-    const score::DocumentContext& ctx)
+//! A save path (halp::save_file_path) and a list of paths (a field declaring
+//! path_list()) are line edits: their fields say what they hold.
+enum class GpuPathControl
 {
+  None,
+  Save,
+  List
+};
+
+template <typename Node, typename Model>
+ossia::flat_map<const Process::Inlet*, GpuPathControl> gpuPathControls(Model& element)
+{
+  ossia::flat_map<const Process::Inlet*, GpuPathControl> out;
+  avnd::input_introspection<Node>::for_all(
+      [&]<std::size_t Idx, typename F>(avnd::field_reflection<Idx, F>) {
+    constexpr auto kind = requires { F::placeholders(); } ? GpuPathControl::Save
+                          : requires { F::path_list(); }  ? GpuPathControl::List
+                                                          : GpuPathControl::None;
+    if constexpr(kind != GpuPathControl::None)
+      for(auto* p : element.avnd_input_idx_to_model_ports(Idx))
+        out[p] = kind;
+  });
+  return out;
+}
+
+[[nodiscard]] static ossia::value gpuControlValue(
+    const Process::ControlInlet& ctrl, const ossia::value& v,
+    const score::DocumentContext& ctx, GpuPathControl path = GpuPathControl::None)
+{
+  switch(path)
+  {
+    case GpuPathControl::Save:
+      if(auto str = v.target<std::string>(); str && !str->empty())
+        return ossia::value{avnd_tools::filter_filename(*str, ctx).toStdString()};
+      return v;
+    case GpuPathControl::List:
+      return resolvePathListValue(v, ctx);
+    case GpuPathControl::None:
+      break;
+  }
   if(qobject_cast<const Process::FileChooserBase*>(&ctrl)
      || qobject_cast<const Process::FolderChooser*>(&ctrl))
     return resolvePathValue(v, ctx);
@@ -410,13 +446,16 @@ public:
 
     // Create the controls, inputs outputs etc.
     std::size_t i = 0;
+    const auto paths = gpuPathControls<Node>(element);
 
     for(auto& ctl : element.inlets())
     {
       if(auto ctrl = qobject_cast<Process::ControlInlet*>(ctl))
       {
+        const auto path_it = paths.find(ctrl);
+        const auto path = path_it != paths.end() ? path_it->second : GpuPathControl::None;
         auto& p = node->add_control();
-        p->value = gpuControlValue(*ctrl, ctrl->value(), ctx.doc);
+        p->value = gpuControlValue(*ctrl, ctrl->value(), ctx.doc, path);
         // An impulse is only ever sent when it is triggered: the object's
         // one-shot inputs start empty, like setup_control_for_exec leaves them
         // on the CPU path.
@@ -429,9 +468,9 @@ public:
 
         QObject::connect(
             ctrl, &Process::ControlInlet::valueChanged, this,
-            [con = Gfx::con_unvalidated{ctx, i, 0, node}, ctrl,
+            [con = Gfx::con_unvalidated{ctx, i, 0, node}, ctrl, path,
              &doc = ctx.doc](const ossia::value& v) mutable {
-          con(gpuControlValue(*ctrl, v, doc));
+          con(gpuControlValue(*ctrl, v, doc, path));
         });
         i++;
       }
