@@ -108,6 +108,9 @@ add_library(
   Threedim/CalibrationRegistration.cpp
   Threedim/ManualProjectorCalibration.hpp
   Threedim/ManualProjectorCalibration.cpp
+  Threedim/ViewerFrustum.hpp
+  Threedim/ViewerFrustum.cpp
+  Threedim/ViewerFromPose.hpp
   Threedim/CubemapComposer.hpp
   Threedim/CubemapLoader.hpp
   Threedim/CubemapLoader.cpp

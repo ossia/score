@@ -633,6 +633,15 @@ score_add_test(test_threedim_manual_projector_calibration
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_manual_projector_calibration)
 
+# Projector to Viewer Frustum: cached calibration, OpenGL matrices a Camera
+# reads; Viewer From Pose's 1 euro filter on every tick.
+score_add_test(test_threedim_viewer_frustum
+  SOURCES ViewerFrustum.cpp
+    "${THREEDIM_DIR}/ViewerFrustum.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_viewer_frustum)
+
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
   SOURCES Photometric.cpp

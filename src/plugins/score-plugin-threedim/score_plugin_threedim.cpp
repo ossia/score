@@ -16,6 +16,8 @@
 #include <Threedim/ProjectorBlend.hpp>
 #include <Threedim/CalibrationRegistration.hpp>
 #include <Threedim/ManualProjectorCalibration.hpp>
+#include <Threedim/ViewerFromPose.hpp>
+#include <Threedim/ViewerFrustum.hpp>
 #include <Threedim/CubemapComposer.hpp>
 #include <Threedim/CubemapLoader.hpp>
 #include <Threedim/BufferLoader.hpp>
@@ -395,6 +397,8 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::ProjectorBlendMaps>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::RegisterCalibrations>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::ManualProjectorCalibration>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ProjectorViewerFrustum>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::ViewerFromPose>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryLoader>(fx, ctx, key);
