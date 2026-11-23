@@ -190,6 +190,13 @@ if(TARGET score_plugin_media)
     APP
     PLUGINS score_plugin_media score_lib_process)
 
+  # A sound file rewritten on disk (a new take to the same path) is loaded
+  # again rather than served from the cache.
+  score_add_test(test_unit_audio_file_cache
+    SOURCES AudioFileCacheTest.cpp
+    APP
+    PLUGINS score_plugin_media score_lib_process)
+
   # Positioning the libav streaming node: seeks have to land where they are
   # asked to, and fetch_audio() has to honour its start argument.
   score_add_test(test_unit_sound_libav_seek

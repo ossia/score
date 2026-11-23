@@ -19,6 +19,7 @@
 #include <ossia/detail/libav.hpp>
 #include <ossia/detail/ssize.hpp>
 
+#include <QDateTime>
 #include <QDebug>
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -327,32 +328,45 @@ std::shared_ptr<AudioFile>
 AudioFileManager::get(const QString& path, int stream, const score::DocumentContext& ctx)
 {
   // TODO what would be a good garbage collection mechanism ?
-  auto abspath = score::locateFilePath(path, ctx);
-  StreamInfo k{abspath, stream};
-  if(auto it = m_handles.find(k); it != m_handles.end())
-  {
-    return it->second;
-  }
-
-  auto r = std::make_shared<AudioFile>();
-  r->load({path, abspath, DecodingMethod::Invalid, stream});
-  m_handles.insert({k, r});
-  return r;
+  return getOrLoad(path, score::locateFilePath(path, ctx), stream);
 }
 
 std::shared_ptr<AudioFile> AudioFileManager::get(const QString& abspath, int stream)
 {
-  // TODO what would be a good garbage collection mechanism ?
+  return getOrLoad(abspath, abspath, stream);
+}
+
+std::shared_ptr<AudioFile> AudioFileManager::getOrLoad(
+    const QString& path, const QString& abspath, int stream)
+{
+  const QFileInfo info{abspath};
+  const qint64 size = info.exists() ? info.size() : -1;
+  const qint64 modified
+      = info.exists() ? info.lastModified().toMSecsSinceEpoch() : qint64(-1);
+
   StreamInfo k{abspath, stream};
   if(auto it = m_handles.find(k); it != m_handles.end())
   {
-    return it->second;
+    const auto& e = it->second;
+    if(e.size == size && e.modified == modified)
+      return e.file;
   }
 
   auto r = std::make_shared<AudioFile>();
-  r->load({abspath, abspath, DecodingMethod::Invalid, stream});
-  m_handles.insert({k, r});
+  r->load({path, abspath, DecodingMethod::Invalid, stream});
+  m_handles[k] = Entry{r, size, modified};
   return r;
+}
+
+void AudioFileManager::invalidate(const QString& abspath)
+{
+  for(auto it = m_handles.begin(); it != m_handles.end();)
+  {
+    if(it->first.file == abspath)
+      it = m_handles.erase(it);
+    else
+      ++it;
+  }
 }
 
 AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)

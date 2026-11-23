@@ -293,7 +293,17 @@ public:
 
   std::shared_ptr<AudioFile> get(const QString& absolutePath, int stream);
 
+  //! Forgets every stream of a file, e.g. one a recording is about to
+  //! rewrite: the next get() loads it again. Handles already given out keep
+  //! the data they have.
+  void invalidate(const QString& absolutePath);
+
 private:
+  //! The cached file, or a new one when there is none or the file changed
+  //! on disk since it was loaded (another take recorded to the same path).
+  std::shared_ptr<AudioFile>
+  getOrLoad(const QString& path, const QString& absolutePath, int stream);
+
   struct StreamInfo
   {
     struct hash
@@ -318,7 +328,14 @@ private:
     QString file;
     int stream{-1};
   };
-  ossia::hash_map<StreamInfo, std::shared_ptr<AudioFile>, StreamInfo::hash> m_handles;
+  struct Entry
+  {
+    std::shared_ptr<AudioFile> file;
+    //! The file on disk when it was loaded
+    qint64 size{-1};
+    qint64 modified{-1};
+  };
+  ossia::hash_map<StreamInfo, Entry, StreamInfo::hash> m_handles;
 };
 
 /**
