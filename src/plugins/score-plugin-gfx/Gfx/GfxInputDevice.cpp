@@ -12,11 +12,21 @@ namespace Gfx
 
 void video_texture_input_protocol::start_execution()
 {
+  m_streams.startExecution();
+}
+
+void video_texture_input_protocol::stop_execution()
+{
+  m_streams.stopExecution();
+}
+
+void video_texture_input_protocol::startStream()
+{
   if(!camera->start())
     qWarning() << "Gfx: could not start the camera input";
 }
 
-void video_texture_input_protocol::stop_execution()
+void video_texture_input_protocol::stopStream()
 {
   if(camera_node)
   {

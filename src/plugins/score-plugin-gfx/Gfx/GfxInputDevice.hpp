@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/GfxDevice.hpp>
 #include <Gfx/GfxExecContext.hpp>
+#include <Gfx/StreamRequests.hpp>
 #include <ossia/gfx/texture_parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
@@ -260,7 +261,17 @@ public:
   void start_execution() override;
   void stop_execution() override;
 
+  //! Keeps the stream open with the score stopped while the request lives.
+  std::unique_ptr<StreamRequests::Hold> keepStreaming() { return m_streams.hold(); }
+
   score::gfx::CameraNode* camera_node{};
+
+protected:
+  virtual void startStream();
+  void stopStream();
+
+private:
+  StreamRequests m_streams{[this] { startStream(); }, [this] { stopStream(); }};
 };
 
 class SCORE_PLUGIN_GFX_EXPORT video_texture_input_parameter

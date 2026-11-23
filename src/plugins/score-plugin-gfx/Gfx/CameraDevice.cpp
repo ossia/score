@@ -45,7 +45,7 @@ public:
     return controls && controls->push(p, v);
   }
 
-  void start_execution() override
+  void startStream() override
   {
     if(!camera->start())
     {

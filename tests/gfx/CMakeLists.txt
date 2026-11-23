@@ -2420,6 +2420,12 @@ score_add_test(test_gfx_texture_port_converters_at_load
 # nested MPCDI filesets, bad 1D .cube and response.json tables.
 score_add_gfx_test(calibration_file_hardening CalibrationFileHardening.cpp)
 
+# A camera stream held open by a tool with the score stopped, counted, and
+# left to the execution once released.
+score_add_test(test_gfx_stream_requests
+  SOURCES StreamRequests.cpp
+  PLUGINS score_plugin_gfx)
+
 # A CPU texture input declaring request_readback is read back, and its frame
 # waits for the GPU, only on request: filters and analysis nodes.
 if(TARGET score_plugin_avnd)
