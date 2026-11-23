@@ -24,6 +24,7 @@
 #include <Execution/ExecutionController.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
+#include <Media/MediaFileHandle.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <score/model/ComponentUtils.hpp>
@@ -492,5 +493,160 @@ TEST_CASE("Values recorded into an automation replace its curve, and it is silen
     CHECK(target->max() == 1.);
     doc->commandStack().redo();
     CHECK(target->max() >= 10.);
+  });
+}
+
+TEST_CASE("A take in passes: alternatives in one slot, the last playing, each turned to the box", "[recording][session][passes]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 30);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    REQUIRE(sound);
+    const auto processes_before = box->processes.size();
+    const auto slots_before = box->smallView().size();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    // Passes of a bar: 2 s at 120 in 4/4, from 0.5 s on
+    engine.execution().request_play_global(true);
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(500);
+
+    Recording::RecordOptions opt;
+    opt.passes = Recording::RecordOptions::Passes::Alternatives;
+    opt.passBars = 1.;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(4800);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(session.takes().size() == 1);
+    const auto take = session.takes()[0];
+    const int64_t bar = 2 * 705600000;
+    const auto passes = (take.endDate - take.startDate) / bar;
+    REQUIRE(passes >= 2);
+
+    // A process each, in one new slot, looping a bar, the last one unmuted
+    REQUIRE(box->processes.size() == processes_before + passes);
+    CHECK(box->smallView().size() == slots_before + 1);
+    std::vector<Process::ProcessModel*> added;
+    for(auto& p : box->processes)
+      if(&p != sound)
+        added.push_back(&p);
+    int unmuted = 0;
+    for(auto* p : added)
+    {
+      CHECK(p->loops());
+      CHECK(p->loopDuration() == TimeVal{bar});
+      CHECK(p->startOffset() == TimeVal::zero());
+      unmuted += !p->muted();
+    }
+    CHECK(unmuted == 1);
+    CHECK(!take.placed->muted());
+
+    // The last pass, turned: at each frame of the loop, the ramp frame played
+    // at that moment of the box during that pass
+    auto* last = static_cast<Media::Sound::ProcessModel*>(take.placed.data());
+    const QString file = last->file()->absoluteFileName();
+    INFO(file.toStdString());
+    int channels{};
+    const auto rec = read_wav(file, channels);
+    const int64_t loop_frames = 2 * rate;
+    REQUIRE(int64_t(rec.size() / channels) == loop_frames);
+    const int64_t pass_start = take.startDate + (passes - 1) * bar;
+    const int64_t pass_start_frame = std::llround(pass_start / flicks_per_second * rate);
+    for(int64_t i : {int64_t(0), loop_frames / 3, loop_frames - 1})
+    {
+      // Box frame of loop position i during the pass
+      const int64_t r = ((pass_start_frame % loop_frames) + loop_frames) % loop_frames;
+      const int64_t box_frame = pass_start_frame + ((i - r + loop_frames) % loop_frames);
+      const int64_t heard = std::llround(rec[i * channels] * 1e6) - 1;
+      CHECK(std::abs(heard - box_frame) <= 2);
+    }
+
+    doc->commandStack().undo();
+    CHECK(box->processes.size() == processes_before);
+  });
+}
+
+TEST_CASE("A take in passes side by side: each where it was played", "[recording][session][passes]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 30);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    const auto processes_before = box->processes.size();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.passes = Recording::RecordOptions::Passes::SideBySide;
+    opt.passBars = 1.;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(4500);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    const auto& take = session.takes().at(0);
+    const int64_t bar = 2 * 705600000;
+    const auto passes = (take.endDate - take.startDate) / bar;
+    REQUIRE(passes >= 2);
+    REQUIRE(box->processes.size() == processes_before + passes);
+    std::vector<int64_t> offsets;
+    for(auto& p : box->processes)
+    {
+      if(&p == sound)
+        continue;
+      CHECK(!p.loops());
+      CHECK(!p.muted());
+      offsets.push_back(-p.startOffset().impl);
+    }
+    std::sort(offsets.begin(), offsets.end());
+    for(int64_t k = 0; k < passes; k++)
+      CHECK(offsets[k] == take.startDate + k * bar);
   });
 }

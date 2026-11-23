@@ -108,6 +108,8 @@ void midi_record_node::run(
         take.startPosition.store(tk.musical_start_position, std::memory_order_relaxed);
       }
       take.tempo.store(tk.tempo, std::memory_order_relaxed);
+      take.meterNumerator.store(tk.signature.upper, std::memory_order_relaxed);
+      take.meterDenominator.store(tk.signature.lower, std::memory_order_relaxed);
       m_endPosition = -1.;
       if(const double bars = take.lengthBars.load(std::memory_order_relaxed); bars > 0.)
       {

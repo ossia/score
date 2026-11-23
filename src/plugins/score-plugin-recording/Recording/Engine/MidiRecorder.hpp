@@ -57,6 +57,9 @@ struct SCORE_PLUGIN_RECORDING_EXPORT MidiTake
   std::atomic<double> startPosition{0.};
   std::atomic<int64_t> endDate{0};
   std::atomic<double> tempo{0.};
+  //! The meter when the take started
+  std::atomic<int> meterNumerator{4};
+  std::atomic<int> meterDenominator{4};
   std::atomic<int64_t> events{0};
   std::atomic<int64_t> droppedEvents{0};
 

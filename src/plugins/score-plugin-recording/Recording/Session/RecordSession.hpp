@@ -23,6 +23,7 @@
 
 #include <atomic>
 #include <memory>
+#include <optional>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -40,6 +41,10 @@ namespace Scenario
 {
 class IntervalModel;
 class ProcessModel;
+namespace Command
+{
+class Macro;
+}
 }
 namespace Device
 {
@@ -128,6 +133,7 @@ private:
   void poll();
   void finish();
   void place();
+  bool placePasses(Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro);
   bool hasAddresses() const noexcept;
   void listenToDevices();
   void stopListening();

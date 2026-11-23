@@ -80,6 +80,9 @@ struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
   std::atomic<int64_t> droppedFrames{0};
   //! The tempo when the take started
   std::atomic<double> tempo{0.};
+  //! The meter when the take started
+  std::atomic<int> meterNumerator{4};
+  std::atomic<int> meterDenominator{4};
 
   // Audio thread
   ossia::spsc_queue<Block*> freeBlocks;

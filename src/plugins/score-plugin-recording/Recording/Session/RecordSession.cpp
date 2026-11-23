@@ -3,6 +3,7 @@
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/Drop/TakeDrop.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/Execution/TapLink.hpp>
 #include <Process/Process.hpp>
@@ -28,6 +29,7 @@
 #include <Recording/Commands/PlaceTakes.hpp>
 #include <Recording/Takes/RecordedNotes.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
+#include <Recording/Takes/Passes.hpp>
 #include <Recording/Takes/RecordedCurves.hpp>
 #include <Recording/Takes/RecordedValues.hpp>
 
@@ -55,6 +57,7 @@
 #include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <QFile>
+#include <QFileInfo>
 #include <QMimeData>
 #include <QRegularExpression>
 #include <QUrl>
@@ -602,6 +605,137 @@ void RecordSession::finish()
   finished();
 }
 
+bool RecordSession::placePasses(
+    Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro)
+{
+  constexpr int64_t flicks_per_quarter = 352800000;
+  const int num = s.audio ? s.audio->meterNumerator.load()
+                  : s.midi ? s.midi->meterNumerator.load()
+                           : s.values->meterNumerator.load();
+  const int den = s.audio ? s.audio->meterDenominator.load()
+                  : s.midi ? s.midi->meterDenominator.load()
+                           : s.values->meterDenominator.load();
+  const double quarters_per_bar = (num > 0 && den > 0) ? 4. * num / den : 4.;
+  const int64_t length
+      = int64_t(std::llround(m_options.passBars * quarters_per_bar * flicks_per_quarter));
+  auto passes = passesOf(t.startDate, t.endDate, length);
+  if(passes.empty())
+    return false;
+  using P = RecordOptions::Passes;
+  const bool loops = m_options.passes != P::SideBySide;
+  if(m_options.passes == P::LastOnly)
+    passes.erase(passes.begin(), passes.end() - 1);
+
+  const QFileInfo full{t.file};
+  const QString ext = full.suffix();
+  const auto& handlers = m_ctx.app.interfaces<Process::ProcessDropHandlerList>();
+  const double tempo = s.audio ? s.audio->tempo.load()
+                       : s.midi ? s.midi->tempo.load()
+                                : s.values->tempo.load();
+  constexpr double flicks_per_second = 705600000.;
+  const auto frame_of = [&](int64_t flicks) {
+    // Frames run in real time, dates in the box's: they part at another tempo
+    const double ratio = tempo > 0. ? 120. / tempo : 1.;
+    return int64_t(std::llround(double(flicks) / flicks_per_second * s.rate * ratio));
+  };
+  const auto notes = s.midi ? notesOf(s.events, t.endDate) : std::vector<RecordedNote>{};
+
+  bool placed = false;
+  bool first = true;
+  for(std::size_t k = 0; k < passes.size(); k++)
+  {
+    const Pass& p = passes[k];
+    const int64_t len = p.end - p.start;
+    // A loop plays its content round from the start of the box: turned so
+    // that each moment of the box hears what was played there
+    const int64_t rotate = loops ? ((p.start % len) + len) % len : 0;
+    const QString file = full.absolutePath() + "/" + full.completeBaseName()
+                         + QStringLiteral("-pass%1.").arg(k + 1) + ext;
+    bool ok = false;
+    if(s.audio)
+    {
+      ok = writeWavSegment(
+          t.file, file, frame_of(p.start - t.startDate), frame_of(len),
+          frame_of(rotate), m_options.audioFormat);
+    }
+    else if(s.midi)
+    {
+      const auto pn = notesOfPass(notes, p, rotate);
+      const auto smf = smfOf(pn, 0, len, tempo);
+      QFile f{file};
+      ok = f.open(QIODevice::WriteOnly)
+           && f.write(smf.data(), qint64(smf.size())) == qint64(smf.size());
+    }
+    else
+    {
+      const auto pv = valuesOfPass(s.valueEvents, p, rotate);
+      const auto json = valueTakeJson(
+          pv, 0, len, s.rate, tempo, s.values->meterNumerator.load(),
+          s.values->meterDenominator.load());
+      QFile f{file};
+      ok = f.open(QIODevice::WriteOnly) && f.write(json) == json.size();
+    }
+    if(!ok)
+      continue;
+
+    QMimeData mime;
+    mime.setUrls({QUrl::fromLocalFile(file)});
+    if(loops)
+    {
+      const auto meta = Process::encode_clip_metadata(
+          {file.toStdString()}, halp::clip_stretch::automatic, true);
+      mime.setData(
+          QString::fromUtf8(
+              Process::clip_metadata_mime.data(),
+              qsizetype(Process::clip_metadata_mime.size())),
+          QByteArray::fromStdString(meta));
+    }
+    auto drops = handlers.getDrop(mime, m_ctx);
+    if(drops.empty())
+      continue;
+    if(!macro)
+      macro.emplace(new PlaceTakes, m_ctx);
+    score::Dispatcher_T disp{*macro};
+    for(auto& d : drops)
+    {
+      // Alternatives share one slot
+      Process::ProcessModel* proc{};
+      if(loops && !first)
+      {
+        proc = macro->createProcess(*s.box, d.creation, {});
+        if(proc)
+          macro->addLayerToLastSlot(*s.box, *proc);
+      }
+      else
+      {
+        proc = macro->createProcessInNewSlot(*s.box, d.creation);
+      }
+      if(!proc)
+        continue;
+      if(d.setup)
+        d.setup(*proc, disp);
+      if(loops)
+      {
+        Process::loop_clip(*proc, TimeVal{len}, disp);
+        if(proc->startOffset() != TimeVal::zero())
+          macro->submit(new Process::SetStartOffset{*proc, TimeVal::zero()});
+        // The last pass plays
+        if(k + 1 < passes.size())
+          macro->submit(new Process::SetProcessMuted{*proc, true});
+      }
+      else
+      {
+        macro->submit(new Process::SetLoop{*proc, false});
+        macro->submit(new Process::SetStartOffset{*proc, TimeVal{-p.start}});
+      }
+      t.placed = proc;
+      placed = true;
+      first = false;
+    }
+  }
+  return placed;
+}
+
 void RecordSession::place()
 {
   m_takes.clear();
@@ -706,6 +840,16 @@ void RecordSession::place()
         m_takes.push_back(std::move(t));
         continue;
       }
+    }
+
+    // Passes: a file and a process for each
+    if(m_options.passes != RecordOptions::Passes::One && s->box
+       && m_options.target != RecordOptions::Target::FileOnly)
+    {
+      if(placePasses(*s, t, macro))
+        placed_any = true;
+      m_takes.push_back(std::move(t));
+      continue;
     }
 
     if((m_options.target == RecordOptions::Target::ThisBox

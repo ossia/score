@@ -45,6 +45,23 @@ struct RecordOptions
   WavStreamWriter::Format audioFormat{WavStreamWriter::Format::Float32};
   Target target{Target::ThisBox};
 
+  //! How a take recorded over several passes of the same length is kept
+  enum class Passes
+  {
+    //! One take, however long
+    One,
+    //! Each pass a loop of the box, in one slot: the last plays, the others
+    //! are muted, to be chosen from
+    Alternatives,
+    //! Each pass where it was recorded
+    SideBySide,
+    //! Only the last pass, as a loop
+    LastOnly
+  };
+  Passes passes{Passes::One};
+  //! The length of a pass, in bars of the box
+  double passBars{1.};
+
   //! Target::Into: the piano roll a MIDI take, or the automation a value take
   //! is recorded into
   QPointer<const Process::ProcessModel> into;

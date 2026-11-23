@@ -65,6 +65,27 @@ void RecordPortMenu::setupMenu(
       record(opt);
     });
   }
+  // Over and over, a bar at a time: the passes are kept as the user chooses
+  {
+    auto passes = sub->addMenu(QObject::tr("Record passes of one bar"));
+    using P = RecordOptions::Passes;
+    const std::pair<P, QString> kinds[]{
+        {P::Alternatives, QObject::tr("As alternatives, the last one playing")},
+        {P::SideBySide, QObject::tr("Side by side, where they were played")},
+        {P::LastOnly, QObject::tr("Keeping only the last one")}};
+    for(const auto& [kind, text] : kinds)
+    {
+      auto act = passes->addAction(text);
+      QObject::connect(act, &QAction::triggered, plug, [=, kind = kind] {
+        auto opt = plug->defaultOptions();
+        opt.startRate = 1.;
+        opt.lengthBars = 0.;
+        opt.passes = kind;
+        opt.passBars = 1.;
+        record(opt);
+      });
+    }
+  }
   if(type != Process::PortType::Audio)
   {
     auto act = sub->addAction(
