@@ -17,6 +17,7 @@
 #include <Threedim/CalibrationRegistration.hpp>
 #include <Threedim/LedDiscovery.hpp>
 #include <Threedim/LedWall.hpp>
+#include <Threedim/StructuredLightCalibration.hpp>
 #include <Threedim/ManualProjectorCalibration.hpp>
 #include <Threedim/ViewerFromPose.hpp>
 #include <Threedim/ViewerFrustum.hpp>
@@ -403,6 +404,7 @@ std::vector<score::InterfaceBase*> score_plugin_threedim::factories(
   oscr::instantiate_fx<Threedim::ViewerFromPose>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::LedWallMap>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::LedDiscovery>(fx, ctx, key);
+  oscr::instantiate_fx<Threedim::StructuredLightCalibration>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::Noise>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::StrucSynth>(fx, ctx, key);
   oscr::instantiate_fx<Threedim::GeometryLoader>(fx, ctx, key);
