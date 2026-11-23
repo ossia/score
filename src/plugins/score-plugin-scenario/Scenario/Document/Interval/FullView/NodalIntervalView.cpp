@@ -1,5 +1,7 @@
 #include "NodalIntervalView.hpp"
 
+#include <Process/Dataflow/PortContextMenu.hpp>
+
 #include <Scenario/Application/Drops/DropOnCable.hpp>
 #include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
@@ -738,6 +740,14 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
       });
       return add;
     }());
+
+    // What it carries is its source's: what plug-ins add to that outlet's menu
+    // (e.g. recording it)
+    if(auto* src = cable->source().try_find(m_context))
+    {
+      for(auto& fac : m_context.app.interfaces<Process::PortContextMenuFactoryList>())
+        fac.setupMenu(menu, *src, m_context);
+    }
   }
 
   // On a node: what a process or preset dropped on it does

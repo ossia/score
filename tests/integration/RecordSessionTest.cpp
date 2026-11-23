@@ -23,9 +23,11 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordSession.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
@@ -243,5 +245,57 @@ TEST_CASE("A recording started while stopped starts playback and records", "[rec
     CHECK(rec.size() / channels > std::size_t(rate / 4));
     REQUIRE(take.placed);
     CHECK(take.placed->parent() == box);
+  });
+}
+
+TEST_CASE("The Record button records the selected port and stops", "[recording][session]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    REQUIRE(sound);
+    const auto processes_before = box->processes.size();
+
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+
+    // Nothing selected: nothing records
+    score::SelectionDispatcher{doc->context().selectionStack}.deselect();
+    rec.recordSelection();
+    CHECK(!rec.session());
+
+    score::SelectionDispatcher{doc->context().selectionStack}.select(*sound->outlets()[0]);
+    rec.recordSelection();
+    auto* session = rec.session();
+    REQUIRE(session);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(600);
+    bool finished = false;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] { finished = true; });
+    // Again: it stops
+    rec.recordSelection();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+    CHECK(box->processes.size() == processes_before + 1);
+    CHECK(spin_until([&] { return rec.session() == nullptr; }));
   });
 }

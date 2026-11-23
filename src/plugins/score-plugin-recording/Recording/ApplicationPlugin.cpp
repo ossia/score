@@ -18,7 +18,14 @@
 #include <Recording/Session/RecordSession.hpp>
 #include <Recording/Settings/RecordingSettings.hpp>
 
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Process.hpp>
+
 #include <score/actions/ActionManager.hpp>
+#include <score/actions/Toolbar.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/widgets/HelpInteraction.hpp>
+#include <score/widgets/SetIcons.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -27,6 +34,9 @@
 #include <core/document/Document.hpp>
 
 #include <QAction>
+#include <QSignalBlocker>
+#include <QTimer>
+#include <QToolBar>
 #include <QApplication>
 
 namespace Recording
@@ -50,6 +60,15 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
+  m_blink.setInterval(400);
+  connect(&m_blink, &QTimer::timeout, this, [this] {
+    if(!m_recordAct)
+      return;
+    const bool lit = !m_session || !m_session->waiting() || !m_recordAct->isChecked();
+    QSignalBlocker _{m_recordAct};
+    m_recordAct->setChecked(m_session ? lit : false);
+  });
+
   if(ctx.applicationSettings.gui)
   {
     auto& stop_action = ctx.actions.action<Actions::Stop>();
@@ -68,6 +87,7 @@ RecordSession* ApplicationPlugin::adopt(
 
   m_session = std::move(session);
   m_sessionDocument = &ctx.document;
+  showRecording(true);
   // Destroyed once it has placed its takes, out of its own signal
   connect(m_session.get(), &RecordSession::finished, this, [this] {
     QMetaObject::invokeMethod(this, [this] {
@@ -75,6 +95,7 @@ RecordSession* ApplicationPlugin::adopt(
       {
         m_session.reset();
         m_sessionDocument = nullptr;
+        showRecording(false);
       }
     }, Qt::QueuedConnection);
   });
@@ -166,6 +187,76 @@ RecordOptions ApplicationPlugin::defaultOptions() const
   return RecordOptions{};
 }
 
+void ApplicationPlugin::showRecording(bool b)
+{
+  // While the takes wait (for playback, the grid or a first value), the
+  // button blinks; it stays lit while they record
+  if(b && !m_blink.isActive())
+    m_blink.start();
+  else if(!b)
+    m_blink.stop();
+  if(m_recordAct && m_recordAct->isChecked() != b)
+  {
+    QSignalBlocker _{m_recordAct};
+    m_recordAct->setChecked(b);
+  }
+}
+
+score::GUIElements ApplicationPlugin::makeGUIElements()
+{
+  score::GUIElements e;
+  auto bar = new QToolBar{tr("Recording")};
+  m_recordAct = new QAction{tr("Record"), bar};
+  m_recordAct->setCheckable(true);
+  m_recordAct->setObjectName("RecordSelection");
+  score::setHelp(
+      m_recordAct,
+      tr("Record the ports selected, or the audio and MIDI outputs of the processes "
+         "selected, as the Recording settings say; again to stop."));
+  setIcons(
+      m_recordAct, QStringLiteral(":/icons/control_record_on.png"),
+      QStringLiteral(":/icons/control_record_hover.png"),
+      QStringLiteral(":/icons/control_record_off.png"),
+      QStringLiteral(":/icons/control_record_disabled.png"));
+  connect(m_recordAct, &QAction::triggered, this, [this] { recordSelection(); });
+  bar->addAction(m_recordAct);
+  e.toolbars.emplace_back(
+      bar, StringKey<score::Toolbar>("Recording"), Qt::BottomToolBarArea, 210);
+  return e;
+}
+
+void ApplicationPlugin::recordSelection()
+{
+  if(m_session)
+  {
+    stopSession();
+    showRecording(m_session && m_session->running());
+    return;
+  }
+  auto* doc = context.currentDocument();
+  if(!doc)
+  {
+    showRecording(false);
+    return;
+  }
+  std::vector<const Process::Port*> ports;
+  for(const auto& obj : doc->selectionStack.currentSelection())
+  {
+    if(auto* port = qobject_cast<const Process::Port*>(obj.data()))
+    {
+      ports.push_back(port);
+    }
+    else if(auto* proc = qobject_cast<const Process::ProcessModel*>(obj.data()))
+    {
+      for(auto* out : proc->outlets())
+        if(out->type() == Process::PortType::Audio || out->type() == Process::PortType::Midi)
+          ports.push_back(out);
+    }
+  }
+  if(ports.empty() || !startSession(*doc, ports, defaultOptions()))
+    showRecording(false);
+}
+
 void ApplicationPlugin::on_closeDocument(score::Document& doc)
 {
   // The session refers to the document: it ends, its takes placed, first
@@ -174,6 +265,7 @@ void ApplicationPlugin::on_closeDocument(score::Document& doc)
     m_session->stop();
     m_session.reset();
     m_sessionDocument = nullptr;
+    showRecording(false);
   }
 }
 }

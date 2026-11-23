@@ -6,6 +6,8 @@
 
 #include <score_plugin_recording_export.h>
 
+#include <QTimer>
+
 #include <memory>
 #include <vector>
 namespace Engine
@@ -61,11 +63,19 @@ public:
   RecordOptions defaultOptions() const;
 
   void on_closeDocument(score::Document& doc) override;
+  score::GUIElements makeGUIElements() override;
+
+  //! The Record button: records the ports selected, or the audio and MIDI
+  //! outlets of the processes selected; stops the recording when one runs
+  void recordSelection();
 
 private:
   Engine::ApplicationPlugin* m_ossiaplug{};
   QAction* m_stopAction{};
+  QAction* m_recordAct{};
+  QTimer m_blink;
 
+  void showRecording(bool);
   RecordSession* adopt(std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx);
 
   std::unique_ptr<RecordSession> m_session;

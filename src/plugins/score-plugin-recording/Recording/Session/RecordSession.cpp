@@ -214,6 +214,18 @@ void RecordSession::placeInNewBox(
   m_playOnFirst = playOnFirst;
 }
 
+bool RecordSession::waiting() const noexcept
+{
+  if(!m_running)
+    return false;
+  if(!m_recordersCreated)
+    return true;
+  for(const auto& s : m_sources)
+    if(s->link && s->state() == AudioTake::Recording)
+      return false;
+  return true;
+}
+
 bool RecordSession::hasAddresses() const noexcept
 {
   return ossia::any_of(m_sources, [](const auto& s) { return !s->port; });

@@ -95,6 +95,9 @@ public:
   //! Ends the recording: what was recorded is placed
   void stop();
   bool running() const noexcept { return m_running; }
+  //! Running, and no take records yet: playback, the grid or a first event is
+  //! awaited
+  bool waiting() const noexcept;
 
   //! The takes are placed (or nothing was recorded)
   void finished() E_SIGNAL(SCORE_PLUGIN_RECORDING_EXPORT, finished)
