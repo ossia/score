@@ -3491,5 +3491,6 @@ if(TARGET score_plugin_recording)
   score_add_test(test_unit_overdub_notes
     SOURCES OverdubNotesTest.cpp
     APP
-    PLUGINS score_plugin_recording score_plugin_midi)
+    PLUGINS score_plugin_recording score_plugin_midi score_plugin_automation
+      score_plugin_curve)
 endif()

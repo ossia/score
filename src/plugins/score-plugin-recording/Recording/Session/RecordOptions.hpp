@@ -45,7 +45,8 @@ struct RecordOptions
   WavStreamWriter::Format audioFormat{WavStreamWriter::Format::Float32};
   Target target{Target::ThisBox};
 
-  //! Target::Into: the piano roll a MIDI take is recorded into
+  //! Target::Into: the piano roll a MIDI take, or the automation a value take
+  //! is recorded into
   QPointer<const Process::ProcessModel> into;
   //! Target::Into: the notes it had over the span recorded are removed first;
   //! else the take's notes are added to them

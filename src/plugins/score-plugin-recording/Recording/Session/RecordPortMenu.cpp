@@ -5,6 +5,7 @@
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
+#include <Automation/AutomationModel.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <Process/Process.hpp>
 #include <Recording/ApplicationPlugin.hpp>
@@ -108,6 +109,29 @@ void RecordPortMenu::setupMenu(
             record(opt);
           });
         }
+      }
+    }
+  }
+  // Values into the automations of its box, replacing their curve where
+  // recorded; they are silent while the take records
+  if(type == Process::PortType::Message)
+  {
+    if(auto* box = Scenario::closestParentInterval(Process::parentProcess(&port)))
+    {
+      for(const auto& proc : box->processes)
+      {
+        auto* autom = qobject_cast<const Automation::ProcessModel*>(&proc);
+        if(!autom)
+          continue;
+        const QPointer<const Process::ProcessModel> into = autom;
+        auto act = sub->addAction(QObject::tr("Record into %1").arg(autom->prettyName()));
+        QObject::connect(act, &QAction::triggered, plug, [=] {
+          auto opt = plug->defaultOptions();
+          opt.target = RecordOptions::Target::Into;
+          opt.into = into;
+          opt.replace = true;
+          record(opt);
+        });
       }
     }
   }

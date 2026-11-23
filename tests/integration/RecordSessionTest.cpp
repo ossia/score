@@ -22,7 +22,11 @@
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+#include <score/model/ComponentUtils.hpp>
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
@@ -423,5 +427,70 @@ TEST_CASE("A MIDI recording into a piano roll adds its notes there, undoably", "
     CHECK(target->notes.size() == 0);
     doc->commandStack().redo();
     CHECK(target->notes.size() >= 5);
+  });
+}
+
+TEST_CASE("Values recorded into an automation replace its curve, and it is silent meanwhile", "[recording][session][overdub]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Automation::ProcessModel* source{};
+    Automation::ProcessModel* target{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      source = static_cast<Automation::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}));
+      target = static_cast<Automation::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}));
+      REQUIRE(source);
+      REQUIRE(target);
+      // The source goes from 10 to 20
+      m.submit(new Automation::SetMin{*source, 10.});
+      m.submit(new Automation::SetMax{*source, 20.});
+      m.commit();
+    }
+    REQUIRE(target->max() == 1.);
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::Into;
+    opt.into = target;
+    opt.replace = true;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*source->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(1000);
+
+    // Silent in the execution, not in the document
+    auto* comp = score::findComponent<Execution::ProcessComponent>(target->components());
+    REQUIRE(comp);
+    CHECK(comp->OSSIAProcess().muted_by_self());
+    CHECK(!target->muted());
+
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    spin(100);
+    CHECK(!comp->OSSIAProcess().muted_by_self());
+    engine.execution().request_stop();
+    spin(200);
+
+    // The values the source played, in the target's curve
+    CHECK(box->processes.size() == 2);
+    CHECK(target->max() >= 10.);
+    CHECK(target->max() <= 20.);
+    REQUIRE(session.takes().size() == 1);
+    CHECK(session.takes()[0].placed == target);
+
+    doc->commandStack().undo();
+    CHECK(target->max() == 1.);
+    doc->commandStack().redo();
+    CHECK(target->max() >= 10.);
   });
 }

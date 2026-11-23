@@ -8,7 +8,10 @@
 
 #include <Midi/MidiNote.hpp>
 #include <Midi/MidiProcess.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Curve/CurveModel.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
+#include <Recording/Takes/RecordedCurves.hpp>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -94,5 +97,57 @@ TEST_CASE("Recorded notes go round a looping piano roll", "[recording][overdub]"
     auto all = overdubNotes(p, take, 4 * sec, 6 * sec, true);
     CHECK(removes(all, 0));
     CHECK(removes(all, 1));
+  });
+}
+
+namespace
+{
+//! The value of a recorded curve at x
+double valueAt(const RecordedCurve& c, double x)
+{
+  for(const auto& s : c.segments)
+    if(x >= s.start.x() && x <= s.end.x())
+    {
+      const double t
+          = s.end.x() > s.start.x() ? (x - s.start.x()) / (s.end.x() - s.start.x()) : 1.;
+      return c.min + (s.start.y() + t * (s.end.y() - s.start.y())) * (c.max - c.min);
+    }
+  return -1000.;
+}
+}
+
+TEST_CASE("Values recorded into an automation replace its curve where recorded", "[recording][overdub]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // 10 s, from 0 to 1 linearly
+    Automation::ProcessModel a{TimeVal{10 * sec}, Id<Process::ProcessModel>{1}, nullptr};
+    REQUIRE(a.curve().sortedSegments().size() == 1);
+
+    std::vector<ValueTake::Event> ev{
+        {2 * sec, ossia::value{5.f}}, {3 * sec, ossia::value{3.f}}};
+    CurveOptions opt;
+    opt.stepped = true;
+    auto c = spliceCurve(a, ev, 0, 2 * sec, 4 * sec, opt);
+    REQUIRE(c);
+    CHECK(c->min == Approx(0.));
+    CHECK(c->max == Approx(5.));
+    CHECK(c->segments.front().start.x() == Approx(0.));
+    CHECK(c->segments.back().end.x() == Approx(1.));
+    // Before and after the span: as it was
+    CHECK(valueAt(*c, 0.1) == Approx(0.1).margin(0.01));
+    CHECK(valueAt(*c, 0.5) == Approx(0.5).margin(0.01));
+    CHECK(valueAt(*c, 0.9) == Approx(0.9).margin(0.01));
+    // Inside: the values, held
+    CHECK(valueAt(*c, 0.25) == Approx(5.));
+    CHECK(valueAt(*c, 0.35) == Approx(3.));
+
+    // The second number of a vector
+    std::vector<ValueTake::Event> v2{{2 * sec, ossia::value{ossia::vec2f{1.f, 0.7f}}}};
+    auto c2 = spliceCurve(a, v2, 1, 2 * sec, 3 * sec, opt);
+    REQUIRE(c2);
+    CHECK(valueAt(*c2, 0.25) == Approx(0.7).margin(1e-5));
+
+    // Nothing to play: no curve
+    CHECK(!spliceCurve(a, {{2 * sec, ossia::value{std::string{"x"}}}}, 0, 2 * sec, 3 * sec, opt));
   });
 }

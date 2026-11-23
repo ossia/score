@@ -49,6 +49,10 @@ namespace Execution
 {
 class TapLink;
 }
+namespace ossia
+{
+class time_process;
+}
 
 namespace Recording
 {
@@ -153,5 +157,8 @@ private:
   std::vector<QPointer<Device::DeviceInterface>> m_listened;
   std::vector<State::Address> m_listeningAdded;
   bool m_firstReceived{false};
+
+  // Recording into an automation: it is silent meanwhile
+  std::shared_ptr<ossia::time_process> m_latched;
 };
 }

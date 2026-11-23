@@ -3,6 +3,7 @@
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Process/Execution/TapLink.hpp>
 #include <Process/Process.hpp>
 #include <Process/ExecutionFunctions.hpp>
@@ -27,8 +28,14 @@
 #include <Recording/Commands/PlaceTakes.hpp>
 #include <Recording/Takes/RecordedNotes.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
+#include <Recording/Takes/RecordedCurves.hpp>
 #include <Recording/Takes/RecordedValues.hpp>
 
+#include <Automation/AutomationModel.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
+#include <Curve/Commands/UpdateCurve.hpp>
+#include <Curve/CurveModel.hpp>
+#include <Curve/Settings/CurveSettingsModel.hpp>
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/RemoveNotes.hpp>
 #include <Midi/MidiProcess.hpp>
@@ -44,6 +51,8 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/editor/scenario/time_process.hpp>
+#include <ossia/network/common/destination_qualifiers.hpp>
 
 #include <QFile>
 #include <QMimeData>
@@ -143,6 +152,12 @@ RecordSession::RecordSession(const score::DocumentContext& ctx, RecordOptions op
 {
   m_poll.setInterval(20);
   connect(&m_poll, &QTimer::timeout, this, &RecordSession::poll);
+  if(auto* c = ctx.app.findSettings<Curve::Settings::Model>())
+  {
+    m_curves.stepped = c->getCurveMode() == Curve::Settings::Mode::Parameter;
+    m_curves.simplify = c->getSimplify();
+    m_curves.simplificationRatio = c->getSimplificationRatio();
+  }
 }
 
 RecordSession::~RecordSession()
@@ -383,6 +398,15 @@ void RecordSession::createRecorders()
   m_recordersCreated = true;
   // The engine records them from now on
   stopListening();
+
+  // Recorded into an automation: it stops writing while the take records
+  // (latch), only in the execution
+  if(m_options.target == RecordOptions::Target::Into && m_options.into
+     && qobject_cast<const Automation::ProcessModel*>(m_options.into.data()))
+    if(auto* comp = score::findComponent<Execution::ProcessComponent>(
+           m_options.into->components()))
+      if((m_latched = comp->OSSIAProcessPtr()))
+        ectx.executionQueue.enqueue([p = m_latched] { p->mute(true); });
 }
 
 void RecordSession::listenToDevices()
@@ -550,6 +574,13 @@ void RecordSession::finish()
 
   auto* exec = executionOf(m_ctx);
   const bool engine_over = !exec || !exec->isPlaying();
+  if(m_latched)
+  {
+    if(!engine_over)
+      exec->context().executionQueue.enqueue(
+          [p = m_latched, b = m_options.into && m_options.into->muted()] { p->mute(b); });
+    m_latched.reset();
+  }
   for(auto& s : m_sources)
   {
     // The block being filled is the node's until it stops running
@@ -611,6 +642,30 @@ void RecordSession::place()
       QFile f{t.file};
       if(!f.open(QIODevice::WriteOnly) || f.write(json) != json.size())
         continue;
+
+      // Into an automation: its curve over the span becomes the values
+      if(m_options.target == RecordOptions::Target::Into)
+      {
+        if(auto* into = qobject_cast<const Automation::ProcessModel*>(m_options.into.data()))
+        {
+          const auto& acc = into->address().qualifiers.get().accessors;
+          const int component = acc.empty() ? 0 : acc.front();
+          if(auto c = spliceCurve(
+                 *into, s->valueEvents, component, t.startDate, t.endDate, m_curves))
+          {
+            if(!macro)
+              macro.emplace(new PlaceTakes, m_ctx);
+            auto& autom = const_cast<Automation::ProcessModel&>(*into);
+            macro->submit(new Automation::SetMin{autom, c->min});
+            macro->submit(new Automation::SetMax{autom, c->max});
+            macro->submit(new Curve::UpdateCurve{autom.curve(), std::move(c->segments)});
+            t.placed = &autom;
+            placed_any = true;
+          }
+        }
+        m_takes.push_back(std::move(t));
+        continue;
+      }
     }
     else
     {
