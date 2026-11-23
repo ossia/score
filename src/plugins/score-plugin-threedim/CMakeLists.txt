@@ -99,6 +99,8 @@ add_library(
   Threedim/ArrayToTexture.cpp
   Threedim/CalibrationJobs.hpp
   Threedim/CameraLens.hpp
+  Threedim/PatternCapture.hpp
+  Threedim/PatternCapture.cpp
   Threedim/StructuredLight.hpp
   Threedim/StructuredLight.cpp
   Threedim/CalibrationFiles.hpp

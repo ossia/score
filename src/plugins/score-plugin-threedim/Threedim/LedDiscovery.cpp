@@ -69,6 +69,7 @@ void LedDiscovery::stop(const std::string& status)
   auto& st = state();
   st.frame = -1;
   st.captures.clear();
+  st.capture.reset();
   inputs.camera.request_readback = false;
   inputs.positions.request_readback = false;
   setStatus(status);
@@ -241,22 +242,13 @@ void LedDiscovery::drive(double now)
     stop("Aborted");
   if(inputs.start && !running())
   {
-    st.frame = 0;
     st.captures.clear();
     st.camW = st.camH = 0;
     st.positions.clear();
     st.positionFrames = 0;
-    st.settled = false;
-    st.taken = 0;
-    st.sum.clear();
-    st.shownAt = now;
-    inputs.camera.request_readback = true;
-    inputs.positions.request_readback = true;
-    show(0);
+    st.capture.reset();
     st.progress = 0.f;
-    setStatus(
-        "Frame 1 / "
-        + std::to_string(led::BlinkCode::make(std::max(1, inputs.count.value)).frames()));
+    showFrame(0, now);
   }
   if(st.frame < 0)
   {
@@ -266,39 +258,33 @@ void LedDiscovery::drive(double now)
   }
 
   const auto code = led::BlinkCode::make(std::max(1, inputs.count.value));
-  if(!st.settled)
-  {
-    if(now - st.shownAt < inputs.settle.value)
-      return;
-    st.settled = true;
-    st.taken = 0;
-    st.sum.clear();
-  }
-  if(now - st.lastAt < 30.)
-    return;
   const auto& t = inputs.camera.texture;
-  if(!t.bytes || t.width <= 0 || t.height <= 0)
-    return;
-  if(st.camW == 0)
+  const auto state = st.capture.feed(now, {t.bytes, t.width, t.height});
+  inputs.camera.request_readback = st.capture.wantsFrame();
+  inputs.positions.request_readback = st.capture.wantsFrame() && st.frame == 0;
+  switch(state)
   {
-    st.camW = t.width;
-    st.camH = t.height;
+    case PatternCapture::State::NoFrame:
+      stop(
+          "Failed: no camera frame for " + std::to_string(inputs.timeout.value)
+          + " ms during frame " + std::to_string(st.frame + 1));
+      return;
+    case PatternCapture::State::SizeChanged:
+      stop("Aborted: the camera size changed");
+      return;
+    case PatternCapture::State::Unchanged:
+    case PatternCapture::State::Settling:
+      return;
+    default:
+      break;
   }
-  if(t.width != st.camW || t.height != st.camH)
-  {
-    stop("Aborted: the camera size changed");
-    return;
-  }
-  st.lastAt = now;
-  const std::size_t n = std::size_t(st.camW) * st.camH;
-  if(st.sum.size() != n)
-    st.sum.assign(n, 0.f);
-  for(std::size_t i = 0; i < n; i++)
-    st.sum[i] += (t.bytes[i * 4] + t.bytes[i * 4 + 1] + t.bytes[i * 4 + 2]) * (1.f / 3.f);
+  st.camW = st.capture.width();
+  st.camH = st.capture.height();
 
   const auto& pt = inputs.positions.texture;
-  if(st.frame == 0 && pt.bytes && pt.width > 0 && pt.height > 0)
+  if(st.capture.accepted() && st.frame == 0 && pt.bytes && pt.width > 0 && pt.height > 0)
   {
+    const std::size_t n = std::size_t(st.camW) * st.camH;
     if(st.positions.size() != n * 4)
       st.positions.assign(n * 4, 0.f);
     st.positionFrames++;
@@ -319,13 +305,10 @@ void LedDiscovery::drive(double now)
       }
     }
   }
-
-  if(++st.taken < std::max(1, inputs.frames.value))
+  if(state != PatternCapture::State::Done)
     return;
-  for(float& v : st.sum)
-    v /= float(st.taken);
-  st.captures.push_back(std::move(st.sum));
-  st.sum.clear();
+
+  st.captures.push_back(std::move(st.capture.luminance()));
   st.frame++;
   st.progress = float(st.frame) / float(code.frames());
   if(st.frame >= code.frames())
@@ -333,11 +316,23 @@ void LedDiscovery::drive(double now)
     finish();
     return;
   }
+  showFrame(st.frame, now);
+}
+
+void LedDiscovery::showFrame(int frame, double now)
+{
+  auto& st = state();
+  const auto code = led::BlinkCode::make(std::max(1, inputs.count.value));
+  st.frame = frame;
+  PatternCapture::Options o;
+  o.settleMs = inputs.settle.value;
+  o.frames = inputs.frames.value;
+  o.timeoutMs = inputs.timeout.value;
+  st.capture.begin(now, o);
+  inputs.camera.request_readback = false;
   inputs.positions.request_readback = false;
-  setStatus("Frame " + std::to_string(st.frame + 1) + " / " + std::to_string(code.frames()));
-  show(st.frame);
-  st.shownAt = now;
-  st.settled = false;
+  show(frame);
+  setStatus("Frame " + std::to_string(frame + 1) + " / " + std::to_string(code.frames()));
 }
 
 void LedDiscovery::mirror()

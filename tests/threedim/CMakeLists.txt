@@ -647,6 +647,7 @@ score_add_test(test_threedim_led_mapping
   SOURCES LedMapping.cpp
     "${THREEDIM_DIR}/LedWall.cpp"
     "${THREEDIM_DIR}/LedDiscovery.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
     "${THREEDIM_DIR}/CalibrationFiles.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_led_mapping)
@@ -657,6 +658,12 @@ score_add_test(test_threedim_structured_light_decoder
   SOURCES StructuredLightDecoder.cpp "${THREEDIM_DIR}/StructuredLight.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_structured_light_decoder)
+
+# The capture of one shown pattern: settle, average, timeout, frozen camera.
+score_add_test(test_threedim_pattern_capture
+  SOURCES PatternCapture.cpp "${THREEDIM_DIR}/PatternCapture.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_pattern_capture)
 
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
