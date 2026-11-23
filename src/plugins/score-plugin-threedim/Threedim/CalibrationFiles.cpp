@@ -129,6 +129,34 @@ bool listCalibrationFiles(const QString& base, const QStringList& names, QString
   return writeJsonFile(jsonPath, *o, error);
 }
 
+bool forgetCalibrationFiles(const QString& base, const QStringList& names, QString* error)
+{
+  const QString dir = QFileInfo{base}.absolutePath();
+  const QString jsonPath = base + QStringLiteral(".json");
+  bool listed = false;
+  if(QFile::exists(jsonPath))
+  {
+    auto o = parseJsonFile(jsonPath, error);
+    if(!o)
+      return false;
+    QJsonArray kept;
+    for(const auto& f : o->value(QStringLiteral("files")).toArray())
+      if(names.contains(f.toString()))
+        listed = true;
+      else
+        kept.append(f);
+    if(listed)
+    {
+      o->insert(QStringLiteral("files"), kept);
+      if(!writeJsonFile(jsonPath, *o, error))
+        return false;
+    }
+  }
+  for(const QString& name : names)
+    QFile::remove(QDir{dir}.filePath(name));
+  return true;
+}
+
 QJsonObject readJsonFile(const QString& path)
 {
   QFile f{path};
@@ -312,6 +340,7 @@ CalibrationFile loadCalibration(const QString& path)
           {float(a[0].toDouble()), float(a[1].toDouble()), float(a[2].toDouble()),
            float(a[3].toDouble())});
   c.projectorIndex = c.json.value("projectorIndex").toInt(-1);
+  c.screen = c.json.value("display").toString() == QLatin1String("screen");
   c.lum = readRGB(calibrationMapFile(c.base, QStringLiteral(".lum.pfm")), c.width, c.height);
   c.black = readRGB(
       calibrationMapFile(c.base, QStringLiteral(".black.pfm")), c.width, c.height);
@@ -364,6 +393,7 @@ CalibrationWrite calibrationWrite(const CalibrationFile& c)
   }
   if(c.projectorIndex >= 0)
     w.fields["projectorIndex"] = c.projectorIndex;
+  w.fields["display"] = c.screen ? "screen" : "projector";
   w.keepListed = {QStringLiteral(".lum.pfm"), QStringLiteral(".black.pfm")};
   return w;
 }

@@ -71,6 +71,8 @@ struct StructuredLightCore
     std::vector<float> lum, black;
     float cameraGamma{1.f};
     int projectorIndex{};
+    //! Measured an emissive screen, not a projector (name.json's "display").
+    bool screen{};
     std::shared_ptr<const score::gfx::photometric::CameraResponse> crf;
     std::vector<float> crfExposures;
     std::optional<score::gfx::ProjectorResponseFile> response;

@@ -813,6 +813,27 @@ score_add_test(test_threedim_camera_lens
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_lens)
 
+# What follows a projector calibration capture: results and their display,
+# lens, alignment, planes, pose, points and warp maps, stale products, blend.
+score_add_test(test_threedim_calibration_post_process
+  SOURCES CalibrationPostProcess.cpp
+    "${THREEDIM_DIR}/CalibrationPostProcess.cpp"
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/EquirectWarp.cpp"
+    "${THREEDIM_DIR}/PlaneCompletion.cpp"
+    "${THREEDIM_DIR}/RoomGeometry.cpp"
+    "${THREEDIM_DIR}/TinyObj.cpp"
+    "${THREEDIM_DIR}/LensConversion.cpp"
+    "${THREEDIM_DIR}/PoseRefinement.cpp"
+    "${THREEDIM_DIR}/ProjectorBlend.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS threedim_test_mikktspace)
+threedim_test_includes(test_threedim_calibration_post_process)
+target_link_libraries(test_threedim_calibration_post_process PRIVATE miniply)
+
 # Camera pose in the room found from the outputs' projector consistency.
 score_add_test(test_threedim_pose_refinement
   SOURCES PoseRefinement.cpp "${THREEDIM_DIR}/PoseRefinement.cpp" "${THREEDIM_DIR}/RoomGeometry.cpp"

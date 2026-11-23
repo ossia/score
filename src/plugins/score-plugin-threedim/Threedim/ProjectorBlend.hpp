@@ -162,7 +162,7 @@ public:
     std::vector<CalibrationFile> textures;
     Settings settings;
   };
-  //! Loads, blends and writes.
+  //! Loads, blends and writes; calibrations of screens are left out.
   static Result run(const Job& job);
 
   using Jobs = CalibrationJobs<Result>;

@@ -47,6 +47,9 @@ struct CalibrationFile
   std::vector<std::array<float, 4>> planes;
   //! Its index in its set; -1 when name.json does not say.
   int projectorIndex{-1};
+  //! An emissive screen (LED wall, monitor), not a projector: "display" in
+  //! name.json. Projector Blend Maps leaves screens out.
+  bool screen{};
   //! name.json as read: the keys of the fields above and all the others.
   QJsonObject json;
   QString error;
@@ -113,6 +116,10 @@ bool saveCalibration(const CalibrationFile& c, QString* error = nullptr);
 //! name.json's "files", replaced atomically; false, with `error`, when
 //! name.json is missing or not a JSON object.
 bool listCalibrationFiles(const QString& base, const QStringList& names, QString* error = nullptr);
+//! Takes files out of name.json's "files" and deletes them: products a
+//! later computation no longer makes. True when there was none to forget.
+bool forgetCalibrationFiles(
+    const QString& base, const QStringList& names, QString* error = nullptr);
 
 //! Replaces `path` atomically.
 bool writeJsonFile(const QString& path, const QJsonObject& o, QString* error = nullptr);

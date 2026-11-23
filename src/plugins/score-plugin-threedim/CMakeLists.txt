@@ -130,6 +130,8 @@ add_library(
   Threedim/LensConversion.cpp
   Threedim/PoseRefinement.hpp
   Threedim/PoseRefinement.cpp
+  Threedim/CalibrationPostProcess.hpp
+  Threedim/CalibrationPostProcess.cpp
   Threedim/ViewerFrustum.hpp
   Threedim/ViewerFrustum.cpp
   Threedim/ViewerFromPose.hpp
