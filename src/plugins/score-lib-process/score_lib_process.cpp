@@ -1,3 +1,4 @@
+#include <Process/Dataflow/PortContextMenu.hpp>
 #include <Process/Dataflow/PortProbe.hpp>
 #include <Process/ApplicationPlugin.hpp>
 #include <Process/Commands/LoadPresetCommandFactory.hpp>
@@ -92,6 +93,7 @@ score_lib_process::factoryFamilies()
       Process::ProcessDropHandlerList, Process::MagnetismAdjuster,
       Process::OfflineActionList, Process::MediaTrimmerList,
       Execution::ExecutionActionList, Process::PortProbeFactoryList,
+      Process::PortContextMenuFactoryList,
       LocalTree::ProcessComponentFactoryList, Process::RemoteControlProviderList,
       Process::LoadPresetCommandFactoryList, Process::ChangePortsCommandFactoryList>();
 }

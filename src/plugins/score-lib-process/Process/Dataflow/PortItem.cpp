@@ -7,6 +7,7 @@
 #include <Process/Dataflow/AddressAccessorEditWidget.hpp>
 #include <Process/Dataflow/CableDragAutoScroller.hpp>
 #include <Process/Dataflow/CableItem.hpp>
+#include <Process/Dataflow/PortContextMenu.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Process.hpp>
@@ -627,6 +628,8 @@ PortItem::PortItem(
         [&](QPointF sp, QPoint p) {
       auto menu = new QMenu{};
       setupMenu(*menu, ctx);
+      for(auto& fac : m_context.app.interfaces<Process::PortContextMenuFactoryList>())
+        fac.setupMenu(*menu, m_port, m_context);
       addLearnAction(*menu, ctx);
       if(!menu->actions().empty())
         menu->exec(p);

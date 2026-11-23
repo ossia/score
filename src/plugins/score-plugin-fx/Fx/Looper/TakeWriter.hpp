@@ -2,6 +2,8 @@
 #include <Fx/Looper/AudioLayers.hpp>
 #include <Fx/Looper/LooperView.hpp>
 
+#include <Process/TakeFiles.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 #include <core/document/Document.hpp>
@@ -58,12 +60,7 @@ struct take_writer
 
   static QString folder_for(const score::DocumentContext& ctx)
   {
-    const QString file = ctx.document.metadata().fileName();
-    if(QFileInfo fi{file}; fi.isAbsolute() && fi.exists())
-      return fi.absolutePath() + "/Takes";
-
-    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-           + "/recordings/" + QString::number(ctx.document.id().val());
+    return Process::takesFolder(ctx);
   }
 
   //! Main thread only.
@@ -97,39 +94,11 @@ struct take_writer
   //! number free in the folder, which is then set.
   const std::string& next_path(int slot, int& number, int layer)
   {
-    // Loopers of a document write from several workers: the choice of a
-    // number and the creation of its first file go together.
-    static std::mutex choosing;
-    std::lock_guard _{choosing};
-
-    QDir dir{folder};
-    QDir{}.mkpath(folder);
+    // The choice of a number and the creation of its first file are one step
+    // for every writer of every document (loopers, recordings).
     if(number <= 0)
-    {
-      // A number is free when no file of the folder has it, whichever of a
-      // take's files they are: the files of some passes alone have neither
-      // the mix nor the first layer.
-      const QString head = prefix + QStringLiteral("-take");
-      std::vector<int> used;
-      for(const QString& name :
-          dir.entryList({head + QStringLiteral("*")}, QDir::Files | QDir::Hidden))
-      {
-        int end = int(head.size());
-        while(end < name.size() && name[end].isDigit())
-          end++;
-        bool ok = false;
-        const int n = name.mid(head.size(), end - head.size()).toInt(&ok);
-        if(ok && end < name.size() && (name[end] == '.' || name[end] == '-'))
-          used.push_back(n);
-      }
-      std::sort(used.begin(), used.end());
-      number = 1;
-      for(int n : used)
-        if(n == number)
-          number++;
-        else if(n > number)
-          break;
-    }
+      number = Process::reserveTakeNumber(
+          folder, prefix, [&](int n) { return file(n, layer); });
     const QString path = file(number, layer);
     if(QFile f{path}; f.open(QIODevice::WriteOnly))
       f.close();

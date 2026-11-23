@@ -23,8 +23,7 @@ class Port;
 namespace Execution
 {
 struct Context;
-struct ExecutionCommandQueue;
-struct GCCommandQueue;
+class TapLink;
 
 //! What a tap saw pass through a port, for a probe to show.
 struct SCORE_LIB_PROCESS_EXPORT TapMonitor final : Process::Monitor
@@ -79,13 +78,8 @@ public:
 private:
   // Not the context: it ends with playback, which the tap may outlive.
   std::weak_ptr<const Execution::Context> m_context;
-  std::weak_ptr<ExecutionCommandQueue> m_queue;
-  std::weak_ptr<GCCommandQueue> m_gc;
-  std::weak_ptr<ossia::graph_interface> m_graph;
-  std::weak_ptr<ossia::execution_state> m_state;
   std::shared_ptr<TapMonitor> m_monitor;
-  std::shared_ptr<ossia::graph_node> m_node;
-  std::vector<ossia::edge_ptr> m_edges;
+  std::unique_ptr<TapLink> m_link;
 };
 
 /**

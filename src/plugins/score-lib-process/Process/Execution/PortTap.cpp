@@ -1,5 +1,7 @@
 #include "PortTap.hpp"
 
+#include <Process/Execution/TapLink.hpp>
+
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
@@ -137,12 +139,7 @@ public:
       }
     }
 
-    // An outlet writes to its address when nothing is connected to it; the
-    // edge of the tap counts as connected, so the tap writes in its stead.
-    for(ossia::graph_edge* edge : inlet.sources)
-      if(edge->out && edge->out_node && edge->out_node->executed()
-         && edge->out->targets.size() == 1)
-        edge->out->write(*e.impl);
+    writeInPlaceOfOutlets(inlet, e);
   }
 
 private:
@@ -212,54 +209,21 @@ void TapTicker::collect()
 
 PortTap::PortTap(const Process::Port& port, const Execution::Context& ctx)
     : m_context{ctx.weakSelf()}
-    , m_queue{ctx.weakExecutionQueue()}
-    , m_gc{ctx.weakGCQueue()}
-    , m_graph{ctx.execGraph}
-    , m_state{ctx.execState}
 {
   const auto type = port.type();
   if(type != Process::PortType::Audio && type != Process::PortType::Midi
      && type != Process::PortType::Message)
     return;
-  auto* ticker = TapTicker::instance();
-  if(!ticker || ctx.retired || !ctx.execGraph)
+  if(!TapTicker::instance() || ctx.retired || !ctx.execGraph)
     return;
 
-  auto& setup = ctx.setup;
   m_monitor = std::make_shared<TapMonitor>(type);
-  m_node = std::make_shared<tap_node>(m_monitor);
-  auto* tap_inlet = m_node->root_inputs().front();
-
-  auto connect_from = [&](Process::Outlet* outlet) {
-    auto it = setup.outlets.find(outlet);
-    if(it == setup.outlets.end() || !it->second.first || !it->second.second)
-      return;
-    m_edges.push_back(ctx.execGraph->allocate_edge(
-        ossia::immediate_glutton_connection{}, it->second.second, ossia::inlet_ptr{tap_inlet},
-        it->second.first, m_node));
-  };
-
-  ossia::inlet* observed_inlet{};
-  if(auto* outlet = qobject_cast<const Process::Outlet*>(&port))
+  auto node = std::make_shared<tap_node>(m_monitor);
+  m_link = std::make_unique<TapLink>(port, ctx, node);
+  if(!m_link->linked())
   {
-    connect_from(const_cast<Process::Outlet*>(outlet));
-  }
-  else if(auto* inlet = qobject_cast<const Process::Inlet*>(&port))
-  {
-    // What the process receives: every cable, and its address below
-    for(const auto& path : inlet->cables())
-      if(auto* cable = path.try_find(ctx.doc))
-        if(auto* src = cable->source().try_find(ctx.doc))
-          connect_from(src);
-    if(auto it = setup.inlets.find(const_cast<Process::Inlet*>(inlet));
-       it != setup.inlets.end())
-      observed_inlet = it->second.second;
-  }
-
-  if(m_edges.empty() && !observed_inlet)
-  {
+    m_link.reset();
     m_monitor.reset();
-    m_node.reset();
     return;
   }
 
@@ -273,8 +237,9 @@ PortTap::PortTap(const Process::Port& port, const Execution::Context& ctx)
           return *u;
       return {};
     };
-    if(observed_inlet)
-      m_monitor->unit = declared(observed_inlet->target<ossia::value_port>());
+    auto& setup = ctx.setup;
+    if(auto* observed = m_link->observedInlet())
+      m_monitor->unit = declared(observed->target<ossia::value_port>());
     else if(auto it = setup.outlets.find(
                 const_cast<Process::Outlet*>(qobject_cast<const Process::Outlet*>(&port)));
             it != setup.outlets.end() && it->second.second)
@@ -282,24 +247,6 @@ PortTap::PortTap(const Process::Port& port, const Execution::Context& ctx)
     if(!m_monitor->unit)
       m_monitor->unit = port.address().qualifiers.get().unit;
   }
-
-  ctx.executionQueue.enqueue(
-      [g = ctx.execGraph, ws = std::weak_ptr{ctx.execState}, node = m_node,
-       edges = m_edges, observed_inlet] {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-    g->add_node(node);
-    for(auto& e : edges)
-      g->connect(e);
-    if(observed_inlet)
-      if(auto s = ws.lock())
-      {
-        auto& tap = *node->root_inputs().front();
-        tap.address = observed_inlet->address;
-        s->register_port(tap);
-      }
-    g->mark_dirty();
-  });
-  ticker->add(m_node);
 }
 
 TapMonitor* PortTap::monitor() const noexcept
@@ -310,32 +257,5 @@ TapMonitor* PortTap::monitor() const noexcept
   return ctx && !ctx->retired ? m_monitor.get() : nullptr;
 }
 
-PortTap::~PortTap()
-{
-  if(!m_node)
-    return;
-  if(auto* ticker = TapTicker::instance())
-    ticker->remove(m_node.get());
-
-  // Gone with its execution otherwise, and the graph with it
-  auto q = m_queue.lock();
-  if(!q)
-    return;
-  q->enqueue([wg = m_graph, ws = m_state, gcq = m_gc, node = std::move(m_node),
-              edges = std::move(m_edges)]() mutable {
-    OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
-    if(auto s = ws.lock())
-      s->unregister_port(*node->root_inputs().front());
-    if(auto g = wg.lock())
-    {
-      for(auto& e : edges)
-        g->disconnect(e);
-      g->remove_node(node);
-      g->mark_dirty();
-    }
-    // Freed on the GUI thread
-    if(auto q = gcq.lock())
-      q->enqueue(gc(std::move(node), std::move(edges)));
-  });
-}
+PortTap::~PortTap() = default;
 }
