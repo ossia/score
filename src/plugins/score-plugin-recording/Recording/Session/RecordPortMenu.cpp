@@ -81,6 +81,16 @@ void RecordPortMenu::setupMenu(
     });
   }
   {
+    auto act = sub->addAction(QObject::tr("Record from the next bar, counting in"));
+    act->setToolTip(QObject::tr("The beats are clicked on the main output until it starts"));
+    QObject::connect(act, &QAction::triggered, plug, [=] {
+      auto opt = plug->defaultOptions();
+      opt.startRate = 1.;
+      opt.countIn = true;
+      record(opt);
+    });
+  }
+  {
     auto act = sub->addAction(QObject::tr("Record one bar from the next bar"));
     QObject::connect(act, &QAction::triggered, plug, [=] {
       auto opt = plug->defaultOptions();

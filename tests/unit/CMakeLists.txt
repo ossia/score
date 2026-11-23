@@ -3487,6 +3487,11 @@ if(TARGET score_plugin_recording)
     SOURCES RecordedCurvesTest.cpp
     PLUGINS score_plugin_recording score_plugin_curve)
 
+  # The count-in of a recording: the metronome while the takes wait.
+  score_add_test(test_unit_record_count_in
+    SOURCES CountInTest.cpp
+    PLUGINS score_plugin_recording score_plugin_media)
+
   # A take cut into its passes.
   score_add_test(test_unit_record_passes
     SOURCES PassesTest.cpp

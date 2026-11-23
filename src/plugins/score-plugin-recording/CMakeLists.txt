@@ -29,6 +29,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/OverdubNotes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/Passes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/KeepTakes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/CountIn.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Settings/RecordingSettings.hpp"
 )
 set(SRCS
@@ -50,6 +51,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/OverdubNotes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/Passes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/KeepTakes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/CountIn.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Settings/RecordingSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/ApplicationPlugin.cpp"

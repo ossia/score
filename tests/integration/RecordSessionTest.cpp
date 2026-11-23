@@ -718,3 +718,96 @@ TEST_CASE("Saved for the first time, a document keeps its takes in its Takes fol
     CHECK(doc->commandStack().currentIndex() == index);
   });
 }
+
+TEST_CASE("A recording counted in clicks a whole bar, then starts on a bar line", "[recording][session][countin]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 40);
+
+    // A box of the scenario, and the document's root box, which has no
+    // component of its own
+    for(auto [playing, root] : {std::pair{true, false}, {false, false}, {true, true}, {false, true}})
+    {
+      INFO((playing ? "while playing" : "from a stop") << (root ? ", in the root box" : ", in a box"));
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& scenar = score::test::base_scenario(*doc);
+      Process::ProcessModel* sound{};
+      {
+        Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+        Scenario::IntervalModel* box = &score::test::base_interval(*doc);
+        if(!root)
+        {
+          auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+          box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+        }
+        sound = m.createProcessInNewSlot(
+            *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+        m.commit();
+      }
+      auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+      auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+      if(playing)
+      {
+        bool steady = false;
+        for(int i = 0; i < 5 && !steady; i++)
+        {
+          if(!exec.isPlaying())
+            engine.execution().request_play_global(true);
+          spin(1500);
+          steady = exec.isPlaying();
+        }
+        REQUIRE(steady);
+        // Just after a bar line: the next one is too close to count in
+        spin(2000 - 0 + 100);
+      }
+      else
+      {
+        // The audio engine has started and settled, and playback is stopped
+        engine.execution().request_play_global(true);
+        spin(1500);
+        engine.execution().request_stop();
+        REQUIRE(spin_until([&] { return !exec.isPlaying(); }));
+        spin(500);
+      }
+
+      Recording::RecordOptions opt;
+      opt.startRate = 1.;
+      opt.countIn = true;
+      Recording::RecordSession session{doc->context(), opt};
+      REQUIRE(session.addSource(*sound->outlets()[0]));
+      bool finished = false;
+      QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+      QElapsedTimer clock;
+      clock.start();
+      REQUIRE(session.start());
+      // It waits a whole bar at least, clicking
+      REQUIRE(spin_until([&] { return session.running() && !session.waiting(); }, 8000));
+      const qint64 waited = clock.elapsed();
+      const int beats = session.countInBeats();
+      CHECK(waited >= 1800);
+      CHECK(waited <= 4500);
+      CHECK(beats >= 4);
+      CHECK(beats <= 9);
+      spin(1000);
+      // No more clicks while it records
+      CHECK(session.countInBeats() == beats);
+      session.stop();
+      REQUIRE(spin_until([&] { return finished; }));
+      engine.execution().request_stop();
+      spin(300);
+
+      REQUIRE(session.takes().size() == 1);
+      // On a bar: 2 s at 120 in 4/4, within a sample, and not the first one
+      const int64_t bar = 2 * 705600000;
+      const int64_t off = session.takes()[0].startDate % bar;
+      CHECK(std::min(off, bar - off) <= 705600000 / 48000);
+      CHECK(session.takes()[0].startDate >= bar - 705600000 / 48000);
+      CHECK(session.warnings().isEmpty());
+    }
+  });
+}

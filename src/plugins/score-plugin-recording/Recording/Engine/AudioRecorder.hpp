@@ -1,4 +1,5 @@
 #pragma once
+#include <Recording/Engine/StartGate.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/token_request.hpp>
@@ -56,6 +57,8 @@ struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
   //! Grid the start lands on, as a token_request quantification rate: 0 starts
   //! at once, 1 on the next bar, 4 on the next quarter note.
   std::atomic<double> startRate{0.};
+  //! Counted in: the bars that go by before the line it starts on
+  std::atomic<double> leadBars{0.};
   //! Model duration after which the take stops on its own; 0: until asked.
   std::atomic<int64_t> length{0};
   //! Bars after which the take stops on its own, counted in the musical time

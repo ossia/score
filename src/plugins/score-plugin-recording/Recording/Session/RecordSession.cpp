@@ -5,7 +5,9 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Drop/TakeDrop.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+#include <Process/Execution/PortTap.hpp>
 #include <Process/Execution/TapLink.hpp>
+#include <Process/ExecutionTransaction.hpp>
 #include <Process/Process.hpp>
 #include <Process/ExecutionFunctions.hpp>
 #include <Process/TakeFiles.hpp>
@@ -16,6 +18,7 @@
 
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <ossia/network/base/node_functions.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
@@ -27,6 +30,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Commands/PlaceTakes.hpp>
+#include <Recording/Engine/CountIn.hpp>
 #include <Recording/Takes/RecordedNotes.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
 #if SCORE_RECORDING_TEXTURES
@@ -301,24 +305,31 @@ bool RecordSession::start()
       m_ctx.document.commandStack().disableActions();
   }, Qt::QueuedConnection);
 
+  // Counted in: a whole bar of clicks at least, then the next bar line
+  const double startRate
+      = m_options.countIn && m_options.startRate <= 0. ? 1. : m_options.startRate;
+  const double lead = m_options.countIn ? 1. : 0.;
   for(auto& s : m_sources)
   {
     if(s->audio)
     {
-      s->audio->startRate = m_options.startRate;
+      s->audio->startRate = startRate;
+      s->audio->leadBars = lead;
       s->audio->length = m_options.length;
       s->audio->lengthBars = m_options.lengthBars;
     }
     if(s->midi)
     {
-      s->midi->startRate = m_options.startRate;
+      s->midi->startRate = startRate;
+      s->midi->leadBars = lead;
       s->midi->length = m_options.length;
       s->midi->lengthBars = m_options.lengthBars;
       s->midi->startOnFirstEvent = m_options.start == RecordOptions::Start::FirstEvent;
     }
     if(s->values)
     {
-      s->values->startRate = m_options.startRate;
+      s->values->startRate = startRate;
+      s->values->leadBars = lead;
       s->values->length = m_options.length;
       s->values->lengthBars = m_options.lengthBars;
       // The takes of addresses start together, at the first value any of
@@ -331,6 +342,7 @@ bool RecordSession::start()
     if(s->type == Process::PortType::Texture)
     {
       s->values->startRate = 0.;
+      s->values->leadBars = 0.;
       s->values->startOnFirstEvent = false;
     }
   }
@@ -376,12 +388,7 @@ void RecordSession::createRecorders()
   {
     if(!s->box || (!s->port && s->address.device.isEmpty()))
       continue;
-    auto* comp = score::findComponent<Execution::IntervalComponent>(s->box->components());
-    // The base interval's is the document's execution's, not one of its components
-    if(!comp)
-      if(const auto& base = exec->baseScenario();
-         base && &base->baseInterval().interval() == s->box)
-        comp = &base->baseInterval();
+    auto* comp = boxComponent(*exec, *s->box);
     if(!comp || !comp->OSSIAInterval())
       continue;
     auto clock = comp->OSSIAInterval()->node;
@@ -440,6 +447,67 @@ void RecordSession::createRecorders()
   // The engine records them from now on
   stopListening();
 
+  if(m_options.countIn)
+  {
+    std::shared_ptr<ossia::graph_node> clock;
+    std::vector<std::shared_ptr<AudioTake>> audio;
+    std::vector<std::shared_ptr<MidiTake>> midi;
+    std::vector<std::shared_ptr<ValueTake>> values;
+    for(auto& s : m_sources)
+    {
+      if(!s->link)
+        continue;
+      if(!clock)
+        if(auto* comp = boxComponent(*exec, *s->box); comp && comp->OSSIAInterval())
+          clock = comp->OSSIAInterval()->node;
+      if(s->audio)
+        audio.push_back(s->audio);
+      if(s->midi)
+        midi.push_back(s->midi);
+      if(s->values)
+        values.push_back(s->values);
+    }
+    // The main output of the document's audio device
+    ossia::net::parameter_base* param{};
+    if(auto* devices = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
+      if(auto* audio = devices->list().audioDevice(); audio && audio->getDevice())
+        if(auto* out
+           = ossia::net::find_node(audio->getDevice()->get_root_node(), "/out/main"))
+          param = out->get_parameter();
+    if(!clock || !param || !Execution::TapTicker::instance())
+      m_warnings.push_back(
+          tr("The count-in could not click: %1")
+              .arg(!param ? tr("the audio device has no main output")
+                          : tr("what is recorded does not play")));
+    if(clock && param && Execution::TapTicker::instance())
+    {
+      // Reads atomics only: called on the audio thread
+      auto waiting = [audio, midi, values] {
+        for(auto& t : audio)
+          if(t->state.load(std::memory_order_relaxed) < AudioTake::Recording)
+            return true;
+        for(auto& t : midi)
+          if(t->state.load(std::memory_order_relaxed) < MidiTake::Recording)
+            return true;
+        for(auto& t : values)
+          if(t->state.load(std::memory_order_relaxed) < ValueTake::Recording)
+            return true;
+        return false;
+      };
+      auto node = std::make_shared<count_in_node>(rate, clock, std::move(waiting));
+      m_countIn = node;
+      ectx.executionQueue.enqueue([g = ectx.execGraph, ws = std::weak_ptr{ectx.execState},
+                                   node, param] {
+        g->add_node(node);
+        node->metro.audio_out.address = param;
+        if(auto st = ws.lock())
+          st->register_port(node->metro.audio_out);
+        g->mark_dirty();
+      });
+      Execution::TapTicker::instance()->add(node);
+    }
+  }
+
   // Recorded into an automation: it stops writing while the take records
   // (latch), only in the execution
   if(m_options.target == RecordOptions::Target::Into && m_options.into
@@ -448,6 +516,43 @@ void RecordSession::createRecorders()
            m_options.into->components()))
       if((m_latched = comp->OSSIAProcessPtr()))
         ectx.executionQueue.enqueue([p = m_latched] { p->mute(true); });
+}
+
+int RecordSession::countInBeats() const noexcept
+{
+  if(auto* n = static_cast<count_in_node*>(m_countIn.get()))
+    return n->beats.load(std::memory_order_relaxed);
+  return m_countInBeats;
+}
+
+void RecordSession::removeCountIn()
+{
+  if(!m_countIn)
+    return;
+  m_countInBeats = static_cast<count_in_node&>(*m_countIn).beats.load();
+  if(auto* ticker = Execution::TapTicker::instance())
+    ticker->remove(m_countIn.get());
+  auto* exec = executionOf(m_ctx);
+  if(exec && exec->isPlaying())
+  {
+    const auto& ectx = exec->context();
+    ectx.executionQueue.enqueue([g = std::weak_ptr{ectx.execGraph},
+                                 ws = std::weak_ptr{ectx.execState},
+                                 gcq = ectx.weakGCQueue(), node = std::move(m_countIn)]() mutable {
+      auto& out = static_cast<count_in_node&>(*node).metro.audio_out;
+      if(auto st = ws.lock())
+        st->unregister_port(out);
+      if(auto gr = g.lock())
+      {
+        gr->remove_node(node);
+        gr->mark_dirty();
+      }
+      // Freed on the GUI thread
+      if(auto q = gcq.lock())
+        q->enqueue(Execution::gc(std::move(node)));
+    });
+  }
+  m_countIn.reset();
 }
 
 void RecordSession::listenToDevices()
@@ -613,6 +718,7 @@ void RecordSession::finish()
   QObject::disconnect(m_redoGuard);
   stopListening();
 
+  removeCountIn();
   auto* exec = executionOf(m_ctx);
   const bool engine_over = !exec || !exec->isPlaying();
   if(m_latched)

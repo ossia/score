@@ -43,6 +43,7 @@ void midi_record_node::run(
   }
   if(take.startRequested.exchange(false) && st == MidiTake::Idle)
   {
+    m_gate.reset();
     st = MidiTake::Waiting;
     take.state.store(st, std::memory_order_release);
   }
@@ -95,8 +96,11 @@ void midi_record_node::run(
       }
       else if(const double rate = take.startRate.load(std::memory_order_relaxed); rate > 0.)
       {
+        m_gate.waitFrom(tk);
         const auto pt = tk.get_quantification_point(rate);
-        if(!pt)
+        if(!pt
+           || !m_gate.accepts(
+               pt->position, take.leadBars.load(std::memory_order_relaxed), tk.signature))
           continue;
         from = tk.physical_position(pt->position, ratio);
         take.startDate.store(pt->date.impl, std::memory_order_relaxed);

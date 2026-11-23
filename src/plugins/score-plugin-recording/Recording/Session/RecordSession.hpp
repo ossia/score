@@ -57,6 +57,7 @@ class TapLink;
 namespace ossia
 {
 class time_process;
+class graph_node;
 }
 
 namespace Recording
@@ -166,5 +167,9 @@ private:
 
   // Recording into an automation: it is silent meanwhile
   std::shared_ptr<ossia::time_process> m_latched;
+
+  // The count-in, while the takes wait
+  std::shared_ptr<ossia::graph_node> m_countIn;
+  void removeCountIn();
 };
 }

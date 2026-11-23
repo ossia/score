@@ -1,4 +1,5 @@
 #pragma once
+#include <Recording/Engine/StartGate.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/token_request.hpp>
@@ -39,6 +40,8 @@ struct SCORE_PLUGIN_RECORDING_EXPORT ValueTake
 
   // GUI thread -> audio thread
   std::atomic<double> startRate{0.};
+  //! Counted in: the bars that go by before the line it starts on
+  std::atomic<double> leadBars{0.};
   std::atomic<int64_t> length{0};
   std::atomic<double> lengthBars{0.};
   std::atomic<bool> startRequested{false};

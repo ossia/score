@@ -42,6 +42,9 @@ struct RecordOptions
   //! Bars after which the take stops by itself, counted in the box's musical
   //! time from where it starts; 0: none. Takes precedence over `length`.
   double lengthBars{0.};
+  //! The metronome clicks the box's beats on the main output while the takes
+  //! wait for their start (with a start on the next bar: a count-in)
+  bool countIn{false};
   WavStreamWriter::Format audioFormat{WavStreamWriter::Format::Float32};
   Target target{Target::ThisBox};
 
