@@ -1,5 +1,7 @@
 #include "StructuredLightSession.hpp"
 
+#include <QFile>
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -15,9 +17,16 @@ struct StructuredLightSession::Outbox
     int projector{};
     Result result;
   };
+  struct Prepared
+  {
+    uint64_t generation{};
+    std::shared_ptr<const score::gfx::photometric::CameraResponse> crf;
+    std::string error;
+  };
 
   std::mutex mutex;
   std::vector<Computed> computed;
+  std::optional<Prepared> prepared;
   std::optional<std::string> saved;
   std::optional<Result> loaded;
   std::atomic<int> inflight{};
@@ -104,6 +113,21 @@ void StructuredLightSession::showPattern(int k, float level)
         d.rgba[i * 4 + 3] = 255;
       }
     }
+    else if(k >= m_seq.count())
+    {
+      const std::size_t e = std::size_t(k - m_seq.count());
+      const auto c = e < m_extras.size() ? m_extras[e].rgb : std::array<float, 3>{};
+      uint8_t v[3];
+      for(int i = 0; i < 3; i++)
+        v[i] = uint8_t(std::lround(std::clamp(c[i], 0.f, 1.f) * 255.f));
+      for(std::size_t i = 0; i < n; i++)
+      {
+        d.rgba[i * 4 + 0] = v[0];
+        d.rgba[i * 4 + 1] = v[1];
+        d.rgba[i * 4 + 2] = v[2];
+        d.rgba[i * 4 + 3] = 255;
+      }
+    }
     else
       sl::renderPattern(m_seq, k, level, d.rgba.data());
     d.version++;
@@ -157,6 +181,9 @@ void StructuredLightSession::note(const Result& r, bool accumulate)
 {
   if(!r.ok)
     return;
+  if(r.response && r.projectorIndex == 0)
+    for(int c = 0; c < 3; c++)
+      m_measuredGamma[c] = float(r.response->channels[c].gamma);
   if(!(r.intrinsics[0] > 0.f) || r.mode != DepthCamera)
     return;
   if(r.fromFile)
@@ -274,7 +301,7 @@ void StructuredLightSession::resolveIntrinsics(const Settings& s, Job& job) cons
 
 void StructuredLightSession::stop(const Settings& s, const std::string& status, Events& ev)
 {
-  if(m_phase == Phase::Capturing)
+  if(m_phase == Phase::Preparing || m_phase == Phase::Capturing)
   {
     if(s.captureExposure > 0.f && m_exposureSent != s.captureExposure)
     {
@@ -285,7 +312,9 @@ void StructuredLightSession::stop(const Settings& s, const std::string& status, 
   }
   cancelComputation();
   m_phase = Phase::Idle;
+  m_held.clear();
   m_job = Job{};
+  m_extras.clear();
   m_capture.reset();
   m_status = status;
 }
@@ -301,6 +330,11 @@ bool StructuredLightSession::start(const Settings& s, const Run& run, double now
 {
   if(m_phase != Phase::Idle)
     return false;
+  if(!run.exposures.empty() && !(s.captureExposure > 0.f))
+  {
+    m_status = "Failed: an exposure bracket needs a Capture exposure to return the camera to";
+    return false;
+  }
   m_seq = sl::GraySequence::make(s.projectorWidth, s.projectorHeight, s.minStripe);
   if(s.phaseShift)
     m_seq.enablePhase(s.phaseSteps, s.phasePeriod, s.projectorGamma);
@@ -309,6 +343,7 @@ bool StructuredLightSession::start(const Settings& s, const Run& run, double now
   m_projectors = std::max(1, s.projectors);
   m_images.resize(m_projectors);
   m_runResults.assign(m_projectors, std::nullopt);
+  m_held.clear();
   m_submitted = m_pending = 0;
   m_results.clear();
   m_resultVersion++;
@@ -316,13 +351,50 @@ bool StructuredLightSession::start(const Settings& s, const Run& run, double now
   m_latency = 0.;
   m_capture.reset();
   m_projector = 0;
+  m_extras = makeExtras(s.responseLevels, s.compensation, run.exposures, 0, s.mixLevels);
   m_framesBefore = 0;
-  m_framesTotal = m_projectors * m_seq.count();
+  m_framesTotal
+      = frameCount()
+        + (m_projectors - 1)
+              * (m_seq.count()
+                 + int(makeExtras(s.responseLevels, s.compensation, {}, 1, s.mixLevels)
+                           .size()));
   ev.autoExposure = false;
   if(s.captureExposure > 0.f)
   {
     ev.exposure = s.captureExposure;
     m_exposureSent = s.captureExposure;
+  }
+  m_runCrf.reset();
+  m_runCrfRejected = false;
+  m_runCrfPending = !run.exposures.empty();
+  m_runNote.clear();
+  m_beginPending = false;
+  if(!run.cameraResponse.isEmpty())
+  {
+    m_phase = Phase::Preparing;
+    m_status = "Reading the camera response " + run.cameraResponse.toStdString();
+    post([path = run.cameraResponse, gen = m_generation,
+          box = std::weak_ptr<Outbox>{m_outbox}] {
+      Outbox::Prepared p;
+      p.generation = gen;
+      QFile f{path};
+      if(!f.open(QIODevice::ReadOnly))
+        p.error = "cannot read " + path.toStdString();
+      else if(auto crf = decodeCameraResponse(f.readAll()); !crf)
+        p.error = path.toStdString() + " is not a camera response";
+      else if(!plausible(*crf))
+        p.error = path.toStdString()
+                  + " does not rise with the codes: rejected, camera gamma used instead";
+      else
+        p.crf = std::move(crf);
+      if(auto b = box.lock())
+      {
+        std::lock_guard l{b->mutex};
+        b->prepared = std::move(p);
+      }
+    });
+    return true;
   }
   m_linear = PatternCapture::gammaTable(s.cameraGamma);
   m_phase = Phase::Capturing;
@@ -339,6 +411,8 @@ void StructuredLightSession::beginProjector(const Settings& s, double now)
   m_job.cancel = m_cancel;
   m_job.mode = s.mode;
   m_job.projectorIndex = m_projector;
+  if(m_projector > 0)
+    m_extras = makeExtras(s.responseLevels, s.compensation, {}, m_projector, s.mixLevels);
 }
 
 void StructuredLightSession::beginPattern(const Settings& s, double now, Events& ev)
@@ -348,11 +422,19 @@ void StructuredLightSession::beginPattern(const Settings& s, double now, Events&
   o.settleMs = std::max(s.settleMs, 1.25 * m_latency);
   o.frames = s.frames;
   o.timeoutMs = std::max(s.timeoutMs, 2. * m_latency);
-  o.requireChange = m_projector > 0 || m_k > 0;
+  o.requireChange = (m_projector > 0 || m_k > 0) && m_k < m_seq.count();
   o.darkerThan = m_k == 1 ? 0.9f * m_whiteMean : -1.f;
   o.linearise = &m_linear;
-  o.rgb = m_k <= 1;
+  o.rgb = m_k <= 1 || m_k >= m_seq.count();
   o.clipLevel = 0.985f;
+  if(m_k >= m_seq.count())
+    if(const auto& e = m_extras[m_k - m_seq.count()];
+       e.exposure > 0.f && e.exposure != m_exposureSent)
+    {
+      ev.exposure = e.exposure;
+      m_exposureSent = e.exposure;
+      o.settleMs = std::max(o.settleMs, s.exposureSettleMs);
+    }
   if(m_k == 0 && s.captureExposure > 0.f && m_exposureSent != s.captureExposure)
   {
     ev.exposure = s.captureExposure;
@@ -403,14 +485,35 @@ void StructuredLightSession::submit(Job job)
 {
   m_pending++;
   m_submitted++;
-  post([job = std::make_shared<Job>(std::move(job)), gen = m_generation,
+  const bool bracket = std::any_of(job.extras.begin(), job.extras.end(), [](const Extra& e) {
+    return e.kind == CrfFrame && !e.rgbCapture.empty();
+  });
+  post([job = std::make_shared<Job>(std::move(job)), bracket, gen = m_generation,
         box = std::weak_ptr<Outbox>{m_outbox}]() mutable {
     Outbox::Computed out;
     out.generation = gen;
     out.projector = job->projectorIndex;
     try
     {
+      std::vector<float> exposures;
+      if(bracket)
+      {
+        for(auto& e : job->extras)
+          if(e.kind == CrfFrame
+             && std::find(exposures.begin(), exposures.end(), e.exposure) == exposures.end())
+            exposures.push_back(e.exposure);
+        auto crf = solveCameraResponse(*job);
+        if(crf && plausible(*crf))
+          job->crf = std::move(crf);
+        else
+          job->crfRejected = true;
+        for(auto& e : job->extras)
+          if(e.kind == CrfFrame)
+            e.rgbCapture = {};
+      }
       out.result = compute(std::move(*job));
+      if(bracket && out.result.crf)
+        out.result.crfExposures = std::move(exposures);
     }
     catch(const std::exception& e)
     {
@@ -451,10 +554,22 @@ void StructuredLightSession::endProjector(
   job.maxPlanes = s.maxPlanes;
   job.planeThreshold = s.planeThreshold;
   job.cameraGamma = s.cameraGamma;
+  job.extras = std::move(m_extras);
+  m_extras.clear();
+  job.crf = m_runCrf;
+  job.crfRejected = m_runCrfRejected;
+  job.compGamut = s.compGamut;
+  job.compStrength = s.compStrength;
+  job.compGradient = s.compGradient;
+  job.mixLevels = s.compensation && s.responseLevels > 0 ? s.mixLevels : 0;
+  job.compBlack = s.compBlack;
   job.keepPixels = s.keepPixels;
   job.latencyMs = m_latency;
 
-  submit(std::move(job));
+  if(m_projector > 0 && m_runCrfPending)
+    m_held.push_back(std::move(job));
+  else
+    submit(std::move(job));
   m_job = Job{};
 
   if(m_projector + 1 < m_projectors)
@@ -476,7 +591,7 @@ void StructuredLightSession::endProjector(
   m_status = "Decoding";
   m_projector = 0;
   showIdle(s);
-  if(m_pending == 0)
+  if(m_pending == 0 && m_held.empty())
     finishRun(s, ev);
 }
 
@@ -495,6 +610,7 @@ void StructuredLightSession::finishRun(const Settings& s, Events& ev)
     }
   }
   m_runResults.clear();
+  commonCompensation(all);
   m_results.clear();
   std::string status;
   bool any = false;
@@ -502,6 +618,8 @@ void StructuredLightSession::finishRun(const Settings& s, Events& ev)
   {
     note(all[i], s.accumulateIntrinsics);
     any |= all[i].ok;
+    if(!m_runNote.empty() && all[i].ok)
+      all[i].status += "; camera response file " + m_runNote;
     if(all.size() > 1)
       status += (i ? " | P" : "P") + std::to_string(i + 1) + ": " + all[i].status;
     else
@@ -522,11 +640,13 @@ void StructuredLightSession::finishRun(const Settings& s, Events& ev)
 void StructuredLightSession::collect(const Settings& s, Events& ev)
 {
   std::vector<Outbox::Computed> computed;
+  std::optional<Outbox::Prepared> prepared;
   std::optional<std::string> saved;
   std::optional<Result> loaded;
   {
     std::lock_guard l{m_outbox->mutex};
     computed.swap(m_outbox->computed);
+    prepared.swap(m_outbox->prepared);
     saved.swap(m_outbox->saved);
     loaded.swap(m_outbox->loaded);
   }
@@ -542,15 +662,43 @@ void StructuredLightSession::collect(const Settings& s, Events& ev)
       m_resultVersion++;
     }
   }
+  if(prepared && prepared->generation == m_generation && m_phase == Phase::Preparing)
+  {
+    m_runCrf = prepared->crf;
+    m_runCrfRejected = !prepared->crf;
+    m_linear = PatternCapture::gammaTable(s.cameraGamma);
+    if(m_runCrf)
+      for(int c = 0; c < 3; c++)
+        for(std::size_t i = 0; i < m_linear[c].size(); i++)
+          m_linear[c][i] = float(
+              m_runCrf->linear(c, float(i) / float(m_linear[c].size() - 1)));
+    m_phase = Phase::Capturing;
+    beginProjector(s, 0.);
+    m_runNote = prepared->error;
+    m_beginPending = true;
+  }
   for(auto& c : computed)
   {
     if(c.generation != m_generation || c.projector < 0
        || c.projector >= int(m_runResults.size()))
       continue;
     m_pending--;
+    if(c.projector == 0 && m_runCrfPending)
+    {
+      m_runCrfPending = false;
+      m_runCrf = c.result.crf;
+      m_runCrfRejected = !m_runCrf;
+      for(auto& h : m_held)
+      {
+        h.crf = m_runCrf;
+        h.crfRejected = !m_runCrf;
+        submit(std::move(h));
+      }
+      m_held.clear();
+    }
     m_runResults[c.projector] = std::move(c.result);
   }
-  if(m_phase == Phase::Computing && m_pending == 0)
+  if(m_phase == Phase::Computing && m_pending == 0 && m_held.empty())
     finishRun(s, ev);
 }
 
@@ -558,12 +706,18 @@ void StructuredLightSession::tick(
     const Settings& s, double now, const Frame& frame, Events& ev)
 {
   collect(s, ev);
+  if(m_beginPending)
+  {
+    m_beginPending = false;
+    beginPattern(s, now, ev);
+  }
   switch(m_phase)
   {
     case Phase::Idle:
       showIdle(s);
       m_progress = m_results.empty() ? 0.f : 1.f;
       return;
+    case Phase::Preparing:
     case Phase::Computing:
       break;
     case Phase::Capturing:
@@ -613,6 +767,7 @@ void StructuredLightSession::tick(
           break;
         case PatternCapture::State::Done:
         {
+          const bool extra = m_k >= m_seq.count();
           if(m_k == 0)
           {
             m_whiteMean = m_capture.mean();
@@ -623,12 +778,32 @@ void StructuredLightSession::tick(
             m_latency = std::max(m_latency, m_capture.latency());
             m_job.blackRGB = std::move(m_capture.rgb());
           }
+          if(!extra)
           {
             m_job.decoder.markSaturated(m_capture.clipped());
             if(!m_job.decoder.add(m_k, m_capture.luminance()))
             {
               endProjector(s, now, ev, "Failed: " + m_job.decoder.error());
               break;
+            }
+          }
+          else
+          {
+            auto& e = m_extras[m_k - m_seq.count()];
+            auto& rgb = m_capture.rgb();
+            if(e.full)
+              e.rgbCapture = std::move(rgb);
+            else
+            {
+              const int cw = m_capture.width(), ch = m_capture.height();
+              const int S = std::max(1, m_job.extraStride);
+              const int sw = (cw + S - 1) / S, shh = (ch + S - 1) / S;
+              e.rgbCapture.resize(std::size_t(sw) * shh * 3);
+              for(int y = 0; y < shh; y++)
+                for(int x = 0; x < sw; x++)
+                  for(int c = 0; c < 3; c++)
+                    e.rgbCapture[(std::size_t(y) * sw + x) * 3 + c]
+                        = rgb[(std::size_t(y * S) * cw + x * S) * 3 + c];
             }
           }
           m_k++;

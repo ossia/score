@@ -307,8 +307,11 @@ StructuredLightCore::Result StructuredLightCore::compute(Job job)
   }
 
   r.cameraGamma = job.cameraGamma;
+  r.crf = job.crf;
   const float camGamma = job.cameraGamma > 0.f ? job.cameraGamma : 1.f;
-  auto lin = [&](int, float v) -> float {
+  auto lin = [&](int c, float v) -> float {
+    if(job.crf)
+      return float(job.crf->linear(c, v));
     return camGamma == 1.f ? v : std::pow(std::max(0.f, v), camGamma);
   };
   const std::size_t camN = std::size_t(cw) * ch;
@@ -343,6 +346,8 @@ StructuredLightCore::Result StructuredLightCore::compute(Job job)
     }
   }
 
+  std::string photoNote;
+  computePhotometric(job, dec, r, photoNote);
 
   throwIfCancelled(job);
   std::size_t covered = 0;
@@ -381,6 +386,12 @@ StructuredLightCore::Result StructuredLightCore::compute(Job job)
       buf, sizeof(buf), "; %d patterns: Gray %d+%d bits", job.seq.count(),
       job.seq.projectedX(), job.seq.projectedY());
   r.status += buf;
+  if(job.crf)
+    r.status += ", camera response linearised";
+  else if(job.crfRejected)
+    r.status += ", camera response rejected (flat over the mid codes: did the camera "
+                "apply the bracket's exposures?), camera gamma used instead";
+  r.status += photoNote;
   if(job.latencyMs > 0.)
   {
     std::snprintf(buf, sizeof(buf), ", camera latency %.0f ms", job.latencyMs);
@@ -392,6 +403,21 @@ StructuredLightCore::Result StructuredLightCore::compute(Job job)
 }
 
 
+
+void StructuredLightCore::commonCompensation(std::vector<Result>& results)
+{
+  float common = 0.f;
+  for(auto& r : results)
+    if(r.compScale > 0.f)
+      common = common > 0.f ? std::min(common, r.compScale) : r.compScale;
+  for(auto& r : results)
+    if(r.compScale > 0.f)
+    {
+      r.compScale = common;
+      if(results.size() > 1)
+        r.compGradient = 0.f;
+    }
+}
 
 QString StructuredLightCore::projectorPath(const QString& path, int index)
 {
@@ -465,6 +491,7 @@ bool StructuredLightCore::saveFile(const QString& path, const Result& r, QString
     photometric["note"] = "linear camera RGB per projector pixel: white - black, and "
                           "black (ambient included)";
   }
+  addPhotometricFiles(r, w, photometric);
   if(!photometric.isEmpty())
     w.fields["photometric"] = photometric;
   return writeCalibration(w, error);
@@ -528,13 +555,15 @@ StructuredLightCore::Result StructuredLightCore::loadFile(const QString& path)
     if(const auto m = index.match(c.base); m.hasMatch())
       r.projectorIndex = m.captured(1).toInt();
   }
+  std::string note;
+  loadPhotometricFiles(c.base, r, note);
   std::size_t covered = 0;
   for(std::size_t i = 3; i < r.xyz.size(); i += 4)
     covered += r.xyz[i] > 0.f;
   r.coverage = 100.f * float(covered) / float(std::max<std::size_t>(1, n));
   r.ok = true;
   r.fromFile = true;
-  r.status = "Loaded " + QString(c.base + ".json").toStdString();
+  r.status = "Loaded " + QString(c.base + ".json").toStdString() + note;
   return r;
 }
 }

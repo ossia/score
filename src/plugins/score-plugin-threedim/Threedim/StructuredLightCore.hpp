@@ -1,4 +1,6 @@
 #pragma once
+#include <Gfx/Calibration/Photometric.hpp>
+#include <Gfx/Graph/PhotometricMaps.hpp>
 #include <Threedim/CalibrationFiles.hpp>
 #include <Threedim/CameraLens.hpp>
 #include <Threedim/StructuredLight.hpp>
@@ -69,6 +71,22 @@ struct StructuredLightCore
     std::vector<float> lum, black;
     float cameraGamma{1.f};
     int projectorIndex{};
+    std::shared_ptr<const score::gfx::photometric::CameraResponse> crf;
+    std::vector<float> crfExposures;
+    std::optional<score::gfx::ProjectorResponseFile> response;
+    //! Per projector pixel: V^-1 (9, row major), identity where unmeasured.
+    std::vector<float> compInverse;
+    //! Per projector pixel: black / ambient (3), linear camera units.
+    std::vector<float> compBlack;
+    std::vector<uint8_t> compValid;
+    //! Per projector pixel: the largest white s M (1, 1, 1) it can show; 0 where invalid.
+    std::vector<float> compWhite;
+    //! The target white's chroma folded into M, max component 1.
+    std::array<double, 3> compTarget{1., 1., 1.};
+    //! Largest white the given fraction of the pixels reaches.
+    float compScale{};
+    float compGamut{0.85f}, compStrength{1.f}, compGradient{};
+    bool compBlackOn{};
     sl::GraySequence seq;
     float phaseValid{};
     float ransac{};
@@ -77,6 +95,29 @@ struct StructuredLightCore
     bool fromFile{};
     //! From the pattern shown to the camera seeing it, as measured.
     double latencyMs{};
+  };
+
+  enum ExtraKind
+  {
+    RampFrame,
+    PrimaryFrame,
+    CrfFrame,
+    MixFrame,
+    GridFrame
+  };
+  //! A uniform frame after the Gray code.
+  struct Extra
+  {
+    std::array<float, 3> rgb{};
+    //! Sent on Camera exposure before the frame; 0 = unchanged.
+    float exposure{};
+    int kind{};
+    //! 0 red, 1 green, 2 blue, 3 grey.
+    int channel{};
+    //! Kept at full resolution, else every `stride` pixel in x and y.
+    bool full{};
+    //! Raw camera RGB.
+    std::vector<float> rgbCapture;
   };
 
   //! The frames of one projector and how to compute them.
@@ -106,18 +147,55 @@ struct StructuredLightCore
     std::vector<float> whiteRGB, blackRGB;
     float cameraGamma{1.f};
     int projectorIndex{};
+    std::vector<Extra> extras;
+    int extraStride{4};
+    int mixLevels{};
+    std::shared_ptr<const score::gfx::photometric::CameraResponse> crf;
+    //! A camera response was recovered or loaded but rejected as implausible.
+    bool crfRejected{};
+    float compGamut{0.85f}, compStrength{1.f}, compGradient{};
+    bool compBlack{};
     double latencyMs{};
     bool keepPixels{};
   };
 
   static Result compute(Job job);
 
-  //! Writes r as the calibration `path` (CalibrationFiles): its maps, then
-  //! name.json.
+  //! The frames after the Gray code of a run for projector `index`.
+  static std::vector<Extra> makeExtras(
+      int responseLevels, bool compensation, const std::vector<float>& exposures,
+      int index, int mixLevels = 0);
+  //! Camera response from the CrfFrame extras (grey levels at each exposure);
+  //! null when there are none or it does not rise with the codes.
+  static std::shared_ptr<const score::gfx::photometric::CameraResponse>
+  solveCameraResponse(const Job& job, double lambda = 50.);
+  static bool plausible(const score::gfx::photometric::CameraResponse& crf);
+  static QByteArray encodeCameraResponse(
+      const score::gfx::photometric::CameraResponse& crf,
+      const std::vector<float>& exposures);
+  static std::shared_ptr<const score::gfx::photometric::CameraResponse>
+  decodeCameraResponse(const QByteArray& json);
+  //! The compensation matrices of r at its scale, strength and black option.
+  static score::gfx::CompensationMaps compensationMaps(const Result& r);
+  //! Per projector pixel, the white scale applied by compensationMaps.
+  static std::vector<float> compensationScale(const Result& r);
+  //! The compensations of a run's results brought to one common target.
+  static void commonCompensation(std::vector<Result>& results);
+
+  //! Writes r as the calibration `path` (CalibrationFiles): its maps, its
+  //! camera response, projector response and compensation, then name.json.
   static bool saveFile(const QString& path, const Result& r, QString* error = nullptr);
   //! A calibration as saveFile writes it, through the files name.json lists.
   static Result loadFile(const QString& path);
   //! The calibration of projector `index` of a run saved as `path`.
   static QString projectorPath(const QString& path, int index);
+
+private:
+  static void computePhotometric(
+      const Job& job, const std::vector<sl::DecodedPixel>& dec, Result& r,
+      std::string& note);
+  static void addPhotometricFiles(
+      const Result& r, CalibrationWrite& w, QJsonObject& photometric);
+  static void loadPhotometricFiles(const QString& base, Result& r, std::string& note);
 };
 }

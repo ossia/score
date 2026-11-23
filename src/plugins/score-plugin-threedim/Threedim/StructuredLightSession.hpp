@@ -61,8 +61,15 @@ public:
     std::array<float, 2> lensShift{};
     bool accumulateIntrinsics{};
     float cameraGamma{1.f};
-    float captureExposure{};
+    int responseLevels{};
+    bool compensation{};
     double exposureSettleMs{1500.};
+    float captureExposure{};
+    float compGamut{0.85f};
+    float compStrength{1.f};
+    float compGradient{};
+    bool compBlack{};
+    int mixLevels{5};
     //! Sent on Auto exposure when the run ends: the camera's state before it.
     bool autoExposureAfter{true};
     bool keepPixels{};
@@ -71,6 +78,10 @@ public:
   //! What only start() reads.
   struct Run
   {
+    //! Values sent on Camera exposure for the camera response; empty = none.
+    std::vector<float> exposures;
+    //! A name.crf.json to linearise the captures with.
+    QString cameraResponse;
     //! Where to save the results once the run is done; empty = not saved.
     QString autoSave;
   };
@@ -151,6 +162,7 @@ public:
   void save(const QString& path);
   bool busy() const noexcept;
 
+  std::array<float, 3> measuredGamma() const noexcept { return m_measuredGamma; }
   std::array<float, 4> accumulatedIntrinsics() const noexcept { return m_accumulatedK; }
   //! The camera latency the last run measured, ms; 0 when none.
   double latency() const noexcept { return m_latency; }
@@ -163,6 +175,7 @@ private:
   enum class Phase
   {
     Idle,
+    Preparing,
     Capturing,
     Computing
   };
@@ -175,7 +188,7 @@ private:
   void submit(Job job);
   void finishRun(const Settings& s, Events& ev);
   void resolveIntrinsics(const Settings& s, Job& job) const;
-  int frameCount() const noexcept { return m_seq.count(); }
+  int frameCount() const noexcept { return m_seq.count() + int(m_extras.size()); }
   void stop(const Settings& s, const std::string& status, Events& ev);
   void showPattern(int k, float level);
   void showIdle(const Settings& s);
@@ -193,6 +206,11 @@ private:
   Job m_job;
   PatternCapture m_capture;
   std::array<std::vector<float>, 3> m_linear;
+  std::shared_ptr<const score::gfx::photometric::CameraResponse> m_runCrf;
+  bool m_runCrfRejected{};
+  bool m_runCrfPending{};
+  bool m_beginPending{};
+  std::string m_runNote;
   int m_k{};
   int m_projector{};
   int m_projectors{1};
@@ -201,6 +219,8 @@ private:
   double m_latency{};
   float m_whiteMean{};
   float m_exposureSent{};
+  std::vector<Extra> m_extras;
+  std::vector<Job> m_held;
   int m_submitted{}, m_pending{};
   std::shared_ptr<std::atomic_bool> m_cancel;
   std::vector<std::optional<Result>> m_runResults;
@@ -212,6 +232,7 @@ private:
   std::array<float, 4> m_lastSolvedK{};
   std::vector<std::array<float, 4>> m_solvedKs;
   std::array<float, 4> m_accumulatedK{};
+  std::array<float, 3> m_measuredGamma{};
 
   std::vector<Display> m_images;
   int m_shown{-2};

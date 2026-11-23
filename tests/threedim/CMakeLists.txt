@@ -671,11 +671,25 @@ score_add_test(test_threedim_structured_light_session
   SOURCES StructuredLightSession.cpp
     "${THREEDIM_DIR}/StructuredLight.cpp"
     "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
     "${THREEDIM_DIR}/StructuredLightSession.cpp"
     "${THREEDIM_DIR}/PatternCapture.cpp"
     "${THREEDIM_DIR}/CalibrationFiles.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_structured_light_session)
+
+# Structured light photometric phases on a simulated bench: camera response,
+# projector response, compensation, colour mixing, a rejected camera response.
+score_add_test(test_threedim_structured_light_photometric
+  SOURCES StructuredLightPhotometric.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_photometric)
 
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
