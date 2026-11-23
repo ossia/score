@@ -67,6 +67,7 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   QString m_StartOn;
   double m_LengthBars{};
   QString m_Target;
+  bool m_MuteSource{};
 
 public:
   Model(
@@ -81,6 +82,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, StartOn)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, double, LengthBars)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, Target)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, MuteSource)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, AudioFormat)
@@ -88,6 +90,7 @@ SCORE_SETTINGS_PARAMETER(Model, Start)
 SCORE_SETTINGS_PARAMETER(Model, StartOn)
 SCORE_SETTINGS_PARAMETER(Model, LengthBars)
 SCORE_SETTINGS_PARAMETER(Model, Target)
+SCORE_SETTINGS_PARAMETER(Model, MuteSource)
 
 class View : public score::GlobalSettingsView
 {
@@ -100,6 +103,7 @@ public:
   SETTINGS_UI_COMBOBOX_HPP(StartOn)
   SETTINGS_UI_DOUBLE_SPINBOX_HPP(LengthBars)
   SETTINGS_UI_COMBOBOX_HPP(Target)
+  SETTINGS_UI_TOGGLE_HPP(MuteSource)
 
   // The curve plug-in's
   SETTINGS_UI_SPINBOX_HPP(SimplificationRatio)

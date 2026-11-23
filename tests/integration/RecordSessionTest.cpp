@@ -811,3 +811,49 @@ TEST_CASE("A recording counted in clicks a whole bar, then starts on a bar line"
     }
   });
 }
+
+TEST_CASE("Muting what was recorded mutes the source with the take placed", "[recording][session]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.muteSource = true;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(800);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(session.takes().at(0).placed);
+    CHECK(sound->muted());
+    CHECK(!session.takes()[0].placed->muted());
+    // The same step
+    doc->commandStack().undo();
+    CHECK(!sound->muted());
+    CHECK(box->processes.size() == 1);
+  });
+}

@@ -45,6 +45,9 @@ struct RecordOptions
   //! The metronome clicks the box's beats on the main output while the takes
   //! wait for their start (with a start on the next bar: a count-in)
   bool countIn{false};
+  //! When a take is placed, the process it was recorded from is muted in the
+  //! same step, so that the take is not heard twice
+  bool muteSource{false};
   WavStreamWriter::Format audioFormat{WavStreamWriter::Format::Float32};
   Target target{Target::ThisBox};
 

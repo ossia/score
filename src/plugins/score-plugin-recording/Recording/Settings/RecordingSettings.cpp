@@ -37,10 +37,12 @@ SETTINGS_PARAMETER_IMPL(LengthBars){
     QStringLiteral("score_plugin_recording/LengthBars"), 0.};
 SETTINGS_PARAMETER_IMPL(Target){
     QStringLiteral("score_plugin_recording/Target"), Targets{}.box};
+SETTINGS_PARAMETER_IMPL(MuteSource){
+    QStringLiteral("score_plugin_recording/MuteSource"), false};
 
 static auto list()
 {
-  return std::tie(AudioFormat, Start, StartOn, LengthBars, Target);
+  return std::tie(AudioFormat, Start, StartOn, LengthBars, Target, MuteSource);
 }
 }
 
@@ -79,6 +81,7 @@ RecordOptions Model::options() const
   o.lengthBars = std::max(0., m_LengthBars);
   o.target = m_Target == Targets{}.file ? RecordOptions::Target::FileOnly
                                         : RecordOptions::Target::ThisBox;
+  o.muteSource = m_MuteSource;
   return o;
 }
 
@@ -87,6 +90,7 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Start)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, StartOn)
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, LengthBars)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Target)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MuteSource)
 
 View::View()
 {
@@ -112,6 +116,11 @@ View::View()
   score::setHelp(
       m_Target, tr("Where a take is placed when the recording ends; it is always "
                    "written to the Takes folder of the document."));
+
+  SETTINGS_UI_TOGGLE_SETUP("Mute what was recorded", MuteSource);
+  score::setHelp(
+      m_MuteSource, tr("When a take is placed, the process it was recorded from is muted "
+                       "in the same step, so that it is not heard twice."));
 
   SETTINGS_UI_SPINBOX_SETUP("Simplification ratio", SimplificationRatio);
   m_SimplificationRatio->setRange(1, 10000);
@@ -142,6 +151,7 @@ SETTINGS_UI_COMBOBOX_IMPL(Start)
 SETTINGS_UI_COMBOBOX_IMPL(StartOn)
 SETTINGS_UI_DOUBLE_SPINBOX_IMPL(LengthBars)
 SETTINGS_UI_COMBOBOX_IMPL(Target)
+SETTINGS_UI_TOGGLE_IMPL(MuteSource)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -155,6 +165,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(StartOn);
   SETTINGS_PRESENTER(LengthBars);
   SETTINGS_PRESENTER(Target);
+  SETTINGS_PRESENTER(MuteSource);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();

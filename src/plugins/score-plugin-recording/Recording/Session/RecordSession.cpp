@@ -1044,6 +1044,19 @@ void RecordSession::place()
     m_takes.push_back(std::move(t));
   }
 
+  // What was recorded is heard from its takes now
+  if(m_options.muteSource && placed_any && macro)
+  {
+    std::vector<const Process::ProcessModel*> sources;
+    for(auto& s : m_sources)
+      if(s->port)
+        if(auto* proc = Process::parentProcess(s->port.data()))
+          if(!proc->muted() && !ossia::contains(sources, proc))
+            sources.push_back(proc);
+    for(auto* proc : sources)
+      macro->submit(new Process::SetProcessMuted{*proc, true});
+  }
+
   if(hasAddresses() && m_scenario)
   {
     std::vector<AddressTake> takes;
