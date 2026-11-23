@@ -111,6 +111,10 @@ add_library(
   Threedim/ViewerFrustum.hpp
   Threedim/ViewerFrustum.cpp
   Threedim/ViewerFromPose.hpp
+  Threedim/LedWall.hpp
+  Threedim/LedWall.cpp
+  Threedim/LedDiscovery.hpp
+  Threedim/LedDiscovery.cpp
   Threedim/CubemapComposer.hpp
   Threedim/CubemapLoader.hpp
   Threedim/CubemapLoader.cpp
