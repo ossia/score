@@ -47,6 +47,7 @@ struct GfxRenderer<Node_T> final
       : score::gfx::GenericNodeRenderer{p}
       , state{p.rendererState()}
   {
+    m_last_message.generation = p.last_message.generation;
   }
 
   using score::gfx::NodeRenderer::process;

@@ -34,6 +34,7 @@ struct GfxRenderer<Node_T> final
       : score::gfx::OutputNodeRenderer{p}
       , state{std::make_shared<Node_T>()}
   {
+    m_last_message.generation = p.last_message.generation;
     prepareNewState<Node_T>(state, p);
   }
 

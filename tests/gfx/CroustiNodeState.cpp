@@ -56,6 +56,31 @@ struct NodeStateFilter
   }
 };
 
+struct ImpulseFilter
+{
+  halp_meta(name, "Impulse filter")
+  halp_meta(c_name, "test_node_state_impulse_filter")
+  halp_meta(category, "Test")
+  halp_meta(uuid, "7f1d3e95-a24c-4b60-8d17-c5e9b0a3f241")
+  struct
+  {
+    halp::impulse_button<"Go"> go;
+  } inputs;
+  struct
+  {
+    halp::texture_output<"Out"> image;
+  } outputs;
+  int impulses{};
+  void operator()()
+  {
+    if(inputs.go)
+      impulses++;
+    outputs.image.create(4, 4);
+    std::memset(outputs.image.texture.bytes, 255, 4 * 4 * 4);
+    outputs.image.upload();
+  }
+};
+
 struct Grey : score::gfx::TexgenNode
 {
   Grey()
@@ -129,6 +154,64 @@ TEST_CASE("the renderers of a node share its node_state", "[gfx][avnd][node_stat
     const auto rebuilt = statesOf(*p.node(flt), renderers);
     CHECK(renderers == 2);
     CHECK(rebuilt == first);
+  });
+  if(skipped)
+    SKIP("backend unavailable");
+  INFO("error=" << error);
+  REQUIRE(error.empty());
+}
+
+TEST_CASE(
+    "a renderer created later does not take the impulses its node already took",
+    "[gfx][avnd][node_state]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+
+  bool skipped = false;
+  std::string error;
+  std::vector<std::unique_ptr<Process::ProcessModel>> models;
+  run_in_gui_app([&](const score::GUIApplicationContext& app) {
+    auto* doc = new_document(app);
+    if(!doc)
+    {
+      error = "no document";
+      return;
+    }
+    auto model = std::make_unique<oscr::ProcessModel<ImpulseFilter>>(
+        TimeVal::fromMsecs(1000), Id<Process::ProcessModel>{1}, doc->context(), nullptr);
+    auto& m = *model;
+    models.push_back(std::move(model));
+
+    GfxPipeline p;
+    const int flt = p.addNode(std::unique_ptr<score::gfx::Node>{new oscr::GfxNode<ImpulseFilter>{
+        m, {}, Gfx::exec_controls{}, 1, doc->context()}});
+    const int a = p.addSink({8, 8});
+    p.wire(p.nodeImageOut(flt, 0), p.sinkInput(a));
+    if(!p.create(api))
+    {
+      skipped = p.skipped();
+      error = skipped ? std::string{} : p.error();
+      return;
+    }
+    auto impulses = [&] {
+      int n = -1;
+      for(auto& [rl, r] : p.node(flt)->renderedNodes)
+        if(r)
+          n = static_cast<oscr::GfxRenderer<ImpulseFilter>*>(r)->state->impulses;
+      return n;
+    };
+    p.render(1);
+    score::gfx::Message msg;
+    msg.node_id = p.node(flt)->nodeId;
+    msg.input.emplace_back(ossia::value{ossia::impulse{}});
+    p.node(flt)->process(std::move(msg));
+    p.render(3);
+    CHECK(impulses() == 1);
+
+    p.graph().createAllRenderLists(api);
+    p.render(3);
+    CHECK(impulses() == 0);
   });
   if(skipped)
     SKIP("backend unavailable");
