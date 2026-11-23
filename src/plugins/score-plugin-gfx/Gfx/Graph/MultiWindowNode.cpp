@@ -351,6 +351,11 @@ int canvasRank(QRhiTexture::Format f) noexcept
 class MultiWindowRenderer final : public score::gfx::OutputNodeRenderer
 {
 public:
+  struct CalibrationUBO
+  {
+    float linearOfCode[256];
+    float mode[4];
+  };
   QShader m_vertexS, m_fragmentS, m_bakeFragmentS, m_calFragmentS;
   QRhiSampler* m_calSampler{};
   score::gfx::MeshBuffers m_mesh{};
@@ -385,6 +390,7 @@ public:
     QRhiBuffer* calUBO{};
     score::gfx::Pipeline calPipeline;
     int calVersion{-1};
+    int calDecode{-1};
     std::pair<QSize, QSize> calWarnedSize;
   };
   std::vector<PerWindowData> m_perWindow;
@@ -901,12 +907,21 @@ public:
       layout(location = 0) in vec2 v_texcoord;
       layout(location = 0) out vec4 fragColor;
       layout(std140, binding = 2) uniform Calibration {
-          vec4 unused;
+          vec4 linearOfCode[64];
+          vec4 mode;
       };
       layout(binding = 3) uniform sampler2D tex;
+      float lin(float v)
+      {
+          const int code = clamp(int(v * 255.0 + 0.5), 0, 255);
+          return linearOfCode[code / 4][code % 4];
+      }
       void main()
       {
-          fragColor = vec4(texture(tex, vec2(v_texcoord.x, 1.0 - v_texcoord.y)).rgb, 1.0);
+          vec3 c = texture(tex, vec2(v_texcoord.x, 1.0 - v_texcoord.y)).rgb;
+          if(mode.x > 0.5)
+              c = vec3(lin(c.r), lin(c.g), lin(c.b));
+          fragColor = vec4(c, 1.0);
       }
       )_";
     std::tie(std::ignore, m_calFragmentS)
@@ -1333,15 +1348,14 @@ private:
                       && img->rgba.size() >= std::size_t(img->width) * img->height * 4
                       && m_calSampler && m_calFragmentS.isValid();
     const auto format = m_multiNode.swapchainFormat();
-    const bool decode = m_multiNode.swapchainFlag() == Gfx::SwapchainFlag::sRGB
+    const bool decode = (m_multiNode.swapchainFlag() == Gfx::SwapchainFlag::sRGB
+                         && (!wo.window || wo.window->encodesSrgb()))
                         || format == Gfx::SwapchainFormat::HDRExtendedSrgbLinear
                         || format == Gfx::SwapchainFormat::HDRExtendedDisplayP3Linear;
     if(show)
     {
       const QSize sz{img->width, img->height};
-      if(pw.calTexture
-         && (pw.calTexture->pixelSize() != sz
-             || pw.calTexture->flags().testFlag(QRhiTexture::sRGB) != decode))
+      if(pw.calTexture && pw.calTexture->pixelSize() != sz)
       {
         pw.calPipeline.release();
         delete pw.calTexture;
@@ -1349,8 +1363,7 @@ private:
       }
       if(!pw.calTexture)
       {
-        pw.calTexture = rhi.newTexture(
-            QRhiTexture::RGBA8, sz, 1, decode ? QRhiTexture::sRGB : QRhiTexture::Flags{});
+        pw.calTexture = rhi.newTexture(QRhiTexture::RGBA8, sz, 1);
         pw.calTexture->setName("MultiWindowRenderer::calibration");
         if(!pw.calTexture->create())
         {
@@ -1361,9 +1374,30 @@ private:
       }
       if(!pw.calUBO)
       {
-        pw.calUBO = rhi.newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 16);
+        pw.calUBO = rhi.newBuffer(
+            QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(CalibrationUBO));
         pw.calUBO->setName("MultiWindowRenderer::calibrationUBO");
         pw.calUBO->create();
+        pw.calDecode = -1;
+      }
+      if(pw.calUBO && pw.calDecode != int(decode))
+      {
+        static const CalibrationUBO table = [] {
+          CalibrationUBO t{};
+          for(int c = 0; c < 256; c++)
+          {
+            const double v = c / 255.;
+            t.linearOfCode[c]
+                = float(v <= 0.04045 ? v / 12.92 : std::pow((v + 0.055) / 1.055, 2.4));
+          }
+          return t;
+        }();
+        CalibrationUBO ubo = table;
+        ubo.mode[0] = decode ? 1.f : 0.f;
+        if(!res)
+          res = rhi.nextResourceUpdateBatch();
+        res->updateDynamicBuffer(pw.calUBO, 0, sizeof(ubo), &ubo);
+        pw.calDecode = int(decode);
       }
       if(pw.calTexture && !pw.calPipeline.pipeline)
       {
@@ -2794,6 +2828,7 @@ void MultiWindowNode::createOutput(score::gfx::OutputConfiguration conf)
     auto& mapping = m_mappings[i];
 
     wo.window = std::make_shared<Window>(conf.graphicsApi);
+    wo.window->requestSrgbSurface(m_swapchainFlag == Gfx::SwapchainFlag::sRGB);
     wo.window->setTitle(QString("Output %1").arg(i));
 
     // Each window gets its own onWindowReady callback. When the native

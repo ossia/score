@@ -1051,9 +1051,6 @@ TEST_CASE("multi-window calibration codes reach an sRGB swap chain unchanged", "
       [](score::gfx::MultiWindowNode& n) { n.setSwapchainFlag(Gfx::SwapchainFlag::sRGB); });
   if(o.skipped)
     SKIP(o.backend << ": " << o.skipReason);
-  if(api == score::gfx::OpenGL)
-    SKIP("OpenGL: the window surface Qt makes here is not sRGB-capable, so the swap "
-         "chain does not encode");
   REQUIRE(o.error.empty());
   INFO("backend: " << o.backend);
   REQUIRE(ok);

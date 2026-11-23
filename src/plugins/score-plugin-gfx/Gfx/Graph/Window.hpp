@@ -34,6 +34,13 @@ public:
 
   GraphicsApi api() const noexcept { return m_api; }
 
+  //! OpenGL only: the surface must be sRGB-capable for an sRGB swap chain to
+  //! encode. Call before the window is created.
+  void requestSrgbSurface(bool srgb);
+  //! Whether an sRGB swap chain on this window encodes (always, except on an
+  //! OpenGL surface that is not sRGB-capable).
+  bool encodesSrgb() const noexcept;
+
   void init();
 
   void resizeSwapChain();
