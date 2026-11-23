@@ -110,6 +110,28 @@ TEST_CASE("an RGBA map is written as xyz + valid and read back whole", "[gfx][ca
   CHECK(grey.row(1)[7] == 1.f);
 }
 
+TEST_CASE("a PFM is replaced as a whole, never rewritten in place", "[gfx][calibration][pfm]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString path = dir.filePath("map.pfm");
+  const auto first = ramp(3, 2, 3);
+  REQUIRE(writePFM(path, first));
+  const QByteArray before = encodePFM(first);
+
+  QFile reader{path};
+  REQUIRE(reader.open(QIODevice::ReadOnly));
+
+  auto second = ramp(5, 4, 1);
+  REQUIRE(writePFM(path, second));
+  CHECK(reader.readAll() == before);
+  CHECK(readPFM(path).width == 5);
+
+  FloatImage bad = ramp(2, 2, 4);
+  CHECK_FALSE(writePFM(path, bad));
+  CHECK(readPFM(path).width == 5);
+}
+
 TEST_CASE("a 16-bit PNG loads as normalised floats", "[gfx][calibration]")
 {
   QTemporaryDir dir;

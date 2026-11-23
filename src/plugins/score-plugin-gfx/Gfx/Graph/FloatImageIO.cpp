@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QImage>
+#include <QSaveFile>
 #include <QtEndian>
 
 #include <cmath>
@@ -147,9 +148,8 @@ bool writePFM(const QString& path, const FloatImage& img, QString* error)
     setFileError(error, QStringLiteral("a PFM holds 1 or 3 channels"));
     return false;
   }
-  QFile f{path};
-  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate)
-     || f.write(bytes) != bytes.size())
+  QSaveFile f{path};
+  if(!f.open(QIODevice::WriteOnly) || f.write(bytes) != bytes.size() || !f.commit())
   {
     setFileError(error, QStringLiteral("cannot write %1").arg(path));
     return false;
