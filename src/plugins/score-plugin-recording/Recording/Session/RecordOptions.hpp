@@ -1,8 +1,14 @@
 #pragma once
 #include <Recording/Takes/WavStreamWriter.hpp>
 
+#include <QPointer>
+
 #include <cstdint>
 
+namespace Process
+{
+class ProcessModel;
+}
 namespace Recording
 {
 //! How a recording session starts, stops, writes and places its takes.
@@ -22,7 +28,9 @@ struct RecordOptions
     //! A new process in the box the source plays in
     ThisBox,
     //! Only the file, in Takes
-    FileOnly
+    FileOnly,
+    //! Into an existing process of the box: `into`
+    Into
   };
 
   Start start{Start::Now};
@@ -36,5 +44,11 @@ struct RecordOptions
   double lengthBars{0.};
   WavStreamWriter::Format audioFormat{WavStreamWriter::Format::Float32};
   Target target{Target::ThisBox};
+
+  //! Target::Into: the piano roll a MIDI take is recorded into
+  QPointer<const Process::ProcessModel> into;
+  //! Target::Into: the notes it had over the span recorded are removed first;
+  //! else the take's notes are added to them
+  bool replace{false};
 };
 }

@@ -3486,4 +3486,10 @@ if(TARGET score_plugin_recording)
   score_add_test(test_unit_recorded_curves
     SOURCES RecordedCurvesTest.cpp
     PLUGINS score_plugin_recording score_plugin_curve)
+
+  # Notes recorded into a piano roll.
+  score_add_test(test_unit_overdub_notes
+    SOURCES OverdubNotesTest.cpp
+    APP
+    PLUGINS score_plugin_recording score_plugin_midi)
 endif()

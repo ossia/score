@@ -26,6 +26,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedValues.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedCurves.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/PlaceAddressTakes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/OverdubNotes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Settings/RecordingSettings.hpp"
 )
 set(SRCS
@@ -44,6 +45,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedValues.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedCurves.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/PlaceAddressTakes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/OverdubNotes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Settings/RecordingSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/ApplicationPlugin.cpp"
@@ -52,6 +54,6 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_engine score_plugin_curve score_plugin_automation)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_engine score_plugin_curve score_plugin_automation score_plugin_midi)
 
 setup_score_plugin(${PROJECT_NAME})

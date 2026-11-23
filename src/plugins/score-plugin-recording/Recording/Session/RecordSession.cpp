@@ -26,7 +26,12 @@
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Commands/PlaceTakes.hpp>
 #include <Recording/Takes/RecordedNotes.hpp>
+#include <Recording/Takes/OverdubNotes.hpp>
 #include <Recording/Takes/RecordedValues.hpp>
+
+#include <Midi/Commands/AddNote.hpp>
+#include <Midi/Commands/RemoveNotes.hpp>
+#include <Midi/MidiProcess.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -627,9 +632,30 @@ void RecordSession::place()
       if(!f.open(QIODevice::WriteOnly)
          || f.write(smf.data(), qint64(smf.size())) != qint64(smf.size()))
         continue;
+
+      // Into a piano roll: its notes change, the file stays in Takes
+      if(m_options.target == RecordOptions::Target::Into)
+      {
+        if(auto* into = qobject_cast<const Midi::ProcessModel*>(m_options.into.data()))
+        {
+          auto od = overdubNotes(*into, notes, t.startDate, t.endDate, m_options.replace);
+          if(!macro)
+            macro.emplace(new PlaceTakes, m_ctx);
+          if(!od.remove.empty())
+            macro->submit(new Midi::RemoveNotes{*into, od.remove});
+          if(!od.add.empty())
+            macro->submit(new Midi::AddNotes{*into, od.add});
+          t.placed = const_cast<Midi::ProcessModel*>(into);
+          placed_any = true;
+        }
+        m_takes.push_back(std::move(t));
+        continue;
+      }
     }
 
-    if(m_options.target == RecordOptions::Target::ThisBox && s->box)
+    if((m_options.target == RecordOptions::Target::ThisBox
+        || m_options.target == RecordOptions::Target::Into)
+       && s->box)
     {
       QMimeData mime;
       mime.setUrls({QUrl::fromLocalFile(t.file)});

@@ -13,6 +13,7 @@
 #include <score_plugin_automation.hpp>
 #include <score_plugin_curve.hpp>
 #include <score_plugin_engine.hpp>
+#include <score_plugin_midi.hpp>
 #include <score_plugin_recording_commands_files.hpp>
 #include <score_plugin_scenario.hpp>
 
@@ -38,7 +39,8 @@ auto score_plugin_recording::required() const -> std::vector<score::PluginKey>
 {
   return {
       score_plugin_scenario::static_key(), score_plugin_engine::static_key(),
-      score_plugin_curve::static_key(), score_plugin_automation::static_key()};
+      score_plugin_curve::static_key(), score_plugin_automation::static_key(),
+      score_plugin_midi::static_key()};
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

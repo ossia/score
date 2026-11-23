@@ -3,6 +3,10 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ProcessContext.hpp>
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <Midi/MidiProcess.hpp>
+#include <Process/Process.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -78,6 +82,34 @@ void RecordPortMenu::setupMenu(
       opt.start = RecordOptions::Start::OnPlay;
       record(opt);
     });
+  }
+  // MIDI into the piano rolls of its box
+  if(type == Process::PortType::Midi)
+  {
+    if(auto* box = Scenario::closestParentInterval(Process::parentProcess(&port)))
+    {
+      for(const auto& proc : box->processes)
+      {
+        auto* midi = qobject_cast<const Midi::ProcessModel*>(&proc);
+        if(!midi)
+          continue;
+        const QPointer<const Process::ProcessModel> into = midi;
+        const QString name = midi->prettyName();
+        for(bool replace : {false, true})
+        {
+          auto act = sub->addAction(
+              replace ? QObject::tr("Record replacing the notes of %1").arg(name)
+                      : QObject::tr("Record into %1").arg(name));
+          QObject::connect(act, &QAction::triggered, plug, [=] {
+            auto opt = plug->defaultOptions();
+            opt.target = RecordOptions::Target::Into;
+            opt.into = into;
+            opt.replace = replace;
+            record(opt);
+          });
+        }
+      }
+    }
   }
   {
     auto act = sub->addAction(QObject::tr("Record only the file"));

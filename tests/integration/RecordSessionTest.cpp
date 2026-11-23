@@ -23,6 +23,8 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Midi/Commands/AddNote.hpp>
+#include <Midi/MidiProcess.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordSession.hpp>
@@ -361,5 +363,65 @@ TEST_CASE("score:/recording records and stops as the Record button does", "[reco
     spin(200);
     CHECK(box->processes.size() == processes_before + 1);
     CHECK(spin_until([&] { return active->get_parameter()->value() == ossia::value{false}; }));
+  });
+}
+
+TEST_CASE("A MIDI recording into a piano roll adds its notes there, undoably", "[recording][session][overdub]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Midi::ProcessModel* source{};
+    Midi::ProcessModel* target{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      source = static_cast<Midi::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Midi::ProcessModel>::get(), {}));
+      target = static_cast<Midi::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Midi::ProcessModel>::get(), {}));
+      REQUIRE(source);
+      REQUIRE(target);
+      // A note every 100 ms, pitch 70, over the whole box
+      std::vector<Midi::NoteData> notes;
+      for(int i = 0; i < 100; i++)
+        notes.emplace_back(i / 100., 0.005, 70, 100);
+      m.submit(new Midi::ReplaceNotes{*source, notes, 0, 127, source->duration()});
+      m.commit();
+    }
+    REQUIRE(target->notes.size() == 0);
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::Into;
+    opt.into = target;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*source->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(1200);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    // The notes heard, in the piano roll; nothing new in the box
+    CHECK(box->processes.size() == 2);
+    REQUIRE(target->notes.size() >= 5);
+    for(auto& n : target->notes)
+    {
+      CHECK(n.pitch() == 70);
+      // On the 100 ms grid of the source
+      const double at = n.start() * 100.;
+      CHECK(std::abs(at - std::round(at)) < 0.05);
+    }
+    doc->commandStack().undo();
+    CHECK(target->notes.size() == 0);
+    doc->commandStack().redo();
+    CHECK(target->notes.size() >= 5);
   });
 }
