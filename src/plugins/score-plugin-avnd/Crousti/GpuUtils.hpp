@@ -1943,7 +1943,8 @@ struct texture_inputs_storage<T>
   //! A fixed-format CPU input declaring source_size() reads its producer's
   //! texture as it is, at its size, when its format is the input's. Otherwise
   //! it reads its own target, which `resampled` says when the producer drew
-  //! its own texture into it: then it holds a resampled copy.
+  //! its own texture of another size into it: then it holds a resampled copy.
+  //! A dynamic-format input says it too.
   template <typename F>
   static constexpr bool reads_source_size() noexcept
   {
@@ -1995,6 +1996,8 @@ struct texture_inputs_storage<T>
                 t.texture.height = rb.pixelSize.height();
                 gpp::qrhi::toTextureFormat(rb.format, t.texture);
               }
+              if constexpr(requires { t.resampled = true; })
+                t.resampled = m_readbackResampled[K];
             }
             if(auto& rb = m_readbacks[K]; m_readbackPremultiplied[K] && !rb.data.isEmpty())
             {
@@ -2061,7 +2064,8 @@ struct texture_inputs_storage<T>
               else if(direct->format() == gpp::qrhi::textureFormat(field.texture))
                 tex = direct;
             }
-            m_readbackResampled[K] = direct && tex != direct;
+            m_readbackResampled[K] = direct && tex != direct
+                                     && direct->pixelSize() != rt_it->second.texture->pixelSize();
           }
           if(!tex)
             return;
