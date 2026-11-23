@@ -98,6 +98,9 @@ add_library(
   Threedim/ArrayToTexture.hpp
   Threedim/ArrayToTexture.cpp
   Threedim/CalibrationJobs.hpp
+  Threedim/CameraLens.hpp
+  Threedim/StructuredLight.hpp
+  Threedim/StructuredLight.cpp
   Threedim/CalibrationFiles.hpp
   Threedim/CalibrationFiles.cpp
   Threedim/FloatTextureIO.hpp

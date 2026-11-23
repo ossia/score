@@ -651,6 +651,13 @@ score_add_test(test_threedim_led_mapping
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_led_mapping)
 
+# Gray code + phase shift decoding: frame order, missing frames, stripe edges,
+# clipped pixels.
+score_add_test(test_threedim_structured_light_decoder
+  SOURCES StructuredLightDecoder.cpp "${THREEDIM_DIR}/StructuredLight.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_decoder)
+
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
   SOURCES Photometric.cpp
