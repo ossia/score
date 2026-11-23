@@ -2,7 +2,11 @@
 #include <Gfx/Calibration/Photometric.hpp>
 #include <Gfx/Graph/FloatImageIO.hpp>
 
+#include <QByteArray>
+#include <QString>
+
 #include <array>
+#include <utility>
 #include <vector>
 
 namespace score::gfx
@@ -44,7 +48,17 @@ struct ProjectorResponseFile
   int inverseSize{1024};
 };
 
-//! Writes `base.response.json` and `base.response.cube` (1D, the inverse).
+//! A file of a calibration `name`: `name + suffix`.
+struct EncodedFile
+{
+  QString suffix;
+  QByteArray bytes;
+};
+
+//! `.response.json` and `.response.cube` (1D, the inverse).
+SCORE_PLUGIN_GFX_EXPORT
+std::vector<EncodedFile> encodeProjectorResponse(const ProjectorResponseFile& r);
+//! Writes `base.response.json` and `base.response.cube`, each replaced atomically.
 SCORE_PLUGIN_GFX_EXPORT
 bool writeProjectorResponse(const QString& base, const ProjectorResponseFile& r);
 
@@ -75,8 +89,19 @@ struct CompensationInfo
   bool mixing{};
 };
 
+struct CompensationFiles
+{
+  //! `.comp0.pfm`, `.comp1.pfm`, `.comp2.pfm` (RGB rows of M), `.compoffset.pfm` (RGB o).
+  std::vector<std::pair<QString, FloatImage>> maps;
+  //! `.comp.json`, naming the maps of the calibration `name`.
+  EncodedFile json;
+};
+SCORE_PLUGIN_GFX_EXPORT
+CompensationFiles encodeCompensation(
+    const QString& name, const CompensationMaps& maps, const CompensationInfo& info);
+
 //! `base.comp.json` + `base.comp0.pfm`, `base.comp1.pfm`, `base.comp2.pfm`
-//! (RGB rows of M) + `base.compoffset.pfm` (RGB o).
+//! (RGB rows of M) + `base.compoffset.pfm` (RGB o), each replaced atomically.
 SCORE_PLUGIN_GFX_EXPORT
 bool writeCompensation(
     const QString& base, const CompensationMaps& maps, const CompensationInfo& info);

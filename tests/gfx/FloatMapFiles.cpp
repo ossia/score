@@ -3,6 +3,7 @@
 // meshes rasterised to a UV map, and MPCDI archives.
 
 #include <Gfx/Graph/FloatImageIO.hpp>
+#include <Gfx/Graph/PhotometricMaps.hpp>
 #include <Gfx/Graph/WarpImport.hpp>
 
 #include <score/tools/Zip.hpp>
@@ -130,6 +131,54 @@ TEST_CASE("a PFM is replaced as a whole, never rewritten in place", "[gfx][calib
   FloatImage bad = ramp(2, 2, 4);
   CHECK_FALSE(writePFM(path, bad));
   CHECK(readPFM(path).width == 5);
+}
+
+TEST_CASE(
+    "the projector response and compensation files are replaced as a whole",
+    "[gfx][calibration][photometric]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("p");
+  score::gfx::ProjectorResponseFile r;
+  r.inverseSize = 8;
+  REQUIRE(score::gfx::writeProjectorResponse(base, r));
+  QFile reader{base + ".response.json"};
+  REQUIRE(reader.open(QIODevice::ReadOnly));
+  QByteArray first;
+  {
+    QFile f{base + ".response.json"};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    first = f.readAll();
+  }
+  r.inverseSize = 16;
+  REQUIRE(score::gfx::writeProjectorResponse(base, r));
+  CHECK(reader.readAll() == first);
+  CHECK(score::gfx::loadResponseTable(base + ".response.json").size == 16);
+
+  score::gfx::CompensationMaps comp;
+  comp.width = 2;
+  comp.height = 1;
+  for(auto& row : comp.rows)
+  {
+    row.width = 2;
+    row.height = 1;
+    row.channels = 4;
+    row.data.assign(8, 0.5f);
+  }
+  const auto files = score::gfx::encodeCompensation("p", comp, {});
+  REQUIRE(files.maps.size() == 4);
+  CHECK(files.maps[0].first == ".comp0.pfm");
+  CHECK(files.json.suffix == ".comp.json");
+  REQUIRE(score::gfx::writeCompensation(base, comp, {}));
+  QFile compReader{base + ".comp.json"};
+  REQUIRE(compReader.open(QIODevice::ReadOnly));
+  const QByteArray compFirst = compReader.peek(1 << 20);
+  QFile compHandle{base + ".comp.json"};
+  REQUIRE(compHandle.open(QIODevice::ReadOnly));
+  REQUIRE(score::gfx::writeCompensation(base, comp, {.scale = 2.}));
+  CHECK(compHandle.readAll() == compFirst);
+  CHECK(score::gfx::loadCompensation(base + ".comp.json").valid());
 }
 
 TEST_CASE("a 16-bit PNG loads as normalised floats", "[gfx][calibration]")

@@ -148,6 +148,11 @@ bool writePFM(const QString& path, const FloatImage& img, QString* error)
     setFileError(error, QStringLiteral("a PFM holds 1 or 3 channels"));
     return false;
   }
+  return writeFileAtomic(path, bytes, error);
+}
+
+bool writeFileAtomic(const QString& path, const QByteArray& bytes, QString* error)
+{
   QSaveFile f{path};
   if(!f.open(QIODevice::WriteOnly) || f.write(bytes) != bytes.size() || !f.commit())
   {

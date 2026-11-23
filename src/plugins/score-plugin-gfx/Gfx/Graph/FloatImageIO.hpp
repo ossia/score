@@ -47,6 +47,10 @@ SCORE_PLUGIN_GFX_EXPORT
 QByteArray encodePFM(const FloatImage& img);
 //! Replaces `path` atomically: readers see the old file or the new one.
 SCORE_PLUGIN_GFX_EXPORT
+bool writeFileAtomic(const QString& path, const QByteArray& bytes, QString* error = nullptr);
+
+//! Replaces `path` atomically: readers see the old file or the new one.
+SCORE_PLUGIN_GFX_EXPORT
 bool writePFM(const QString& path, const FloatImage& img, QString* error = nullptr);
 
 //! `name.xyz.pfm` / `name.pfm` -> `name.valid.pfm`.
