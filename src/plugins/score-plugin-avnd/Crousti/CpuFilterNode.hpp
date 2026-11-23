@@ -458,6 +458,25 @@ struct GfxRenderer<Node_T> final
     if_possible(state->inputAboutToFinish(renderer, p, res));
   }
 
+  //! Whether the last frame waited for the GPU before reading its inputs.
+  bool m_waitedForReadback{};
+
+  bool readbackNeedsFinish(
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
+      QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge)
+  {
+    if constexpr(
+        avnd::buffer_input_introspection<Node_T>::size == 0
+        && avnd::geometry_input_introspection<Node_T>::size == 0
+        && !requires {
+             state->inputAboutToFinish(
+                 renderer, std::declval<const score::gfx::Port&>(), res);
+           } && !requires { state->runInitialPasses(renderer, commands, res, edge); })
+      return texture_ins.takeReadbackQueued();
+    else
+      return true;
+  }
+
   void runInitialPasses(
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge) override
@@ -487,9 +506,10 @@ struct GfxRenderer<Node_T> final
           || avnd::cpu_buffer_input_introspection<Node_T>::size > 0
           || avnd::geometry_input_introspection<Node_T>::size > 0)
       {
-        // FIXME: for geometry, here we should optimize if we know we aren't going to need them on the CPU, OR if it is a type ?
-        // Insert a synchronisation point to allow readbacks to complete
-        rhi.finish();
+        // FIXME: buffer and geometry inputs always sync, even when not needed on the CPU
+        m_waitedForReadback = readbackNeedsFinish(renderer, commands, res, edge);
+        if(m_waitedForReadback)
+          rhi.finish();
       }
 
       if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)

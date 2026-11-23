@@ -1961,11 +1961,19 @@ struct texture_inputs_storage<T>
       avnd::texture_input_introspection<T>::for_all_n2(
           avnd::get_inputs<T>(*self.state),
           [&]<typename F, std::size_t K, std::size_t N>(
-              F&, avnd::predicate_index<K>, avnd::field_index<N>) {
+              F& field, avnd::predicate_index<K>, avnd::field_index<N>) {
         if constexpr(avnd::cpu_texture_port<F>)
         {
           if(N >= inputs.size() || inputs[N] != &p)
             return;
+          if constexpr(requires { bool(field.request_readback); })
+          {
+            if(!field.request_readback)
+            {
+              m_readbacks[K] = {};
+              return;
+            }
+          }
           auto rt_it = m_rts.find(&p);
           if(rt_it == m_rts.end())
             return;
@@ -1986,10 +1994,36 @@ struct texture_inputs_storage<T>
           readback = {};
           m_readbackPremultiplied[K] = tex == rt_it->second.texture;
           res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
+          m_readbackQueued = true;
         }
       });
     }
   }
+
+  //! Whether a CPU texture input declares request_readback: then the frame
+  //! waits for the GPU only when a readback was queued.
+  static constexpr bool readbackGated() noexcept
+  {
+    bool gated = false;
+    avnd::texture_input_introspection<T>::for_all(
+        [&]<std::size_t I, typename F>(avnd::field_reflection<I, F>) {
+      if constexpr(avnd::cpu_texture_port<F>)
+        if constexpr(requires(F f) { bool(f.request_readback); })
+          gated = true;
+    });
+    return gated;
+  }
+
+  //! Whether a readback was queued since the last call; always true for the
+  //! nodes whose inputs do not declare request_readback.
+  bool takeReadbackQueued() noexcept
+  {
+    if constexpr(!readbackGated())
+      return true;
+    else
+      return std::exchange(m_readbackQueued, false);
+  }
+  bool m_readbackQueued{};
 
 };
 template<typename T>
@@ -1998,6 +2032,7 @@ struct texture_inputs_storage<T>
 {
   static void init(auto&&...) { }
   static void runInitialPasses(auto&&...) { }
+  static bool takeReadbackQueued() noexcept { return true; }
   static void release(auto&&...) { }
   static void inputAboutToFinish(auto&&...) { }
 };

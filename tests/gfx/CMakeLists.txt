@@ -2419,3 +2419,11 @@ score_add_test(test_gfx_texture_port_converters_at_load
 # Crafted calibration files: truncated / CRLF PFM, oversized Bourke meshes,
 # nested MPCDI filesets, bad 1D .cube and response.json tables.
 score_add_gfx_test(calibration_file_hardening CalibrationFileHardening.cpp)
+
+# A CPU texture input declaring request_readback is read back, and its frame
+# waits for the GPU, only on request: filters and analysis nodes.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_readback_gate
+    SOURCES CroustiReadbackGate.cpp
+    PLUGINS score_plugin_avnd)
+endif()
