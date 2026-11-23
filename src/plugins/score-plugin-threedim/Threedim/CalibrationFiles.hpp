@@ -69,6 +69,9 @@ struct CalibrationWrite
   bool createOnly{};
 };
 
+//! Writes one map, replaced atomically.
+bool writeCalibrationMap(const QString& base, const CalibrationMap& m, QString* error = nullptr);
+
 //! False and `error` set when nothing was written: the maps or name.json could
 //! not be written, or name.json exists and either `createOnly` is set or it
 //! describes a projector of another size than the maps.

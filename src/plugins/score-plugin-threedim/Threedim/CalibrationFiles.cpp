@@ -35,7 +35,9 @@ QStringList writtenFiles(const QString& base, const CalibrationMap& m)
   return {base + m.suffix};
 }
 
-bool writeMap(const QString& base, const CalibrationMap& m, QString* error)
+}
+
+bool writeCalibrationMap(const QString& base, const CalibrationMap& m, QString* error)
 {
   const auto& img = m.image;
   if(!img.valid())
@@ -55,6 +57,8 @@ bool writeMap(const QString& base, const CalibrationMap& m, QString* error)
   return score::gfx::writePFM(base + m.suffix, img, error);
 }
 
+namespace
+{
 std::vector<float> readRGB(const QString& path, int w, int h)
 {
   if(path.isEmpty())
@@ -134,7 +138,7 @@ bool writeCalibration(const CalibrationWrite& w, QString* error)
   QStringList files;
   for(const auto& m : w.maps)
   {
-    if(!writeMap(w.base, m, error))
+    if(!writeCalibrationMap(w.base, m, error))
       return false;
     for(const auto& f : writtenFiles(w.base, m))
       files.push_back(fileName(f));

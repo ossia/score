@@ -609,6 +609,14 @@ score_add_test(test_threedim_projector_blend
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_projector_blend)
 
+# Projector Blend Maps as a process: loads calibrations, writes alpha and beta.
+score_add_test(test_threedim_projector_blend_process
+  SOURCES ProjectorBlendProcess.cpp
+    "${THREEDIM_DIR}/ProjectorBlend.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_projector_blend_process)
+
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
   SOURCES Photometric.cpp

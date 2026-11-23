@@ -102,6 +102,8 @@ add_library(
   Threedim/CalibrationFiles.cpp
   Threedim/FloatTextureIO.hpp
   Threedim/FloatTextureIO.cpp
+  Threedim/ProjectorBlend.hpp
+  Threedim/ProjectorBlend.cpp
   Threedim/CubemapComposer.hpp
   Threedim/CubemapLoader.hpp
   Threedim/CubemapLoader.cpp
