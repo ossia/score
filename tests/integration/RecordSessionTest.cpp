@@ -650,3 +650,71 @@ TEST_CASE("A take in passes side by side: each where it was played", "[recording
       CHECK(offsets[k] == take.startDate + k * bar);
   });
 }
+
+TEST_CASE("Saved for the first time, a document keeps its takes in its Takes folder", "[recording][session][files]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordSession session{doc->context(), {}};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(600);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    const auto& take = session.takes().at(0);
+    REQUIRE(take.placed);
+    const QString before = take.file;
+    REQUIRE(QFile::exists(before));
+    CHECK(before.contains("/recordings/"));
+
+    // What saving does, before the document knows its new name
+    const QString project = dir.filePath("project/My project.score");
+    QDir{}.mkpath(dir.filePath("project"));
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    rec.on_documentSaveAs(*doc, project);
+    doc->metadata().setFileName(project);
+
+    const QString copied = dir.filePath("project/Takes/") + QFileInfo{before}.fileName();
+    CHECK(QFile::exists(copied));
+    CHECK(QFile::exists(before));
+    auto* placed = static_cast<Media::Sound::ProcessModel*>(take.placed.data());
+    INFO("original " << placed->file()->originalFile().toStdString() << " abs "
+                     << placed->file()->absoluteFileName().toStdString() << " before "
+                     << before.toStdString());
+    CHECK(QFileInfo{placed->file()->absoluteFileName()}.canonicalFilePath()
+          == QFileInfo{copied}.canonicalFilePath());
+
+    // Undoable, and saved again nothing more happens
+    doc->commandStack().undo();
+    CHECK(QFileInfo{placed->file()->absoluteFileName()}.canonicalFilePath()
+          == QFileInfo{before}.canonicalFilePath());
+    doc->commandStack().redo();
+    const int index = doc->commandStack().currentIndex();
+    rec.on_documentSaveAs(*doc, dir.filePath("project/Other.score"));
+    CHECK(doc->commandStack().currentIndex() == index);
+  });
+}

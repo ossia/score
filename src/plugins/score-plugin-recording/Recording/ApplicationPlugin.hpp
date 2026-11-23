@@ -67,6 +67,7 @@ public:
   RecordOptions defaultOptions() const;
 
   void on_closeDocument(score::Document& doc) override;
+  void on_documentSaveAs(score::Document& doc, const QString& newFileName) override;
   score::GUIElements makeGUIElements() override;
 
   //! The Record button: records the ports selected, or the audio and MIDI

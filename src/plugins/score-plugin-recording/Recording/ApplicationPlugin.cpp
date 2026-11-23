@@ -18,6 +18,7 @@
 #include <Recording/Record/RecordTools.hpp>
 #include <Recording/Session/RecordSession.hpp>
 #include <Recording/Settings/RecordingSettings.hpp>
+#include <Recording/Takes/KeepTakes.hpp>
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
@@ -340,6 +341,11 @@ void ApplicationPlugin::recordSelection(const score::DocumentContext& ctx)
   }
   if(ports.empty() || !startSession(*doc, ports, defaultOptions()))
     showRecording(false);
+}
+
+void ApplicationPlugin::on_documentSaveAs(score::Document& doc, const QString& newFileName)
+{
+  keepTakesWithProject(doc, newFileName);
 }
 
 void ApplicationPlugin::on_closeDocument(score::Document& doc)
