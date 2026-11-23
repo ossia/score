@@ -589,6 +589,20 @@ score_add_test(test_threedim_camera_off_axis
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_off_axis)
 
+# Calibration files: one reader and writer of name.json and its listed maps.
+score_add_test(test_threedim_calibration_files
+  SOURCES CalibrationFiles.cpp "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_files)
+
+# Save / Load Float Texture: PFM files and the json sidecar.
+score_add_test(test_threedim_float_texture_io
+  SOURCES FloatTextureIO.cpp
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_float_texture_io)
+
 # Multi-projector blend and black-level maps on simulated walls and a CAVE.
 score_add_test(test_threedim_projector_blend
   SOURCES ProjectorBlend.cpp

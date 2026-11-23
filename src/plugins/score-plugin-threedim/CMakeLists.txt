@@ -97,6 +97,11 @@ add_library(
 
   Threedim/ArrayToTexture.hpp
   Threedim/ArrayToTexture.cpp
+  Threedim/CalibrationJobs.hpp
+  Threedim/CalibrationFiles.hpp
+  Threedim/CalibrationFiles.cpp
+  Threedim/FloatTextureIO.hpp
+  Threedim/FloatTextureIO.cpp
   Threedim/CubemapComposer.hpp
   Threedim/CubemapLoader.hpp
   Threedim/CubemapLoader.cpp
