@@ -70,10 +70,13 @@ struct recorder_harness
   }
 
   //! What the worker thread does with the jobs posted so far.
+  //! Its answers are applied to the object as the binding does before the
+  //! next tick.
   void run_worker()
   {
     for(auto& [t, m] : jobs)
-      decltype(rec.worker)::work(t, std::move(m));
+      if(auto reply = decltype(rec.worker)::work(t, std::move(m)))
+        reply(rec);
     jobs.clear();
   }
 };
@@ -165,6 +168,8 @@ TEST_CASE("Audio recorder: with no buffer back from the worker, a tick is droppe
     auto* doc = score::test::new_document(ctx);
     REQUIRE(doc);
     recorder_harness h{doc->context()};
+    h.rec.inputs.record.value = true;
+    h.rec.inputs.record.prev = true;
     h.rec.prepare(halp::setup{.input_channels = 2, .output_channels = 0, .frames = 64, .rate = 48000.});
     h.tick(2, 64);
     h.run_worker();
@@ -193,5 +198,62 @@ TEST_CASE("Audio recorder: with no buffer back from the worker, a tick is droppe
     CHECK(h.rec.dropped_blocks == dropped + 1);
     h.run_worker();
     CHECK(h.rec.impl->buffer_capacity >= std::size_t(4 * 2048));
+  });
+}
+
+TEST_CASE("Audio recorder: not recording, a tick takes no buffer and posts nothing",
+          "[avnd][audio][recorder]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    recorder_harness h{doc->context()};
+    h.rec.prepare(halp::setup{.input_channels = 2, .output_channels = 0, .frames = 64, .rate = 48000.});
+    h.tick(2, 64);
+    h.run_worker();
+    for(int i = 0; i < 100; i++)
+      h.tick(2, 64);
+    CHECK(h.jobs.empty());
+    CHECK(h.rec.dropped_blocks == 0);
+  });
+}
+
+TEST_CASE("Audio recorder: once stopped, it says which file it wrote",
+          "[avnd][audio][recorder]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const std::string path = dir.filePath("take.wav").toStdString();
+    recorder_harness h{doc->context()};
+    std::vector<std::string> finished;
+    h.rec.outputs.finished.call.context = &finished;
+    h.rec.outputs.finished.call.function = [](void* self, std::string f) {
+      static_cast<std::vector<std::string>*>(self)->push_back(std::move(f));
+    };
+    h.rec.inputs.filename.value = path;
+    h.rec.inputs.record.value = true;
+    h.rec.inputs.record.prev = true;
+    h.rec.prepare(halp::setup{.input_channels = 2, .output_channels = 0, .frames = 64, .rate = 48000.});
+    for(int i = 0; i < 10; i++)
+    {
+      h.tick(2, 64);
+      h.run_worker();
+    }
+    CHECK(finished.empty());
+
+    // Stopped: the worker closes the file, the next tick gives its name
+    h.rec.inputs.record.value = false;
+    h.rec.update();
+    h.run_worker();
+    h.tick(2, 64);
+    REQUIRE(finished.size() == 1);
+    CHECK(finished[0] == path);
+
+    // Once only
+    h.tick(2, 64);
+    CHECK(finished.size() == 1);
   });
 }

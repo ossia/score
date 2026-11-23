@@ -241,6 +241,19 @@ struct AudioRecorder
     if(!std::exchange(started, true))
       update();
 
+    // The file is finished once recording has stopped: said before anything
+    // that only applies while recording
+    if(!filename_to_output.empty())
+    {
+      outputs.finished(filename_to_output);
+      filename_to_output.clear();
+    }
+
+    // Nothing to write while not recording: no buffer leaves the pool and
+    // nothing is posted to the worker.
+    if(!inputs.record)
+      return;
+
     const auto needed = std::size_t(inputs.audio.channels) * std::size_t(frames);
     audio_buffer data = impl->pool.acquire();
     if(data.capacity() == 0)
@@ -265,12 +278,6 @@ struct AudioRecorder
       }
 
       worker.request(impl, process_message{frames, std::move(data)});
-    }
-
-    if(!filename_to_output.empty())
-    {
-      outputs.finished(filename_to_output);
-      filename_to_output.clear();
     }
   }
 
