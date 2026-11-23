@@ -2435,3 +2435,11 @@ if(TARGET score_plugin_avnd)
     SOURCES CroustiAnalysisPaused.cpp
     PLUGINS score_plugin_avnd)
 endif()
+
+# An object's node_state is shared by the objects of every renderer of its node
+# and kept across renderer rebuilds.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_node_state
+    SOURCES CroustiNodeState.cpp
+    PLUGINS score_plugin_avnd)
+endif()

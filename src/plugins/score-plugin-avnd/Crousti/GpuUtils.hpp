@@ -190,6 +190,17 @@ struct GpuWorker
   }
 
   mutable std::shared_ptr<WorkerResults> m_workerResults;
+
+  //! The object's `node_state`: one per node, shared by the objects of all its
+  //! renderers and kept while they are rebuilt.
+  template <typename T>
+  std::shared_ptr<T> nodeState() const
+  {
+    if(!m_nodeState)
+      m_nodeState = std::make_shared<T>();
+    return std::static_pointer_cast<T>(m_nodeState);
+  }
+  mutable std::shared_ptr<void> m_nodeState;
 };
 
 #if defined(OSCR_HAS_MMAP_FILE_STORAGE)
@@ -607,6 +618,13 @@ void prepareNewState(std::shared_ptr<Node_T>& eff, const Node& parent)
   }
 
   avnd::init_controls(*eff);
+
+  if constexpr(requires { typename decltype(Node_T::node_state)::element_type; })
+  {
+    using state_type = typename decltype(Node_T::node_state)::element_type;
+    if constexpr(requires { parent.template nodeState<state_type>(); })
+      eff->node_state = parent.template nodeState<state_type>();
+  }
 
   // The monitor of the process, shared by every renderer of the node
   if constexpr(requires { eff->monitor; parent.processModel; })
