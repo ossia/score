@@ -39,6 +39,7 @@ $SUDO apt-get install -y \
      software-properties-common wget \
      libasound-dev \
      ninja-build cmake \
+     python3 \
      libfftw3-dev \
      libdbus-1-dev \
      libsuil-dev liblilv-dev lv2-dev \

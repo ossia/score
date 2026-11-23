@@ -186,6 +186,8 @@ clone_addon https://github.com/ossia/score-addon-deuterium
 # Emulated synthesizers and console sound chips.
 clone_addon https://github.com/ossia/score-addon-emulation
 
+clone_addon https://github.com/ossia/score-addon-essentia
+
 if [[ "$CI_PLATFORM" != "WASM" ]];
 then
   clone_addon https://github.com/ossia/score-addon-ble

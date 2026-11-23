@@ -9,7 +9,7 @@ dnf -y update # Needed for dnf-5 does not know allowerasing error
 dnf -y install dnf5-plugins
 dnf -y install --allowerasing \
      clang \
-     cmake ninja-build \
+     cmake ninja-build python3 \
      ffmpeg-devel \
      clang-devel llvm-devel \
      alsa-lib-devel \

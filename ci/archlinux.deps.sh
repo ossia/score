@@ -19,7 +19,7 @@ fi
 $SUDO pacman -Syyu --noconfirm
 $SUDO pacman -S --noconfirm --needed \
    $PACKAGES \
-   cmake ninja gcc llvm clang boost \
+   cmake ninja gcc llvm clang boost python \
    icu \
    ffmpeg portaudio lv2 suil lilv sdl2 alsa-lib \
    avahi fftw bluez-libs dbus \
