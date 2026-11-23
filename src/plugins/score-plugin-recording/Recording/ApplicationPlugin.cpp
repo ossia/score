@@ -12,6 +12,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Record/RecordTools.hpp>
@@ -32,6 +33,11 @@
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
+
+#include <ossia-qt/invoke.hpp>
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/network/base/node.hpp>
+#include <ossia/network/base/parameter.hpp>
 
 #include <QAction>
 #include <QSignalBlocker>
@@ -64,6 +70,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   connect(&m_blink, &QTimer::timeout, this, [this] {
     if(!m_recordAct)
       return;
+    publishState();
     const bool lit = !m_session || !m_session->waiting() || !m_recordAct->isChecked();
     QSignalBlocker _{m_recordAct};
     m_recordAct->setChecked(m_session ? lit : false);
@@ -187,8 +194,81 @@ RecordOptions ApplicationPlugin::defaultOptions() const
   return RecordOptions{};
 }
 
+void ApplicationPlugin::publishState()
+{
+  for(auto& p : m_published)
+  {
+    const bool mine = m_session && m_sessionDocument == p.document && m_session->running();
+    const bool waiting = mine && m_session->waiting();
+    if(p.active && p.active->value() != ossia::value{mine})
+      p.active->push_value(mine);
+    if(p.waiting && p.waiting->value() != ossia::value{waiting})
+      p.waiting->push_value(waiting);
+  }
+}
+
+void ApplicationPlugin::publish(score::Document& doc)
+{
+  auto* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
+  if(!lt)
+    return;
+  auto& root = lt->device().get_root_node();
+  auto* rec = root.create_child("recording");
+  if(!rec)
+    return;
+  const QPointer<score::Document> d = &doc;
+
+  // Received on a network thread: done on the GUI thread, as the Record button
+  {
+    auto* n = rec->create_child("record");
+    auto* p = n->create_parameter(ossia::val_type::IMPULSE);
+    p->set_access(ossia::access_mode::SET);
+    p->add_callback([this, d](const ossia::value&) {
+      ossia::qt::run_async(this, [this, d] {
+        if(d && !m_session)
+          recordSelection(d->context());
+      });
+    });
+  }
+  {
+    auto* n = rec->create_child("stop");
+    auto* p = n->create_parameter(ossia::val_type::IMPULSE);
+    p->set_access(ossia::access_mode::SET);
+    p->add_callback([this](const ossia::value&) {
+      ossia::qt::run_async(this, [this] { stopSession(); });
+    });
+  }
+  Published pub;
+  pub.document = &doc;
+  {
+    auto* n = rec->create_child("active");
+    pub.active = n->create_parameter(ossia::val_type::BOOL);
+    pub.active->set_value(false);
+    pub.active->set_access(ossia::access_mode::GET);
+  }
+  {
+    auto* n = rec->create_child("waiting");
+    pub.waiting = n->create_parameter(ossia::val_type::BOOL);
+    pub.waiting->set_value(false);
+    pub.waiting->set_access(ossia::access_mode::GET);
+  }
+  m_published.push_back(pub);
+}
+
+void ApplicationPlugin::on_createdDocument(score::Document& doc)
+{
+  publish(doc);
+}
+
+void ApplicationPlugin::on_loadedDocument(score::Document& doc)
+{
+  if(ossia::none_of(m_published, [&](const Published& p) { return p.document == &doc; }))
+    publish(doc);
+}
+
 void ApplicationPlugin::showRecording(bool b)
 {
+  publishState();
   // While the takes wait (for playback, the grid or a first value), the
   // button blinks; it stays lit while they record
   if(b && !m_blink.isActive())
@@ -227,18 +307,23 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
 void ApplicationPlugin::recordSelection()
 {
+  if(auto* doc = context.currentDocument())
+    recordSelection(*doc);
+  else if(m_session)
+    stopSession();
+  else
+    showRecording(false);
+}
+
+void ApplicationPlugin::recordSelection(const score::DocumentContext& ctx)
+{
   if(m_session)
   {
     stopSession();
     showRecording(m_session && m_session->running());
     return;
   }
-  auto* doc = context.currentDocument();
-  if(!doc)
-  {
-    showRecording(false);
-    return;
-  }
+  auto* doc = &ctx;
   std::vector<const Process::Port*> ports;
   for(const auto& obj : doc->selectionStack.currentSelection())
   {
@@ -259,6 +344,7 @@ void ApplicationPlugin::recordSelection()
 
 void ApplicationPlugin::on_closeDocument(score::Document& doc)
 {
+  ossia::remove_erase_if(m_published, [&](const Published& p) { return p.document == &doc; });
   // The session refers to the document: it ends, its takes placed, first
   if(m_session && m_sessionDocument == &doc)
   {

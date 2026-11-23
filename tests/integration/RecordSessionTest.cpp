@@ -23,6 +23,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordSession.hpp>
 
@@ -47,7 +48,12 @@
 #include <score_test/Process.hpp>
 #include <score_test/Project.hpp>
 
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node_functions.hpp>
+#include <ossia/network/base/parameter.hpp>
+
 #include <cmath>
+#include <thread>
 #include <vector>
 
 namespace
@@ -297,5 +303,63 @@ TEST_CASE("The Record button records the selected port and stops", "[recording][
     spin(200);
     CHECK(box->processes.size() == processes_before + 1);
     CHECK(spin_until([&] { return rec.session() == nullptr; }));
+  });
+}
+
+TEST_CASE("score:/recording records and stops as the Record button does", "[recording][session][remote]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    REQUIRE(sound);
+    const auto processes_before = box->processes.size();
+
+    auto* lt = doc->context().findPlugin<LocalTree::DocumentPlugin>();
+    REQUIRE(lt);
+    auto& root = lt->device().get_root_node();
+    auto* record = ossia::net::find_node(root, "/recording/record");
+    auto* stop = ossia::net::find_node(root, "/recording/stop");
+    auto* active = ossia::net::find_node(root, "/recording/active");
+    REQUIRE(record);
+    REQUIRE(stop);
+    REQUIRE(active);
+    CHECK(active->get_parameter()->value() == ossia::value{false});
+
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    score::SelectionDispatcher{doc->context().selectionStack}.select(*sound->outlets()[0]);
+
+    // As a message from the network: from another thread
+    std::thread{[&] { record->get_parameter()->push_value(ossia::impulse{}); }}.join();
+    REQUIRE(spin_until([&] { return rec.session() != nullptr; }));
+    auto* session = rec.session();
+    bool finished = false;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] { finished = true; });
+    CHECK(spin_until([&] { return active->get_parameter()->value() == ossia::value{true}; }));
+    spin(600);
+
+    std::thread{[&] { stop->get_parameter()->push_value(ossia::impulse{}); }}.join();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+    CHECK(box->processes.size() == processes_before + 1);
+    CHECK(spin_until([&] { return active->get_parameter()->value() == ossia::value{false}; }));
   });
 }

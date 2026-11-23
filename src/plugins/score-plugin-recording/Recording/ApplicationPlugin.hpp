@@ -10,6 +10,10 @@
 
 #include <memory>
 #include <vector>
+namespace ossia::net
+{
+class parameter_base;
+}
 namespace Engine
 {
 class ApplicationPlugin;
@@ -68,12 +72,28 @@ public:
   //! The Record button: records the ports selected, or the audio and MIDI
   //! outlets of the processes selected; stops the recording when one runs
   void recordSelection();
+  //! The same, in a given document (remote control)
+  void recordSelection(const score::DocumentContext& ctx);
+
+  void on_createdDocument(score::Document& doc) override;
+  void on_loadedDocument(score::Document& doc) override;
 
 private:
   Engine::ApplicationPlugin* m_ossiaplug{};
   QAction* m_stopAction{};
   QAction* m_recordAct{};
   QTimer m_blink;
+
+  //! score:/recording/active and /waiting of each document
+  struct Published
+  {
+    const score::Document* document{};
+    ossia::net::parameter_base* active{};
+    ossia::net::parameter_base* waiting{};
+  };
+  std::vector<Published> m_published;
+  void publish(score::Document& doc);
+  void publishState();
 
   void showRecording(bool);
   RecordSession* adopt(std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx);
