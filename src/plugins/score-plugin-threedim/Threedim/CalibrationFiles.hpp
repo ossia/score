@@ -62,6 +62,8 @@ struct CalibrationWrite
   std::vector<CalibrationMap> maps;
   //! Set over the keys of the existing name.json, which are kept otherwise.
   QJsonObject fields;
+  //! Keys of the existing name.json this write makes stale.
+  QStringList removeKeys;
   //! Suffixes of the files the existing name.json lists that stay listed when
   //! this write does not replace them; the others are no longer listed.
   QStringList keepListed;

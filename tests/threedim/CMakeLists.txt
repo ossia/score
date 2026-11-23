@@ -625,6 +625,14 @@ score_add_test(test_threedim_calibration_registration
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_calibration_registration)
 
+# Manual Projector Calibration: DLT + LM and EPnP from hand-picked pairs.
+score_add_test(test_threedim_manual_projector_calibration
+  SOURCES ManualProjectorCalibration.cpp
+    "${THREEDIM_DIR}/ManualProjectorCalibration.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_manual_projector_calibration)
+
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
   SOURCES Photometric.cpp

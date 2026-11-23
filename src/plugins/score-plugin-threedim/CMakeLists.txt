@@ -106,6 +106,8 @@ add_library(
   Threedim/ProjectorBlend.cpp
   Threedim/CalibrationRegistration.hpp
   Threedim/CalibrationRegistration.cpp
+  Threedim/ManualProjectorCalibration.hpp
+  Threedim/ManualProjectorCalibration.cpp
   Threedim/CubemapComposer.hpp
   Threedim/CubemapLoader.hpp
   Threedim/CubemapLoader.cpp

@@ -156,6 +156,8 @@ bool writeCalibration(const CalibrationWrite& w, QString* error)
       }
   }
 
+  for(const auto& k : w.removeKeys)
+    o.remove(k);
   for(auto it = w.fields.begin(); it != w.fields.end(); ++it)
     o[it.key()] = it.value();
   if(!w.maps.empty())
