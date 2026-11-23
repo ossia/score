@@ -3455,3 +3455,30 @@ if(TARGET score_plugin_vst3 AND TARGET base AND TARGET pluginterfaces AND UNIX A
       ENVIRONMENT_MODIFICATION ${SCORE_TEST_ENVIRONMENT} "QT_SCALE_FACTOR=set:${_scale}")
   endforeach()
 endif()
+
+# The WAV writer of recorded takes: every format reads back, RF64 past the
+# RIFF limit.
+if(TARGET score_plugin_recording AND TARGET score_plugin_media)
+  score_add_test(test_unit_wav_stream_writer
+    SOURCES WavStreamWriterTest.cpp
+    PLUGINS score_plugin_recording score_plugin_media)
+endif()
+
+# The audio recorder of the recording engine, driven tick by tick: start at
+# once, on the next bar, waiting for its box, length, lost blocks counted.
+if(TARGET score_plugin_recording)
+  score_add_test(test_unit_audio_record_engine
+    SOURCES AudioRecordEngineTest.cpp
+    PLUGINS score_plugin_recording)
+
+  # The MIDI recorder: messages dated in the box, start on the bar or on the
+  # first message, length, notes paired.
+  score_add_test(test_unit_midi_record_engine
+    SOURCES MidiRecordEngineTest.cpp
+    PLUGINS score_plugin_recording)
+
+  # The value recorder and the value take file it makes.
+  score_add_test(test_unit_value_record_engine
+    SOURCES ValueRecordEngineTest.cpp
+    PLUGINS score_plugin_recording)
+endif()

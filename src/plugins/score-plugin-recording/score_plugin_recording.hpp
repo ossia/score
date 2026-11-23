@@ -41,5 +41,9 @@ private:
 
   std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
 
+  std::vector<score::InterfaceBase*> factories(
+      const score::ApplicationContext& ctx,
+      const score::InterfaceKey& factoryName) const override;
+
   std::vector<score::PluginKey> required() const override;
 };

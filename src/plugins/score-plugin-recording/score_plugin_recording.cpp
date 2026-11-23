@@ -3,6 +3,7 @@
 #include "score_plugin_recording.hpp"
 
 #include <Recording/ApplicationPlugin.hpp>
+#include <Recording/Session/RecordPortMenu.hpp>
 #include <Recording/Commands/RecordingCommandFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
@@ -19,6 +20,14 @@ score::GUIApplicationPlugin* score_plugin_recording::make_guiApplicationPlugin(
     const score::GUIApplicationContext& app)
 {
   return new Recording::ApplicationPlugin{app};
+}
+
+std::vector<score::InterfaceBase*> score_plugin_recording::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+{
+  return instantiate_factories<
+      score::ApplicationContext,
+      FW<Process::PortContextMenuFactory, Recording::RecordPortMenu>>(ctx, key);
 }
 
 auto score_plugin_recording::required() const -> std::vector<score::PluginKey>

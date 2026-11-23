@@ -2441,3 +2441,14 @@ if(TARGET score_plugin_avnd)
     PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine
             score_plugin_scenario score_lib_process)
 endif()
+
+# A recording session on a document that plays: a port of a box recorded to a
+# take in Takes, placed in the box as one undoable step.
+if(TARGET score_plugin_recording AND TARGET score_plugin_media)
+  score_add_test(test_integration_record_session
+    SOURCES RecordSessionTest.cpp
+    APP
+    PLUGINS score_plugin_recording score_plugin_media score_plugin_audio
+      score_plugin_engine score_plugin_scenario score_lib_process
+      score_plugin_dataflow score_plugin_deviceexplorer)
+endif()

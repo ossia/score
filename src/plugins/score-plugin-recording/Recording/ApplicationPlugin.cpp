@@ -13,6 +13,7 @@
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Record/RecordManager.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
+#include <Recording/Session/RecordSession.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
@@ -62,6 +63,63 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     m_stopAction = stop_action.action();
     connect(m_stopAction, &QAction::triggered, this, [&] { stopRecord(); });
+  }
+}
+
+ApplicationPlugin::~ApplicationPlugin() = default;
+
+RecordSession* ApplicationPlugin::startSession(
+    const score::DocumentContext& ctx, const std::vector<const Process::Port*>& ports,
+    RecordOptions options)
+{
+  if(m_session)
+    return nullptr;
+  auto session = std::make_unique<RecordSession>(ctx, options);
+  for(auto* p : ports)
+    if(p)
+      session->addSource(*p);
+  if(session->sources() == 0 || !session->start())
+    return nullptr;
+
+  m_session = std::move(session);
+  m_sessionDocument = &ctx.document;
+  // Destroyed once it has placed its takes, out of its own signal
+  connect(m_session.get(), &RecordSession::finished, this, [this] {
+    QMetaObject::invokeMethod(this, [this] {
+      if(m_session && !m_session->running())
+      {
+        m_session.reset();
+        m_sessionDocument = nullptr;
+      }
+    }, Qt::QueuedConnection);
+  });
+  return m_session.get();
+}
+
+void ApplicationPlugin::stopSession()
+{
+  if(m_session)
+    m_session->stop();
+}
+
+bool ApplicationPlugin::recording(const score::DocumentContext& ctx) const noexcept
+{
+  return m_session && m_session->running() && m_sessionDocument == &ctx.document;
+}
+
+RecordOptions ApplicationPlugin::defaultOptions() const
+{
+  return RecordOptions{};
+}
+
+void ApplicationPlugin::on_closeDocument(score::Document& doc)
+{
+  // The session refers to the document: it ends, its takes placed, first
+  if(m_session && m_sessionDocument == &doc)
+  {
+    m_session->stop();
+    m_session.reset();
+    m_sessionDocument = nullptr;
   }
 }
 

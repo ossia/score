@@ -1,0 +1,170 @@
+#include "ValueRecorder.hpp"
+
+#include <Process/Execution/TapLink.hpp>
+
+#include <ossia/dataflow/value_port.hpp>
+
+#include <algorithm>
+
+namespace Recording
+{
+ValueTake::ValueTake(std::size_t capacity)
+    : queue(std::max<std::size_t>(16, capacity))
+{
+}
+
+ValueTake::~ValueTake() = default;
+
+value_record_node::value_record_node(
+    std::shared_ptr<ValueTake> take, std::shared_ptr<ossia::graph_node> clock)
+    : m_take{std::move(take)}
+    , m_clock{std::move(clock)}
+{
+  m_inlets.push_back(new ossia::value_inlet);
+}
+
+value_record_node::~value_record_node() = default;
+
+void value_record_node::run(
+    const ossia::token_request&, ossia::exec_state_facade e) noexcept
+{
+  Execution::writeInPlaceOfOutlets(*m_inlets.front(), e);
+  auto& take = *m_take;
+  int st = take.state.load(std::memory_order_acquire);
+
+  if(take.stopRequested.exchange(false))
+  {
+    if(st != ValueTake::Done)
+    {
+      take.startRequested.store(false);
+      take.state.store(ValueTake::Done, std::memory_order_release);
+    }
+    return;
+  }
+  if(take.startRequested.exchange(false) && st == ValueTake::Idle)
+  {
+    st = ValueTake::Waiting;
+    take.state.store(st, std::memory_order_release);
+  }
+  if(st != ValueTake::Waiting && st != ValueTake::Recording)
+    return;
+  if(!m_clock || m_clock->requested_tokens.empty())
+    return;
+
+  const auto& values = m_inlets.front()->target<ossia::value_port>()->get_data();
+  const double ratio = e.modelToSamples();
+
+  for(const auto& tk : m_clock->requested_tokens)
+  {
+    if(tk.date.impl <= tk.prev_date.impl)
+      continue;
+    const int64_t span_start = tk.physical_start(ratio);
+    const int64_t span_len = tk.physical_write_duration(ratio);
+    if(span_len <= 0)
+      continue;
+
+    const auto date_at = [&](int64_t in_span) {
+      return tk.prev_date.impl
+             + int64_t(double(in_span) / span_len * double((tk.date - tk.prev_date).impl));
+    };
+    const auto position_at = [&](int64_t in_span) {
+      return tk.musical_start_position
+             + double(in_span) / span_len
+                   * (tk.musical_end_position - tk.musical_start_position);
+    };
+    // Where a value is in the span; one without a timestamp, at its start
+    const auto at_of = [&](const ossia::timed_value& v) {
+      return std::clamp<int64_t>(int64_t(v.timestamp) - span_start, 0, span_len - 1);
+    };
+
+    int64_t from = 0;
+    if(st == ValueTake::Waiting)
+    {
+      if(take.startOnFirstEvent.load(std::memory_order_relaxed))
+      {
+        if(values.empty())
+          continue;
+        int64_t first = span_len;
+        for(const auto& v : values)
+          first = std::min(first, at_of(v));
+        from = first;
+        take.startDate.store(date_at(from), std::memory_order_relaxed);
+        take.startPosition.store(position_at(from), std::memory_order_relaxed);
+      }
+      else if(const double rate = take.startRate.load(std::memory_order_relaxed); rate > 0.)
+      {
+        const auto pt = tk.get_quantification_point(rate);
+        if(!pt)
+          continue;
+        from = tk.physical_position(pt->position, ratio);
+        take.startDate.store(pt->date.impl, std::memory_order_relaxed);
+        take.startPosition.store(pt->position, std::memory_order_relaxed);
+      }
+      else
+      {
+        take.startDate.store(tk.prev_date.impl, std::memory_order_relaxed);
+        take.startPosition.store(tk.musical_start_position, std::memory_order_relaxed);
+      }
+      take.tempo.store(tk.tempo, std::memory_order_relaxed);
+      take.meterNumerator.store(tk.signature.upper, std::memory_order_relaxed);
+      take.meterDenominator.store(tk.signature.lower, std::memory_order_relaxed);
+      m_endPosition = -1.;
+      if(const double bars = take.lengthBars.load(std::memory_order_relaxed); bars > 0.)
+      {
+        const auto sig = tk.signature;
+        const double quarters_per_bar
+            = (sig.upper > 0 && sig.lower > 0) ? 4. * sig.upper / sig.lower : 4.;
+        m_endPosition
+            = take.startPosition.load(std::memory_order_relaxed) + bars * quarters_per_bar;
+      }
+      st = ValueTake::Recording;
+      take.state.store(st, std::memory_order_release);
+    }
+
+    int64_t until = span_len;
+    bool ends = false;
+    int64_t end_date = 0;
+    const int64_t length = take.length.load(std::memory_order_relaxed);
+    const int64_t start_date = take.startDate.load(std::memory_order_relaxed);
+    if(m_endPosition >= 0.)
+    {
+      if(tk.musical_end_position >= m_endPosition)
+      {
+        until = tk.musical_end_position == m_endPosition
+                    ? span_len
+                    : tk.physical_position(m_endPosition, ratio);
+        end_date = date_at(until);
+        ends = true;
+      }
+    }
+    else if(length > 0 && tk.date.impl >= start_date + length)
+    {
+      until = std::clamp<int64_t>(
+          tk.to_physical_time_in_tick(ossia::time_value{start_date + length}, ratio)
+              - span_start,
+          0, span_len);
+      end_date = start_date + length;
+      ends = true;
+    }
+
+    for(const auto& v : values)
+    {
+      const int64_t at = at_of(v);
+      if(at < from || at >= until)
+        continue;
+      if(take.queue.try_enqueue(ValueTake::Event{date_at(at), v.value}))
+        take.events.fetch_add(1, std::memory_order_relaxed);
+      else
+        take.droppedEvents.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    if(ends)
+    {
+      take.endDate.store(end_date, std::memory_order_relaxed);
+      take.state.store(ValueTake::Done, std::memory_order_release);
+      return;
+    }
+    take.endDate.store(tk.date.impl, std::memory_order_relaxed);
+  }
+}
+}

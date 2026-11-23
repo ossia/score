@@ -22,6 +22,16 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordMessagesManager.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordProviderFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordTools.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/WavStreamWriter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/AudioRecorder.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/MidiRecorder.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedNotes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Commands/PlaceTakes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Session/RecordOptions.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Session/RecordSession.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Session/RecordPortMenu.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/ValueRecorder.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedValues.hpp"
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Commands/RecordingCommandFactory.cpp"
@@ -33,6 +43,15 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationCreationVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationFirstParameterCallbackVisitor.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/WavStreamWriter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/AudioRecorder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/MidiRecorder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedNotes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Session/RecordSession.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Session/RecordPortMenu.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Engine/ValueRecorder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Takes/RecordedValues.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_recording.cpp"
