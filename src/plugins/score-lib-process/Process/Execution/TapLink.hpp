@@ -56,6 +56,9 @@ public:
   //! what the address receives, as an inlet bound to it would.
   TapLink(ossia::net::parameter_base& address, const Execution::Context& ctx,
           std::shared_ptr<ossia::graph_node> node);
+  //! Runs `node` every tick without linking it to anything: a node that only
+  //! reads the time of another (a clock probe)
+  TapLink(const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node);
   //! Unlinks the node, on the execution thread; it is freed on the GUI thread.
   ~TapLink();
   TapLink(const TapLink&) = delete;

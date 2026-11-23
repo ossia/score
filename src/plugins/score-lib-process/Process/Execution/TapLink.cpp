@@ -83,6 +83,17 @@ TapLink::TapLink(
   link(ctx, std::move(node), &address);
 }
 
+TapLink::TapLink(const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node)
+    : m_queue{ctx.weakExecutionQueue()}
+    , m_gc{ctx.weakGCQueue()}
+    , m_graph{ctx.execGraph}
+    , m_state{ctx.execState}
+{
+  if(!node || !TapTicker::instance() || ctx.retired || !ctx.execGraph)
+    return;
+  link(ctx, std::move(node), nullptr);
+}
+
 void TapLink::link(
     const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node,
     ossia::net::parameter_base* address)

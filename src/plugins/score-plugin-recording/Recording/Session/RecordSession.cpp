@@ -29,6 +29,9 @@
 #include <Recording/Commands/PlaceTakes.hpp>
 #include <Recording/Takes/RecordedNotes.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
+#if SCORE_RECORDING_TEXTURES
+#include <Recording/Video/TextureRecorder.hpp>
+#endif
 #include <Recording/Takes/Passes.hpp>
 #include <Recording/Takes/RecordedCurves.hpp>
 #include <Recording/Takes/RecordedValues.hpp>
@@ -85,6 +88,10 @@ struct RecordSession::Source
   QPointer<Scenario::IntervalModel> box;
   QString prefix;
 
+#if SCORE_RECORDING_TEXTURES
+  //! A texture: its frames, and `values` as the clock that dates them
+  std::unique_ptr<TextureRecorder> video;
+#endif
   std::shared_ptr<AudioTake> audio;
   std::shared_ptr<MidiTake> midi;
   std::shared_ptr<ValueTake> values;
@@ -184,8 +191,12 @@ bool RecordSession::addSource(const Process::Port& port)
   if(m_running)
     return false;
   const auto type = port.type();
+  bool texture = false;
+#if SCORE_RECORDING_TEXTURES
+  texture = type == Process::PortType::Texture && TextureRecorder::canRecord(port);
+#endif
   if(type != Process::PortType::Audio && type != Process::PortType::Midi
-     && type != Process::PortType::Message)
+     && type != Process::PortType::Message && !texture)
     return false;
 
   auto s = std::make_unique<Source>();
@@ -197,6 +208,8 @@ bool RecordSession::addSource(const Process::Port& port)
     s->audio = std::make_shared<AudioTake>(8, 1024, 512);
   else if(type == Process::PortType::Midi)
     s->midi = std::make_shared<MidiTake>(65536);
+  else if(texture)
+    s->values = std::make_shared<ValueTake>(16);
   else
     s->values = std::make_shared<ValueTake>(65536);
   m_sources.push_back(std::move(s));
@@ -313,6 +326,13 @@ bool RecordSession::start()
       s->values->startOnFirstEvent
           = m_options.start == RecordOptions::Start::FirstEvent && s->port;
     }
+    // A texture's frames are taken from when it starts: its clock does not
+    // wait for a grid or an event
+    if(s->type == Process::PortType::Texture)
+    {
+      s->values->startRate = 0.;
+      s->values->startOnFirstEvent = false;
+    }
   }
 
   // Playback ending ends the recording
@@ -374,7 +394,25 @@ void RecordSession::createRecorders()
     else
       s->node = std::make_shared<value_record_node>(s->values, clock);
 
-    if(s->port)
+    if(s->port && s->type == Process::PortType::Texture)
+    {
+#if SCORE_RECORDING_TEXTURES
+      // The clock alone; the frames come through the graphics context
+      s->link = std::make_unique<Execution::TapLink>(ectx, s->node);
+      const QString folder = Process::takesFolder(m_ctx);
+      const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
+        return Process::takeFile(folder, s->prefix, k, QStringLiteral("mkv"));
+      });
+      s->file = Process::takeFile(folder, s->prefix, n, QStringLiteral("mkv"));
+      s->video = std::make_unique<TextureRecorder>(*s->port, m_ctx, s->file);
+      if(!s->video->start())
+      {
+        s->video.reset();
+        s->link.reset();
+      }
+#endif
+    }
+    else if(s->port)
     {
       s->link = std::make_unique<Execution::TapLink>(*s->port, ectx, s->node);
     }
@@ -592,6 +630,11 @@ void RecordSession::finish()
     s->link.reset();
   }
 
+#if SCORE_RECORDING_TEXTURES
+  for(auto& s : m_sources)
+    if(s->video)
+      s->video->stop();
+#endif
   m_writing = false;
   if(m_writer.joinable())
     m_writer.join();
@@ -759,6 +802,18 @@ void RecordSession::place()
       t.startDate = s->audio->startDate;
       t.endDate = s->audio->endDate;
     }
+    else if(s->type == Process::PortType::Texture)
+    {
+#if SCORE_RECORDING_TEXTURES
+      if(!s->video || s->video->frames() == 0 || !QFile::exists(s->file))
+        continue;
+      t.file = s->file;
+      t.startDate = s->values->startDate;
+      t.endDate = s->values->endDate;
+#else
+      continue;
+#endif
+    }
     else if(s->values)
     {
       if(s->valueEvents.empty())
@@ -844,7 +899,8 @@ void RecordSession::place()
 
     // Passes: a file and a process for each
     if(m_options.passes != RecordOptions::Passes::One && s->box
-       && m_options.target != RecordOptions::Target::FileOnly)
+       && m_options.target != RecordOptions::Target::FileOnly
+       && s->type != Process::PortType::Texture)
     {
       if(placePasses(*s, t, macro))
         placed_any = true;

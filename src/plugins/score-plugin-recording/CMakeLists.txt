@@ -58,6 +58,15 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
+# Textures are recorded through the graphics plug-in when it is built
+if(TARGET score_plugin_gfx)
+  target_sources(${PROJECT_NAME} PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Video/TextureRecorder.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Video/TextureRecorder.cpp")
+  target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_gfx)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC SCORE_RECORDING_TEXTURES=1)
+endif()
+
 target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_scenario score_plugin_engine score_plugin_curve score_plugin_automation score_plugin_midi score_plugin_media)
 
 setup_score_plugin(${PROJECT_NAME})

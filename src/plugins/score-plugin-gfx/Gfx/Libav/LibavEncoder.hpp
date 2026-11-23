@@ -4,6 +4,8 @@
 #if SCORE_HAS_LIBAV
 #include <Gfx/Libav/LibavOutputSettings.hpp>
 
+#include <score_plugin_gfx_export.h>
+
 #include <ossia/detail/pod_vector.hpp>
 
 #include <mutex>
@@ -20,7 +22,7 @@ namespace Gfx
 {
 
 struct OutputStream;
-struct LibavEncoder
+struct SCORE_PLUGIN_GFX_EXPORT LibavEncoder
 {
   explicit LibavEncoder(const LibavOutputSettings& set);
   ~LibavEncoder();

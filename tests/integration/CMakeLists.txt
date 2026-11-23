@@ -2454,6 +2454,18 @@ if(TARGET score_plugin_recording AND TARGET score_plugin_media)
       score_plugin_automation score_plugin_curve)
 endif()
 
+# A texture outlet recorded to a video take through the preview path.
+if(TARGET score_plugin_recording AND TARGET score_plugin_gfx)
+  score_add_test(test_integration_record_texture
+    SOURCES RecordTextureTest.cpp
+    GUI
+    PLUGINS score_plugin_recording score_plugin_gfx score_plugin_engine
+      score_plugin_scenario score_lib_process)
+  target_compile_definitions(test_integration_record_texture PRIVATE
+    "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
+  set_tests_properties(test_integration_record_texture PROPERTIES TIMEOUT 120)
+endif()
+
 # "Record automations / messages from here": the explorer's addresses,
 # recorded by the engine from a point and placed in a new box, undoable.
 if(TARGET score_plugin_recording AND TARGET score_plugin_automation)
