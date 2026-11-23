@@ -1558,6 +1558,8 @@ struct texture_inputs_storage<T>
 
   QRhiReadbackResult m_readbacks[avnd::texture_input_introspection<T>::size];
   bool m_readbackPremultiplied[avnd::texture_input_introspection<T>::size]{};
+  bool m_readbackDirect[avnd::texture_input_introspection<T>::size]{};
+  bool m_readbackResampled[avnd::texture_input_introspection<T>::size]{};
 
   template <typename Tex>
   QRhiTexture* createInput(
@@ -1938,6 +1940,17 @@ struct texture_inputs_storage<T>
            && !requires(F f) { f.request_width; };
   }
 
+  //! A fixed-format CPU input declaring source_size() reads its producer's
+  //! texture as it is, at its size, when its format is the input's. Otherwise
+  //! it reads its own target, which `resampled` says when the producer drew
+  //! its own texture into it: then it holds a resampled copy.
+  template <typename F>
+  static constexpr bool reads_source_size() noexcept
+  {
+    return avnd::cpu_texture_port<F> && !reads_upstream_directly<F>()
+           && requires { F::source_size(); };
+  }
+
   void runInitialPasses(auto& self, score::gfx::RenderList& renderer)
   {
     auto& rhi = *renderer.state.rhi;
@@ -1949,10 +1962,30 @@ struct texture_inputs_storage<T>
     // "completed" callback.
     if constexpr(avnd::cpu_texture_input_introspection<T>::size > 0)
     {
-      avnd::texture_input_introspection<T>::for_all_n(
-          avnd::get_inputs<T>(*self.state), [&]<typename F, std::size_t K>(F& t, avnd::predicate_index<K>) {
+      avnd::texture_input_introspection<T>::for_all_n2(
+          avnd::get_inputs<T>(*self.state),
+          [&]<typename F, std::size_t K, std::size_t N>(
+              F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
         if constexpr(avnd::cpu_texture_port<F>)
           {
+            if constexpr(reads_source_size<F>())
+            {
+              const auto& rb = m_readbacks[K];
+              const bool direct = m_readbackDirect[K] && !rb.pixelSize.isEmpty();
+              if(direct)
+              {
+                t.texture.width = rb.pixelSize.width();
+                t.texture.height = rb.pixelSize.height();
+              }
+              else if(auto it = m_rts.find(self.node().input[N]);
+                      it != m_rts.end() && it->second.texture)
+              {
+                t.texture.width = it->second.texture->pixelSize().width();
+                t.texture.height = it->second.texture->pixelSize().height();
+              }
+              if constexpr(requires { t.resampled = true; })
+                t.resampled = m_readbackResampled[K];
+            }
             if constexpr(reads_upstream_directly<F>())
             {
               const auto& rb = m_readbacks[K];
@@ -2014,7 +2047,7 @@ struct texture_inputs_storage<T>
           if(rt_it == m_rts.end())
             return;
           QRhiTexture* tex = rt_it->second.texture;
-          if constexpr(reads_upstream_directly<F>())
+          if constexpr(reads_upstream_directly<F>() || reads_source_size<F>())
           {
             auto [wired, direct] = upstreamTexture(renderer, self.node(), N, p);
             if(direct && direct->sampleCount() <= 1
@@ -2022,13 +2055,20 @@ struct texture_inputs_storage<T>
                && !(direct->flags()
                     & (QRhiTexture::CubeMap | QRhiTexture::ThreeDimensional
                        | QRhiTexture::TextureArray)))
-              tex = direct;
+            {
+              if constexpr(reads_upstream_directly<F>())
+                tex = direct;
+              else if(direct->format() == gpp::qrhi::textureFormat(field.texture))
+                tex = direct;
+            }
+            m_readbackResampled[K] = direct && tex != direct;
           }
           if(!tex)
             return;
           auto& readback = m_readbacks[K];
           readback = {};
           m_readbackPremultiplied[K] = tex == rt_it->second.texture;
+          m_readbackDirect[K] = tex != rt_it->second.texture;
           res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
           m_readbackQueued = true;
         }

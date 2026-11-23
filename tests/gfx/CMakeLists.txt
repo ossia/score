@@ -2443,3 +2443,11 @@ if(TARGET score_plugin_avnd)
     SOURCES CroustiNodeState.cpp
     PLUGINS score_plugin_avnd)
 endif()
+
+# A CPU texture input declaring source_size() reads its producer's texture at
+# its own size when the formats match, and reports whether it did.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_source_size_readback
+    SOURCES CroustiSourceSizeReadback.cpp
+    PLUGINS score_plugin_avnd)
+endif()
