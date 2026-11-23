@@ -582,6 +582,18 @@ score_add_test(test_threedim_camera_roll_pole
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_roll_pole)
 
+# Multi-projector blend and black-level maps on simulated walls and a CAVE.
+score_add_test(test_threedim_projector_blend
+  SOURCES ProjectorBlend.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_projector_blend)
+
+# Camera response, projector response and radiometric compensation math.
+score_add_test(test_threedim_photometric
+  SOURCES Photometric.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_photometric)
+
 # FBX: a non-bone node between two bones is part of the joint chain, so the
 # bind pose skins vertices in place.
 score_plugin_hidden_sources(_fbx_joint_rest_hidden "${THREEDIM_DIR}/FbxParser.cpp")
@@ -605,3 +617,23 @@ threedim_test_includes(test_threedim_camera_array_cube_basis)
 score_add_test(test_threedim_scene_merge_skeletons
   SOURCES SceneMergeSkeletons.cpp)
 threedim_test_includes(test_threedim_scene_merge_skeletons)
+
+# Calibration maths on hostile input: NaN, invalid fits, oversized LED rasters,
+# duplicated XYZ samples, the slope constraint without links.
+score_add_test(test_threedim_calibration_math_hardening
+  SOURCES CalibrationMathHardening.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_math_hardening)
+
+# The pose and projector solvers, registration, plane fits and the off-axis
+# frustum against known ground truth.
+score_add_test(test_threedim_calibration_solvers
+  SOURCES CalibrationSolvers.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_solvers)
+
+# Kooima frustum of a CAVE wall, and the viewer frustum of a projector map.
+score_add_test(test_threedim_offaxis_frustum
+  SOURCES OffAxisFrustum.cpp
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_offaxis_frustum)

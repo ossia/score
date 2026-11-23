@@ -239,6 +239,14 @@ set(HDRS
     Gfx/Graph/GpuTiming.hpp
     Gfx/Graph/ScenePreprocessorNode.hpp
     Gfx/Graph/CameraMath.hpp
+    Gfx/Calibration/ProjectorModel.hpp
+    Gfx/Calibration/EPnP.hpp
+    Gfx/Calibration/PlaneFitting.hpp
+    Gfx/Calibration/Blending.hpp
+    Gfx/Calibration/Photometric.hpp
+    Gfx/Calibration/Registration.hpp
+    Gfx/Calibration/OffAxis.hpp
+    Gfx/Calibration/LedMapping.hpp
     Gfx/Graph/SceneFilterNode.hpp
     Gfx/Graph/FlattenedSceneFilterNode.hpp
     Gfx/Graph/MergeGeometriesNode.hpp
@@ -544,6 +552,14 @@ set(SRCS
     Gfx/Graph/GpuTiming.cpp
     Gfx/Graph/ScenePreprocessorNode.cpp
     Gfx/Graph/CameraMath.cpp
+    Gfx/Calibration/Blending.cpp
+    Gfx/Calibration/EPnP.cpp
+    Gfx/Calibration/LedMapping.cpp
+    Gfx/Calibration/OffAxis.cpp
+    Gfx/Calibration/Photometric.cpp
+    Gfx/Calibration/PlaneFitting.cpp
+    Gfx/Calibration/ProjectorModel.cpp
+    Gfx/Calibration/Registration.cpp
     Gfx/Graph/SceneFilterNode.cpp
     Gfx/Graph/FlattenedSceneFilterNode.cpp
     Gfx/Graph/MergeGeometriesNode.cpp
