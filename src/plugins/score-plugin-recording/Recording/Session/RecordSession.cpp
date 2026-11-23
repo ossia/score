@@ -5,13 +5,23 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Execution/TapLink.hpp>
 #include <Process/Process.hpp>
+#include <Process/ExecutionFunctions.hpp>
 #include <Process/TakeFiles.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
+#include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Commands/PlaceTakes.hpp>
@@ -27,6 +37,7 @@
 #include <core/document/Document.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 
 #include <QFile>
@@ -45,6 +56,14 @@ namespace Recording
 struct RecordSession::Source
 {
   QPointer<const Process::Port> port;
+  // Or an address
+  State::Address address;
+  State::Unit unit;
+  //! Its value when the session started
+  ossia::value initial;
+  //! Received while waiting for playback; it starts the take
+  std::optional<ossia::value> pending;
+
   Process::PortType type{};
   QPointer<Scenario::IntervalModel> box;
   QString prefix;
@@ -101,6 +120,16 @@ Execution::DocumentPlugin* executionOf(const score::DocumentContext& ctx)
 {
   return ctx.findPlugin<Execution::DocumentPlugin>();
 }
+
+QString prefixFor(const State::Address& addr)
+{
+  QString name = addr.toString();
+  static const QRegularExpression unsafe{QStringLiteral("[^A-Za-z0-9_.-]+")};
+  name.replace(unsafe, QStringLiteral("_"));
+  while(name.startsWith('_'))
+    name.remove(0, 1);
+  return name.isEmpty() ? QStringLiteral("Recording") : name;
+}
 }
 
 RecordSession::RecordSession(const score::DocumentContext& ctx, RecordOptions options)
@@ -113,6 +142,7 @@ RecordSession::RecordSession(const score::DocumentContext& ctx, RecordOptions op
 
 RecordSession::~RecordSession()
 {
+  stopListening();
   if(m_running)
   {
     for(auto& s : m_sources)
@@ -150,6 +180,45 @@ bool RecordSession::addSource(const Process::Port& port)
   return true;
 }
 
+bool RecordSession::addAddress(const State::Address& address)
+{
+  if(m_running)
+    return false;
+  auto* devices = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+  if(!devices)
+    return false;
+  auto* node = Device::try_getNodeFromAddress(devices->rootNode(), address);
+  if(!node || !node->is<Device::AddressSettings>())
+    return false;
+  const auto& settings = node->get<Device::AddressSettings>();
+
+  auto s = std::make_unique<Source>();
+  s->address = address;
+  s->unit = settings.unit;
+  s->initial = settings.value;
+  s->type = Process::PortType::Message;
+  s->prefix = prefixFor(address);
+  s->values = std::make_shared<ValueTake>(65536);
+  m_sources.push_back(std::move(s));
+  return true;
+}
+
+void RecordSession::placeInNewBox(
+    const Scenario::ProcessModel& scenario, Scenario::Point point,
+    AddressPlacement placement, CurveOptions curves, bool playOnFirst)
+{
+  m_scenario = &scenario;
+  m_point = point;
+  m_placement = placement;
+  m_curves = curves;
+  m_playOnFirst = playOnFirst;
+}
+
+bool RecordSession::hasAddresses() const noexcept
+{
+  return ossia::any_of(m_sources, [](const auto& s) { return !s->port; });
+}
+
 bool RecordSession::start()
 {
   if(m_running || m_sources.empty())
@@ -157,6 +226,18 @@ bool RecordSession::start()
   auto* exec = executionOf(m_ctx);
   if(!exec)
     return false;
+  // Addresses are recorded on the clock of the box their scenario plays in
+  if(hasAddresses())
+  {
+    if(!m_scenario)
+      return false;
+    auto* clock = Scenario::closestParentInterval(m_scenario.data());
+    if(!clock)
+      return false;
+    for(auto& s : m_sources)
+      if(!s->port)
+        s->box = clock;
+  }
 
   m_running = true;
   // Undo and redo stay off: a command pushed meanwhile (live editing) would
@@ -192,7 +273,10 @@ bool RecordSession::start()
       s->values->startRate = m_options.startRate;
       s->values->length = m_options.length;
       s->values->lengthBars = m_options.lengthBars;
-      s->values->startOnFirstEvent = m_options.start == RecordOptions::Start::FirstEvent;
+      // The takes of addresses start together, at the first value any of
+      // them gets (listenToDevices) or with the playback
+      s->values->startOnFirstEvent
+          = m_options.start == RecordOptions::Start::FirstEvent && s->port;
     }
   }
 
@@ -210,7 +294,9 @@ bool RecordSession::start()
     m_started = connect(
         exec, &Execution::DocumentPlugin::started, this,
         [this] { createRecorders(); }, Qt::QueuedConnection);
-    if(m_options.start != RecordOptions::Start::OnPlay)
+    if(m_options.start == RecordOptions::Start::FirstEvent && hasAddresses())
+      listenToDevices();
+    else if(m_options.start != RecordOptions::Start::OnPlay)
       if(auto* engine = m_ctx.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>())
         engine->execution().request_play_global(true);
   }
@@ -233,9 +319,14 @@ void RecordSession::createRecorders()
 
   for(auto& s : m_sources)
   {
-    if(!s->port || !s->box)
+    if(!s->box || (!s->port && s->address.device.isEmpty()))
       continue;
     auto* comp = score::findComponent<Execution::IntervalComponent>(s->box->components());
+    // The base interval's is the document's execution's, not one of its components
+    if(!comp)
+      if(const auto& base = exec->baseScenario();
+         base && &base->baseInterval().interval() == s->box)
+        comp = &base->baseInterval();
     if(!comp || !comp->OSSIAInterval())
       continue;
     auto clock = comp->OSSIAInterval()->node;
@@ -248,8 +339,18 @@ void RecordSession::createRecorders()
     else
       s->node = std::make_shared<value_record_node>(s->values, clock);
 
-    s->link = std::make_unique<Execution::TapLink>(*s->port, ectx, s->node);
-    if(!s->link->linked())
+    if(s->port)
+    {
+      s->link = std::make_unique<Execution::TapLink>(*s->port, ectx, s->node);
+    }
+    else if(ectx.execState)
+    {
+      auto dest = Execution::makeDestination(
+          *ectx.execState, State::AddressAccessor{s->address});
+      if(dest)
+        s->link = std::make_unique<Execution::TapLink>(dest->address(), ectx, s->node);
+    }
+    if(!s->link || !s->link->linked())
     {
       s->link.reset();
       s->node.reset();
@@ -263,6 +364,76 @@ void RecordSession::createRecorders()
       s->values->startRequested = true;
   }
   m_recordersCreated = true;
+  // The engine records them from now on
+  stopListening();
+}
+
+void RecordSession::listenToDevices()
+{
+  auto* devices = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+  if(!devices)
+    return;
+  for(auto& s : m_sources)
+  {
+    if(s->port)
+      continue;
+    auto* dev = devices->list().findDevice(s->address.device);
+    if(!dev || !dev->connected())
+      continue;
+    const auto requested = dev->listeningRequests();
+    if(!ossia::contains(requested, s->address))
+    {
+      // Only what comes from now on: the value it holds does not start a take
+      dev->setListening(s->address, true, false);
+      m_listeningAdded.push_back(s->address);
+    }
+    if(!ossia::contains(m_listened, dev))
+    {
+      m_listened.push_back(dev);
+      dev->valueUpdated.connect<&RecordSession::deviceValue>(*this);
+    }
+  }
+}
+
+void RecordSession::stopListening()
+{
+  for(auto& dev : m_listened)
+  {
+    if(!dev)
+      continue;
+    dev->valueUpdated.disconnect<&RecordSession::deviceValue>(*this);
+    for(const auto& addr : m_listeningAdded)
+      if(addr.device == dev->name())
+        dev->setListening(addr, false);
+  }
+  m_listened.clear();
+  m_listeningAdded.clear();
+}
+
+void RecordSession::deviceValue(const State::Address& addr, const ossia::value& v)
+{
+  // From the device's thread
+  QMetaObject::invokeMethod(
+      this, [this, addr, v] { firstValue(addr, v); }, Qt::QueuedConnection);
+}
+
+void RecordSession::firstValue(const State::Address& addr, const ossia::value& v)
+{
+  if(!m_running || m_recordersCreated)
+    return;
+  bool ours = false;
+  for(auto& s : m_sources)
+    if(!s->port && s->address == addr)
+    {
+      s->pending = v;
+      ours = true;
+    }
+  if(!ours || m_firstReceived)
+    return;
+  m_firstReceived = true;
+  if(m_playOnFirst)
+    if(auto* engine = m_ctx.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>())
+      engine->execution().on_record(m_point.date);
 }
 
 void RecordSession::drain()
@@ -358,6 +529,7 @@ void RecordSession::finish()
   QObject::disconnect(m_finished);
   QObject::disconnect(m_undoGuard);
   QObject::disconnect(m_redoGuard);
+  stopListening();
 
   auto* exec = executionOf(m_ctx);
   const bool engine_over = !exec || !exec->isPlaying();
@@ -391,6 +563,8 @@ void RecordSession::place()
 
   for(auto& s : m_sources)
   {
+    if(!s->port)
+      continue;
     Take t;
     t.box = s->box;
     t.midi = bool(s->midi);
@@ -469,6 +643,48 @@ void RecordSession::place()
       }
     }
     m_takes.push_back(std::move(t));
+  }
+
+  if(hasAddresses() && m_scenario)
+  {
+    std::vector<AddressTake> takes;
+    for(auto& s : m_sources)
+    {
+      if(s->port)
+        continue;
+      AddressTake t;
+      t.address = s->address;
+      t.unit = s->unit;
+      t.startDate = s->values->startDate;
+      t.endDate = s->values->endDate;
+      // What it got while playback started, else what it held: from the start
+      if(s->pending || !s->valueEvents.empty())
+      {
+        t.events.push_back({t.startDate, s->pending ? *s->pending : s->initial});
+        for(auto& e : s->valueEvents)
+          t.events.push_back(std::move(e));
+      }
+      // An address that got nothing is not placed
+      if(!s->pending && s->valueEvents.empty())
+        t.events.clear();
+      if(t.events.empty())
+        continue;
+      Take r;
+      r.box = s->box;
+      r.values = true;
+      r.startDate = t.startDate;
+      r.endDate = t.endDate;
+      m_takes.push_back(r);
+      takes.push_back(std::move(t));
+    }
+    if(!takes.empty())
+    {
+      if(!macro)
+        macro.emplace(new PlaceTakes, m_ctx);
+      m_placedBox = placeAddressTakes(
+          *macro, *m_scenario, m_point.y, takes, m_placement, m_curves);
+      placed_any = placed_any || m_placedBox;
+    }
   }
 
   if(macro && placed_any)

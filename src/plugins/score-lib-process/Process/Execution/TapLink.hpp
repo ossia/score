@@ -13,6 +13,10 @@ class graph_interface;
 class graph_node;
 struct execution_state;
 struct inlet;
+namespace net
+{
+class parameter_base;
+}
 }
 namespace Process
 {
@@ -48,6 +52,10 @@ public:
   //! execution of `ctx`; linked() is false when the port does not run.
   TapLink(const Process::Port& port, const Execution::Context& ctx,
           std::shared_ptr<ossia::graph_node> node);
+  //! Links `node` (one value inlet) to an address of a device: the node gets
+  //! what the address receives, as an inlet bound to it would.
+  TapLink(ossia::net::parameter_base& address, const Execution::Context& ctx,
+          std::shared_ptr<ossia::graph_node> node);
   //! Unlinks the node, on the execution thread; it is freed on the GUI thread.
   ~TapLink();
   TapLink(const TapLink&) = delete;
@@ -58,6 +66,9 @@ public:
   ossia::inlet* observedInlet() const noexcept { return m_observed; }
 
 private:
+  void link(const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node,
+            ossia::net::parameter_base* address);
+
   std::weak_ptr<ExecutionCommandQueue> m_queue;
   std::weak_ptr<GCCommandQueue> m_gc;
   std::weak_ptr<ossia::graph_interface> m_graph;

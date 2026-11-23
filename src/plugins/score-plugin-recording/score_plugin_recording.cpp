@@ -4,11 +4,14 @@
 
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordPortMenu.hpp>
+#include <Recording/Settings/RecordingSettings.hpp>
 #include <Recording/Commands/RecordingCommandFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/tools/std/HashMap.hpp>
 
+#include <score_plugin_automation.hpp>
+#include <score_plugin_curve.hpp>
 #include <score_plugin_engine.hpp>
 #include <score_plugin_recording_commands_files.hpp>
 #include <score_plugin_scenario.hpp>
@@ -27,12 +30,15 @@ std::vector<score::InterfaceBase*> score_plugin_recording::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::PortContextMenuFactory, Recording::RecordPortMenu>>(ctx, key);
+      FW<Process::PortContextMenuFactory, Recording::RecordPortMenu>,
+      FW<score::SettingsDelegateFactory, Recording::Settings::Factory>>(ctx, key);
 }
 
 auto score_plugin_recording::required() const -> std::vector<score::PluginKey>
 {
-  return {score_plugin_scenario::static_key(), score_plugin_engine::static_key()};
+  return {
+      score_plugin_scenario::static_key(), score_plugin_engine::static_key(),
+      score_plugin_curve::static_key(), score_plugin_automation::static_key()};
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

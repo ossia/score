@@ -67,24 +67,45 @@ TapLink::TapLink(
 
   if(m_edges.empty() && !m_observed)
     return;
+  link(ctx, std::move(node), nullptr);
+}
 
+TapLink::TapLink(
+    ossia::net::parameter_base& address, const Execution::Context& ctx,
+    std::shared_ptr<ossia::graph_node> node)
+    : m_queue{ctx.weakExecutionQueue()}
+    , m_gc{ctx.weakGCQueue()}
+    , m_graph{ctx.execGraph}
+    , m_state{ctx.execState}
+{
+  if(!node || !TapTicker::instance() || ctx.retired || !ctx.execGraph)
+    return;
+  link(ctx, std::move(node), &address);
+}
+
+void TapLink::link(
+    const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node,
+    ossia::net::parameter_base* address)
+{
   m_node = std::move(node);
   ctx.executionQueue.enqueue([g = ctx.execGraph, ws = std::weak_ptr{ctx.execState},
-                              node = m_node, edges = m_edges, observed = m_observed] {
+                              node = m_node, edges = m_edges, observed = m_observed,
+                              address] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     g->add_node(node);
     for(auto& e : edges)
       g->connect(e);
+    auto& tap = *node->root_inputs().front();
     if(observed)
+      tap.address = observed->address;
+    else if(address)
+      tap.address = address;
+    if(observed || address)
       if(auto s = ws.lock())
-      {
-        auto& tap = *node->root_inputs().front();
-        tap.address = observed->address;
         s->register_port(tap);
-      }
     g->mark_dirty();
   });
-  ticker->add(m_node);
+  TapTicker::instance()->add(m_node);
 }
 
 TapLink::~TapLink()

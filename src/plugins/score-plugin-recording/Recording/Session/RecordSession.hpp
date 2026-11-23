@@ -3,7 +3,14 @@
 #include <Recording/Engine/MidiRecorder.hpp>
 #include <Recording/Engine/ValueRecorder.hpp>
 #include <Recording/Session/RecordOptions.hpp>
+#include <Recording/Takes/PlaceAddressTakes.hpp>
 #include <Recording/Takes/WavStreamWriter.hpp>
+
+#include <State/Address.hpp>
+
+#include <Scenario/Palette/ScenarioPoint.hpp>
+
+#include <nano_signal_slot.hpp>
 
 #include <QObject>
 #include <QPointer>
@@ -32,6 +39,11 @@ class ProcessModel;
 namespace Scenario
 {
 class IntervalModel;
+class ProcessModel;
+}
+namespace Device
+{
+class DeviceInterface;
 }
 namespace Execution
 {
@@ -52,7 +64,9 @@ namespace Recording
  * files, unlinks the recorders, and places every take in one command. Undo and
  * redo are off while it runs.
  */
-class SCORE_PLUGIN_RECORDING_EXPORT RecordSession final : public QObject
+class SCORE_PLUGIN_RECORDING_EXPORT RecordSession final
+    : public QObject
+    , public Nano::Observer
 {
   W_OBJECT(RecordSession)
 public:
@@ -61,7 +75,20 @@ public:
 
   //! An audio, MIDI or value port; false for one that cannot be recorded
   bool addSource(const Process::Port& port);
+  //! An address of a device: what it receives is recorded, as an inlet bound
+  //! to it would get it. Its takes are placed in a new box (placeInNewBox).
+  bool addAddress(const State::Address& address);
   int sources() const noexcept { return int(m_sources.size()); }
+
+  //! The takes of addresses go to a new box of `scenario`, at `point`: the
+  //! clock is the box `scenario` plays in. With RecordOptions::Start::FirstEvent
+  //! while stopped, the session waits for the first value any address
+  //! receives, and then starts playback from `point` when `playOnFirst`.
+  void placeInNewBox(
+      const Scenario::ProcessModel& scenario, Scenario::Point point,
+      AddressPlacement placement, CurveOptions curves, bool playOnFirst);
+  //! The box the takes of addresses were placed in
+  Scenario::IntervalModel* placedBox() const noexcept { return m_placedBox; }
 
   //! Starts the recording, or waits for playback (RecordOptions::Start)
   bool start();
@@ -94,6 +121,11 @@ private:
   void poll();
   void finish();
   void place();
+  bool hasAddresses() const noexcept;
+  void listenToDevices();
+  void stopListening();
+  void deviceValue(const State::Address& addr, const ossia::value& v);
+  void firstValue(const State::Address& addr, const ossia::value& v);
 
   const score::DocumentContext& m_ctx;
   RecordOptions m_options;
@@ -106,5 +138,17 @@ private:
   QMetaObject::Connection m_started, m_finished, m_undoGuard, m_redoGuard;
   bool m_running{false};
   bool m_recordersCreated{false};
+
+  // Takes of addresses
+  QPointer<const Scenario::ProcessModel> m_scenario;
+  Scenario::Point m_point{};
+  AddressPlacement m_placement{AddressPlacement::Automations};
+  CurveOptions m_curves{};
+  bool m_playOnFirst{true};
+  QPointer<Scenario::IntervalModel> m_placedBox;
+  // Waiting for the first value, while stopped
+  std::vector<QPointer<Device::DeviceInterface>> m_listened;
+  std::vector<State::Address> m_listeningAdded;
+  bool m_firstReceived{false};
 };
 }

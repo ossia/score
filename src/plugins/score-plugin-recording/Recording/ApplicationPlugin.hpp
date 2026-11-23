@@ -1,9 +1,10 @@
 #pragma once
-#include "Record/RecordManager.hpp"
-#include "Record/RecordMessagesManager.hpp"
 #include "Session/RecordOptions.hpp"
+#include "Takes/PlaceAddressTakes.hpp"
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+
+#include <score_plugin_recording_export.h>
 
 #include <memory>
 #include <vector>
@@ -29,7 +30,7 @@ struct Point;
 namespace Recording
 {
 class RecordSession;
-class ApplicationPlugin final
+class SCORE_PLUGIN_RECORDING_EXPORT ApplicationPlugin final
     : public QObject
     , public score::GUIApplicationPlugin
 {
@@ -37,9 +38,14 @@ public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
   ~ApplicationPlugin() override;
 
+  //! The addresses selected in the explorer, from `pt` of the scenario, as
+  //! automations or as messages
   void record(Scenario::ProcessModel*, Scenario::Point pt);
   void recordMessages(Scenario::ProcessModel*, Scenario::Point pt);
-  void stopRecord();
+  //! Starts a session on these addresses, placed in a new box at `pt`
+  RecordSession* recordAddresses(
+      Scenario::ProcessModel& scenario, Scenario::Point pt,
+      const std::vector<State::Address>& addresses, AddressPlacement placement);
 
   //! Starts recording these ports of a document; one session at a time.
   //! Null when nothing could be recorded.
@@ -60,9 +66,7 @@ private:
   Engine::ApplicationPlugin* m_ossiaplug{};
   QAction* m_stopAction{};
 
-  std::unique_ptr<RecordContext> m_currentContext{};
-  std::unique_ptr<SingleRecorder<AutomationRecorder>> m_recManager;
-  std::unique_ptr<SingleRecorder<MessageRecorder>> m_recMessagesManager;
+  RecordSession* adopt(std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx);
 
   std::unique_ptr<RecordSession> m_session;
   const score::Document* m_sessionDocument{};

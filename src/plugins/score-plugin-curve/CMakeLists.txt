@@ -53,8 +53,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/EasingSegment.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsPresenter.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsView.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/ApplicationPlugin.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_curve.hpp"
@@ -95,8 +93,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CurveEditionSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Envelope.cpp"

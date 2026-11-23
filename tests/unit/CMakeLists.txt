@@ -3481,4 +3481,9 @@ if(TARGET score_plugin_recording)
   score_add_test(test_unit_value_record_engine
     SOURCES ValueRecordEngineTest.cpp
     PLUGINS score_plugin_recording)
+
+  # The automation curves made of recorded values.
+  score_add_test(test_unit_recorded_curves
+    SOURCES RecordedCurvesTest.cpp
+    PLUGINS score_plugin_recording score_plugin_curve)
 endif()

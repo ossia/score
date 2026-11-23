@@ -4,6 +4,9 @@
 
 #include <QSettings>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::Settings::Model)
+
 namespace Curve
 {
 namespace Settings

@@ -93,8 +93,9 @@ QJsonArray typed(const ossia::value& v)
   return a;
 }
 
-//! The numbers of a value an automation can play, or nothing
-std::optional<std::vector<double>> numbers(const ossia::value& v)
+}
+
+std::optional<std::vector<double>> numbersOf(const ossia::value& v)
 {
   switch(v.get_type())
   {
@@ -130,14 +131,13 @@ std::optional<std::vector<double>> numbers(const ossia::value& v)
       return std::nullopt;
   }
 }
-}
 
 int numericComponents(const std::vector<ValueTake::Event>& events)
 {
   int components = 0;
   for(const auto& e : events)
   {
-    const auto n = numbers(e.value);
+    const auto n = numbersOf(e.value);
     if(!n)
       return 0;
     components = std::max(components, int(n->size()));
@@ -167,7 +167,7 @@ QByteArray valueTakeJson(
       ev.push_back(x);
     evs.push_back(ev);
     if(components > 0)
-      if(const auto n = numbers(e.value))
+      if(const auto n = numbersOf(e.value))
         for(std::size_t c = 0; c < n->size(); c++)
         {
           lo[c] = std::min(lo[c], (*n)[c]);
@@ -180,7 +180,11 @@ QByteArray valueTakeJson(
   o.insert("version", 1);
   o.insert("rate", rate);
   o.insert("frames", double(std::max<int64_t>(1, frame_of(end))));
-  o.insert("tempo", tempo > 0. ? tempo : 120.);
+  // The frames count score's time, where a quarter lasts half a second: the
+  // tempo that reads them so is the root tempo, whatever the box played at.
+  o.insert("tempo", 120.);
+  if(tempo > 0.)
+    o.insert("recordedTempo", tempo);
   o.insert("meter", QJsonArray{meterNumerator, meterDenominator});
   o.insert("components", components);
   if(components > 0)

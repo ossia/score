@@ -20,7 +20,10 @@ value_record_node::value_record_node(
     : m_take{std::move(take)}
     , m_clock{std::move(clock)}
 {
-  m_inlets.push_back(new ossia::value_inlet);
+  // From an address, only the values it receives, not the one it holds
+  auto* in = new ossia::value_inlet;
+  (*in)->is_event = true;
+  m_inlets.push_back(in);
 }
 
 value_record_node::~value_record_node() = default;

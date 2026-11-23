@@ -2452,3 +2452,14 @@ if(TARGET score_plugin_recording AND TARGET score_plugin_media)
       score_plugin_engine score_plugin_scenario score_lib_process
       score_plugin_dataflow score_plugin_deviceexplorer)
 endif()
+
+# "Record automations / messages from here": the explorer's addresses,
+# recorded by the engine from a point and placed in a new box, undoable.
+if(TARGET score_plugin_recording AND TARGET score_plugin_automation)
+  score_add_test(test_integration_record_addresses
+    SOURCES RecordAddressesTest.cpp
+    APP
+    PLUGINS score_plugin_recording score_plugin_automation score_plugin_curve
+      score_plugin_engine score_plugin_scenario score_lib_process
+      score_plugin_deviceexplorer score_plugin_protocols)
+endif()
