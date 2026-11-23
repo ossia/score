@@ -44,12 +44,6 @@ struct TSerializer<JSONObject, TimeVal>
     {
       s.stream.Int64(ossia::time_value::infinity);
     }
-    else if(Q_UNLIKELY(tv.impl < 0))
-    {
-      qDebug() << "Warning: saving a time_value < 0. This likely indicates a bug: "
-               << tv.impl;
-      s.stream.Int64(0);
-    }
     else
     {
       s.stream.Int64(tv.impl);

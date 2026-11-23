@@ -28,6 +28,8 @@ public:
   TimeSpinBox(QWidget* parent = nullptr);
   ~TimeSpinBox();
 
+  //! 0 by default; a negative minimum lets the box show and edit times
+  //! before zero, e.g. a start offset delaying a process.
   void setMinimumTime(ossia::time_value t);
   void setMaximumTime(ossia::time_value t);
   void setTime(ossia::time_value t);
@@ -47,12 +49,15 @@ public:
 
 private:
   void updateTime();
+  void clampTime() noexcept;
   QPoint m_startPos{};
   int64_t m_prevY{};
   int64_t m_travelledY{};
 
   int64_t m_origFlicks{};
   int64_t m_flicks{};
+  int64_t m_minimum{};
+  int64_t m_maximum{ossia::time_value::infinite_min};
 
   ossia::bar_time m_barTime{};
 

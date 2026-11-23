@@ -152,7 +152,8 @@ public:
       // Start offset
       {
         auto so = new score::TimeSpinBox;
-        so->setMinimumTime({});
+        // Negative: the content starts that long after the process.
+        so->setMinimumTime(ossia::time_value{-ossia::time_value::infinite_min});
         so->setTime(process.startOffset());
         connect(
             so, &score::TimeSpinBox::timeChanged, this, [&](const ossia::time_value& t) {

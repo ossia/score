@@ -16,6 +16,8 @@
 
 #include <ossia/dataflow/port.hpp>
 
+#include <algorithm>
+
 namespace Gfx::Video
 {
 static std::unique_ptr<score::gfx::VideoNode> makeVideoNode(
@@ -107,8 +109,13 @@ public:
       return node_process::state(tok);
     tok.loop(
         this->m_start_offset, this->m_loop_duration,
-        [this](const ossia::token_request& tr) { state_impl(tr); },
-        [this](ossia::time_value t) { seek(t); });
+        [this](const ossia::token_request& tr) {
+      // A negative start offset delays the media: nothing plays before 0.
+      if(this->m_start_offset >= ossia::time_value{})
+        state_impl(tr);
+      else if(ossia::token_request clipped; tr.clip_before_zero(clipped))
+        state_impl(clipped);
+    }, [this](ossia::time_value t) { seek(t); });
   }
 
   void offset_impl(ossia::time_value date) override { seek(mediaTime(date)); }
@@ -138,10 +145,12 @@ private:
     return this->m_start_offset + ossia::time_value{in_loop};
   }
 
+  //! Before the media's start (a negative start offset) it waits at its
+  //! first frame.
   void seek(ossia::time_value media)
   {
     if(auto dec = static_cast<video_node&>(*node).decoder())
-      dec->seek(media.impl);
+      dec->seek(std::max<int64_t>(media.impl, 0));
   }
 };
 

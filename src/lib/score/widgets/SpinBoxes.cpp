@@ -19,6 +19,7 @@
 #include <QTime>
 #include <QTimer>
 
+#include <algorithm>
 #include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TimeSpinBox)
@@ -56,7 +57,8 @@ struct BarSpinBox
     */
     p.drawText(
         QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()},
-        QString{"%1 ."}.arg(m_barTime.bars), QTextOption(Qt::AlignRight));
+        QString{"%1%2 ."}.arg(self.m_flicks < 0 ? "-" : "").arg(m_barTime.bars),
+        QTextOption(Qt::AlignRight));
     p.drawText(
         QRect{q_start, text_rect.y(), 20, text_rect.height()},
         QString{"%1 ."}.arg(m_barTime.quarters), QTextOption(Qt::AlignRight));
@@ -72,7 +74,8 @@ struct BarSpinBox
   QString text() const noexcept
   {
     auto& m_barTime = self.m_barTime;
-    return QString{"%1 . %2 . %3 . %4"}
+    return QString{"%1%2 . %3 . %4 . %5"}
+        .arg(self.m_flicks < 0 ? "-" : "")
         .arg(m_barTime.bars)
         .arg(m_barTime.quarters)
         .arg(m_barTime.semiquavers)
@@ -81,6 +84,11 @@ struct BarSpinBox
 
   static std::optional<int64_t> parseText(QString str) noexcept
   {
+    str = str.trimmed();
+    const bool negative = str.startsWith('-');
+    if(negative)
+      str.remove(0, 1);
+
     // Check for bad characters
     auto check = str;
     check.replace(QRegularExpression("[0-9]"), "");
@@ -127,7 +135,7 @@ struct BarSpinBox
     time += semiquaverDuration * semiquavers;
     time += centDuration * cents;
 
-    return time;
+    return negative ? -time : time;
   }
 
   void mousePress(QRect text_rect, QMouseEvent* event)
@@ -194,8 +202,7 @@ struct BarSpinBox
         break;
     }
 
-    if(self.m_flicks < 0)
-      self.m_flicks = 0;
+    self.clampTime();
 
     event->accept();
   }
@@ -213,7 +220,7 @@ struct SecondSpinBox
   void paint(QPainter& p, QRect text_rect)
   {
     QTime t = QTime(0, 0, 0, 0)
-                  .addMSecs(self.time().impl / ossia::flicks_per_millisecond<double>);
+                  .addMSecs(std::abs(self.time().impl) / ossia::flicks_per_millisecond<double>);
     const auto w = text_rect.width();
     const auto cent_start = w - millisecondStart;
     const auto sq_start = w - secondStart;
@@ -222,7 +229,10 @@ struct SecondSpinBox
 
     p.drawText(
         QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()},
-        QString{"%1 :"}.arg(t.hour(), 2, 10, QChar('0')), QTextOption(Qt::AlignRight));
+        QString{"%1%2 :"}
+            .arg(self.m_flicks < 0 ? "-" : "")
+            .arg(t.hour(), 2, 10, QChar('0')),
+        QTextOption(Qt::AlignRight));
     p.drawText(
         QRect{q_start, text_rect.y(), 20, text_rect.height()},
         QString{"%1 :"}.arg(t.minute(), 2, 10, QChar('0')), QTextOption(Qt::AlignRight));
@@ -238,8 +248,9 @@ struct SecondSpinBox
   QString text() const noexcept
   {
     QTime t = QTime(0, 0, 0, 0)
-                  .addMSecs(self.time().impl / ossia::flicks_per_millisecond<double>);
-    return QString{"%1:%2:%3.%4"}
+                  .addMSecs(std::abs(self.time().impl) / ossia::flicks_per_millisecond<double>);
+    return QString{"%1%2:%3:%4.%5"}
+        .arg(self.m_flicks < 0 ? "-" : "")
         .arg(t.hour(), 2, 10, QChar('0'))
         .arg(t.minute(), 2, 10, QChar('0'))
         .arg(t.second(), 2, 10, QChar('0'))
@@ -249,6 +260,9 @@ struct SecondSpinBox
   static std::optional<int64_t> parseText(QString str) noexcept
   {
     str.remove(' ');
+    const bool negative = str.startsWith('-');
+    if(negative)
+      str.remove(0, 1);
     auto splitted = str.split(".");
     if(splitted.size() == 0)
       return {};
@@ -264,7 +278,7 @@ struct SecondSpinBox
     flicks += hms.minute() * 60 * 1000 * ossia::flicks_per_millisecond<int64_t>;
     flicks += hms.second() * 1000 * ossia::flicks_per_millisecond<int64_t>;
     flicks += millisecs * ossia::flicks_per_millisecond<int64_t>;
-    return flicks;
+    return negative ? -flicks : flicks;
   }
 
   void mousePress(QRect text_rect, QMouseEvent* event)
@@ -333,8 +347,7 @@ struct SecondSpinBox
         break;
     }
 
-    if(self.m_flicks < 0)
-      self.m_flicks = 0;
+    self.clampTime();
 
     event->accept();
   }
@@ -353,7 +366,12 @@ struct FlicksSpinBox
 
   QString text() const noexcept { return QString{"%1"}.arg(self.m_flicks); }
 
-  static std::optional<int64_t> parseText(QString str) noexcept { return {}; }
+  static std::optional<int64_t> parseText(QString str) noexcept
+  {
+    bool ok{};
+    const auto v = str.trimmed().toLongLong(&ok);
+    return ok ? std::optional<int64_t>{v} : std::nullopt;
+  }
 
   void mousePress(QRect text_rect, QMouseEvent* event) { }
 
@@ -381,12 +399,27 @@ TimeSpinBox::~TimeSpinBox()
 
 void TimeSpinBox::setMinimumTime(ossia::time_value t)
 {
-  SCORE_TODO;
+  m_minimum = t.impl;
+  if(m_flicks < m_minimum)
+  {
+    m_flicks = m_minimum;
+    updateTime();
+  }
 }
 
 void TimeSpinBox::setMaximumTime(ossia::time_value t)
 {
-  SCORE_TODO;
+  m_maximum = t.impl;
+  if(m_flicks > m_maximum)
+  {
+    m_flicks = m_maximum;
+    updateTime();
+  }
+}
+
+void TimeSpinBox::clampTime() noexcept
+{
+  m_flicks = std::clamp(m_flicks, m_minimum, std::max(m_minimum, m_maximum));
 }
 
 void TimeSpinBox::setTime(ossia::time_value t)
@@ -402,12 +435,14 @@ void TimeSpinBox::updateTime()
 {
   if(m_flicks > ossia::time_value::infinite_min)
     return;
-  const int64_t bars = m_flicks / (barDuration);
-  const int64_t quarters = (m_flicks - (bars * barDuration)) / quarterDuration;
+  // Negative times (a negative minimum) show their magnitude, with a sign.
+  const int64_t flicks = m_flicks < 0 ? -m_flicks : m_flicks;
+  const int64_t bars = flicks / (barDuration);
+  const int64_t quarters = (flicks - (bars * barDuration)) / quarterDuration;
   const int64_t semiquavers
-      = (m_flicks - (bars * barDuration) - (quarters * quarterDuration))
+      = (flicks - (bars * barDuration) - (quarters * quarterDuration))
         / semiquaverDuration;
-  const int64_t cents = (m_flicks - (bars * barDuration) - (quarters * quarterDuration)
+  const int64_t cents = (flicks - (bars * barDuration) - (quarters * quarterDuration)
                          - (semiquavers * semiquaverDuration))
                         / centDuration;
   m_barTime.bars = bars;
@@ -537,6 +572,8 @@ void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
         break;
     }
 
+    if(flicks)
+      flicks = std::clamp(*flicks, m_minimum, std::max(m_minimum, m_maximum));
     if(flicks && *flicks != m_flicks)
     {
       m_flicks = *flicks;

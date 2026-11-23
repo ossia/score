@@ -197,6 +197,20 @@ if(TARGET score_plugin_media)
     PLUGINS score_plugin_media
     LIBS ${_sound_rate_libs})
 
+  # A negative start offset delays a process's content: ticks are clipped to
+  # date 0, and the file-reading sound nodes read silence before the file.
+  # The libav streaming node on compressed files (FLAC, MP3, AAC, Opus,
+  # Vorbis encoded by the test): start offsets, loops, and where reads land.
+  score_add_test(test_unit_sound_libav_compressed
+    SOURCES SoundLibavCompressedTest.cpp
+    PLUGINS score_plugin_media
+    LIBS ${_sound_rate_libs})
+
+  score_add_test(test_unit_negative_start_offset
+    SOURCES NegativeStartOffsetTest.cpp
+    PLUGINS score_plugin_media
+    LIBS ${_sound_rate_libs})
+
   # The min/max summary behind zoomed-out waveform drawing: it must give exactly
   # what a plain scan over every sample gives.
   score_add_test(test_unit_waveform_summary
@@ -1171,6 +1185,11 @@ score_add_test(test_unit_time_chooser_taper
 # InfiniteScroller::move(); APP because its header pulls in the skin.
 score_add_test(test_unit_spinbox_drag
   SOURCES SpinboxDragTest.cpp
+  APP)
+
+# The time spin box's minimum, and negative times (start offsets).
+score_add_test(test_unit_time_spinbox
+  SOURCES TimeSpinBoxTest.cpp
   APP)
 
 score_add_test(test_unit_avnd_audio_roundtrip

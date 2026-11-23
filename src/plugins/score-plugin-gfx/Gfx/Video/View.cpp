@@ -163,7 +163,9 @@ void View::widthChanged(qreal w)
       flicks = startOff + (flicks % loopDur);
     else
       flicks = startOff + flicks;
-    v.push_back(flicks);
+    // Before the media (a negative start offset delays it): no frame
+    if(flicks >= 0)
+      v.push_back(flicks);
   }
 
   m_lastRequestIndex++;
@@ -221,7 +223,7 @@ void View::paint_impl(QPainter* painter) const
       flicks = startOff + rawFlicks;
       it = ossia::closest_next_element(it, images.cend(), flicks);
     }
-    if(it != images.end())
+    if(flicks >= 0 && it != images.end())
     {
       const double px = TimeVal{rawFlicks}.toPixels(m_zoom);
       painter->drawImage(QRectF{px, 0., frame_width, frame_height}, it->second);

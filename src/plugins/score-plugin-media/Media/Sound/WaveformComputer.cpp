@@ -18,6 +18,8 @@
 
 #include <wobjectimpl.h>
 
+#include <algorithm>
+
 W_OBJECT_IMPL(Media::Sound::WaveformComputer)
 namespace Media::Sound
 {
@@ -119,6 +121,13 @@ struct WaveformComputerImpl
         LoopWrapper& h, int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + start_frame;
+      // Before the file (a negative start offset delays it): silence
+      if(start < 0)
+      {
+        for(auto& val : out)
+          val = {};
+        return true;
+      }
       if(start < h.decoded_samples)
       {
         h.handle.frame(start, out);
@@ -133,8 +142,15 @@ struct WaveformComputerImpl
         LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<float, 8>& out) noexcept
     {
-      const int64_t start = h.start_offset + start_frame;
+      int64_t start = h.start_offset + start_frame;
       const int64_t end = h.start_offset + end_frame;
+      if(end < 0)
+      {
+        for(auto& val : out)
+          val = {};
+        return true;
+      }
+      start = std::max<int64_t>(start, 0);
       if(start < h.decoded_samples && end < h.decoded_samples)
       {
         h.handle.absmax_frame(start, end, out);
@@ -149,8 +165,15 @@ struct WaveformComputerImpl
         LoopWrapper& h, int64_t start_frame, int64_t end_frame,
         ossia::small_vector<FloatPair, 8>& out) noexcept
     {
-      const int64_t start = h.start_offset + start_frame;
+      int64_t start = h.start_offset + start_frame;
       const int64_t end = h.start_offset + end_frame;
+      if(end < 0)
+      {
+        for(auto& val : out)
+          val = {};
+        return true;
+      }
+      start = std::max<int64_t>(start, 0);
       if(start < h.decoded_samples && end < h.decoded_samples)
       {
         h.handle.minmax_frame(start, end, out);
@@ -166,7 +189,7 @@ struct WaveformComputerImpl
         LoopWrapper& h, int64_t start_frame, ossia::small_vector<float, 8>& out) noexcept
     {
       const int64_t start = h.start_offset + (start_frame % h.duration);
-      if(start < h.decoded_samples)
+      if(start >= 0 && start < h.decoded_samples)
       {
         h.handle.frame(start, out);
       }
@@ -185,13 +208,13 @@ struct WaveformComputerImpl
       const int64_t end = h.start_offset + (end_frame % h.duration);
       if(start < end)
       {
-        if(start < h.decoded_samples && end < h.decoded_samples)
-          h.handle.absmax_frame(start, end, out);
+        if(end >= 0 && start < h.decoded_samples && end < h.decoded_samples)
+          h.handle.absmax_frame(std::max<int64_t>(start, 0), end, out);
         else
           for(auto& val : out)
             val = {};
       }
-      else if(start < h.decoded_samples)
+      else if(start >= 0 && start < h.decoded_samples)
         h.handle.absmax_frame(start, start, out); // TODO can maybe be improved
       else
         for(auto& val : out)
@@ -207,15 +230,15 @@ struct WaveformComputerImpl
       const int64_t end = h.start_offset + (end_frame % h.duration);
       if(start < end)
       {
-        if(start < h.decoded_samples && end < h.decoded_samples)
-          h.handle.minmax_frame(start, end, out);
+        if(end >= 0 && start < h.decoded_samples && end < h.decoded_samples)
+          h.handle.minmax_frame(std::max<int64_t>(start, 0), end, out);
         else
           for(auto& val : out)
             val = {};
       }
       else
       {
-        if(start < h.decoded_samples)
+        if(start >= 0 && start < h.decoded_samples)
           h.handle.minmax_frame(start, start, out); // TODO can maybe be improved
         else
           for(auto& val : out)
