@@ -462,6 +462,8 @@ struct GpuControlOuts
   //! preview, the one with the lowest address in renderedNodes (a flat_map
   //! ordered by pointer, so the choice is stable but arbitrary). Otherwise
   //! they would alternate between the sizes the lists render at.
+  //! An object declaring `bool drives_node` is told before each run whether
+  //! its renderer is that one.
   static bool
   drivesControlOuts(const score::gfx::RenderList& r, const score::gfx::Node& n) noexcept
   {
