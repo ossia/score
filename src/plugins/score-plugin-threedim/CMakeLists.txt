@@ -120,6 +120,12 @@ add_library(
   Threedim/CalibrationRegistration.cpp
   Threedim/ManualProjectorCalibration.hpp
   Threedim/ManualProjectorCalibration.cpp
+  Threedim/CalibrationPlan.hpp
+  Threedim/CalibrationPlan.cpp
+  Threedim/CalibrationWizard.hpp
+  Threedim/CalibrationWizard.cpp
+  Threedim/CalibrationRun.hpp
+  Threedim/CalibrationRun.cpp
   Threedim/EquirectWarp.hpp
   Threedim/EquirectWarp.cpp
   Threedim/PlaneCompletion.hpp

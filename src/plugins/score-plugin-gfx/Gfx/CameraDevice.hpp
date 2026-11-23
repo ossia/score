@@ -65,4 +65,9 @@ class CameraProtocolFactory final : public Device::ProtocolFactory
 
 SCORE_SERIALIZE_DATASTREAM_DECLARE(, Gfx::CameraSettings);
 Q_DECLARE_METATYPE(Gfx::CameraSettings)
+namespace Gfx
+{
+//! The frame size a camera device is set to, invalid for another device.
+SCORE_PLUGIN_GFX_EXPORT QSize cameraDeviceSize(const QVariant& deviceSpecificSettings);
+}
 W_REGISTER_ARGTYPE(Gfx::CameraSettings)
