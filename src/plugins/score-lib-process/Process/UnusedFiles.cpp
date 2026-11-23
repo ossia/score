@@ -129,6 +129,11 @@ analyzeUnusedFiles(const score::DocumentContext& ctx, const UnusedFilesOptions& 
 
   const UsedFiles used = usedFiles(ctx, target);
   const QString aside = target.folder + '/' + unusedFolderName();
+  // The takes recorders and loopers write: the steps of the command stack that
+  // placed or replaced them still refer to them by path, and the notes and
+  // curves of MIDI and value takes were copied out of them, so nothing in the
+  // document points at them although undo and redo need them
+  const QString takes = target.folder + QStringLiteral("/Takes");
 
   const QStringList roots = opts.onlyCollectedFolders
                                 ? collectedFolders(target.folder)
@@ -146,6 +151,8 @@ analyzeUnusedFiles(const score::DocumentContext& ctx, const UnusedFilesOptions& 
 
       // Things already set aside are not found again on the next run.
       if(score::isUnderFolder(path, aside))
+        continue;
+      if(score::isUnderFolder(path, takes))
         continue;
       // Never a document -- not this one, not a neighbour's.
       if(isScoreDocument(path))

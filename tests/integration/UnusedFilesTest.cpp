@@ -405,3 +405,27 @@ TEST_CASE("The reasons to hesitate are spelled out", "[integration][unused]")
     CHECK(mentionsUndo);
   });
 }
+
+TEST_CASE("Takes are never proposed, even when searching everywhere", "[integration][unused]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir projectDir;
+    REQUIRE(projectDir.isValid());
+    const QString project = canonical(projectDir.path());
+    auto* doc = project_document(ctx, project);
+    REQUIRE(doc);
+
+    // What recordings and loopers wrote: undo and redo may still need them,
+    // and the notes of a MIDI take live in the piano roll, not in the file
+    write_file(project + "/Takes/Sound-take1.wav", "take");
+    write_file(project + "/Takes/Midi-take2.mid", "take");
+    write_file(project + "/notes.txt", "notes");
+
+    Process::UnusedFilesOptions everywhere;
+    everywhere.onlyCollectedFolders = false;
+    const auto wide = Process::analyzeUnusedFiles(doc->context(), everywhere);
+    CHECK(lists(wide, "notes.txt"));
+    CHECK_FALSE(lists(wide, "take1"));
+    CHECK_FALSE(lists(wide, "take2"));
+  });
+}
