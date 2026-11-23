@@ -103,6 +103,10 @@ add_library(
   Threedim/PatternCapture.cpp
   Threedim/StructuredLight.hpp
   Threedim/StructuredLight.cpp
+  Threedim/StructuredLightCore.hpp
+  Threedim/StructuredLightCore.cpp
+  Threedim/StructuredLightSession.hpp
+  Threedim/StructuredLightSession.cpp
   Threedim/CalibrationFiles.hpp
   Threedim/CalibrationFiles.cpp
   Threedim/FloatTextureIO.hpp

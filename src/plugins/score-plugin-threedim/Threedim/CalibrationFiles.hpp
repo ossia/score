@@ -1,5 +1,7 @@
 #pragma once
 #include <Gfx/Graph/FloatImageIO.hpp>
+#include <Gfx/Graph/PhotometricMaps.hpp>
+#include <Threedim/CameraLens.hpp>
 
 #include <QJsonObject>
 #include <QString>
@@ -19,6 +21,14 @@ namespace Threedim
 //! `name.<suffix>` on disk is.
 //!   name.xyz.pfm + name.valid.pfm  XYZ map, w = valid
 //!   name.lum.pfm, name.black.pfm   white - black and black, RGB
+//! The camera a calibration was measured with: name.json's "camera".
+struct CalibrationCamera
+{
+  std::array<float, 4> intrinsics{};
+  int width{}, height{};
+  CameraLens lens;
+};
+
 struct CalibrationFile
 {
   //! `dir/name`.
@@ -32,6 +42,11 @@ struct CalibrationFile
   bool viewerMode{};
   //! RGB, empty when not measured.
   std::vector<float> lum, black;
+  std::optional<CalibrationCamera> camera;
+  //! n.xyz, d with n . p + d = 0.
+  std::vector<std::array<float, 4>> planes;
+  //! Its index in its set; -1 when name.json does not say.
+  int projectorIndex{-1};
   //! name.json as read: the keys of the fields above and all the others.
   QJsonObject json;
   QString error;
@@ -64,6 +79,8 @@ struct CalibrationWrite
   QJsonObject fields;
   //! Keys of the existing name.json this write makes stale.
   QStringList removeKeys;
+  //! Other files, each replaced atomically, after the maps and before name.json.
+  std::vector<score::gfx::EncodedFile> files;
   //! Suffixes of the files the existing name.json lists that stay listed when
   //! this write does not replace them; the others are no longer listed.
   QStringList keepListed;
@@ -86,9 +103,10 @@ QString calibrationMapFile(const QString& base, const QString& suffix);
 //! A calibration from any of its files, or its name.
 CalibrationFile loadCalibration(const QString& path);
 
-//! The fields of `c` (size, intrinsics, pose, mode) over `c.json`, its xyz map
-//! and the lum / black maps it has; the photometric maps the existing
-//! name.json lists stay listed.
+//! The write of `c`: its fields (size, intrinsics, pose, mode, camera, planes,
+//! projector index) over `c.json`, its xyz map and the lum / black maps it
+//! has; the photometric maps the existing name.json lists stay listed.
+CalibrationWrite calibrationWrite(const CalibrationFile& c);
 bool saveCalibration(const CalibrationFile& c, QString* error = nullptr);
 
 //! Replaces `path` atomically.

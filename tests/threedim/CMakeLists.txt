@@ -665,6 +665,18 @@ score_add_test(test_threedim_pattern_capture
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_pattern_capture)
 
+# StructuredLightSession on a simulated bench: several projectors, camera
+# latency, dropped, frozen and missing frames, gamma, clipping, files.
+score_add_test(test_threedim_structured_light_session
+  SOURCES StructuredLightSession.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_session)
+
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
   SOURCES Photometric.cpp
