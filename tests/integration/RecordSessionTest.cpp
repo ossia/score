@@ -20,6 +20,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/LiveTake.hpp>
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Process/ProcessList.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -1331,5 +1332,89 @@ TEST_CASE("A take recorded at another speed than 1 is said to be", "[recording][
     spin(200);
     REQUIRE(session.warnings().size() == 1);
     CHECK(session.warnings()[0].contains("speed"));
+  });
+}
+
+TEST_CASE("A source deleted while it records ends its take, which is kept", "[recording][session][deleted]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      REQUIRE(sound);
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(800);
+
+    // Live editing: the source goes
+    const auto id = sound->id();
+    auto* cmd = new Scenario::Command::RemoveProcessFromInterval{*box, id};
+    doc->commandStack().redoAndPush(cmd);
+    sound = nullptr;
+    spin(500);
+
+    // Its take ended there; the others would go on
+    REQUIRE(spin_until([&] { return finished; }, 3000));
+    engine.execution().request_stop();
+    spin(200);
+    REQUIRE(session.takes().size() == 1);
+    CHECK(!session.takes()[0].file.isEmpty());
+    CHECK(QFileInfo{session.takes()[0].file}.size() > 1000);
+    // Placed in its box, which is still there, and said
+    CHECK(session.takes()[0].placed);
+    REQUIRE(session.warnings().size() == 1);
+    CHECK(session.warnings()[0].contains("deleted"));
+  });
+}
+
+TEST_CASE("A recording does not start on a disk too full for it, and says why", "[recording][session][disk]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* proc{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      proc = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {});
+      m.commit();
+    }
+    REQUIRE(proc);
+    Recording::RecordOptions opt;
+    // More than any disk has
+    opt.minFreeBytes = std::numeric_limits<int64_t>::max();
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*proc->outlets()[0]));
+    CHECK(!session.start());
+    CHECK(!session.running());
+    CHECK(session.error().contains("disk"));
+    // Undo stays on
+    CHECK(doc->commandStack().canUndo());
   });
 }

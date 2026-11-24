@@ -75,7 +75,9 @@
 #include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/network/common/destination_qualifiers.hpp>
 
+#include <QDir>
 #include <QFile>
+#include <QStorageInfo>
 #include <QFileInfo>
 #include <QMimeData>
 #include <QRegularExpression>
@@ -92,6 +94,9 @@ namespace Recording
 struct RecordSession::Source
 {
   QPointer<const Process::Port> port;
+  //! Recorded from a port (which can be deleted meanwhile)
+  bool fromPort{};
+  bool lost{};
   // Or an address
   State::Address address;
   State::Unit unit;
@@ -254,6 +259,7 @@ bool RecordSession::addSource(const Process::Port& port)
 
   auto s = std::make_unique<Source>();
   s->port = &port;
+  s->fromPort = true;
   s->type = type;
   s->box = Scenario::closestParentInterval(Process::parentProcess(&port));
   s->prefix = prefixFor(port);
@@ -375,10 +381,31 @@ bool RecordSession::hasAddresses() const noexcept
   return ossia::any_of(m_sources, [](const auto& s) { return !s->port; });
 }
 
+int64_t RecordSession::freeBytes() const
+{
+  // The folder may not exist yet: the nearest one that does
+  QDir dir{Process::takesFolder(m_ctx)};
+  while(!dir.exists() && dir.cdUp())
+    ;
+  QStorageInfo info{dir};
+  if(!info.isValid() || !info.isReady())
+    return -1;
+  return info.bytesAvailable();
+}
+
 bool RecordSession::start()
 {
   if(m_running || m_sources.empty())
     return false;
+  if(const int64_t free = freeBytes(); free >= 0 && free < m_options.minFreeBytes)
+  {
+    m_error = tr("Not enough free disk space to record: %1 MB left where takes are "
+                 "written (%2)")
+                  .arg(free >> 20)
+                  .arg(Process::takesFolder(m_ctx));
+    return false;
+  }
+  m_diskCheck.start();
   auto* exec = executionOf(m_ctx);
   if(!exec)
     return false;
@@ -991,6 +1018,28 @@ void RecordSession::poll()
     updateLiveTakes();
   if(m_options.touch && m_latched)
     touch();
+  // The disk fills up: everything is stopped and kept before it is full
+  if(m_diskCheck.isValid() && m_diskCheck.elapsed() > 1000)
+  {
+    m_diskCheck.restart();
+    if(const int64_t free = freeBytes(); free >= 0 && free < m_options.minFreeBytes / 4)
+    {
+      m_warnings.push_back(
+          tr("The disk where takes are written is almost full: the recording was "
+             "stopped"));
+      stop();
+      return;
+    }
+  }
+  // A port deleted while it records (live editing): its take ends there
+  for(auto& s : m_sources)
+    if(s->link && s->fromPort && !s->port && !s->lost)
+    {
+      s->lost = true;
+      s->requestStop();
+      m_warnings.push_back(
+          tr("%1 was deleted while it recorded: its take ends there").arg(s->prefix));
+    }
   for(auto& s : m_sources)
   {
     if(!s->link)
@@ -1122,6 +1171,23 @@ void RecordSession::warnAboutTiming()
     if(speed)
       m_warnings.push_back(
           tr("%1: recorded while playing at another speed than 1").arg(s->prefix));
+    // Never lost silently
+    const int64_t lost = s->audio  ? s->audio->droppedFrames.load()
+                         : s->midi ? s->midi->droppedEvents.load()
+                         : s->values ? s->values->droppedEvents.load()
+                                     : 0;
+    if(lost > 0)
+      m_warnings.push_back(
+          s->audio ? tr("%1: %2 frames could not be written in time and are missing")
+                         .arg(s->prefix)
+                         .arg(lost)
+                   : tr("%1: %2 events came faster than they could be written and are "
+                        "missing")
+                         .arg(s->prefix)
+                         .arg(lost));
+    if(s->wav.failed())
+      m_warnings.push_back(
+          tr("%1: its file could not be written (%2)").arg(s->prefix, s->file));
   }
 }
 
@@ -1285,7 +1351,8 @@ void RecordSession::place()
 
   for(auto& s : m_sources)
   {
-    if(!s->port)
+    // Addresses are placed by placeAddressTakes
+    if(!s->fromPort)
       continue;
     Take t;
     t.box = s->box;
@@ -1438,7 +1505,8 @@ void RecordSession::place()
             continue;
           if(d.setup)
             d.setup(*p, disp);
-          connectToInlet(*macro, *p, *s->port);
+          if(s->port)
+            connectToInlet(*macro, *p, *s->port);
           if(s->audio)
             setTiming(*macro, *p, s->audio->tempo.load(), false);
           // The take starts where the recording started in the box

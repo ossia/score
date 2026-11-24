@@ -184,3 +184,31 @@ TEST_CASE("Notes pair their ons and offs", "[recording][midi]")
   CHECK(n[0] == RecordedNote{0, 10, 60, 100, 0});
   CHECK(n[1] == RecordedNote{10, 20, 60, 100, 0});
 }
+
+TEST_CASE("A seek ends the take where it was", "[recording][midi][seek]")
+{
+  Rig r;
+  r.take->startRequested = true;
+  r.tick({{10, on(60)}});
+  r.tick();
+  const int64_t before = r.take->endDate;
+  CHECK(r.take->state == MidiTake::Recording);
+  // Playback jumps ahead by a second
+  r.boxDate += flicks_per_second;
+  r.tick({{10, on(62)}});
+  CHECK(r.take->state == MidiTake::Done);
+  CHECK(r.take->endDate == before);
+  // What came after the jump is not in the take
+  REQUIRE(r.events.size() == 1);
+  CHECK(r.events[0].date < before);
+
+  // Back to the start: the same
+  Rig b;
+  b.take->startRequested = true;
+  b.boxDate = 10 * tick_flicks;
+  b.tick();
+  b.tick();
+  b.boxDate = 0;
+  b.tick();
+  CHECK(b.take->state == MidiTake::Done);
+}

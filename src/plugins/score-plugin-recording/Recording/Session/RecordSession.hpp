@@ -111,6 +111,8 @@ public:
 
   //! Starts the recording, or waits for playback (RecordOptions::Start)
   bool start();
+  //! Why start() refused, for the user
+  const QString& error() const noexcept { return m_error; }
   //! Ends the recording: what was recorded is placed
   void stop();
   bool running() const noexcept { return m_running; }
@@ -155,6 +157,10 @@ private:
       bool loop);
   void warnAboutTiming();
   QStringList m_warnings;
+  QString m_error;
+  //! Bytes free on the disk of the Takes folder; -1 if unknown
+  int64_t freeBytes() const;
+  QElapsedTimer m_diskCheck;
   //! What the takes recorded so far, for the views of their boxes
   void showLiveTakes();
   void updateLiveTakes();

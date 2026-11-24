@@ -9,6 +9,11 @@
 
 namespace Recording
 {
+namespace
+{
+//! Dates further apart than this between two ticks are a jump (flicks: 2 ms)
+constexpr int64_t seek_tolerance = 1411200;
+}
 AudioTake::AudioTake(int channels, int blockFrames, int blockCount)
     : channels{std::max(1, channels)}
     , blockFrames{std::max(1, blockFrames)}
@@ -146,6 +151,15 @@ void audio_record_node::run(
     // Only forward time is recorded
     if(tk.date.impl <= tk.prev_date.impl)
       continue;
+    // A seek, or the box going back round: the take ends where it was
+    if(st == AudioTake::Recording
+       && std::abs(tk.prev_date.impl - take.endDate.load(std::memory_order_relaxed))
+              > seek_tolerance)
+    {
+      flush();
+      take.state.store(AudioTake::Done, std::memory_order_release);
+      return;
+    }
     const int64_t span_start = tk.physical_start(ratio);
     const int64_t span_len = tk.physical_write_duration(ratio);
     if(span_len <= 0)

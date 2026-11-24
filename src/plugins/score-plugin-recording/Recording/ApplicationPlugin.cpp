@@ -92,8 +92,14 @@ ApplicationPlugin::~ApplicationPlugin() = default;
 RecordSession* ApplicationPlugin::adopt(
     std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx)
 {
-  if(session->sources() == 0 || !session->start())
+  if(session->sources() == 0)
     return nullptr;
+  if(!session->start())
+  {
+    if(!session->error().isEmpty())
+      tell(session->error());
+    return nullptr;
+  }
 
   m_session = std::move(session);
   m_sessionDocument = &ctx.document;

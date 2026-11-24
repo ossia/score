@@ -9,6 +9,11 @@
 
 namespace Recording
 {
+namespace
+{
+//! Dates further apart than this between two ticks are a jump (flicks: 2 ms)
+constexpr int64_t seek_tolerance = 1411200;
+}
 MidiTake::MidiTake(std::size_t capacity)
     : queue(std::max<std::size_t>(16, capacity))
 {
@@ -60,6 +65,14 @@ void midi_record_node::run(
   {
     if(tk.date.impl <= tk.prev_date.impl)
       continue;
+    // A seek, or the box going back round: the take ends where it was
+    if(st == MidiTake::Recording
+       && std::abs(tk.prev_date.impl - take.endDate.load(std::memory_order_relaxed))
+              > seek_tolerance)
+    {
+      take.state.store(MidiTake::Done, std::memory_order_release);
+      return;
+    }
     const int64_t span_start = tk.physical_start(ratio);
     const int64_t span_len = tk.physical_write_duration(ratio);
     if(span_len <= 0)

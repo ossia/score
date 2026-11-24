@@ -114,6 +114,10 @@ struct RecordOptions
   //! came, each time until `touchRelease` (flicks) after the last one; it plays
   //! meanwhile. Else (latch) from the first value to the end, silent meanwhile.
   bool touch{false};
+
+  //! Free space the disk of the Takes folder needs for a recording to start;
+  //! it stops, its takes kept, when less than a quarter of it is left
+  int64_t minFreeBytes{int64_t(512) << 20};
   int64_t touchRelease{352800000};
 };
 }
