@@ -229,7 +229,7 @@ void RecordPortMenu::setupMenu(
     }
   }
   // Values into the automations of its box, replacing their curve where
-  // recorded; they are silent while the take records
+  // recorded: from the first value on (latch), or where values come (touch)
   if(type == Process::PortType::Message)
   {
     if(auto* box = Scenario::closestParentInterval(Process::parentProcess(&port)))
@@ -240,14 +240,28 @@ void RecordPortMenu::setupMenu(
         if(!autom)
           continue;
         const QPointer<const Process::ProcessModel> into = autom;
-        auto act = sub->addAction(QObject::tr("Record into %1").arg(autom->prettyName()));
-        QObject::connect(act, &QAction::triggered, plug, [=] {
-          auto opt = plug->defaultOptions();
-          opt.target = RecordOptions::Target::Into;
-          opt.into = into;
-          opt.replace = true;
-          record(opt);
-        });
+        for(bool touch : {false, true})
+        {
+          auto act = sub->addAction(
+              touch ? QObject::tr("Record into %1 where touched").arg(autom->prettyName())
+                    : QObject::tr("Record into %1").arg(autom->prettyName()));
+          act->setToolTip(
+              touch ? QObject::tr(
+                          "Its curve becomes the values only where they come, until the "
+                          "touch release of the Recording settings after the last one; "
+                          "it plays meanwhile")
+                    : QObject::tr(
+                          "Its curve becomes the values from the first one to the end of "
+                          "the take; it is silent meanwhile"));
+          QObject::connect(act, &QAction::triggered, plug, [=] {
+            auto opt = plug->defaultOptions();
+            opt.target = RecordOptions::Target::Into;
+            opt.into = into;
+            opt.replace = true;
+            opt.touch = touch;
+            record(opt);
+          });
+        }
       }
     }
   }

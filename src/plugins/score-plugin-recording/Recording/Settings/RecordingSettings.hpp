@@ -93,6 +93,7 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   QString m_VideoCodec;
   int m_VideoWidth{1920};
   int m_VideoHeight{1080};
+  int m_TouchRelease{500};
 
 public:
   Model(
@@ -114,6 +115,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, VideoCodec)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoWidth)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoHeight)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, TouchRelease)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, AudioFormat)
@@ -128,6 +130,7 @@ SCORE_SETTINGS_PARAMETER(Model, VideoFps)
 SCORE_SETTINGS_PARAMETER(Model, VideoCodec)
 SCORE_SETTINGS_PARAMETER(Model, VideoWidth)
 SCORE_SETTINGS_PARAMETER(Model, VideoHeight)
+SCORE_SETTINGS_PARAMETER(Model, TouchRelease)
 
 class View : public score::GlobalSettingsView
 {
@@ -147,6 +150,7 @@ public:
   SETTINGS_UI_COMBOBOX_HPP(VideoCodec)
   SETTINGS_UI_SPINBOX_HPP(VideoWidth)
   SETTINGS_UI_SPINBOX_HPP(VideoHeight)
+  SETTINGS_UI_SPINBOX_HPP(TouchRelease)
 
   // The curve plug-in's
   SETTINGS_UI_SPINBOX_HPP(SimplificationRatio)

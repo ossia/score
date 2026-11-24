@@ -50,12 +50,14 @@ SETTINGS_PARAMETER_IMPL(VideoCodec){
 SETTINGS_PARAMETER_IMPL(VideoWidth){QStringLiteral("score_plugin_recording/VideoWidth"), 1920};
 SETTINGS_PARAMETER_IMPL(VideoHeight){
     QStringLiteral("score_plugin_recording/VideoHeight"), 1080};
+SETTINGS_PARAMETER_IMPL(TouchRelease){
+    QStringLiteral("score_plugin_recording/TouchRelease"), 500};
 
 static auto list()
 {
   return std::tie(
       AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
-      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight);
+      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight, TouchRelease);
 }
 }
 
@@ -107,6 +109,7 @@ RecordOptions Model::options() const
   else
     o.midiQuantize = 0.;
   o.video.fps = std::clamp(m_VideoFps, 1, 240);
+  o.touchRelease = int64_t(std::max(0, m_TouchRelease)) * 705600;
   o.video.size = QSize{std::clamp(m_VideoWidth, 16, 8192), std::clamp(m_VideoHeight, 16, 8192)};
   const VideoCodecs c;
   o.video.codec = m_VideoCodec == c.h265     ? VideoSettings::H265
@@ -129,6 +132,7 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoFps)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, VideoCodec)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoWidth)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoHeight)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, TouchRelease)
 
 View::View()
 {
@@ -213,6 +217,13 @@ View::View()
   score::setHelp(
       m_Ramp, tr("A recorded automation goes from one value to the next, instead of "
                  "holding each value until the next one comes."));
+  SETTINGS_UI_SPINBOX_SETUP("Touch release", TouchRelease);
+  m_TouchRelease->setRange(0, 10000);
+  m_TouchRelease->setSuffix(tr(" ms"));
+  score::setHelp(
+      m_TouchRelease,
+      tr("Recording touching an automation: how long after the last value received the "
+         "automation's own curve comes back."));
   SETTINGS_UI_TOGGLE_SETUP("Play while recording", PlayWhileRecording);
   score::setHelp(
       m_PlayWhileRecording,
@@ -237,6 +248,7 @@ SETTINGS_UI_SPINBOX_IMPL(VideoFps)
 SETTINGS_UI_COMBOBOX_IMPL(VideoCodec)
 SETTINGS_UI_SPINBOX_IMPL(VideoWidth)
 SETTINGS_UI_SPINBOX_IMPL(VideoHeight)
+SETTINGS_UI_SPINBOX_IMPL(TouchRelease)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -257,6 +269,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(VideoCodec);
   SETTINGS_PRESENTER(VideoWidth);
   SETTINGS_PRESENTER(VideoHeight);
+  SETTINGS_PRESENTER(TouchRelease);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();

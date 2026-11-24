@@ -54,6 +54,7 @@
 #include <QFileInfo>
 #include <QTemporaryDir>
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <dr_wav.h>
@@ -1200,5 +1201,83 @@ TEST_CASE("What is being recorded is shown in its box while it records", "[recor
     CHECK(live.takes().empty());
     QObject::disconnect(c1);
     QObject::disconnect(c2);
+  });
+}
+
+TEST_CASE("Values recorded into an automation where touched: it plays until touched, and comes back after", "[recording][session][overdub][touch]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Automation::ProcessModel* source{};
+    Automation::ProcessModel* target{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      source = static_cast<Automation::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}));
+      target = static_cast<Automation::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}));
+      REQUIRE(source);
+      REQUIRE(target);
+      m.submit(new Automation::SetMin{*source, 10.});
+      m.submit(new Automation::SetMax{*source, 20.});
+      m.commit();
+    }
+    const auto valueAt = [&](double x) {
+      for(auto* seg : target->curve().sortedSegments())
+        if(x >= seg->start().x() && x <= seg->end().x())
+          return target->min() + seg->valueAt(x) * (target->max() - target->min());
+      return -1.;
+    };
+    const double end_before = valueAt(1.);
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::Into;
+    opt.into = target;
+    opt.replace = true;
+    opt.touch = true;
+    opt.touchRelease = 705600000 / 4; // 250 ms
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*source->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    auto* comp = score::findComponent<Execution::ProcessComponent>(target->components());
+    auto* src = score::findComponent<Execution::ProcessComponent>(source->components());
+    REQUIRE(comp);
+    REQUIRE(src);
+
+    // The source sends: the target is silent
+    REQUIRE(spin_until([&] { return comp->OSSIAProcess().muted_by_self(); }, 3000));
+    spin(600);
+    // The source stops: the target plays again after the release
+    exec.context().executionQueue.enqueue([p = src->OSSIAProcessPtr()] { p->mute(true); });
+    REQUIRE(spin_until([&] { return !comp->OSSIAProcess().muted_by_self(); }, 2000));
+    spin(1500);
+    CHECK(!comp->OSSIAProcess().muted_by_self());
+
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(session.takes().size() == 1);
+    CHECK(session.takes()[0].placed == target);
+    // The values where touched
+    CHECK(target->max() >= 10.);
+    // Its own curve after the release: the end of the box is as it was
+    CHECK(valueAt(1.) == Catch::Approx(end_before).margin(1e-6));
+    // ...and right before the box's end too, past the touched part
+    CHECK(valueAt(0.9) < 10.);
+
+    doc->commandStack().undo();
+    CHECK(target->max() == 1.);
   });
 }

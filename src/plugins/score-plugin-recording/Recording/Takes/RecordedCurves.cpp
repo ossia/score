@@ -79,9 +79,35 @@ std::optional<RecordedCurve> spliceCurve(
     const Automation::ProcessModel& into, const std::vector<ValueTake::Event>& events,
     int component, int64_t start, int64_t end, CurveOptions options)
 {
+  return spliceCurve(into, events, component, {{start, end}}, options);
+}
+
+std::vector<std::pair<int64_t, int64_t>> touchedSpans(
+    const std::vector<ValueTake::Event>& events, int64_t start, int64_t end,
+    int64_t release)
+{
+  std::vector<std::pair<int64_t, int64_t>> spans;
+  for(const auto& e : events)
+  {
+    const int64_t d = std::clamp(e.date, start, end);
+    const int64_t until = std::min(end, d + release);
+    if(!spans.empty() && d <= spans.back().second)
+      spans.back().second = std::max(spans.back().second, until);
+    else
+      spans.emplace_back(d, std::max(until, d));
+  }
+  return spans;
+}
+
+std::optional<RecordedCurve> spliceCurve(
+    const Automation::ProcessModel& into, const std::vector<ValueTake::Event>& events,
+    int component, std::vector<std::pair<int64_t, int64_t>> spans, CurveOptions options)
+{
   const double duration = double(into.duration().impl);
-  if(duration <= 0. || end <= start || component < 0)
+  std::erase_if(spans, [](auto& sp) { return sp.second < sp.first; });
+  if(duration <= 0. || spans.empty() || component < 0)
     return std::nullopt;
+  std::sort(spans.begin(), spans.end());
   const bool loops = into.loops() && into.loopDuration().impl > 0;
   const int64_t loop = into.loopDuration().impl;
   const int64_t offset = into.startOffset().impl;
@@ -90,21 +116,6 @@ std::optional<RecordedCurve> spliceCurve(
       date = ((date % loop) + loop) % loop;
     return std::clamp(double(date + offset) / duration, 0., 1.);
   };
-
-  // The recorded values, in the automation's time
-  std::vector<std::pair<double, double>> rec;
-  for(const auto& e : events)
-  {
-    const auto n = numbersOf(e.value);
-    if(!n || int(n->size()) <= component)
-      continue;
-    rec.emplace_back(x_of(std::clamp(e.date, start, end)), (*n)[component]);
-  }
-  if(rec.empty())
-    return std::nullopt;
-  double x0 = x_of(start), x1 = x_of(end);
-  if(loops && x1 <= x0)
-    x1 = std::min(1., double(loop + offset) / duration);
 
   // The automation's curve, as values
   const double lo = into.min(), hi = into.max();
@@ -119,7 +130,7 @@ std::optional<RecordedCurve> spliceCurve(
                                            : value(segs.back()->end().y());
     return lo;
   };
-  std::vector<std::pair<double, double>> before, after;
+  std::vector<std::pair<double, double>> existing;
   for(auto* seg : segs)
   {
     constexpr int steps = 16;
@@ -130,29 +141,64 @@ std::optional<RecordedCurve> spliceCurve(
       const double v = i == 0 ? value(seg->start().y())
                        : i == steps ? value(seg->end().y())
                                     : value(seg->valueAt(x));
-      if(x < x0)
-        before.emplace_back(x, v);
-      else if(x > x1)
-        after.emplace_back(x, v);
+      existing.emplace_back(x, v);
     }
   }
 
-  std::vector<std::pair<double, double>> pts = std::move(before);
-  pts.emplace_back(x0, existing_at(x0));
-  // The values, from the start of the span to its end
-  double held = rec.front().second;
-  pts.emplace_back(x0, held);
-  for(const auto& [x, v] : rec)
+  std::vector<std::pair<double, double>> pts;
+  std::size_t next_existing = 0;
+  bool any = false;
+  double prev_x1 = -1.;
+  for(std::size_t k = 0; k < spans.size(); k++)
   {
-    if(options.stepped && x > pts.back().first)
-      pts.emplace_back(x, held);
-    pts.emplace_back(x, v);
-    held = v;
+    const auto [start, end] = spans[k];
+    // The recorded values of this span, in the automation's time
+    std::vector<std::pair<double, double>> rec;
+    for(const auto& e : events)
+    {
+      // A single span takes what came before it, held from its start
+      const bool in = spans.size() == 1 ? true : e.date >= start && e.date <= end;
+      if(!in)
+        continue;
+      const auto n = numbersOf(e.value);
+      if(!n || int(n->size()) <= component)
+        continue;
+      rec.emplace_back(x_of(std::clamp(e.date, start, end)), (*n)[component]);
+    }
+    if(rec.empty())
+      continue;
+    double x0 = x_of(start), x1 = x_of(end);
+    if(loops && x1 <= x0)
+      x1 = std::min(1., double(loop + offset) / duration);
+    if(x0 < prev_x1)
+      x0 = prev_x1;
+    any = true;
+
+    // The curve up to the span
+    for(; next_existing < existing.size() && existing[next_existing].first < x0;
+        next_existing++)
+      if(existing[next_existing].first > prev_x1)
+        pts.push_back(existing[next_existing]);
+    pts.emplace_back(x0, existing_at(x0));
+    // The values, from the start of the span to its end
+    double held = rec.front().second;
+    pts.emplace_back(x0, held);
+    for(const auto& [x, v] : rec)
+    {
+      if(options.stepped && x > pts.back().first)
+        pts.emplace_back(x, held);
+      pts.emplace_back(x, v);
+      held = v;
+    }
+    pts.emplace_back(x1, held);
+    pts.emplace_back(x1, existing_at(x1));
+    prev_x1 = x1;
   }
-  pts.emplace_back(x1, held);
-  pts.emplace_back(x1, existing_at(x1));
-  for(auto& p : after)
-    pts.push_back(p);
+  if(!any)
+    return std::nullopt;
+  for(; next_existing < existing.size(); next_existing++)
+    if(existing[next_existing].first > prev_x1)
+      pts.push_back(existing[next_existing]);
   // An automation's curve goes from 0 to 1
   if(pts.front().first > 0.)
     pts.insert(pts.begin(), {0., existing_at(0.)});

@@ -126,3 +126,20 @@ TEST_CASE("A recorded curve's dates are the box's: values before its start hold 
   CHECK(value(*c, 0.25) == Approx(4.));
   CHECK(value(*c, 0.75) == Approx(8.));
 }
+
+TEST_CASE("Touch: the spans where values came, each until the release after its last", "[recording][curves][touch]")
+{
+  std::vector<ValueTake::Event> ev{
+      {100 * ms, ossia::value{1.f}}, {150 * ms, ossia::value{2.f}},
+      // 400 ms later: another touch
+      {600 * ms, ossia::value{3.f}}, {700 * ms, ossia::value{4.f}}};
+  const auto spans = touchedSpans(ev, 0, 1000 * ms, 200 * ms);
+  REQUIRE(spans.size() == 2);
+  CHECK(spans[0] == std::pair<int64_t, int64_t>{100 * ms, 350 * ms});
+  CHECK(spans[1] == std::pair<int64_t, int64_t>{600 * ms, 900 * ms});
+  // Closer than the release: one
+  CHECK(touchedSpans(ev, 0, 1000 * ms, 500 * ms).size() == 1);
+  // Never past the end of the take
+  CHECK(touchedSpans(ev, 0, 800 * ms, 500 * ms).back().second == 800 * ms);
+  CHECK(touchedSpans({}, 0, 1000 * ms, 200 * ms).empty());
+}

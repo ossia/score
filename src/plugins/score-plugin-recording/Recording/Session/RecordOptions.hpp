@@ -110,5 +110,10 @@ struct RecordOptions
   //! Target::Into: the notes it had over the span recorded are removed first;
   //! else the take's notes are added to them
   bool replace{false};
+  //! Target::Into an automation: its curve is replaced only where values
+  //! came, each time until `touchRelease` (flicks) after the last one; it plays
+  //! meanwhile. Else (latch) from the first value to the end, silent meanwhile.
+  bool touch{false};
+  int64_t touchRelease{352800000};
 };
 }

@@ -582,6 +582,33 @@ void RecordSession::updateLiveTakes()
   }
 }
 
+void RecordSession::touch()
+{
+  // The automation is silent from a value received until the release after
+  // the last one
+  int64_t received = 0;
+  for(auto& s : m_sources)
+    if(s->values)
+      received += s->values->events.load(std::memory_order_relaxed);
+  const bool now_touched = received != m_touchEvents;
+  if(now_touched)
+  {
+    m_touchEvents = received;
+    m_lastTouch.start();
+  }
+  const bool held = m_lastTouch.isValid()
+                    && m_lastTouch.nsecsElapsed()
+                           < m_options.touchRelease * 1000 / 705600 * 1000;
+  if(held == m_touching)
+    return;
+  m_touching = held;
+  if(auto* exec = executionOf(m_ctx); exec && exec->isPlaying())
+    exec->context().executionQueue.enqueue(
+        [p = m_latched, b = held || (m_options.into && m_options.into->muted())] {
+      p->mute(b);
+    });
+}
+
 void RecordSession::hideLiveTakes()
 {
   for(auto& s : m_sources)
@@ -759,12 +786,12 @@ void RecordSession::createRecorders(bool atStart)
   }
 
   // Recorded into an automation: it stops writing while the take records
-  // (latch), only in the execution
+  // (latch), or while values come (touch, see poll), only in the execution
   if(m_options.target == RecordOptions::Target::Into && m_options.into
      && qobject_cast<const Automation::ProcessModel*>(m_options.into.data()))
     if(auto* comp = score::findComponent<Execution::ProcessComponent>(
            m_options.into->components()))
-      if((m_latched = comp->OSSIAProcessPtr()))
+      if((m_latched = comp->OSSIAProcessPtr()) && !m_options.touch)
         ectx.executionQueue.enqueue([p = m_latched] { p->mute(true); });
 }
 
@@ -960,6 +987,8 @@ void RecordSession::poll()
   }
   if(++m_liveTick % 4 == 0)
     updateLiveTakes();
+  if(m_options.touch && m_latched)
+    touch();
   for(auto& s : m_sources)
   {
     if(!s->link)
@@ -1256,8 +1285,17 @@ void RecordSession::place()
         {
           const auto& acc = into->address().qualifiers.get().accessors;
           const int component = acc.empty() ? 0 : acc.front();
-          if(auto c = spliceCurve(
-                 *into, s->valueEvents, component, t.startDate, t.endDate, m_curves))
+          auto c = m_options.touch
+                       ? spliceCurve(
+                             *into, s->valueEvents, component,
+                             touchedSpans(
+                                 s->valueEvents, t.startDate, t.endDate,
+                                 m_options.touchRelease),
+                             m_curves)
+                       : spliceCurve(
+                             *into, s->valueEvents, component, t.startDate, t.endDate,
+                             m_curves);
+          if(c)
           {
             if(!macro)
               macro.emplace(new PlaceTakes, m_ctx);

@@ -6,6 +6,7 @@
 #include <score_plugin_recording_export.h>
 
 #include <optional>
+#include <utility>
 #include <vector>
 
 namespace Automation
@@ -53,4 +54,19 @@ SCORE_PLUGIN_RECORDING_EXPORT
 std::optional<RecordedCurve> spliceCurve(
     const Automation::ProcessModel& into, const std::vector<ValueTake::Event>& events,
     int component, int64_t start, int64_t end, CurveOptions options);
+
+//! The same over several spans of the box: the curve is kept outside them
+SCORE_PLUGIN_RECORDING_EXPORT
+std::optional<RecordedCurve> spliceCurve(
+    const Automation::ProcessModel& into, const std::vector<ValueTake::Event>& events,
+    int component, std::vector<std::pair<int64_t, int64_t>> spans, CurveOptions options);
+
+/**
+ * Touch: the spans of [start, end] where values came, each lasting `release`
+ * after its last value (flicks); spans closer than that are one.
+ */
+SCORE_PLUGIN_RECORDING_EXPORT
+std::vector<std::pair<int64_t, int64_t>> touchedSpans(
+    const std::vector<ValueTake::Event>& events, int64_t start, int64_t end,
+    int64_t release);
 }
