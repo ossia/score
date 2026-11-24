@@ -47,12 +47,15 @@ SETTINGS_PARAMETER_IMPL(MidiQuantize){
 SETTINGS_PARAMETER_IMPL(VideoFps){QStringLiteral("score_plugin_recording/VideoFps"), 30};
 SETTINGS_PARAMETER_IMPL(VideoCodec){
     QStringLiteral("score_plugin_recording/VideoCodec"), VideoCodecs{}.h264};
+SETTINGS_PARAMETER_IMPL(VideoWidth){QStringLiteral("score_plugin_recording/VideoWidth"), 1920};
+SETTINGS_PARAMETER_IMPL(VideoHeight){
+    QStringLiteral("score_plugin_recording/VideoHeight"), 1080};
 
 static auto list()
 {
   return std::tie(
       AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
-      MidiQuantize, VideoFps, VideoCodec);
+      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight);
 }
 }
 
@@ -103,8 +106,14 @@ RecordOptions Model::options() const
     o.midiQuantize = 0.125;
   else
     o.midiQuantize = 0.;
-  o.videoFps = std::clamp(m_VideoFps, 1, 240);
-  o.videoLossless = m_VideoCodec == VideoCodecs{}.ffv1;
+  o.video.fps = std::clamp(m_VideoFps, 1, 240);
+  o.video.size = QSize{std::clamp(m_VideoWidth, 16, 8192), std::clamp(m_VideoHeight, 16, 8192)};
+  const VideoCodecs c;
+  o.video.codec = m_VideoCodec == c.h265     ? VideoSettings::H265
+                  : m_VideoCodec == c.hap    ? VideoSettings::Hap
+                  : m_VideoCodec == c.prores ? VideoSettings::ProRes
+                  : m_VideoCodec == c.ffv1   ? VideoSettings::Ffv1
+                                             : VideoSettings::H264;
   return o;
 }
 
@@ -118,6 +127,8 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, LoopFixedLength)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, MidiQuantize)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoFps)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, VideoCodec)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoWidth)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoHeight)
 
 View::View()
 {
@@ -173,10 +184,21 @@ View::View()
   tab(tr("Video"));
   SETTINGS_UI_SPINBOX_SETUP("Frames per second", VideoFps);
   m_VideoFps->setRange(1, 240);
+  SETTINGS_UI_SPINBOX_SETUP("Width", VideoWidth);
+  m_VideoWidth->setRange(16, 8192);
+  m_VideoWidth->setSuffix(tr(" px"));
+  SETTINGS_UI_SPINBOX_SETUP("Height", VideoHeight);
+  m_VideoHeight->setRange(16, 8192);
+  m_VideoHeight->setSuffix(tr(" px"));
+  score::setHelp(
+      m_VideoWidth, tr("The size video takes are rendered and encoded at, whatever the "
+                       "size of what is recorded."));
   SETTINGS_UI_COMBOBOX_SETUP("Codec", VideoCodec, VideoCodecs{});
   score::setHelp(
-      m_VideoCodec, tr("H.264 makes small files; FFV1 keeps every pixel, in large files. "
-                       "Without an H.264 encoder, FFV1 is used."));
+      m_VideoCodec,
+      tr("H.264 and H.265 make small files; HAP plays back with little CPU, as score "
+         "decodes it on the GPU; ProRes is for editing; FFV1 keeps every pixel. A codec "
+         "this FFmpeg cannot encode falls back to FFV1."));
 
   tab(tr("Automations"));
   SETTINGS_UI_SPINBOX_SETUP("Simplification ratio", SimplificationRatio);
@@ -213,6 +235,8 @@ SETTINGS_UI_TOGGLE_IMPL(LoopFixedLength)
 SETTINGS_UI_COMBOBOX_IMPL(MidiQuantize)
 SETTINGS_UI_SPINBOX_IMPL(VideoFps)
 SETTINGS_UI_COMBOBOX_IMPL(VideoCodec)
+SETTINGS_UI_SPINBOX_IMPL(VideoWidth)
+SETTINGS_UI_SPINBOX_IMPL(VideoHeight)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -231,6 +255,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(MidiQuantize);
   SETTINGS_PRESENTER(VideoFps);
   SETTINGS_PRESENTER(VideoCodec);
+  SETTINGS_PRESENTER(VideoWidth);
+  SETTINGS_PRESENTER(VideoHeight);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();

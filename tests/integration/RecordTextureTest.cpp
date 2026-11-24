@@ -48,6 +48,7 @@
 #include <score_test/Project.hpp>
 
 extern "C" {
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
 
@@ -77,6 +78,7 @@ struct VideoInfo
 {
   double seconds{};
   int width{}, height{};
+  std::string codec;
 };
 VideoInfo probe(const QString& file)
 {
@@ -91,6 +93,7 @@ VideoInfo probe(const QString& file)
     if(st->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
       continue;
     r.width = st->codecpar->width;
+    r.codec = avcodec_get_name(st->codecpar->codec_id);
     r.height = st->codecpar->height;
     if(fmt->duration > 0)
       r.seconds = double(fmt->duration) / AV_TIME_BASE;
@@ -155,8 +158,9 @@ TEST_CASE("A texture outlet is recorded to a video take", "[recording][texture][
 
     // About the time recorded
     const auto info = probe(take.file);
-    CHECK(info.width > 0);
-    CHECK(info.height > 0);
+    // The size of the settings, not a thumbnail's
+    CHECK(info.width == 1920);
+    CHECK(info.height == 1080);
     CHECK(info.seconds > 1.5);
     CHECK(info.seconds < 3.5);
 
@@ -249,12 +253,70 @@ TEST_CASE("A camera selected in the explorer is recorded to a video take", "[rec
     INFO(takes[0].file.toStdString());
     REQUIRE(QFile::exists(takes[0].file));
     const auto info = probe(takes[0].file);
-    CHECK(info.width > 0);
+    CHECK(info.width == 1920);
+    CHECK(info.height == 1080);
     CHECK(info.seconds > 1.0);
     REQUIRE(box.processes.size() == before + 1);
     bool video = false;
     for(auto& p : box.processes)
       video = video || qobject_cast<Gfx::Video::Model*>(&p);
     CHECK(video);
+  });
+}
+
+TEST_CASE("Video takes are encoded with the codec and size asked", "[recording][texture][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* shader{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      shader = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Gfx::Filter::Model>::get(),
+          QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-time-uniforms.fs"));
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    bool steady = false;
+    for(int i = 0; i < 5 && !steady; i++)
+    {
+      if(!exec.isPlaying())
+        engine.execution().request_play_global(true);
+      spin(1500);
+      steady = exec.isPlaying();
+    }
+    REQUIRE(steady);
+
+    const std::pair<Recording::VideoSettings::Codec, const char*> codecs[]{
+        {Recording::VideoSettings::Hap, "hap"}, {Recording::VideoSettings::Ffv1, "ffv1"}};
+    for(auto [codec, name] : codecs)
+    {
+      Recording::RecordOptions opt;
+      opt.target = Recording::RecordOptions::Target::FileOnly;
+      opt.video.codec = codec;
+      opt.video.size = {640, 360};
+      opt.video.fps = 25;
+      Recording::RecordSession session{doc->context(), opt};
+      REQUIRE(session.addSource(*shader->outlets()[0]));
+      bool finished = false;
+      QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+      REQUIRE(session.start());
+      spin(1500);
+      session.stop();
+      REQUIRE(spin_until([&] { return finished; }));
+      REQUIRE(session.takes().size() == 1);
+      const auto info = probe(session.takes()[0].file);
+      INFO(session.takes()[0].file.toStdString());
+      CHECK(info.codec == name);
+      CHECK(info.width == 640);
+      CHECK(info.height == 360);
+    }
+    engine.execution().request_stop();
+    spin(200);
   });
 }

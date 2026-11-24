@@ -9,6 +9,7 @@
 #include <Midi/MidiProcess.hpp>
 #include <Process/Process.hpp>
 #include <Recording/ApplicationPlugin.hpp>
+#include <Recording/Takes/PlaceAddressTakes.hpp>
 #if SCORE_RECORDING_TEXTURES
 #include <Recording/Video/TextureRecorder.hpp>
 #endif
@@ -17,6 +18,7 @@
 
 #include <QHBoxLayout>
 #include <QMenu>
+#include <QPointF>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QWidgetAction>
@@ -55,8 +57,20 @@ void RecordPortMenu::setupMenu(
     return;
   }
 
+  // The take's node goes next to the process in the node view, where no node
+  // is: before it for an inlet, which it then feeds, under it for an outlet
+  std::optional<QPointF> pos;
+  if(auto* proc = Process::parentProcess(&port))
+  {
+    if(qobject_cast<const Process::Inlet*>(&port))
+      pos = proc->position() - QPointF{takeNodeSize.width() + 40., 0.};
+    else
+      pos = proc->position() + QPointF{0., proc->size().height() + 40.};
+  }
+
   const QPointer<const Process::Port> p = &port;
-  const auto record = [plug, p, &ctx](RecordOptions opt) {
+  const auto record = [plug, p, &ctx, pos](RecordOptions opt) {
+    opt.nodePosition = pos;
     if(p)
       plug->startSession(ctx, {p.data()}, opt);
   };

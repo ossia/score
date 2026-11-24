@@ -177,7 +177,7 @@ ApplicationPlugin::selectedAddresses(const score::DocumentContext& ctx) const
 
 RecordSession* ApplicationPlugin::recordAddressesInto(
     Scenario::IntervalModel& box, const std::vector<State::Address>& addresses,
-    AddressPlacement placement)
+    AddressPlacement placement, std::optional<QPointF> nodePosition)
 {
   if(m_session)
     return nullptr;
@@ -186,6 +186,7 @@ RecordSession* ApplicationPlugin::recordAddressesInto(
 
   RecordOptions options = defaultOptions();
   options.start = RecordOptions::Start::Now;
+  options.nodePosition = nodePosition;
   auto session = std::make_unique<RecordSession>(ctx, options);
   for(const auto& addr : addresses)
     session->addAddress(addr);
@@ -363,7 +364,8 @@ void ApplicationPlugin::recordSelection()
     showRecording(false);
 }
 
-void ApplicationPlugin::recordSelection(const score::DocumentContext& ctx)
+void ApplicationPlugin::recordSelection(
+    const score::DocumentContext& ctx, std::optional<QPointF> nodePosition)
 {
   if(m_session)
   {
@@ -386,12 +388,14 @@ void ApplicationPlugin::recordSelection(const score::DocumentContext& ctx)
           ports.push_back(out);
     }
   }
+  auto opt = defaultOptions();
+  opt.nodePosition = nodePosition;
   if(ports.empty())
   {
     tell(tr("Select ports or processes to record their outputs"));
     showRecording(false);
   }
-  else if(!startSession(*doc, ports, defaultOptions()))
+  else if(!startSession(*doc, ports, opt))
   {
     tell(tr("Nothing in the selection can be recorded"));
     showRecording(false);

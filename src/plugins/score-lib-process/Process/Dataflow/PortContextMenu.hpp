@@ -6,6 +6,7 @@
 
 class QMenu;
 class QObject;
+class QPointF;
 namespace Process
 {
 class Port;
@@ -43,8 +44,11 @@ class SCORE_LIB_PROCESS_EXPORT NodalViewMenuFactory : public score::InterfaceBas
   SCORE_INTERFACE(NodalViewMenuFactory, "5b2d8e41-9f3a-4c6e-8d17-2a4f6c9e0b35")
 public:
   ~NodalViewMenuFactory() override;
-  virtual void
-  setupMenu(QMenu& menu, QObject& interval, const Process::Context& ctx) = 0;
+  //! `pos`: where the menu opened, in the node view's coordinates (where a
+  //! process made from it goes)
+  virtual void setupMenu(
+      QMenu& menu, QObject& interval, QPointF pos, const Process::Context& ctx)
+      = 0;
 };
 
 class SCORE_LIB_PROCESS_EXPORT NodalViewMenuFactoryList final

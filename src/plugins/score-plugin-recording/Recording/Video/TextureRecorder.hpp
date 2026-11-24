@@ -1,21 +1,18 @@
 #pragma once
-#include <QImage>
+#include <Recording/Session/RecordOptions.hpp>
+
+#include <ossia/gfx/port_index.hpp>
+
 #include <QObject>
 #include <QPointer>
+#include <QSize>
 #include <QString>
 #include <QTimer>
 
 #include <score_plugin_recording_export.h>
 
-#include <ossia/gfx/port_index.hpp>
-
-#include <atomic>
 #include <functional>
-#include <condition_variable>
-#include <deque>
 #include <memory>
-#include <mutex>
-#include <thread>
 
 namespace score
 {
@@ -27,25 +24,27 @@ class Port;
 }
 namespace Gfx
 {
-class TexturePreview;
 struct LibavEncoder;
 }
 
 namespace Recording
 {
 /**
- * Records what a texture outlet produces to a video file.
+ * Records what a texture produces to a video file.
  *
- * The frames are read back through the preview path of the graphics context
- * (Gfx::GfxContext::add_preview), which reads the port back from the render
- * list that already draws it, so nothing is rendered twice. They are taken on
- * the GUI thread at the take's frame rate, repeated or skipped to keep to the
- * time that passes, and encoded on a thread of their own; the render thread
- * and the audio thread wait for nothing.
+ * An encoder output (Gfx::LibavEncoderNode, the node the FFmpeg output device
+ * renders to) is added to the graphics graph for the take, fed by the
+ * producer as a preview node is: nothing changes in the document. It renders
+ * the producer at the take's size and frame rate on the render thread,
+ * converts it to YUV on the GPU when the codec wants it, and encodes it there.
  */
 class SCORE_PLUGIN_RECORDING_EXPORT TextureRecorder final : public QObject
 {
 public:
+  //! Where the frames come from, asked again while recording: a producer can
+  //! be made again while playing
+  using Producer = std::function<ossia::gfx::port_index()>;
+
   //! The texture ports the recorder can record: outlets, and inlets (what
   //! their cable or their device brings)
   static bool canRecord(const Process::Port& port) noexcept;
@@ -53,50 +52,35 @@ public:
   static ossia::gfx::port_index
   producerOf(const Process::Port& port, const score::DocumentContext& doc);
 
-  //! Where the frames come from, asked on each frame: a producer can be made
-  //! again while playing
-  using Producer = std::function<ossia::gfx::port_index()>;
-
-  //! What a texture outlet produces
   TextureRecorder(
       const Process::Port& port, const score::DocumentContext& ctx, QString file,
-      int fps = 30, bool lossless = false);
-  //! Any producer: a camera or another texture input of a device
+      VideoSettings settings);
   TextureRecorder(
-      Producer producer, const score::DocumentContext& ctx, QString file, int fps = 30,
-      bool lossless = false);
+      Producer producer, const score::DocumentContext& ctx, QString file,
+      VideoSettings settings);
   ~TextureRecorder() override;
 
   bool start();
-  //! Stops taking frames, and waits for the file to be written
+  //! Takes the encoder out of the graph and finishes the file
   void stop();
 
-  //! Frames written; 0 until the first one could be read back
-  int64_t frames() const noexcept { return m_written.load(); }
-  bool started() const noexcept { return m_frameSize.isValid(); }
+  //! Frames encoded so far
+  int64_t frames() const noexcept;
   const QString& file() const noexcept { return m_file; }
-  int fps() const noexcept { return m_fps; }
+  const VideoSettings& settings() const noexcept { return m_settings; }
 
 private:
-  void take();
-  void encodeLoop();
+  void follow();
 
   Producer m_producer;
   const score::DocumentContext& m_ctx;
   QString m_file;
-  int m_fps{30};
-  bool m_lossless{};
-  std::unique_ptr<Gfx::TexturePreview> m_preview;
-  QTimer m_timer;
-  QSize m_frameSize;
-  int64_t m_taken{};
-  qint64 m_startMs{};
+  VideoSettings m_settings;
 
-  std::thread m_thread;
-  std::mutex m_lock;
-  std::condition_variable m_cond;
-  std::deque<QImage> m_queue;
-  bool m_done{};
-  std::atomic<int64_t> m_written{0};
+  std::shared_ptr<Gfx::LibavEncoder> m_encoder;
+  int32_t m_node{-1};
+  ossia::gfx::port_index m_source{-1, -1};
+  QTimer m_follow;
+  int64_t m_frames{};
 };
 }

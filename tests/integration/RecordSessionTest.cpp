@@ -16,7 +16,12 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/ProcessList.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 #include <Audio/Settings/Model.hpp>
 #include <Engine/ApplicationPlugin.hpp>
@@ -33,6 +38,7 @@
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordSession.hpp>
+#include <Recording/Takes/PlaceAddressTakes.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
@@ -1032,5 +1038,90 @@ TEST_CASE("Bars of MIDI from a cable while playing long: a one-bar piano roll lo
     std::sort(starts.begin(), starts.end());
     for(int i = 0; i < 4; i++)
       CHECK(std::abs(starts[i] - i) < 0.05);
+  });
+}
+
+TEST_CASE("An inlet's take plays into it, placed where asked", "[recording][session][inlet]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    auto& model = doc->model().modelDelegate();
+    auto& dm = static_cast<Scenario::ScenarioDocumentModel&>(model);
+
+    // A gain, its audio inlet fed by a sound
+    UuidKey<Process::ProcessModel> gain_key{};
+    for(auto& f : ctx.interfaces<Process::ProcessFactoryList>())
+      if(f.prettyName() == "Gain")
+        gain_key = f.concreteKey();
+    if(gain_key == UuidKey<Process::ProcessModel>{})
+      SKIP("no Gain process in this build");
+
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    Process::ProcessModel* gain{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      gain = m.createProcessInNewSlot(*box, gain_key, {});
+      REQUIRE(sound);
+      REQUIRE(gain);
+      m.createCable(dm, *sound->outlets()[0], *gain->inlets()[0], Process::CableType::ImmediateGlutton);
+      m.commit();
+    }
+    const auto cables_before = dm.cables.size();
+    const auto processes_before = box->processes.size();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.nodePosition = QPointF{123., 856.};
+    opt.muteSource = true;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*gain->inlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(800);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(session.takes().size() == 1);
+    auto* take = session.takes()[0].placed.data();
+    REQUIRE(take);
+    REQUIRE(box->processes.size() == processes_before + 1);
+    // Where asked
+    CHECK(take->position() == QPointF{123., 856.});
+    // Another node is never put on top of it
+    const auto next = Recording::freeNodePosition(*box, QPointF{123., 856.});
+    CHECK(!QRectF(next, Recording::takeNodeSize)
+                .intersects(QRectF(take->position(), Recording::takeNodeSize)));
+    // Into the inlet it was recorded from
+    REQUIRE(dm.cables.size() == cables_before + 1);
+    bool into_gain = false;
+    for(auto& c : dm.cables)
+      if(c.source().try_find(doc->context()) == take->outlets()[0]
+         && c.sink().try_find(doc->context()) == gain->inlets()[0])
+        into_gain = true;
+    CHECK(into_gain);
+    // What fed the inlet is muted, not the gain
+    CHECK(sound->muted());
+    CHECK(!gain->muted());
+
+    doc->commandStack().undo();
+    CHECK(dm.cables.size() == cables_before);
+    CHECK(box->processes.size() == processes_before);
+    CHECK(!sound->muted());
   });
 }

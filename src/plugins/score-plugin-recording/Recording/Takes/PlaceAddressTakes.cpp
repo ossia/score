@@ -11,6 +11,7 @@
 
 #include <Process/Commands/Properties.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
@@ -30,20 +31,61 @@
 
 namespace Recording
 {
+QPointF freeNodePosition(const Scenario::IntervalModel& box, QPointF wanted)
+{
+  constexpr double margin = 20.;
+  QRectF r{wanted, takeNodeSize};
+  for(int i = 0; i < 200; i++)
+  {
+    const Process::ProcessModel* hit{};
+    for(const auto& p : box.processes)
+    {
+      // A node is drawn larger than its size: title, ports
+      const QSizeF sz{
+          std::max(p.size().width(), takeNodeSize.width()),
+          std::max(p.size().height() + 60., takeNodeSize.height())};
+      const QRectF other{p.position(), sz};
+      if(other.adjusted(-margin, -margin, margin, margin).intersects(r))
+      {
+        hit = &p;
+        r.moveTop(std::max(r.top(), other.bottom() + margin));
+      }
+    }
+    if(!hit)
+      break;
+  }
+  return r.topLeft();
+}
 namespace
 {
+//! Where the next process goes in the node view: from where the menu opened,
+//! clear of the others, or where new processes go
+struct Placer
+{
+  std::optional<QPointF> pos;
+  Process::ProcessModel* operator()(
+      Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
+      const Process::ProcessData& data)
+  {
+    if(!pos)
+      return macro.createProcessInNewSlot(box, data);
+    return macro.createProcessInNewSlot(box, data, freeNodePosition(box, *pos));
+  }
+};
+
 void placeAutomations(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
     const AddressTake& take, int components, int64_t start, int64_t end,
-    int64_t offset, CurveOptions curves)
+    int64_t offset, CurveOptions curves, Placer& place)
 {
   for(int c = 0; c < components; c++)
   {
     auto curve = curveOf(take.events, c, start, end, curves);
     if(!curve)
       continue;
-    auto* proc = macro.createProcessInNewSlot(
-        box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {});
+    auto* proc = place(
+        macro, box,
+        Process::ProcessData{Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}, {}});
     if(!proc)
       continue;
     auto& autom = *safe_cast<Automation::ProcessModel*>(proc);
@@ -61,7 +103,8 @@ void placeAutomations(
 
 void placeMessages(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
-    const std::vector<const AddressTake*>& takes, int64_t start, int64_t offset)
+    const std::vector<const AddressTake*>& takes, int64_t start, int64_t offset,
+    Placer& place)
 {
   // The values by date, in the order they came
   std::map<int64_t, State::MessageList> by_date;
@@ -72,8 +115,9 @@ void placeMessages(
   if(by_date.empty())
     return;
 
-  auto* proc = macro.createProcessInNewSlot(
-      box, Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), {});
+  auto* proc = place(
+      macro, box,
+      Process::ProcessData{Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), {}, {}});
   if(!proc)
     return;
   auto& sub = *safe_cast<Scenario::ProcessModel*>(proc);
@@ -130,8 +174,9 @@ void placeInto(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
     const std::vector<AddressTake>& takes, AddressPlacement placement,
     CurveOptions curves, const std::vector<FileTake>& files, int64_t origin,
-    int64_t span, int64_t offset)
+    int64_t span, int64_t offset, std::optional<QPointF> nodePosition)
 {
+  Placer place{nodePosition};
   std::vector<const AddressTake*> as_messages;
   for(const auto& t : takes)
   {
@@ -140,11 +185,12 @@ void placeInto(
     const int components
         = placement == AddressPlacement::Automations ? numericComponents(t.events) : 0;
     if(components > 0)
-      placeAutomations(macro, box, t, components, origin, origin + span, offset, curves);
+      placeAutomations(
+          macro, box, t, components, origin, origin + span, offset, curves, place);
     else
       as_messages.push_back(&t);
   }
-  placeMessages(macro, box, as_messages, origin, offset);
+  placeMessages(macro, box, as_messages, origin, offset, place);
 
   // The files as their drop makes them, each from where it was recorded
   if(!files.empty())
@@ -157,7 +203,7 @@ void placeInto(
       mime.setUrls({QUrl::fromLocalFile(f.file)});
       for(auto& d : handlers.getDrop(mime, box.context()))
       {
-        auto* p = macro.createProcessInNewSlot(box, d.creation);
+        auto* p = place(macro, box, d.creation);
         if(!p)
           continue;
         if(d.setup)
@@ -180,20 +226,21 @@ Scenario::IntervalModel* placeAddressTakes(
   if(end <= start)
     return nullptr;
   auto& box = macro.createBox(scenario, TimeVal{start}, TimeVal{end}, y);
-  placeInto(macro, box, takes, placement, curves, files, start, end - start, 0);
+  placeInto(macro, box, takes, placement, curves, files, start, end - start, 0, {});
   return &box;
 }
 
 bool placeAddressTakesInBox(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
     const std::vector<AddressTake>& takes, AddressPlacement placement,
-    CurveOptions curves, const std::vector<FileTake>& files)
+    CurveOptions curves, const std::vector<FileTake>& files,
+    std::optional<QPointF> nodePosition)
 {
   const auto [start, end] = spanOf(takes, files);
   if(end <= start)
     return false;
   const int64_t span = std::max(end - start, box.duration.defaultDuration().impl);
-  placeInto(macro, box, takes, placement, curves, files, start, span, -start);
+  placeInto(macro, box, takes, placement, curves, files, start, span, -start, nodePosition);
   return true;
 }
 }

@@ -2,6 +2,10 @@
 #include <Recording/Takes/WavStreamWriter.hpp>
 
 #include <QPointer>
+#include <QPointF>
+#include <QSize>
+
+#include <optional>
 
 #include <cstdint>
 
@@ -11,6 +15,25 @@ class ProcessModel;
 }
 namespace Recording
 {
+//! How a video take is encoded
+struct VideoSettings
+{
+  enum Codec
+  {
+    H264,
+    H265,
+    Hap,
+    ProRes,
+    Ffv1
+  };
+  QSize size{1920, 1080};
+  int fps{30};
+  Codec codec{H264};
+
+  //! The file extension of the codec's container
+  QString extension() const;
+};
+
 //! How a recording session starts, stops, writes and places its takes.
 struct RecordOptions
 {
@@ -50,8 +73,11 @@ struct RecordOptions
   //! this many quarter notes in the box; 0: as played
   double midiQuantize{0.};
   //! Video takes
-  int videoFps{30};
-  bool videoLossless{false};
+  VideoSettings video;
+
+  //! Where the takes' nodes go in the node view: where the menu was opened;
+  //! none, where a new process goes
+  std::optional<QPointF> nodePosition;
   //! The metronome clicks the box's beats on the main output while the takes
   //! wait for their start (with a start on the next bar: a count-in)
   bool countIn{false};

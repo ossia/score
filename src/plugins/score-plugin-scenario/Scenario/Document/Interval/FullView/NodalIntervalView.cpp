@@ -769,7 +769,7 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     if(facs.begin() != facs.end())
       menu.addSeparator();
     for(auto& fac : facs)
-      fac.setupMenu(menu, const_cast<Scenario::IntervalModel&>(m_model), m_context);
+      fac.setupMenu(menu, const_cast<Scenario::IntervalModel&>(m_model), nodePos, m_context);
   }
 
   // The nodes selected, with the cables between them.

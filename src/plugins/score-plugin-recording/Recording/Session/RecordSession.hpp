@@ -36,6 +36,7 @@ struct DocumentContext;
 }
 namespace Process
 {
+struct ProcessData;
 class Port;
 class ProcessModel;
 }
@@ -141,6 +142,14 @@ private:
   void poll();
   void finish();
   void place();
+  //! A process of a take, in a new slot, at its place in the node view
+  Process::ProcessModel* createTake(
+      Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
+      const Process::ProcessData& data);
+  //! A take of an inlet plays into it
+  void connectToInlet(
+      Scenario::Command::Macro& macro, const Process::ProcessModel& take,
+      const Process::Port& port);
   //! `bars`: the passes' length; with `oneLoop`, the take is one loop that
   //! long whatever it lasted
   bool placePasses(

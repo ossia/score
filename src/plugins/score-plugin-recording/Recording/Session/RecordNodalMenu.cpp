@@ -11,12 +11,13 @@
 #include <score/selection/SelectionStack.hpp>
 
 #include <QMenu>
+#include <QPointF>
 #include <QPointer>
 
 namespace Recording
 {
 void RecordNodalMenu::setupMenu(
-    QMenu& menu, QObject& interval, const Process::Context& ctx)
+    QMenu& menu, QObject& interval, QPointF pos, const Process::Context& ctx)
 {
   auto* box = qobject_cast<Scenario::IntervalModel*>(&interval);
   auto* plug = ctx.app.findGuiApplicationPlugin<Recording::ApplicationPlugin>();
@@ -52,7 +53,7 @@ void RecordNodalMenu::setupMenu(
     act->setEnabled(processes);
     act->setToolTip(QObject::tr("Their audio and MIDI outputs, or the ports selected"));
     QObject::connect(
-        act, &QAction::triggered, plug, [plug, &ctx] { plug->recordSelection(ctx); });
+        act, &QAction::triggered, plug, [plug, &ctx, pos] { plug->recordSelection(ctx, pos); });
   }
 
   // What the explorer has selected, into this box
@@ -75,9 +76,10 @@ void RecordNodalMenu::setupMenu(
         "The addresses selected in the device explorer, into this box from now: "
         "audio inputs as sounds, cameras as videos"));
     QObject::connect(
-        act, &QAction::triggered, plug, [plug, target, addresses, placement = placement] {
+        act, &QAction::triggered, plug,
+        [plug, target, addresses, pos, placement = placement] {
       if(target)
-        plug->recordAddressesInto(*target, addresses, placement);
+        plug->recordAddressesInto(*target, addresses, placement, pos);
     });
   }
 }

@@ -48,9 +48,12 @@ struct Grids
 };
 struct VideoCodecs
 {
-  QString h264{"H.264"};
-  QString ffv1{"FFV1, lossless"};
-  operator QStringList() const { return {h264, ffv1}; }
+  QString h264{"H.264 (MKV)"};
+  QString h265{"H.265 (MKV)"};
+  QString hap{"HAP (MOV)"};
+  QString prores{"ProRes 422 (MOV)"};
+  QString ffv1{"FFV1, lossless (MKV)"};
+  operator QStringList() const { return {h264, h265, hap, prores, ffv1}; }
 };
 struct Quantizes
 {
@@ -88,6 +91,8 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   QString m_MidiQuantize;
   int m_VideoFps{30};
   QString m_VideoCodec;
+  int m_VideoWidth{1920};
+  int m_VideoHeight{1080};
 
 public:
   Model(
@@ -107,6 +112,8 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, MidiQuantize)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoFps)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, VideoCodec)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoWidth)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoHeight)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, AudioFormat)
@@ -119,6 +126,8 @@ SCORE_SETTINGS_PARAMETER(Model, LoopFixedLength)
 SCORE_SETTINGS_PARAMETER(Model, MidiQuantize)
 SCORE_SETTINGS_PARAMETER(Model, VideoFps)
 SCORE_SETTINGS_PARAMETER(Model, VideoCodec)
+SCORE_SETTINGS_PARAMETER(Model, VideoWidth)
+SCORE_SETTINGS_PARAMETER(Model, VideoHeight)
 
 class View : public score::GlobalSettingsView
 {
@@ -136,6 +145,8 @@ public:
   SETTINGS_UI_COMBOBOX_HPP(MidiQuantize)
   SETTINGS_UI_SPINBOX_HPP(VideoFps)
   SETTINGS_UI_COMBOBOX_HPP(VideoCodec)
+  SETTINGS_UI_SPINBOX_HPP(VideoWidth)
+  SETTINGS_UI_SPINBOX_HPP(VideoHeight)
 
   // The curve plug-in's
   SETTINGS_UI_SPINBOX_HPP(SimplificationRatio)

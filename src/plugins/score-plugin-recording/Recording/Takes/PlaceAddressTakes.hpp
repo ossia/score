@@ -2,7 +2,11 @@
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 
+#include <QPointF>
+#include <QSizeF>
 #include <QString>
+
+#include <optional>
 
 #include <Recording/Engine/ValueRecorder.hpp>
 #include <Recording/Takes/RecordedCurves.hpp>
@@ -23,6 +27,14 @@ class Macro;
 
 namespace Recording
 {
+//! Room a take's node takes in the node view
+constexpr QSizeF takeNodeSize{320., 160.};
+
+//! The first place from `wanted` down where a take's node covers no node of
+//! the box
+SCORE_PLUGIN_RECORDING_EXPORT
+QPointF freeNodePosition(const Scenario::IntervalModel& box, QPointF wanted);
+
 //! What was recorded of an address, dated in the scenario it is placed in
 struct AddressTake
 {
@@ -73,5 +85,6 @@ SCORE_PLUGIN_RECORDING_EXPORT
 bool placeAddressTakesInBox(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
     const std::vector<AddressTake>& takes, AddressPlacement placement,
-    CurveOptions curves, const std::vector<FileTake>& files = {});
+    CurveOptions curves, const std::vector<FileTake>& files = {},
+    std::optional<QPointF> nodePosition = {});
 }

@@ -2,26 +2,27 @@
 
 #include <Media/Libav.hpp>
 
-#include <Gfx/GfxApplicationPlugin.hpp>
-#include <Gfx/GfxContext.hpp>
-#include <Gfx/Libav/LibavEncoder.hpp>
-#include <Gfx/TexturePort.hpp>
-#include <Gfx/Widgets/TexturePreview.hpp>
-
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/CableData.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include <Device/Protocol/DeviceInterface.hpp>
 
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Gfx/GfxApplicationPlugin.hpp>
+#include <Gfx/GfxContext.hpp>
 #include <Gfx/GfxInputDevice.hpp>
+#include <Gfx/Libav/LibavEncoder.hpp>
+#include <Gfx/Libav/LibavEncoderNode.hpp>
+#include <Gfx/Libav/LibavOutputStream.hpp>
+#include <Gfx/TexturePort.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
-#include <QDateTime>
-#include <QElapsedTimer>
+#include <QTimer>
 
 #if SCORE_HAS_LIBAV
 extern "C" {
@@ -31,36 +32,78 @@ extern "C" {
 
 namespace Recording
 {
+QString VideoSettings::extension() const
+{
+  switch(codec)
+  {
+    case Hap:
+    case ProRes:
+      return QStringLiteral("mov");
+    default:
+      return QStringLiteral("mkv");
+  }
+}
+
 namespace
 {
-//! The largest side the preview path reads back
-constexpr int max_side = Gfx::GfxContext::max_preview_size;
-//! Frames waiting for the encoder, at most (a second of 1024 x 1024 RGBA is
-//! 120 MB): past that they are dropped
-constexpr std::size_t max_queued = 30;
-
 #if SCORE_HAS_LIBAV
-Gfx::LibavOutputSettings
-videoSettings(const QString& file, QSize size, int fps, bool lossless)
+bool hasEncoder(const char* name)
+{
+  return avcodec_find_encoder_by_name(name) != nullptr;
+}
+
+//! The encoder output's settings; a codec FFmpeg lacks falls back to FFV1,
+//! which every FFmpeg has
+Gfx::LibavOutputSettings outputSettings(const QString& file, const VideoSettings& v)
 {
   Gfx::LibavOutputSettings s;
   s.path = file;
-  s.width = size.width();
-  s.height = size.height();
-  s.rate = fps;
-  s.muxer = QStringLiteral("matroska");
+  s.width = std::max(16, v.size.width());
+  s.height = std::max(16, v.size.height());
+  s.rate = std::max(1, v.fps);
+  s.audio_channels = 0;
   s.video_render_pixfmt = QStringLiteral("rgba");
-  // H.264 when it is there, else lossless FFV1, which every FFmpeg has
-  if(!lossless && avcodec_find_encoder_by_name("libx264"))
+
+  auto codec = v.codec;
+  const char* needed = codec == VideoSettings::H264   ? "libx264"
+                       : codec == VideoSettings::H265 ? "libx265"
+                       : codec == VideoSettings::Hap  ? "hap"
+                       : codec == VideoSettings::ProRes ? "prores_ks"
+                                                        : "ffv1";
+  if(!hasEncoder(needed))
+    codec = VideoSettings::Ffv1;
+
+  switch(codec)
   {
-    s.video_encoder_short = QStringLiteral("libx264");
-    s.video_converted_pixfmt = QStringLiteral("yuv420p");
-    s.options = {{"preset", "veryfast"}, {"crf", "18"}};
-  }
-  else
-  {
-    s.video_encoder_short = QStringLiteral("ffv1");
-    s.video_converted_pixfmt = QStringLiteral("yuv420p");
+    case VideoSettings::H264:
+      s.muxer = QStringLiteral("matroska");
+      s.video_encoder_short = QStringLiteral("libx264");
+      s.video_converted_pixfmt = QStringLiteral("yuv420p");
+      s.options = {{"preset", "veryfast"}, {"crf", "18"}};
+      break;
+    case VideoSettings::H265:
+      s.muxer = QStringLiteral("matroska");
+      s.video_encoder_short = QStringLiteral("libx265");
+      s.video_converted_pixfmt = QStringLiteral("yuv420p");
+      s.options = {{"preset", "fast"}, {"crf", "22"}};
+      break;
+    case VideoSettings::Hap:
+      s.muxer = QStringLiteral("mov");
+      s.video_encoder_short = QStringLiteral("hap");
+      s.video_converted_pixfmt = QStringLiteral("rgba");
+      s.options = {{"format", "hap"}};
+      break;
+    case VideoSettings::ProRes:
+      s.muxer = QStringLiteral("mov");
+      s.video_encoder_short = QStringLiteral("prores_ks");
+      s.video_converted_pixfmt = QStringLiteral("yuv422p10le");
+      s.options = {{"profile", "2"}};
+      break;
+    case VideoSettings::Ffv1:
+      s.muxer = QStringLiteral("matroska");
+      s.video_encoder_short = QStringLiteral("ffv1");
+      s.video_converted_pixfmt = QStringLiteral("yuv420p");
+      break;
   }
   return s;
 }
@@ -99,29 +142,27 @@ TextureRecorder::producerOf(const Process::Port& port, const score::DocumentCont
 }
 
 TextureRecorder::TextureRecorder(
-    const Process::Port& port, const score::DocumentContext& ctx, QString file, int fps,
-    bool lossless)
+    const Process::Port& port, const score::DocumentContext& ctx, QString file,
+    VideoSettings settings)
     : TextureRecorder{
           [p = QPointer<const Process::Port>{&port}, &ctx]() -> ossia::gfx::port_index {
     if(p)
       return producerOf(*p, ctx);
     return {-1, -1};
-  }, ctx, std::move(file), fps, lossless}
+  }, ctx, std::move(file), settings}
 {
 }
 
 TextureRecorder::TextureRecorder(
-    Producer producer, const score::DocumentContext& ctx, QString file, int fps,
-    bool lossless)
+    Producer producer, const score::DocumentContext& ctx, QString file,
+    VideoSettings settings)
     : m_producer{std::move(producer)}
     , m_ctx{ctx}
     , m_file{std::move(file)}
-    , m_fps{std::max(1, fps)}
-    , m_lossless{lossless}
+    , m_settings{settings}
 {
-  m_timer.setTimerType(Qt::PreciseTimer);
-  m_timer.setInterval(1000 / m_fps);
-  connect(&m_timer, &QTimer::timeout, this, &TextureRecorder::take);
+  m_follow.setInterval(250);
+  connect(&m_follow, &QTimer::timeout, this, &TextureRecorder::follow);
 }
 
 TextureRecorder::~TextureRecorder()
@@ -129,104 +170,106 @@ TextureRecorder::~TextureRecorder()
   stop();
 }
 
+#if SCORE_HAS_LIBAV
+namespace
+{
+// The node is let go of by the render thread, some time after it is
+// unregistered: it keeps the encoder it writes to alive until then. The
+// holder is a base listed first, so that the encoder outlives the node part.
+struct EncoderHolder
+{
+  std::shared_ptr<Gfx::LibavEncoder> held;
+};
+struct TakeEncoderNode final
+    : EncoderHolder
+    , Gfx::LibavEncoderNode
+{
+  TakeEncoderNode(
+      const Gfx::LibavOutputSettings& set, std::shared_ptr<Gfx::LibavEncoder> enc)
+      : EncoderHolder{std::move(enc)}
+      , Gfx::LibavEncoderNode{set, *held, 0}
+  {
+  }
+};
+}
+#endif
+
 bool TextureRecorder::start()
 {
-#if !SCORE_HAS_LIBAV
-  return false;
-#endif
+#if SCORE_HAS_LIBAV
   auto* plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
   if(!m_producer || !plug)
     return false;
-  m_preview = std::make_unique<Gfx::TexturePreview>();
-  m_preview->attach(&plug->context, m_producer(), QSize{max_side, max_side});
-  if(!m_preview->attached())
+  const auto set = outputSettings(m_file, m_settings);
+  m_encoder = std::make_shared<Gfx::LibavEncoder>(set);
+  if(m_encoder->start() != 0)
+  {
+    m_encoder.reset();
     return false;
-  m_startMs = QDateTime::currentMSecsSinceEpoch();
-  m_timer.start();
+  }
+  m_node = plug->context.register_preview_node(
+      std::make_unique<TakeEncoderNode>(set, m_encoder));
+  follow();
+  m_follow.start();
   return true;
+#else
+  return false;
+#endif
 }
 
-void TextureRecorder::take()
+void TextureRecorder::follow()
 {
-  if(!m_preview)
+  // The producer is made again when its process or its device is
+  auto* plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
+  if(!plug || m_node < 0)
     return;
-  // The producer changes when its process or device is made again
-  m_preview->setProducer(m_producer());
-
-  QImage img = m_preview->image();
-  if(img.isNull())
+  const auto src = m_producer();
+  if(src == m_source)
     return;
-  img = img.convertToFormat(QImage::Format_RGBA8888);
-
-  if(!m_frameSize.isValid())
-  {
-    // The first frame read back: the video starts now, at its size
-    m_frameSize = img.size();
-    m_startMs = QDateTime::currentMSecsSinceEpoch();
-    m_done = false;
-    m_thread = std::thread{[this] { encodeLoop(); }};
-  }
-  else if(img.size() != m_frameSize)
-  {
-    img = img.scaled(m_frameSize);
-  }
-
-  // As many frames as the time that passed asks for: repeated when the GUI
-  // was late, none when it was early
-  const qint64 elapsed = QDateTime::currentMSecsSinceEpoch() - m_startMs;
-  const int64_t due = elapsed * m_fps / 1000 + 1;
-  std::lock_guard _{m_lock};
-  while(m_taken < due)
-  {
-    if(m_queue.size() < max_queued)
-      m_queue.push_back(img);
-    m_taken++;
-  }
-  m_cond.notify_one();
+  auto& gfx = plug->context;
+  if(m_source.node >= 0)
+    gfx.disconnect_preview_node(
+        {m_source, {m_node, 0}, Process::CableType::ImmediateGlutton});
+  m_source = src;
+  if(m_source.node >= 0)
+    gfx.connect_preview_node({m_source, {m_node, 0}, Process::CableType::ImmediateGlutton});
 }
 
-void TextureRecorder::encodeLoop()
+int64_t TextureRecorder::frames() const noexcept
 {
 #if SCORE_HAS_LIBAV
-  Gfx::LibavEncoder enc{videoSettings(m_file, m_frameSize, m_fps, m_lossless)};
-  if(enc.start() != 0)
-  {
-    std::unique_lock lk{m_lock};
-    m_queue.clear();
-    return;
-  }
-  for(;;)
-  {
-    QImage img;
-    {
-      std::unique_lock lk{m_lock};
-      m_cond.wait(lk, [this] { return m_done || !m_queue.empty(); });
-      if(m_queue.empty() && m_done)
-        break;
-      img = std::move(m_queue.front());
-      m_queue.pop_front();
-    }
-    if(enc.add_frame(img.constBits(), AV_PIX_FMT_RGBA, img.width(), img.height()) == 0)
-      m_written++;
-  }
-  enc.stop();
+  if(!m_encoder)
+    return m_frames;
+  std::lock_guard _{m_encoder->m_muxMutex};
+  if(m_encoder->video_stream_index >= 0
+     && m_encoder->video_stream_index < int(m_encoder->streams.size()))
+    return m_encoder->streams[m_encoder->video_stream_index].next_pts;
 #endif
+  return m_frames;
 }
 
 void TextureRecorder::stop()
 {
-  m_timer.stop();
-  if(m_preview)
+  m_follow.stop();
+#if SCORE_HAS_LIBAV
+  if(!m_encoder)
+    return;
+  m_frames = frames();
+  if(auto* plug = m_ctx.findPlugin<Gfx::DocumentPlugin>())
   {
-    m_preview->detach();
-    m_preview.reset();
+    auto& gfx = plug->context;
+    if(m_source.node >= 0)
+      gfx.disconnect_preview_node(
+          {m_source, {m_node, 0}, Process::CableType::ImmediateGlutton});
+    if(m_node >= 0)
+      gfx.unregister_preview_node(m_node);
   }
-  {
-    std::lock_guard _{m_lock};
-    m_done = true;
-  }
-  m_cond.notify_one();
-  if(m_thread.joinable())
-    m_thread.join();
+  m_node = -1;
+  m_source = {-1, -1};
+  // Frames still being rendered find the file closed: the encoder checks
+  // under its lock. The node keeps it alive until the render thread lets go.
+  m_encoder->stop();
+  m_encoder.reset();
+#endif
 }
 }

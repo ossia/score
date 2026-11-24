@@ -1,7 +1,9 @@
 #include "RecordSession.hpp"
 
 #include <Process/Commands/Properties.hpp>
+#include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Drop/TakeDrop.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
@@ -23,6 +25,7 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
@@ -55,6 +58,8 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/model/ComponentUtils.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -496,13 +501,13 @@ void RecordSession::createRecorders(bool atStart)
       s->link = std::make_unique<Execution::TapLink>(ectx, s->node);
       const QString folder = Process::takesFolder(m_ctx);
       const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
-        return Process::takeFile(folder, s->prefix, k, QStringLiteral("mkv"));
+        return Process::takeFile(folder, s->prefix, k, m_options.video.extension());
       });
-      s->file = Process::takeFile(folder, s->prefix, n, QStringLiteral("mkv"));
+      s->file = Process::takeFile(folder, s->prefix, n, m_options.video.extension());
       if(s->port)
       {
         s->video = std::make_unique<TextureRecorder>(
-            *s->port, m_ctx, s->file, m_options.videoFps, m_options.videoLossless);
+            *s->port, m_ctx, s->file, m_options.video);
       }
       else
       {
@@ -513,8 +518,7 @@ void RecordSession::createRecorders(bool atStart)
           return {-1, -1};
         };
         s->video = std::make_unique<TextureRecorder>(
-            std::move(producer), m_ctx, s->file, m_options.videoFps,
-            m_options.videoLossless);
+            std::move(producer), m_ctx, s->file, m_options.video);
       }
       if(!s->video->start())
       {
@@ -858,6 +862,35 @@ void RecordSession::finish()
   finished();
 }
 
+Process::ProcessModel* RecordSession::createTake(
+    Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
+    const Process::ProcessData& data)
+{
+  if(!m_options.nodePosition)
+    return macro.createProcessInNewSlot(box, data);
+  return macro.createProcessInNewSlot(
+      box, data, freeNodePosition(box, *m_options.nodePosition));
+}
+
+void RecordSession::connectToInlet(
+    Scenario::Command::Macro& macro, const Process::ProcessModel& take,
+    const Process::Port& port)
+{
+  auto* inlet = qobject_cast<const Process::Inlet*>(&port);
+  if(!inlet)
+    return;
+  auto* doc = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(m_ctx.document);
+  if(!doc)
+    return;
+  for(auto* out : take.outlets())
+  {
+    if(out->type() != inlet->type())
+      continue;
+    macro.createCable(*doc, *out, *inlet, Process::CableType::ImmediateGlutton);
+    return;
+  }
+}
+
 bool RecordSession::placePasses(
     Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro, double bars,
     bool oneLoop)
@@ -975,10 +1008,12 @@ bool RecordSession::placePasses(
       }
       else
       {
-        proc = macro->createProcessInNewSlot(*s.box, d.creation);
+        proc = createTake(*macro, *s.box, d.creation);
       }
       if(!proc)
         continue;
+      if(s.port)
+        connectToInlet(*macro, *proc, *s.port);
       if(d.setup)
         d.setup(*proc, disp);
       if(loops)
@@ -996,6 +1031,7 @@ bool RecordSession::placePasses(
         macro->submit(new Process::SetStartOffset{*proc, TimeVal{-p.start}});
       }
       t.placed = proc;
+      m_placed.push_back(proc);
       placed = true;
       first = false;
     }
@@ -1151,15 +1187,17 @@ void RecordSession::place()
         score::Dispatcher_T disp{*macro};
         for(auto& d : drops)
         {
-          auto* p = macro->createProcessInNewSlot(*s->box, d.creation);
+          auto* p = createTake(*macro, *s->box, d.creation);
           if(!p)
             continue;
           if(d.setup)
             d.setup(*p, disp);
+          connectToInlet(*macro, *p, *s->port);
           // The take starts where the recording started in the box
           macro->submit(new Process::SetLoop{*p, false});
           macro->submit(new Process::SetStartOffset{*p, TimeVal{-t.startDate}});
           t.placed = p;
+          m_placed.push_back(p);
           placed_any = true;
         }
       }
@@ -1171,11 +1209,31 @@ void RecordSession::place()
   if(m_options.muteSource && placed_any && macro)
   {
     std::vector<const Process::ProcessModel*> sources;
+    // The takes now feed the inlets they were recorded from too: they play
+    const auto isTake = [&](const Process::ProcessModel* proc) {
+      return ossia::any_of(m_placed, [=](const auto& t) { return t == proc; });
+    };
+    const auto add = [&](const Process::ProcessModel* proc) {
+      if(proc && !proc->muted() && !isTake(proc) && !ossia::contains(sources, proc))
+        sources.push_back(proc);
+    };
     for(auto& s : m_sources)
-      if(s->port)
-        if(auto* proc = Process::parentProcess(s->port.data()))
-          if(!proc->muted() && !ossia::contains(sources, proc))
-            sources.push_back(proc);
+    {
+      if(!s->port)
+        continue;
+      // An inlet's take plays into it: what fed it is muted, not the process
+      if(qobject_cast<const Process::Inlet*>(s->port.data()))
+      {
+        for(const auto& path : s->port->cables())
+          if(auto* cable = path.try_find(m_ctx))
+            if(auto* src = cable->source().try_find(m_ctx))
+              add(Process::parentProcess(src));
+      }
+      else
+      {
+        add(Process::parentProcess(s->port.data()));
+      }
+    }
     for(auto* proc : sources)
       macro->submit(new Process::SetProcessMuted{*proc, true});
   }
@@ -1252,7 +1310,8 @@ void RecordSession::place()
       if(m_intoBox)
       {
         if(placeAddressTakesInBox(
-               *macro, *m_intoBox, takes, m_placement, m_curves, files))
+               *macro, *m_intoBox, takes, m_placement, m_curves, files,
+               m_options.nodePosition))
           placed_any = true;
       }
       else if(auto* box = placeAddressTakes(

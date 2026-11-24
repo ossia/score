@@ -6,7 +6,10 @@
 
 #include <score_plugin_recording_export.h>
 
+#include <QPointF>
 #include <QTimer>
+
+#include <optional>
 
 #include <memory>
 #include <vector>
@@ -52,7 +55,7 @@ public:
   //! Starts a session on these addresses, recorded into `box` from now
   RecordSession* recordAddressesInto(
       Scenario::IntervalModel& box, const std::vector<State::Address>& addresses,
-      AddressPlacement placement);
+      AddressPlacement placement, std::optional<QPointF> nodePosition = {});
   //! The addresses selected in the explorer of a document
   std::vector<State::Address> selectedAddresses(const score::DocumentContext& ctx) const;
   //! Starts a session on these addresses, placed in a new box at `pt`
@@ -81,7 +84,8 @@ public:
   //! outlets of the processes selected; stops the recording when one runs
   void recordSelection();
   //! The same, in a given document (remote control)
-  void recordSelection(const score::DocumentContext& ctx);
+  void recordSelection(
+      const score::DocumentContext& ctx, std::optional<QPointF> nodePosition = {});
 
   void on_createdDocument(score::Document& doc) override;
   void on_loadedDocument(score::Document& doc) override;

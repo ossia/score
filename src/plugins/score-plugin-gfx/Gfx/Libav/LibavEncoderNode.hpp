@@ -1,4 +1,5 @@
 #pragma once
+#include <score_plugin_gfx_export.h>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/encoders/GPUVideoEncoder.hpp>
 #include <Gfx/InvertYRenderer.hpp>
@@ -10,7 +11,7 @@
 namespace Gfx
 {
 struct LibavEncoder;
-struct LibavEncoderNode : score::gfx::OutputNode
+struct SCORE_PLUGIN_GFX_EXPORT LibavEncoderNode : score::gfx::OutputNode
 {
   explicit LibavEncoderNode(
       const LibavOutputSettings&, LibavEncoder& encoder, int stream);
