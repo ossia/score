@@ -88,6 +88,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
   m_captureWatch.setInterval(500);
   connect(&m_captureWatch, &QTimer::timeout, this, [this] {
+    publishState();
     if(m_capture)
       return;
     for(auto* d : context.documents.documents())
@@ -135,12 +136,7 @@ RecordSession* ApplicationPlugin::adopt(
     QMetaObject::invokeMethod(this, [this] {
       if(m_session && !m_session->running())
       {
-        if(!m_session->warnings().isEmpty())
-        {
-          for(const auto& w : m_session->warnings())
-            qWarning() << "Recording:" << w;
-          tell(m_session->warnings().join('\n'));
-        }
+        report(m_sessionDocument, m_session->warnings());
         m_session.reset();
         m_sessionDocument = nullptr;
         showRecording(false);
@@ -285,6 +281,9 @@ void ApplicationPlugin::publishState()
       p.active->push_value(mine);
     if(p.waiting && p.waiting->value() != ossia::value{waiting})
       p.waiting->push_value(waiting);
+    const bool capturing = m_capture && m_captureDocument == p.document;
+    if(p.capturing && p.capturing->value() != ossia::value{capturing})
+      p.capturing->push_value(capturing);
   }
 }
 
@@ -340,6 +339,19 @@ void ApplicationPlugin::publish(score::Document& doc)
     pub.waiting = n->create_parameter(ossia::val_type::BOOL);
     pub.waiting->set_value(false);
     pub.waiting->set_access(ossia::access_mode::GET);
+  }
+  {
+    // Armed processes being kept for Capture
+    auto* n = rec->create_child("capturing");
+    pub.capturing = n->create_parameter(ossia::val_type::BOOL);
+    pub.capturing->set_value(false);
+    pub.capturing->set_access(ossia::access_mode::GET);
+  }
+  {
+    auto* n = rec->create_child("message");
+    pub.message = n->create_parameter(ossia::val_type::STRING);
+    pub.message->set_value(std::string{});
+    pub.message->set_access(ossia::access_mode::GET);
   }
   m_published.push_back(pub);
 }
@@ -412,8 +424,7 @@ void ApplicationPlugin::startCapture(const score::Document& doc)
     QMetaObject::invokeMethod(this, [this] {
       if(m_capture && !m_capture->running())
       {
-        if(!m_capture->warnings().isEmpty())
-          tell(m_capture->warnings().join('\n'));
+        report(m_captureDocument, m_capture->warnings());
         auto* doc = m_captureDocument;
         if(!m_capture->linkedAny())
           m_captureBlocked = doc;
@@ -453,6 +464,19 @@ void ApplicationPlugin::on_loadedDocument(score::Document& doc)
   watchPlayback(doc);
   if(ossia::none_of(m_published, [&](const Published& p) { return p.document == &doc; }))
     publish(doc);
+}
+
+void ApplicationPlugin::report(const score::Document* doc, const QStringList& warnings)
+{
+  if(warnings.isEmpty())
+    return;
+  for(const auto& w : warnings)
+    qWarning() << "Recording:" << w;
+  const QString text = warnings.join('\n');
+  tell(text);
+  for(auto& p : m_published)
+    if(p.document == doc && p.message)
+      p.message->push_value(text.toStdString());
 }
 
 void ApplicationPlugin::tell(const QString& why) const

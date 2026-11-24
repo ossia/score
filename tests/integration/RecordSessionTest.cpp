@@ -1457,10 +1457,22 @@ TEST_CASE("Capture places the last whole bars the armed processes played, as loo
     engine.execution().request_play_global(true);
     REQUIRE(spin_until([&] { return exec.isPlaying() && plug.captureSession(); }, 5000));
     CHECK(doc->commandStack().canUndo());
+    // Said remotely too
+    auto* lt = doc->context().findPlugin<LocalTree::DocumentPlugin>();
+    REQUIRE(lt);
+    auto& root = lt->device().get_root_node();
+    auto* capturing = ossia::net::find_node(root, "/recording/capturing");
+    auto* capture = ossia::net::find_node(root, "/recording/capture");
+    REQUIRE(capturing);
+    REQUIRE(capture);
+    REQUIRE(ossia::net::find_node(root, "/recording/message"));
+    CHECK(spin_until(
+        [&] { return capturing->get_parameter()->value() == ossia::value{true}; }, 2000));
     // 120 in 4/4: a bar is 2 s; over two whole bars
     spin(5500);
     REQUIRE(exec.isPlaying());
-    plug.capture();
+    // As a foot switch would: from another thread
+    std::thread{[&] { capture->get_parameter()->push_value(ossia::impulse{}); }}.join();
     REQUIRE(spin_until([&] { return box->processes.size() == processes_before + 1; }, 3000));
 
     Process::ProcessModel* take{};

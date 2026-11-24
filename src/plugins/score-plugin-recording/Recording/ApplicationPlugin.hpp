@@ -109,6 +109,8 @@ private:
     const score::Document* document{};
     ossia::net::parameter_base* active{};
     ossia::net::parameter_base* waiting{};
+    ossia::net::parameter_base* capturing{};
+    ossia::net::parameter_base* message{};
   };
   std::vector<Published> m_published;
   void publish(score::Document& doc);
@@ -117,6 +119,9 @@ private:
   void showRecording(bool);
   //! Says at the pointer why nothing records
   void tell(const QString& why) const;
+  //! What the last recording or capture had to say (lost data, a tempo
+  //! change...), to the user and on score:/recording/message
+  void report(const score::Document* doc, const QStringList& warnings);
   RecordSession* adopt(std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx);
 
   std::unique_ptr<RecordSession> m_session;
