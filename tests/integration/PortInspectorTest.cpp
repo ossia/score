@@ -946,6 +946,12 @@ bool allEqual(const ossia::audio_outlet& port, double v)
   return port.data.channels() > 0;
 }
 
+void playRampBuffer(ossia::audio_outlet& port)
+{
+  fillOnes(port);
+  port.post_process();
+}
+
 //! Runs the pending execution commands and says how many there were
 int drain(Execution::DocumentPlugin& plug)
 {
@@ -996,6 +1002,7 @@ TEST_CASE("the gain of a process output is applied by the engine", "[integration
     CommandDispatcher<>{doc->context().commandStack}.submit<Process::SetGain>(out, 0.5);
     score::test::run_exec(plug);
     CHECK(exec.gain == 0.5);
+    playRampBuffer(exec);
     fillOnes(exec);
     exec.post_process();
     CHECK(allEqual(exec, 0.5));
@@ -1010,6 +1017,7 @@ TEST_CASE("the gain of a process output is applied by the engine", "[integration
     REQUIRE(gainIn != setup.inlets.end());
     CHECK(gainIn->second.second == &exec.gain_inlet);
     exec.gain_inlet.data.write_value(0.125f, 0);
+    playRampBuffer(exec);
     fillOnes(exec);
     exec.post_process();
     CHECK(allEqual(exec, 0.125));
@@ -1019,6 +1027,7 @@ TEST_CASE("the gain of a process output is applied by the engine", "[integration
     // The next edit of the trim takes over again
     CommandDispatcher<>{doc->context().commandStack}.submit<Process::SetGain>(out, 1.);
     score::test::run_exec(plug);
+    playRampBuffer(exec);
     fillOnes(exec);
     exec.post_process();
     CHECK(allEqual(exec, 1.));
