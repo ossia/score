@@ -96,6 +96,18 @@ struct RecordSession::Source
   QPointer<const Process::Port> port;
   //! Recorded from a port (which can be deleted meanwhile)
   bool fromPort{};
+  //! A sound card input: it arrives late, by the latency compensated
+  bool hardwareInput{};
+  int64_t latencyFrames{};
+  //! The latency, as box dates (GUI, once recorded)
+  int64_t latencyFlicks() const noexcept
+  {
+    if(latencyFrames <= 0 || !audio || rate <= 0)
+      return 0;
+    const double tempo = audio->tempo.load();
+    const double ratio = tempo > 0. ? tempo / 120. : 1.;
+    return int64_t(std::llround(double(latencyFrames) / rate * 705600000. * ratio));
+  }
   bool lost{};
   // Or an address
   State::Address address;
@@ -187,6 +199,13 @@ Execution::DocumentPlugin* executionOf(const score::DocumentContext& ctx)
   return ctx.findPlugin<Execution::DocumentPlugin>();
 }
 
+//! A sound card's input: what it gives arrives late
+bool isHardwareInput(ossia::net::parameter_base* p) noexcept
+{
+  auto* m = dynamic_cast<ossia::mapped_audio_parameter*>(p);
+  return m && !m->is_output;
+}
+
 //! The parameter of an address in its device, on the GUI thread
 ossia::net::parameter_base*
 parameterOf(const score::DocumentContext& ctx, const State::Address& addr)
@@ -267,7 +286,10 @@ bool RecordSession::addSource(const Process::Port& port)
   s->box = Scenario::closestParentInterval(Process::parentProcess(&port));
   s->prefix = prefixFor(port);
   if(type == Process::PortType::Audio)
+  {
     s->audio = std::make_shared<AudioTake>(8, 1024, 512);
+    s->hardwareInput = isHardwareInput(parameterOf(m_ctx, port.address().address));
+  }
   else if(type == Process::PortType::Midi)
     s->midi = std::make_shared<MidiTake>(65536);
   else if(texture)
@@ -312,6 +334,7 @@ bool RecordSession::addAddress(const State::Address& address)
   {
     s->type = Process::PortType::Audio;
     s->audio = std::make_shared<AudioTake>(8, 1024, 512);
+    s->hardwareInput = isHardwareInput(param);
   }
 #if SCORE_RECORDING_TEXTURES
   else if(dynamic_cast<Gfx::texture_source_parameter*>(param))
@@ -718,6 +741,12 @@ void RecordSession::createRecorders(bool atStart)
     auto clock = comp->OSSIAInterval()->node;
 
     s->rate = rate;
+    if(s->hardwareInput)
+      s->latencyFrames
+          = int64_t(m_options.inputLatencyMs) * rate / 1000
+            + (m_options.engineLatency && ectx.execState
+                   ? ectx.execState->inputLatency + ectx.execState->outputLatency
+                   : 0);
     if(s->audio)
       s->node = std::make_shared<audio_record_node>(s->audio, clock);
     else if(s->midi)
@@ -1238,6 +1267,9 @@ void RecordSession::warnAboutTiming()
                         "missing")
                          .arg(s->prefix)
                          .arg(lost));
+    if(s->link && s->audio && s->audio->state.load() == AudioTake::Done
+       && s->wav.frames() == 0 && !s->wav.failed())
+      m_warnings.push_back(tr("%1 gave nothing to record (no channel?)").arg(s->prefix));
     if(s->wav.failed())
       m_warnings.push_back(
           tr("%1: its file could not be written (%2)").arg(s->prefix, s->file));
@@ -1318,7 +1350,7 @@ bool RecordSession::placePasses(
     if(s.audio)
     {
       ok = writeWavSegment(
-          t.file, file, frame_of(p.start - t.startDate), frame_of(len),
+          t.file, file, frame_of(p.start - t.startDate) + s.latencyFrames, frame_of(len),
           frame_of(rotate), m_options.audioFormat,
           {tempo, s.audio->meterNumerator.load(), s.audio->meterDenominator.load(),
            double(len) / 352800000., loops});
@@ -1574,7 +1606,9 @@ void RecordSession::place()
             setTiming(*macro, *p, s->audio->tempo.load(), false);
           // The take starts where the recording started in the box
           macro->submit(new Process::SetLoop{*p, false});
-          macro->submit(new Process::SetStartOffset{*p, TimeVal{-t.startDate}});
+          // Played late by the sound card: earlier by as much
+          macro->submit(new Process::SetStartOffset{
+              *p, TimeVal{-(t.startDate - s->latencyFlicks())}});
           t.placed = p;
           m_placed.push_back(p);
           placed_any = true;
@@ -1633,8 +1667,8 @@ void RecordSession::place()
         {
           if(s->file.isEmpty() || s->wav.frames() == 0)
             continue;
-          f.startDate = s->audio->startDate;
-          f.endDate = s->audio->endDate;
+          f.startDate = s->audio->startDate - s->latencyFlicks();
+          f.endDate = s->audio->endDate - s->latencyFlicks();
         }
         else
         {

@@ -122,6 +122,11 @@ struct RecordOptions
   //! Kept in the background while playing: capture() places the last
   //! passBars whole bars of it as loops, else nothing is kept
   bool capture{false};
+
+  //! Sound card inputs reach score late: their audio takes are moved this
+  //! much earlier, plus the latency the driver reports when engineLatency
+  int inputLatencyMs{0};
+  bool engineLatency{false};
   int64_t touchRelease{352800000};
 };
 }

@@ -39,6 +39,8 @@
 #include <Automation/AutomationModel.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <ossia/audio/audio_parameter.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
@@ -596,5 +598,226 @@ TEST_CASE("A path received by a Sound's File inlet plays that file, the document
     REQUIRE(old->fileInlet);
     CHECK(old->inlets().size() == 1);
     CHECK(old->userFilePath() == a);
+  });
+}
+
+namespace
+{
+//! A 16-bit AIFF, which the Sound process reads in memory where it maps a WAV
+void write_dc_aiff(const QString& path, int rate, int frames, double value)
+{
+  QByteArray d;
+  const auto be = [&](quint64 v, int bytes) {
+    for(int i = bytes - 1; i >= 0; i--)
+      d.append(char((v >> (8 * i)) & 0xFF));
+  };
+  d.append("FORM");
+  be(4 + 8 + 18 + 8 + 8 + quint64(frames) * 2, 4);
+  d.append("AIFF");
+  d.append("COMM");
+  be(18, 4);
+  be(1, 2);
+  be(quint64(frames), 4);
+  be(16, 2);
+  // The rate as an 80-bit extended float
+  int exponent = 16383 + 63;
+  quint64 mantissa = quint64(rate);
+  while(!(mantissa & (quint64{1} << 63)))
+  {
+    mantissa <<= 1;
+    exponent--;
+  }
+  be(quint64(exponent), 2);
+  be(mantissa, 8);
+  d.append("SSND");
+  be(8 + quint64(frames) * 2, 4);
+  be(0, 4);
+  be(0, 4);
+  const auto sample = quint16(qint16(value * 32767.));
+  for(int i = 0; i < frames; i++)
+    be(sample, 2);
+  QFile f{path};
+  REQUIRE(f.open(QIODevice::WriteOnly));
+  REQUIRE(f.write(d) == d.size());
+}
+}
+
+TEST_CASE("A Sound whose file changes kind while playing keeps the cable into its File inlet", "[recording][sound][file-inlet][cable]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString a = dir.filePath("mapped.wav");
+    const QString b = dir.filePath("in-memory.aiff");
+    write_dc(a, rate, rate * 20, 0.25f);
+    write_dc_aiff(b, rate, rate * 20, 0.75);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    auto& sm = score::IDocument::get<Scenario::ScenarioDocumentModel>(*doc);
+    Media::Sound::ProcessModel* sound{};
+    Automation::ProcessModel* autom{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = static_cast<Media::Sound::ProcessModel*>(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), a));
+      autom = static_cast<Automation::ProcessModel*>(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}));
+      REQUIRE(sound);
+      REQUIRE(autom);
+      m.createCable(sm, *autom->outlet, *sound->fileInlet, Process::CableType::ImmediateGlutton);
+      m.commit();
+    }
+    REQUIRE(sound->fileInlet->cables().size() == 1);
+    const auto cable = sound->fileInlet->cables()[0].find(doc->context()).id();
+    REQUIRE(sound->outlet->cables().empty());
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(500);
+
+    // The cable's edge ends at the node the inlet is registered with
+    auto& setup = exec.context().setup;
+    const auto edge_reaches_inlet = [&] {
+      auto e = setup.m_cables.find(cable);
+      auto i = setup.inlets.find(sound->fileInlet.get());
+      return e != setup.m_cables.end() && i != setup.inlets.end() && e->second
+             && e->second->in_node == i->second.first;
+    };
+    REQUIRE(edge_reaches_inlet());
+    const auto before = setup.inlets.find(sound->fileInlet.get())->second.first;
+
+    // Another kind of file: another node plays it
+    sound->setFile(b);
+    REQUIRE(spin_until([&] {
+      auto i = setup.inlets.find(sound->fileInlet.get());
+      return i != setup.inlets.end() && i->second.first != before;
+    }));
+    spin(300);
+    CHECK(edge_reaches_inlet());
+
+    engine.execution().request_stop();
+    spin(200);
+  });
+}
+
+TEST_CASE("A file chosen for a Sound takes over from the one its File control asked for", "[recording][sound][file-inlet]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString a = dir.filePath("first.wav");
+    const QString b = dir.filePath("from-control.wav");
+    const QString c = dir.filePath("chosen.wav");
+    write_dc(a, rate, rate * 2, 0.25f);
+    write_dc(b, rate, rate * 2, 0.5f);
+    write_dc(c, rate, rate * 2, 0.75f);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Media::Sound::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = static_cast<Media::Sound::ProcessModel*>(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), a));
+      m.commit();
+    }
+    REQUIRE(sound);
+    sound->fileInlet->setValue(b.toStdString());
+    // What the command changing its file does
+    sound->setFile(c);
+    CHECK(sound->userFilePath() == c);
+    const auto* asked = sound->fileInlet->value().target<std::string>();
+    REQUIRE(asked);
+    CHECK(asked->empty());
+  });
+}
+
+TEST_CASE("A sound card input is recorded earlier by the latency set", "[recording][addresses][latency]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // Two input channels: the audio engine starts again with them
+    auto& audio_settings = ctx.settings<Audio::Settings::Model>();
+    if(audio_settings.getDefaultIn() < 2)
+    {
+      audio_settings.setDefaultIn(2);
+      spin(2000);
+    }
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* audio = plug.list().audioDevice();
+    REQUIRE(audio);
+    auto* odev = audio->getDevice();
+    REQUIRE(odev);
+    auto* in = ossia::net::find_node(odev->get_root_node(), "/in/main");
+    auto* in_param = in ? dynamic_cast<ossia::mapped_audio_parameter*>(in->get_parameter())
+                        : nullptr;
+    if(!in_param || in_param->mapping.empty())
+      SKIP("no input channel on the audio device of this run (SCORE_AUDIO_BACKEND)");
+    const State::Address addr{audio->name(), {"in", "main"}};
+
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    const auto run = [&](int latency) -> std::pair<int64_t, int64_t> {
+      // Playing, steadily: the first playback of a test app is stopped by
+      // the audio engine starting
+      bool steady = false;
+      for(int i = 0; i < 5 && !steady; i++)
+      {
+        if(!exec.isPlaying())
+          engine.execution().request_play_global(true);
+        spin(1500);
+        steady = exec.isPlaying();
+      }
+      REQUIRE(steady);
+      Recording::RecordOptions opt;
+      opt.start = Recording::RecordOptions::Start::Now;
+      opt.inputLatencyMs = latency;
+      Recording::RecordSession session{doc->context(), opt};
+      REQUIRE(session.addAddress(addr));
+      session.placeInBox(*box, Recording::AddressPlacement::Automations, {});
+      bool finished = false;
+      QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+      REQUIRE(session.start());
+      spin(1200);
+      session.stop();
+      REQUIRE(spin_until([&] { return finished; }));
+      engine.execution().request_stop();
+      spin(300);
+      Process::ProcessModel* sound{};
+      for(auto& p : box->processes)
+        if(p.concreteKey() == Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get())
+          sound = &p;
+      REQUIRE(sound);
+      REQUIRE(session.takes().size() == 1);
+      const auto r = std::make_pair(sound->startOffset().impl, session.takes()[0].startDate);
+      doc->commandStack().undo();
+      return r;
+    };
+    // The file starts where its first sample was heard: without latency, at
+    // the take's start; with 100 ms, 100 ms before it
+    const auto [off0, start0] = run(0);
+    const auto [off1, start1] = run(100);
+    CHECK(off0 + start0 == 0);
+    CHECK(std::abs((off1 + start1) - 70560000) < 705600);
   });
 }

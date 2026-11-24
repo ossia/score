@@ -95,6 +95,8 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   int m_VideoHeight{1080};
   int m_TouchRelease{500};
   int m_CaptureBars{4};
+  int m_InputLatency{0};
+  bool m_EngineLatency{false};
 
 public:
   Model(
@@ -118,6 +120,8 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoHeight)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, TouchRelease)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, CaptureBars)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, InputLatency)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, EngineLatency)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, AudioFormat)
@@ -134,6 +138,8 @@ SCORE_SETTINGS_PARAMETER(Model, VideoWidth)
 SCORE_SETTINGS_PARAMETER(Model, VideoHeight)
 SCORE_SETTINGS_PARAMETER(Model, TouchRelease)
 SCORE_SETTINGS_PARAMETER(Model, CaptureBars)
+SCORE_SETTINGS_PARAMETER(Model, InputLatency)
+SCORE_SETTINGS_PARAMETER(Model, EngineLatency)
 
 class View : public score::GlobalSettingsView
 {
@@ -155,6 +161,8 @@ public:
   SETTINGS_UI_SPINBOX_HPP(VideoHeight)
   SETTINGS_UI_SPINBOX_HPP(TouchRelease)
   SETTINGS_UI_SPINBOX_HPP(CaptureBars)
+  SETTINGS_UI_SPINBOX_HPP(InputLatency)
+  SETTINGS_UI_TOGGLE_HPP(EngineLatency)
 
   // The curve plug-in's
   SETTINGS_UI_SPINBOX_HPP(SimplificationRatio)

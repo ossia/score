@@ -50,6 +50,10 @@ SETTINGS_PARAMETER_IMPL(VideoCodec){
 SETTINGS_PARAMETER_IMPL(VideoWidth){QStringLiteral("score_plugin_recording/VideoWidth"), 1920};
 SETTINGS_PARAMETER_IMPL(VideoHeight){
     QStringLiteral("score_plugin_recording/VideoHeight"), 1080};
+SETTINGS_PARAMETER_IMPL(InputLatency){
+    QStringLiteral("score_plugin_recording/InputLatency"), 0};
+SETTINGS_PARAMETER_IMPL(EngineLatency){
+    QStringLiteral("score_plugin_recording/EngineLatency"), false};
 SETTINGS_PARAMETER_IMPL(CaptureBars){
     QStringLiteral("score_plugin_recording/CaptureBars"), 4};
 SETTINGS_PARAMETER_IMPL(TouchRelease){
@@ -59,7 +63,7 @@ static auto list()
 {
   return std::tie(
       AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
-      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight, TouchRelease, CaptureBars);
+      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight, TouchRelease, CaptureBars, InputLatency, EngineLatency);
 }
 }
 
@@ -111,6 +115,8 @@ RecordOptions Model::options() const
   else
     o.midiQuantize = 0.;
   o.video.fps = std::clamp(m_VideoFps, 1, 240);
+  o.inputLatencyMs = std::clamp(m_InputLatency, 0, 500);
+  o.engineLatency = m_EngineLatency;
   o.touchRelease = int64_t(std::max(0, m_TouchRelease)) * 705600;
   o.video.size = QSize{std::clamp(m_VideoWidth, 16, 8192), std::clamp(m_VideoHeight, 16, 8192)};
   const VideoCodecs c;
@@ -136,6 +142,8 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoWidth)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoHeight)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, TouchRelease)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, CaptureBars)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, InputLatency)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, EngineLatency)
 
 View::View()
 {
@@ -187,6 +195,19 @@ View::View()
   SETTINGS_UI_COMBOBOX_SETUP("Sample format", AudioFormat, AudioFormats{});
   score::setHelp(
       m_AudioFormat, tr("The sample format of the WAV files audio takes are written to."));
+
+  SETTINGS_UI_SPINBOX_SETUP("Input latency", InputLatency);
+  m_InputLatency->setRange(0, 500);
+  m_InputLatency->setSuffix(tr(" ms"));
+  score::setHelp(
+      m_InputLatency,
+      tr("How late the sound card's inputs reach score: what is recorded from them is "
+         "moved this much earlier, as the loopers do."));
+  SETTINGS_UI_TOGGLE_SETUP("Add the driver's latency", EngineLatency);
+  score::setHelp(
+      m_EngineLatency,
+      tr("Also moves what is recorded from the sound card earlier by the input and "
+         "output latency its driver reports, for playing along with what is heard."));
 
   tab(tr("MIDI"));
   SETTINGS_UI_COMBOBOX_SETUP("Quantize notes to", MidiQuantize, Quantizes{});
@@ -259,6 +280,8 @@ SETTINGS_UI_SPINBOX_IMPL(VideoWidth)
 SETTINGS_UI_SPINBOX_IMPL(VideoHeight)
 SETTINGS_UI_SPINBOX_IMPL(TouchRelease)
 SETTINGS_UI_SPINBOX_IMPL(CaptureBars)
+SETTINGS_UI_SPINBOX_IMPL(InputLatency)
+SETTINGS_UI_TOGGLE_IMPL(EngineLatency)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -281,6 +304,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(VideoHeight);
   SETTINGS_PRESENTER(TouchRelease);
   SETTINGS_PRESENTER(CaptureBars);
+  SETTINGS_PRESENTER(InputLatency);
+  SETTINGS_PRESENTER(EngineLatency);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();
