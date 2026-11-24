@@ -899,6 +899,11 @@ void FullViewIntervalPresenter::on_guiDurationChanged(
   slot.footer->setWidth(gui_width);
 }
 
+double FullViewIntervalPresenter::rackBottom() const
+{
+  return m_view->height() - IntervalHeader::headerHeight();
+}
+
 void FullViewIntervalPresenter::updateHeight()
 {
   m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());

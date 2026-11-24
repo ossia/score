@@ -141,7 +141,14 @@ private:
   void drain();
   void poll();
   void finish();
+  //! Frames of audio a peak of the live view covers
+  static constexpr int peakFrames = 256;
   void place();
+  //! What the takes recorded so far, for the views of their boxes
+  void showLiveTakes();
+  void updateLiveTakes();
+  void hideLiveTakes();
+  int m_liveTick{};
   //! A process of a take, in a new slot, at its place in the node view
   Process::ProcessModel* createTake(
       Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,

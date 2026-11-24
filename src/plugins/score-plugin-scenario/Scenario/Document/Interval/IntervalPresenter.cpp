@@ -5,6 +5,7 @@
 #include "IntervalHeader.hpp"
 #include "IntervalView.hpp"
 
+#include <Process/LiveTake.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 
@@ -38,6 +39,33 @@ IntervalPresenter::IntervalPresenter(
     , m_context{ctx}
 {
   auto& interval = m_model;
+  // Takes being recorded into the box
+  {
+    auto& live = Process::LiveTakes::instance();
+    const auto add = [this](Process::LiveTake* t) {
+      if(t->interval != &m_model)
+        return;
+      m_liveTakes.push_back(new Process::LiveTakeSpan{*t, m_view});
+      layoutLiveTakes();
+    };
+    for(auto* t : live.takes())
+      add(t);
+    connect(&live, &Process::LiveTakes::added, this, add);
+    connect(&live, &Process::LiveTakes::removed, this, [this](Process::LiveTake* t) {
+      for(auto it = m_liveTakes.begin(); it != m_liveTakes.end();)
+      {
+        if(!*it || (*it)->take() == t)
+        {
+          delete it->data();
+          it = m_liveTakes.erase(it);
+        }
+        else
+          ++it;
+      }
+      layoutLiveTakes();
+    });
+    connect(this, &IntervalPresenter::heightChanged, this, [this] { layoutLiveTakes(); });
+  }
   m_header->setParentItem(m_view);
   m_header->setIntervalView(m_view);
   // m_header->hide();
@@ -82,6 +110,36 @@ void IntervalPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
   m_zoomRatio = val;
   updateScaling();
+  layoutLiveTakes();
+}
+
+double IntervalPresenter::rackBottom() const
+{
+  return m_view->height();
+}
+
+void IntervalPresenter::layoutLiveTakes()
+{
+  constexpr double band = 56.;
+  const double bottom = rackBottom();
+  int k = 0;
+  for(auto& span : m_liveTakes)
+  {
+    if(!span)
+      continue;
+    auto* t = span->take();
+    if(t && t->scenarioY)
+    {
+      // In a new box of the scenario the box shows
+      const double rack = std::max(band, bottom - 2.);
+      span->setGeometry(m_zoomRatio, 2. + *t->scenarioY * rack, band);
+    }
+    else
+    {
+      span->setGeometry(m_zoomRatio, bottom + 2. + k * (band + 2.), band);
+      k++;
+    }
+  }
 }
 
 const Id<IntervalModel>& IntervalPresenter::id() const

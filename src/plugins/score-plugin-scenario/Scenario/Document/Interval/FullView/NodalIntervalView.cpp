@@ -64,6 +64,35 @@ constexpr double g_zoom_base = 1.2;
 // denominator); it must be strictly greater than 1, otherwise the division
 // would yield NaN / a division by zero.
 static_assert(g_zoom_base > 1.0);
+void NodalIntervalView::addLiveTake(Process::LiveTake* t)
+{
+  if(t->interval != &m_model || t->scenarioY || !t->newProcess)
+    return;
+  // A take is no effect: a view of the effects of a box does not show it
+  if(m_itemsToShow == ItemsToShow::OnlyEffects)
+    return;
+  auto* item = new Process::LiveTakeNode{*t, m_container};
+  QPointF pos;
+  if(t->nodePosition)
+  {
+    pos = *t->nodePosition;
+  }
+  else
+  {
+    // Under the nodes, where new processes go
+    double bottom = 0.;
+    for(auto* n : m_nodeItems)
+      bottom = std::max(bottom, n->mapRectToParent(static_cast<QGraphicsItem*>(n)->boundingRect()).bottom());
+    pos = {0., bottom + 40.};
+  }
+  // Takes recorded together, one under the other
+  for(auto& other : m_liveTakes)
+    if(other && other->pos() == pos)
+      pos.ry() += Process::LiveTakeNode::height + 20.;
+  item->setPos(pos);
+  m_liveTakes.push_back(item);
+}
+
 NodalIntervalView::NodalIntervalView(
     NodalIntervalView::ItemsToShow sh, const IntervalModel& model,
     const Process::Context& ctx, QGraphicsItem* parent)
@@ -89,6 +118,26 @@ NodalIntervalView::NodalIntervalView(
   // recenterRelativeToView.
   m_autoCenter = !m_model.nodalCenter() && m_model.legacyNodalOffset().isNull();
   m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
+  {
+    auto& live = Process::LiveTakes::instance();
+    for(auto* t : live.takes())
+      addLiveTake(t);
+    connect(&live, &Process::LiveTakes::added, this, [this](Process::LiveTake* t) {
+      addLiveTake(t);
+    });
+    connect(&live, &Process::LiveTakes::removed, this, [this](Process::LiveTake* t) {
+      for(auto it = m_liveTakes.begin(); it != m_liveTakes.end();)
+      {
+        if(!*it || (*it)->take() == t)
+        {
+          delete it->data();
+          it = m_liveTakes.erase(it);
+        }
+        else
+          ++it;
+      }
+    });
+  }
   m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
 
   con(

@@ -19,6 +19,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/LiveTake.hpp>
 #include <Process/ProcessList.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -1123,5 +1124,81 @@ TEST_CASE("An inlet's take plays into it, placed where asked", "[recording][sess
     CHECK(dm.cables.size() == cables_before);
     CHECK(box->processes.size() == processes_before);
     CHECK(!sound->muted());
+  });
+}
+
+TEST_CASE("What is being recorded is shown in its box while it records", "[recording][session][live]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      REQUIRE(sound);
+      m.commit();
+    }
+
+    auto& live = Process::LiveTakes::instance();
+    REQUIRE(live.takes().empty());
+    int added = 0, removed = 0, changes = 0;
+    auto c1 = QObject::connect(&live, &Process::LiveTakes::added, [&](Process::LiveTake* t) {
+      added++;
+      QObject::connect(t, &Process::LiveTake::changed, [&] { changes++; });
+    });
+    auto c2 = QObject::connect(
+        &live, &Process::LiveTakes::removed, [&](Process::LiveTake*) { removed++; });
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.nodePosition = QPointF{10., 20.};
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    CHECK(added == 1);
+    REQUIRE(live.takes().size() == 1);
+    auto* t = live.takes()[0];
+    CHECK(t->interval == box);
+    CHECK(t->kind == Process::LiveTake::Audio);
+    // Where the take will be placed: the first free spot from the asked one
+    REQUIRE(t->nodePosition);
+    const QPointF shown = *t->nodePosition;
+    CHECK(shown == Recording::takeNodePosition(*box, QPointF{10., 20.}));
+    CHECK(t->newProcess);
+
+    REQUIRE(spin_until([&] { return t->recording && t->end - t->start > 705600000 / 2; }, 5000));
+    // The ramp's samples, seen as they are recorded
+    CHECK(!t->peaks.empty());
+    CHECK(*std::max_element(t->peaks.begin(), t->peaks.end()) > 0.01f);
+    const auto peaks_then = t->peaks.size();
+    const auto end_then = t->end;
+    spin(300);
+    CHECK(t->peaks.size() > peaks_then);
+    CHECK(t->end > end_then);
+    CHECK(changes > 2);
+
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+    // Gone once the take is a process
+    CHECK(removed == 1);
+    CHECK(live.takes().empty());
+    QObject::disconnect(c1);
+    QObject::disconnect(c2);
   });
 }

@@ -7,6 +7,7 @@
 #include <score/model/Identifier.hpp>
 
 #include <QPoint>
+#include <QPointer>
 
 #include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
@@ -16,8 +17,9 @@
 namespace Process
 {
 struct Context;
+class LiveTake;
+class LiveTakeSpan;
 }
-
 namespace Scenario
 {
 class IntervalHeader;
@@ -82,6 +84,11 @@ public:
       heightPercentageChanged) // The vertical position
 
 protected:
+  //! Where the rack of the box ends in its view: takes being recorded into
+  //! the box are shown from there
+  virtual double rackBottom() const;
+  void layoutLiveTakes();
+
   void updateChildren();
   void updateBraces();
 
@@ -94,6 +101,7 @@ protected:
   const Process::Context& m_context;
 
   std::vector<SlotPresenter> m_slots;
+  std::vector<QPointer<Process::LiveTakeSpan>> m_liveTakes;
 };
 
 template <typename T>

@@ -1,8 +1,10 @@
 #include "RecordSession.hpp"
+#include <Recording/Takes/PlaceAddressTakes.hpp>
 
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/LiveTake.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Drop/TakeDrop.hpp>
@@ -116,6 +118,27 @@ struct RecordSession::Source
   int rate{48000};
   std::vector<MidiTake::Event> events;
   std::vector<ValueTake::Event> valueEvents;
+  //! The loudest sample of every peakFrames frames written
+  std::vector<float> peaks;
+  float peak{};
+  int peakFill{};
+
+  // GUI
+  std::unique_ptr<Process::LiveTake> live;
+  std::size_t peaksShown{}, valuesShown{}, eventsShown{};
+
+  int64_t startDate() const noexcept
+  {
+    return audio  ? audio->startDate.load()
+           : midi ? midi->startDate.load()
+                  : values->startDate.load();
+  }
+  int64_t endDate() const noexcept
+  {
+    return audio  ? audio->endDate.load()
+           : midi ? midi->endDate.load()
+                  : values->endDate.load();
+  }
 
   int state() const noexcept
   {
@@ -199,6 +222,7 @@ RecordSession::RecordSession(const score::DocumentContext& ctx, RecordOptions op
 
 RecordSession::~RecordSession()
 {
+  hideLiveTakes();
   stopListening();
   if(m_running)
   {
@@ -462,7 +486,125 @@ bool RecordSession::start()
   m_writing = true;
   m_writer = std::thread{[this] { writerLoop(); }};
   m_poll.start();
+  showLiveTakes();
   return true;
+}
+
+void RecordSession::showLiveTakes()
+{
+  // Only written to disk: nothing will be placed, nothing to show
+  if(m_options.target == RecordOptions::Target::FileOnly)
+    return;
+  // Where the takes will be placed: free spots, one take under the other
+  std::vector<std::pair<const Scenario::IntervalModel*, QPointF>> next;
+  for(auto& s : m_sources)
+  {
+    if(!s->box)
+      continue;
+    using K = Process::LiveTake;
+    const auto kind = s->type == Process::PortType::Texture ? K::Video
+                      : s->audio                            ? K::Audio
+                      : s->midi                             ? K::Midi
+                                                            : K::Values;
+    QObject* itv = s->box.data();
+    auto live = std::make_unique<K>(itv, kind, s->prefix);
+    {
+      auto it = std::find_if(next.begin(), next.end(), [&](auto& n) {
+        return n.first == s->box.data();
+      });
+      if(it == next.end())
+        it = next.insert(
+            next.end(), {s->box.data(), takeNodePosition(*s->box, m_options.nodePosition)});
+      live->nodePosition = it->second;
+      it->second.ry() += takeNodeSize.height() + 20.;
+    }
+    // Merged into a process of the box: no new node
+    live->newProcess = m_options.target != RecordOptions::Target::Into;
+    // Addresses into a new box: where that box goes
+    if(!s->port && m_scenario && !m_intoBox)
+      live->scenarioY = m_point.y;
+    live->peakPeriod = std::max<int64_t>(
+        1, int64_t(double(peakFrames) / std::max(1, s->rate) * 705600000.));
+    Process::LiveTakes::instance().add(live.get());
+    s->live = std::move(live);
+  }
+}
+
+void RecordSession::updateLiveTakes()
+{
+  // What the writer thread collected; it is not waited for
+  std::unique_lock lock{m_drainLock, std::try_to_lock};
+  for(auto& s : m_sources)
+  {
+    auto* live = s->live.get();
+    if(!live || !s->link)
+      continue;
+    const int st = s->state();
+    live->recording = st == AudioTake::Recording || st == AudioTake::Done;
+    live->countingIn = !live->recording && m_countIn;
+    if(!live->recording)
+    {
+      live->changed();
+      continue;
+    }
+    live->start = s->startDate();
+    live->end = std::max(live->start, s->endDate());
+    if(lock.owns_lock())
+    {
+      if(s->audio && s->peaks.size() > s->peaksShown)
+      {
+        live->peaks.insert(
+            live->peaks.end(), s->peaks.begin() + s->peaksShown, s->peaks.end());
+        s->peaksShown = s->peaks.size();
+      }
+      if(s->midi && s->events.size() != s->eventsShown)
+      {
+        s->eventsShown = s->events.size();
+        live->notes.clear();
+        for(const auto& n : notesOf(s->events, live->end))
+          live->notes.push_back({n.start, n.start + n.duration, n.pitch, n.velocity});
+      }
+      if(s->values && s->type != Process::PortType::Texture)
+      {
+        for(; s->valuesShown < s->valueEvents.size(); s->valuesShown++)
+        {
+          const auto& ev = s->valueEvents[s->valuesShown];
+          if(auto n = numbersOf(ev.value); n && !n->empty())
+            live->values.push_back({ev.date, n->front()});
+        }
+      }
+    }
+#if SCORE_RECORDING_TEXTURES
+    if(s->video)
+      live->frames = s->video->frames();
+#endif
+    live->changed();
+  }
+}
+
+void RecordSession::hideLiveTakes()
+{
+  for(auto& s : m_sources)
+    if(s->live)
+    {
+      Process::LiveTakes::instance().remove(s->live.get());
+      s->live.reset();
+    }
+}
+
+namespace
+{
+//! The execution of a box: the root box's is the document's, not one of its
+//! components
+Execution::IntervalComponent*
+boxComponent(Execution::DocumentPlugin& exec, Scenario::IntervalModel& box)
+{
+  if(auto* comp = score::findComponent<Execution::IntervalComponent>(box.components()))
+    return comp;
+  if(const auto& base = exec.baseScenario(); base && &base->baseInterval().interval() == &box)
+    return &base->baseInterval();
+  return nullptr;
+}
 }
 
 void RecordSession::createRecorders(bool atStart)
@@ -754,6 +896,18 @@ void RecordSession::drain()
         for(int c = 0; c < b.channels && c < 8; c++)
           ptrs[c] = b.data.data() + std::size_t(c) * s->audio->blockFrames;
         s->wav.write(ptrs, b.frames);
+        // Peaks for the live view
+        for(int64_t f = 0; f < b.frames; f++)
+        {
+          for(int c = 0; c < b.channels && c < 8; c++)
+            s->peak = std::max(s->peak, std::abs(ptrs[c][f]));
+          if(++s->peakFill == peakFrames)
+          {
+            s->peaks.push_back(s->peak);
+            s->peak = 0.f;
+            s->peakFill = 0;
+          }
+        }
       });
     }
     if(s->midi)
@@ -804,6 +958,8 @@ void RecordSession::poll()
     createRecorders();
     return;
   }
+  if(++m_liveTick % 4 == 0)
+    updateLiveTakes();
   for(auto& s : m_sources)
   {
     if(!s->link)
@@ -857,6 +1013,7 @@ void RecordSession::finish()
     if(s->wav.isOpen())
       s->wav.close();
 
+  hideLiveTakes();
   place();
   m_ctx.document.commandStack().enableActions();
   finished();

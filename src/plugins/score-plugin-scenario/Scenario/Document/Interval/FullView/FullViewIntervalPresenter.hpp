@@ -63,6 +63,7 @@ private:
 
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void updateScaling() override;
+  double rackBottom() const override;
   void selectedSlot(int) const override;
 
   void on_modeChanged(IntervalModel::ViewMode);

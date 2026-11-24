@@ -6,6 +6,8 @@
 #include <score/graphics/RectItem.hpp>
 
 #include <QPointer>
+
+#include <Process/LiveTake.hpp>
 #include <QRectF>
 
 #include <score_plugin_scenario_export.h>
@@ -128,6 +130,9 @@ private:
   ItemsToShow m_itemsToShow{};
   std::vector<Process::NodeItem*> m_nodeItems;
   QGraphicsItem* m_container{};
+  //! Takes being recorded into the box, where they will be placed
+  std::vector<QPointer<Process::LiveTakeNode>> m_liveTakes;
+  void addLiveTake(Process::LiveTake* t);
   QGraphicsRectItem* m_selectionRect{};
   QPointF m_pressedPos{};
   double m_zoomLevel = 0;
