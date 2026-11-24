@@ -13,6 +13,11 @@
 namespace Media
 {
 class SoundComponentSetup;
+class AudioFile;
+}
+namespace ossia
+{
+class sound_node;
 }
 namespace Execution
 {
@@ -29,6 +34,11 @@ public:
 
   void recompute();
   void on_fileChanged();
+  //! What plays: the file a port asked for while playing, else the document's
+  std::shared_ptr<Media::AudioFile> currentFile() const noexcept;
+  //! A node hands the paths its file inlet gets to playFile
+  void wire(ossia::sound_node& n);
+  void playFile(const QString& path);
 
   ~SoundComponent() override;
 
@@ -42,8 +52,12 @@ private:
     }
     SoundComponent& self;
     void recompute() { self.recompute(); }
+    void live() { self.liveFileReady(); }
   };
+  void liveFileReady();
   Recomputer m_recomputer;
+  Recomputer m_live{*this};
+  std::shared_ptr<Media::AudioFile> m_liveFile;
 };
 
 using SoundComponentFactory = ::Execution::ProcessComponentFactory_T<SoundComponent>;

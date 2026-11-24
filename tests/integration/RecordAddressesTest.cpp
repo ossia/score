@@ -39,6 +39,13 @@
 #include <Automation/AutomationModel.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <score/model/EntitySerialization.hpp>
+
+#include <catch2/catch_approx.hpp>
+#include <dr_wav.h>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Recording/ApplicationPlugin.hpp>
@@ -492,5 +499,102 @@ TEST_CASE("Addresses recorded into a box: its processes, from where they started
     // One step
     doc->commandStack().undo();
     CHECK(box.processes.size() == before);
+  });
+}
+
+namespace
+{
+void write_dc(const QString& path, int rate, int frames, float value)
+{
+  drwav_data_format fmt{};
+  fmt.container = drwav_container_riff;
+  fmt.format = DR_WAVE_FORMAT_IEEE_FLOAT;
+  fmt.channels = 1;
+  fmt.sampleRate = drwav_uint32(rate);
+  fmt.bitsPerSample = 32;
+  drwav wav;
+  REQUIRE(drwav_init_file_write(&wav, path.toStdString().c_str(), &fmt, nullptr));
+  std::vector<float> data(frames, value);
+  REQUIRE(drwav_write_pcm_frames(&wav, frames, data.data()) == drwav_uint64(frames));
+  drwav_uninit(&wav);
+}
+}
+
+TEST_CASE("A path received by a Sound's File inlet plays that file, the document keeping its own", "[recording][sound][file-inlet]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString a = dir.filePath("quiet.wav");
+    const QString b = dir.filePath("loud.wav");
+    write_dc(a, rate, rate * 20, 0.25f);
+    write_dc(b, rate, rate * 20, 0.75f);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    Addresses dev{ctx, *doc};
+    const auto path = dev.add("path", ossia::value{std::string{}});
+
+    auto& scenar = score::test::base_scenario(*doc);
+    Media::Sound::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = static_cast<Media::Sound::ProcessModel*>(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), a));
+      m.commit();
+    }
+    REQUIRE(sound);
+    REQUIRE(sound->fileInlet);
+    REQUIRE(sound->inlets().size() == 1);
+    sound->fileInlet->setAddress(State::AddressAccessor{path});
+
+    // What it plays, recorded
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::FileOnly;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlet));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(800);
+    dev.push(path, ossia::value{b.toStdString()});
+    spin(1200);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(session.takes().size() == 1);
+    drwav wav;
+    REQUIRE(drwav_init_file(&wav, session.takes()[0].file.toStdString().c_str(), nullptr));
+    const int ch = wav.channels;
+    std::vector<float> v(std::size_t(wav.totalPCMFrameCount) * ch);
+    drwav_read_pcm_frames_f32(&wav, wav.totalPCMFrameCount, v.data());
+    drwav_uninit(&wav);
+    const std::size_t frames = v.size() / ch;
+    REQUIRE(frames > std::size_t(rate));
+    // The document's file first, then the one received
+    CHECK(std::abs(v[(rate / 4) * ch]) == Catch::Approx(0.25).margin(0.02));
+    CHECK(std::abs(v[(frames - rate / 4) * ch]) == Catch::Approx(0.75).margin(0.02));
+    // The document is as it was
+    CHECK(sound->userFilePath() == a);
+
+    // Documents from before the inlet load with one
+    JSONReader r;
+    r.readFrom(static_cast<const Process::ProcessModel&>(*sound));
+    auto json = readJson(r.toByteArray());
+    REQUIRE(json.HasMember("FileInlet"));
+    json.RemoveMember("FileInlet");
+    JSONWriter w{json};
+    auto old = std::make_unique<Media::Sound::ProcessModel>(w, sound->parent());
+    REQUIRE(old->fileInlet);
+    CHECK(old->inlets().size() == 1);
+    CHECK(old->userFilePath() == a);
   });
 }

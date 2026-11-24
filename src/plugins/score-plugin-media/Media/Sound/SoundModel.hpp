@@ -88,6 +88,9 @@ public:
   std::optional<Process::MediaRange> usedFileRange() const noexcept;
 
   std::unique_ptr<Process::AudioOutlet> outlet;
+  //! A path received while playing plays that file instead, until playback
+  //! stops; the document keeps its file (a live looper's takes, #1522)
+  std::unique_ptr<Process::ValueInlet> fileInlet;
 
 public:
   void fileChanged() W_SIGNAL(fileChanged);

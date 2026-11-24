@@ -1,6 +1,8 @@
 #include "SoundComponent.hpp"
 
+#include <Media/AudioDecoder.hpp>
 #include <Media/Libav.hpp>
+#include <Media/MediaFileHandle.hpp>
 
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
@@ -9,6 +11,7 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/tools/Bind.hpp>
+#include <score/tools/File.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/dummy.hpp>
@@ -72,7 +75,7 @@ public:
   static void construct(Execution::SoundComponent& component)
   {
     Sound::ProcessModel& element = component.process();
-    auto handle = element.file();
+    auto handle = component.currentFile();
 
     struct
     {
@@ -86,6 +89,7 @@ public:
         // anymore
 
         auto node = std::make_shared<ossia::dummy_sound_node>();
+        component.wire(*node);
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
       }
@@ -96,6 +100,8 @@ public:
 
         auto node = ossia::make_node<ossia::nodes::sound_ref>(
             *component.system().execState.get());
+
+        component.wire(*node);
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
         update_ref(node, file, r, component, commands);
@@ -109,6 +115,8 @@ public:
 
         auto node = ossia::make_node<ossia::nodes::sound_libav>(
             *component.system().execState.get());
+
+        component.wire(*node);
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
         update_libav(node, file, r, component, commands);
@@ -124,6 +132,8 @@ public:
 
         auto node = ossia::make_node<ossia::nodes::sound_ref>(
             *component.system().execState.get());
+
+        component.wire(*node);
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
         update_sndfile(node, file, r, component, commands);
@@ -136,6 +146,8 @@ public:
 
         auto node = ossia::make_node<ossia::nodes::sound_mmap>(
             *component.system().execState.get());
+
+        component.wire(*node);
         component.node = node;
         component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
         update_mmap(node, file, r, component, commands);
@@ -149,7 +161,7 @@ public:
   static void update(Execution::SoundComponent& component)
   {
     Sound::ProcessModel& element = component.process();
-    std::shared_ptr<AudioFile> handle = element.file();
+    std::shared_ptr<AudioFile> handle = component.currentFile();
 
     struct
     {
@@ -165,19 +177,23 @@ public:
         OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Ui);
         auto& setup = component.system().setup;
         auto& proc = component.process();
-        for(auto& c : proc.outlet->cables())
-        {
-          setup.removeCable(c.find(component.system().context().doc), commands);
-        }
+        // The cables of every port go from the old node to the new one
+        const auto& doc = component.system().context().doc;
+        const auto each_cable = [&](auto&& f) {
+          for(auto* in : proc.inlets())
+            for(auto& c : in->cables())
+              f(c.find(doc));
+          for(auto* out : proc.outlets())
+            for(auto& c : out->cables())
+              f(c.find(doc));
+        };
+        each_cable([&](Process::Cable& c) { setup.removeCable(c, commands); });
         setup.unregister_node(component.process(), old_node, commands);
         setup.register_node(component.process(), n, commands);
         setup.replace_node(component.OSSIAProcessPtr(), n, commands);
         component.nodeChanged(old_node, n, &commands);
         component.node = n;
-        for(auto& c : proc.outlet->cables())
-        {
-          setup.connectCable(c.find(component.system().context().doc), commands);
-        }
+        each_cable([&](Process::Cable& c) { setup.connectCable(c, commands); });
       }
 
       void
@@ -196,6 +212,7 @@ public:
         {
           auto n = ossia::make_node<ossia::nodes::sound_ref>(
               *component.system().execState.get());
+          component.wire(*n);
           update_ref(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
@@ -217,6 +234,7 @@ public:
         {
           auto n = ossia::make_node<ossia::nodes::sound_libav>(
               *component.system().execState.get());
+          component.wire(*n);
           update_libav(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
@@ -240,6 +258,7 @@ public:
         {
           auto n = ossia::make_node<ossia::nodes::sound_ref>(
               *component.system().execState.get());
+          component.wire(*n);
           update_sndfile(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
@@ -263,6 +282,7 @@ public:
         {
           auto n = ossia::make_node<ossia::nodes::sound_mmap>(
               *component.system().execState.get());
+          component.wire(*n);
           update_mmap(n, file, r, component, commands);
           this->replace_node(old_node, n, commands);
         }
@@ -417,6 +437,8 @@ SoundComponent::SoundComponent(
 }
 void SoundComponent::on_fileChanged()
 {
+  // The document's file again: an edit wins over what a port asked for
+  m_liveFile.reset();
   m_recomputer.~Recomputer();
   new(&m_recomputer) Recomputer{*this};
 
@@ -441,6 +463,73 @@ void SoundComponent::on_fileChanged()
 void SoundComponent::recompute()
 {
   Media::SoundComponentSetup{}.update(*this);
+}
+
+std::shared_ptr<Media::AudioFile> SoundComponent::currentFile() const noexcept
+{
+  return m_liveFile ? m_liveFile : process().file();
+}
+
+void SoundComponent::wire(ossia::sound_node& n)
+{
+  // From the audio thread: the path goes to the GUI thread, which loads it
+  n.on_file = [self = QPointer<SoundComponent>{this},
+               wq = system().weakEditionQueue()](const std::string& path) {
+    if(auto q = wq.lock())
+      q->try_enqueue([self, p = path] {
+        if(self)
+          self->playFile(QString::fromStdString(p));
+      });
+  };
+}
+
+void SoundComponent::playFile(const QString& path)
+{
+  if(path.isEmpty())
+    return;
+  auto& ctx = system().context().doc;
+  const QString abs = score::locateFilePath(path, ctx);
+  if(m_liveFile && m_liveFile->absoluteFileName() == abs)
+    return;
+  m_live.~Recomputer();
+  new(&m_live) Recomputer{*this};
+  m_liveFile = Media::AudioFileManager::instance().get(abs, -1, ctx);
+  if(!m_liveFile)
+    return;
+  if(m_liveFile->finishedDecoding())
+    liveFileReady();
+  else
+    m_liveFile->on_finishedDecoding.connect<&SoundComponent::Recomputer::live>(m_live);
+}
+
+void SoundComponent::liveFileReady()
+{
+  if(!m_liveFile)
+    return;
+  recompute();
+  // Its own tempo when it says it, as for a file dropped in; and a loop
+  // lasts as long as the file playing
+  const double tempo
+      = m_liveFile->knownTempo().value_or(process().nativeTempo());
+  std::optional<ossia::time_value> loop;
+  if(process().loops())
+    if(auto info = Media::AudioDecoder::find_info(m_liveFile->absoluteFileName()))
+      if(const auto d = info->duration(); d > TimeVal::zero())
+        loop = ossia::time_value{d.impl};
+  auto n = std::dynamic_pointer_cast<ossia::sound_node>(node);
+  auto proc = m_ossia_process;
+  in_exec([n, proc, tempo, loop] {
+    if(auto* r = dynamic_cast<ossia::nodes::sound_ref*>(n.get()))
+      r->set_native_tempo(tempo);
+    else if(auto* m = dynamic_cast<ossia::nodes::sound_mmap*>(n.get()))
+      m->set_native_tempo(tempo);
+#if SCORE_HAS_LIBAV
+    else if(auto* l = dynamic_cast<ossia::nodes::sound_libav*>(n.get()))
+      l->set_native_tempo(tempo);
+#endif
+    if(proc && loop)
+      proc->set_loop_duration(*loop);
+  });
 }
 
 SoundComponent::~SoundComponent() { }

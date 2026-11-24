@@ -94,6 +94,7 @@ ProcessModel::ProcessModel(
           ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{std::make_unique<Process::AudioOutlet>(
           "Audio Out", Id<Process::Port>(0), this)}
+    , fileInlet{std::make_unique<Process::ValueInlet>("File", Id<Process::Port>(1), this)}
     , m_file{std::make_shared<AudioFile>()}
     , m_mode{default_stretch_modes.unknown}
 {
@@ -136,6 +137,11 @@ void ProcessModel::setFile(const QString& file)
   {
     m_stream = -1;
     loadFile(file);
+
+    // The file is chosen anew: what the control had asked to play instead no
+    // longer stands, now or in the next playback
+    if(fileInlet)
+      fileInlet->setValue(std::string{});
 
     if(auto tempo = m_file->knownTempo())
     {
@@ -351,6 +357,7 @@ void ProcessModel::on_mediaChanged()
 
 void ProcessModel::init()
 {
+  m_inlets.push_back(fileInlet.get());
   m_outlets.push_back(outlet.get());
 }
 
@@ -370,7 +377,8 @@ template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
   m_stream << proc.m_upmixChannels << proc.m_startChannel << proc.m_mode
-           << proc.m_nativeTempo << proc.m_stream << proc.m_userFilePath << *proc.outlet;
+           << proc.m_nativeTempo << proc.m_stream << proc.m_userFilePath << *proc.outlet
+           << *proc.fileInlet;
 
   insertDelimiter();
 }
@@ -383,6 +391,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 
   proc.loadFile(proc.m_userFilePath, proc.m_stream);
   proc.outlet = load_audio_outlet(*this, &proc);
+  proc.fileInlet = load_value_inlet(*this, &proc);
 
   checkDelimiter();
 }
@@ -392,6 +401,7 @@ void JSONReader::read(const Media::Sound::ProcessModel& proc)
 {
   obj["File"] = proc.m_userFilePath;
   obj["Outlet"] = *proc.outlet;
+  obj["FileInlet"] = *proc.fileInlet;
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;
   obj["Mode"] = (int)proc.m_mode;
@@ -414,4 +424,15 @@ void JSONWriter::write(Media::Sound::ProcessModel& proc)
   proc.loadFile(obj["File"].toString(), proc.m_stream);
   JSONWriter writer{obj["Outlet"]};
   proc.outlet = Process::load_audio_outlet(writer, &proc);
+  // Documents from before it have none
+  if(auto in = obj.tryGet("FileInlet"))
+  {
+    JSONWriter w{*in};
+    proc.fileInlet = Process::load_value_inlet(w, &proc);
+  }
+  else
+  {
+    proc.fileInlet
+        = std::make_unique<Process::ValueInlet>("File", Id<Process::Port>(1), &proc);
+  }
 }
