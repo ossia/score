@@ -11,6 +11,12 @@
 #include <QTemporaryDir>
 
 #include <AvndProcesses/Utils.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/ExternalFiles.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -57,5 +63,35 @@ TEST_CASE("Save paths: %t is a date a file name can hold", "[avnd][files]")
     CHECK(!path.contains("%t"));
     CHECK(!QFileInfo{path}.fileName().contains(':'));
     CHECK(path.startsWith(QDir::cleanPath(dir.path())));
+  });
+}
+
+TEST_CASE("What a recorder writes is reported as a file it makes", "[avnd][files]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    Process::ProcessModel* rec{};
+    for(auto& f : ctx.interfaces<Process::ProcessFactoryList>())
+      if(f.prettyName() == "Audio recorder")
+        rec = f.make(TimeVal::fromMsecs(1000), {}, Id<Process::ProcessModel>{0}, doc->context(), &doc->model());
+    REQUIRE(rec);
+    Process::ControlInlet* pattern{};
+    for(auto* in : rec->inlets())
+      if(auto* c = qobject_cast<Process::ControlInlet*>(in); c && c->name() == "File pattern")
+        pattern = c;
+    REQUIRE(pattern);
+    pattern->setValue(std::string{"<PROJECT>:takes/rec_%t.wav"});
+
+    std::vector<Process::ExternalFileRef> refs;
+    Process::ExternalFileMap map{[&](const Process::ExternalFileRef& r) {
+      refs.push_back(r);
+      return QString{};
+    }};
+    rec->mapExternalFiles(map);
+    REQUIRE(refs.size() == 1);
+    CHECK(refs[0].path == "<PROJECT>:takes/rec_%t.wav");
+    CHECK(refs[0].usage == Process::FileUsage::Output);
+    delete rec;
   });
 }

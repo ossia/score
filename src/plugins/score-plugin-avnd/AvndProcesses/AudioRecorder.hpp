@@ -183,6 +183,8 @@ struct AudioRecorder
     halp::dynamic_audio_bus<"Audio", double> audio;
     struct : halp::lineedit<"File pattern", "">
     {
+      //! What it writes, for the project's files
+      static consteval bool output_path() { return true; }
       void update(AudioRecorder& self) { self.update(); }
     } filename;
 

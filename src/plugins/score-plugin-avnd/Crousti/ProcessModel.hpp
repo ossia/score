@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
+#include <Process/ExternalFiles.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 
@@ -242,6 +243,24 @@ public:
       ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
       upgrade_preset_value(*ctrl, val);
       ctrl->setValue(val);
+    }
+  }
+
+  //! A path a recorder writes to (a save path, or a field marked
+  //! output_path()) is a file the process makes: reported as such, it moves
+  //! with the project but is not collected
+  void mapExternalFiles(Process::ExternalFileMap& map) override
+  {
+    Process::ProcessModel::mapExternalFiles(map);
+    if constexpr(avnd::input_introspection<Info>::size > 0)
+    {
+      avnd::input_introspection<Info>::for_all(
+          [this, &map]<std::size_t Idx, typename P>(avnd::field_reflection<Idx, P>) {
+        if constexpr(requires { P::placeholders(); } || requires { P::output_path(); })
+          for(auto* port : this->avnd_input_idx_to_model_ports(Idx))
+            if(auto* ctrl = qobject_cast<Process::ControlInlet*>(port))
+              map.control(*ctrl, score::FileKind::Unknown, Process::FileUsage::Output);
+      });
     }
   }
 
