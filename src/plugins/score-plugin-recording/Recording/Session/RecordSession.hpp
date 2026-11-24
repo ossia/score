@@ -115,6 +115,9 @@ public:
   const QString& error() const noexcept { return m_error; }
   //! Ends the recording: what was recorded is placed
   void stop();
+  //! RecordOptions::capture: ends it, placing the last bars played. Ended
+  //! otherwise (playback stops), nothing is placed and its files are removed.
+  void capture();
   bool running() const noexcept { return m_running; }
   //! Running, and no take records yet: playback, the grid or a first event is
   //! awaited
@@ -139,6 +142,8 @@ public:
   //! What the user should know of the takes: a tempo that changed meanwhile,
   //! a speed other than 1. Filled when the session ends.
   const QStringList& warnings() const noexcept { return m_warnings; }
+  //! Once playback ran: whether any source could be recorded at all
+  bool linkedAny() const noexcept { return m_linkedAny; }
 
 private:
   struct Source;
@@ -151,6 +156,10 @@ private:
   //! Frames of audio a peak of the live view covers
   static constexpr int peakFrames = 256;
   void place();
+  void lockUndo();
+  void removeFiles();
+  bool m_discard{};
+  bool m_linkedAny{};
   //! A Sound take's tempo and stretch, said rather than guessed from its file
   void setTiming(
       Scenario::Command::Macro& macro, Process::ProcessModel& take, double tempo,

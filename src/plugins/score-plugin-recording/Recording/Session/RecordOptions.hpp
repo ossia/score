@@ -118,6 +118,10 @@ struct RecordOptions
   //! Free space the disk of the Takes folder needs for a recording to start;
   //! it stops, its takes kept, when less than a quarter of it is left
   int64_t minFreeBytes{int64_t(512) << 20};
+
+  //! Kept in the background while playing: capture() places the last
+  //! passBars whole bars of it as loops, else nothing is kept
+  bool capture{false};
   int64_t touchRelease{352800000};
 };
 }

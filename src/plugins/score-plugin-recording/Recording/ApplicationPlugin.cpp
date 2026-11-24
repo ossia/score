@@ -1,6 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationPlugin.hpp"
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <Process/LiveTake.hpp>
 
 #include <Curve/Settings/CurveSettingsModel.hpp>
 
@@ -68,6 +71,29 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       &ApplicationPlugin::stopSession);
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+
+  // Arming: the toggles of the processes' headers, and what Capture keeps
+  auto& arm = Process::RecordArm::instance();
+  arm.enabled = true;
+  connect(&arm, &Process::RecordArm::armedChanged, this, [this] {
+    m_captureBlocked = nullptr;
+    // What is kept follows what is armed
+    if(auto* doc = context.currentDocument())
+    {
+      auto* d = &doc->document;
+      stopCapture();
+      startCapture(*d);
+    }
+  });
+
+  m_captureWatch.setInterval(500);
+  connect(&m_captureWatch, &QTimer::timeout, this, [this] {
+    if(m_capture)
+      return;
+    for(auto* d : context.documents.documents())
+      if(!Process::RecordArm::instance().armedIn(*d).empty())
+        startCapture(*d);
+  });
 
   m_blink.setInterval(400);
   connect(&m_blink, &QTimer::timeout, this, [this] {
@@ -286,6 +312,14 @@ void ApplicationPlugin::publish(score::Document& doc)
     });
   }
   {
+    auto* n = rec->create_child("capture");
+    auto* p = n->create_parameter(ossia::val_type::IMPULSE);
+    p->set_access(ossia::access_mode::SET);
+    p->add_callback([this](const ossia::value&) {
+      ossia::qt::run_async(this, [this] { capture(); });
+    });
+  }
+  {
     auto* n = rec->create_child("stop");
     auto* p = n->create_parameter(ossia::val_type::IMPULSE);
     p->set_access(ossia::access_mode::SET);
@@ -313,10 +347,110 @@ void ApplicationPlugin::publish(score::Document& doc)
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
 {
   publish(doc);
+  watchPlayback(doc);
+}
+
+void ApplicationPlugin::watchPlayback(score::Document& doc)
+{
+  auto* exec = doc.context().findPlugin<Execution::DocumentPlugin>();
+  if(!exec)
+    return;
+  const QPointer<score::Document> d = &doc;
+  // Capture keeps what plays from the moment it plays
+  connect(exec, &Execution::DocumentPlugin::started, this, [this, d] {
+    QMetaObject::invokeMethod(this, [this, d] {
+      if(d)
+        startCapture(*d);
+    }, Qt::QueuedConnection);
+  });
+  // Playback also starts again without saying so, e.g. when the audio engine
+  // restarts: checked as long as something is armed
+  if(!m_captureWatch.isActive())
+    m_captureWatch.start();
+}
+
+void ApplicationPlugin::startCapture(const score::Document& doc)
+{
+  if(m_capture)
+    return;
+  auto* exec = doc.context().findPlugin<Execution::DocumentPlugin>();
+  if(!exec || !exec->isPlaying())
+  {
+    // Tried again at the next playback
+    if(m_captureBlocked == &doc)
+      m_captureBlocked = nullptr;
+    return;
+  }
+  // What is armed cannot be recorded in this playback: not again and again
+  if(m_captureBlocked == &doc)
+    return;
+  const auto armed = Process::RecordArm::instance().armedIn(doc);
+  if(armed.empty())
+    return;
+  auto opt = defaultOptions();
+  opt.capture = true;
+  opt.start = RecordOptions::Start::Now;
+  opt.startRate = 1.; // whole bars
+  opt.length = 0;
+  opt.lengthBars = 0.;
+  opt.countIn = false;
+  opt.muteSource = false;
+  opt.target = RecordOptions::Target::ThisBox;
+  opt.passes = RecordOptions::Passes::LastOnly;
+  opt.passBars = std::max(1, context.settings<Settings::Model>().getCaptureBars());
+  auto session = std::make_unique<RecordSession>(doc.context(), opt);
+  for(auto* proc : armed)
+    for(auto* out : proc->outlets())
+      if(out->type() == Process::PortType::Audio || out->type() == Process::PortType::Midi)
+        session->addSource(*out);
+  if(session->sources() == 0 || !session->start())
+    return;
+  m_capture = std::move(session);
+  m_captureDocument = &doc;
+  // Ended by Capture or by playback: done with, out of its own signal
+  connect(m_capture.get(), &RecordSession::finished, this, [this] {
+    QMetaObject::invokeMethod(this, [this] {
+      if(m_capture && !m_capture->running())
+      {
+        if(!m_capture->warnings().isEmpty())
+          tell(m_capture->warnings().join('\n'));
+        auto* doc = m_captureDocument;
+        if(!m_capture->linkedAny())
+          m_captureBlocked = doc;
+        m_capture.reset();
+        m_captureDocument = nullptr;
+        // Still playing: what comes next is kept too
+        for(auto* d : context.documents.documents())
+          if(d == doc)
+            startCapture(*d);
+      }
+    }, Qt::QueuedConnection);
+  });
+}
+
+void ApplicationPlugin::stopCapture()
+{
+  if(!m_capture)
+    return;
+  // Ended without Capture: nothing is placed
+  auto c = std::move(m_capture);
+  m_captureDocument = nullptr;
+  c->stop();
+}
+
+void ApplicationPlugin::capture()
+{
+  if(!m_capture)
+  {
+    tell(tr("Arm processes and play: Capture places the last bars they played"));
+    return;
+  }
+  m_capture->capture();
 }
 
 void ApplicationPlugin::on_loadedDocument(score::Document& doc)
 {
+  watchPlayback(doc);
   if(ossia::none_of(m_published, [&](const Published& p) { return p.document == &doc; }))
     publish(doc);
 }
@@ -361,6 +495,19 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       QStringLiteral(":/icons/control_record_disabled.png"));
   connect(m_recordAct, &QAction::triggered, this, [this] { recordSelection(); });
   bar->addAction(m_recordAct);
+  m_captureAct = new QAction{tr("Capture"), bar};
+  m_captureAct->setObjectName("Capture");
+  score::setHelp(
+      m_captureAct,
+      tr("Capture: the last whole bars the armed processes played become loops in their "
+         "boxes, as many as the Recording settings say."));
+  setIcons(
+      m_captureAct, QStringLiteral(":/icons/snapshot_on.png"),
+      QStringLiteral(":/icons/snapshot_hover.png"),
+      QStringLiteral(":/icons/snapshot_off.png"),
+      QStringLiteral(":/icons/snapshot_disabled.png"));
+  connect(m_captureAct, &QAction::triggered, this, [this] { capture(); });
+  bar->addAction(m_captureAct);
   e.toolbars.emplace_back(
       bar, StringKey<score::Toolbar>("Recording"), Qt::BottomToolBarArea, 210);
   return e;
@@ -400,11 +547,17 @@ void ApplicationPlugin::recordSelection(
           ports.push_back(out);
     }
   }
+  // Nothing selected: the armed processes
+  if(ports.empty())
+    for(auto* proc : Process::RecordArm::instance().armedIn(ctx.document))
+      for(auto* out : proc->outlets())
+        if(out->type() == Process::PortType::Audio || out->type() == Process::PortType::Midi)
+          ports.push_back(out);
   auto opt = defaultOptions();
   opt.nodePosition = nodePosition;
   if(ports.empty())
   {
-    tell(tr("Select ports or processes to record their outputs"));
+    tell(tr("Select or arm ports or processes to record their outputs"));
     showRecording(false);
   }
   else if(!startSession(*doc, ports, opt))
@@ -422,6 +575,8 @@ void ApplicationPlugin::on_documentSaveAs(score::Document& doc, const QString& n
 void ApplicationPlugin::on_closeDocument(score::Document& doc)
 {
   ossia::remove_erase_if(m_published, [&](const Published& p) { return p.document == &doc; });
+  if(m_capture && m_captureDocument == &doc)
+    stopCapture();
   // The session refers to the document: it ends, its takes placed, first
   if(m_session && m_sessionDocument == &doc)
   {

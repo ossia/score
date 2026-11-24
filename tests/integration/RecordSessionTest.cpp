@@ -20,6 +20,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/LiveTake.hpp>
+#include <Recording/ApplicationPlugin.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Process/ProcessList.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -1416,5 +1417,80 @@ TEST_CASE("A recording does not start on a disk too full for it, and says why", 
     CHECK(session.error().contains("disk"));
     // Undo stays on
     CHECK(doc->commandStack().canUndo());
+  });
+}
+
+TEST_CASE("Capture places the last whole bars the armed processes played, as loops", "[recording][capture]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 30);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(30000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      REQUIRE(sound);
+      m.commit();
+    }
+    auto& plug = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& arm = Process::RecordArm::instance();
+    REQUIRE(arm.enabled);
+    arm.setArmed(*sound, true);
+    CHECK(arm.armedIn(*doc) == std::vector<const Process::ProcessModel*>{sound});
+    const auto processes_before = box->processes.size();
+    const auto undo_before = doc->commandStack().size();
+
+    // Playing: what the armed process plays is kept, the document unchanged
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying() && plug.captureSession(); }, 5000));
+    CHECK(doc->commandStack().canUndo());
+    // 120 in 4/4: a bar is 2 s; over two whole bars
+    spin(5500);
+    REQUIRE(exec.isPlaying());
+    plug.capture();
+    REQUIRE(spin_until([&] { return box->processes.size() == processes_before + 1; }, 3000));
+
+    Process::ProcessModel* take{};
+    for(auto& p : box->processes)
+      if(&p != sound)
+        take = &p;
+    REQUIRE(take);
+    // A loop of the whole bars played, at most the length asked (4 bars)
+    CHECK(take->loops());
+    const double bars = take->loopDuration().impl / (4. * 352800000.);
+    CHECK(bars == Catch::Approx(std::round(bars)).margin(1e-6));
+    CHECK(bars >= 1.);
+    CHECK(bars <= 4.);
+    // One step
+    CHECK(doc->commandStack().size() == undo_before + 1);
+
+    // Kept on capturing while it plays
+    REQUIRE(spin_until([&] { return plug.captureSession() != nullptr; }, 3000));
+    const auto* next = plug.captureSession();
+    spin(800);
+
+    // Playback stops: what was kept since is let go, its files removed
+    engine.execution().request_stop();
+    REQUIRE(spin_until([&] { return plug.captureSession() == nullptr; }, 3000));
+    CHECK(box->processes.size() == processes_before + 1);
+    (void)next;
+
+    doc->commandStack().undo();
+    CHECK(box->processes.size() == processes_before);
+    arm.setArmed(*sound, false);
+    CHECK(arm.armedIn(*doc).empty());
   });
 }

@@ -3,6 +3,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/HeaderDelegate.hpp>
+#include <Process/LiveTake.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -140,12 +141,28 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
         [mute_btn](bool b) { mute_btn->setState(b); });
   }
 
-  if(flags & Process::ProcessFlags::Recordable)
+  if(auto& arm = Process::RecordArm::instance();
+     arm.enabled && Process::RecordArm::canArm(m_model))
   {
+    // Armed: what it plays is kept while playing, for Record and Capture
     auto rec_btn
         = new score::QGraphicsPixmapToggle{pixmaps.record_on, pixmaps.record_off, this};
+    rec_btn->setToolTip(
+        tr("Arm for recording\nWhat it plays is kept while playing: Record records it "
+           "when nothing is selected, Capture places its last bars."));
+    if(arm.armed(m_model))
+      rec_btn->toggle();
     rec_btn->setPos(m_portStartX, 0);
-    m_portStartX += 12;
+    m_portStartX += rec_btn->boundingRect().width() + 2;
+    connect(rec_btn, &score::QGraphicsPixmapToggle::toggled, this, [this](bool b) {
+      Process::RecordArm::instance().setArmed(m_model, b);
+    });
+    connect(
+        &arm, &Process::RecordArm::armedChanged, rec_btn,
+        [this, rec_btn](const Process::ProcessModel* p, bool b) {
+      if(p == &m_model)
+        rec_btn->setState(b);
+    });
   }
   if(flags & Process::ProcessFlags::Snapshottable)
   {

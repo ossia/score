@@ -50,6 +50,8 @@ SETTINGS_PARAMETER_IMPL(VideoCodec){
 SETTINGS_PARAMETER_IMPL(VideoWidth){QStringLiteral("score_plugin_recording/VideoWidth"), 1920};
 SETTINGS_PARAMETER_IMPL(VideoHeight){
     QStringLiteral("score_plugin_recording/VideoHeight"), 1080};
+SETTINGS_PARAMETER_IMPL(CaptureBars){
+    QStringLiteral("score_plugin_recording/CaptureBars"), 4};
 SETTINGS_PARAMETER_IMPL(TouchRelease){
     QStringLiteral("score_plugin_recording/TouchRelease"), 500};
 
@@ -57,7 +59,7 @@ static auto list()
 {
   return std::tie(
       AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
-      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight, TouchRelease);
+      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight, TouchRelease, CaptureBars);
 }
 }
 
@@ -133,6 +135,7 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, VideoCodec)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoWidth)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoHeight)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, TouchRelease)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, CaptureBars)
 
 View::View()
 {
@@ -159,6 +162,12 @@ View::View()
   m_LengthBars->setDecimals(2);
   m_LengthBars->setSpecialValueText(tr("Until stopped"));
   score::setHelp(m_LengthBars, tr("The recording stops by itself after this many bars."));
+  SETTINGS_UI_SPINBOX_SETUP("Capture length in bars", CaptureBars);
+  m_CaptureBars->setRange(1, 256);
+  score::setHelp(
+      m_CaptureBars,
+      tr("Capture places the last whole bars the armed processes played, up to this "
+         "many, as loops."));
   SETTINGS_UI_TOGGLE_SETUP("Loop takes of a number of bars", LoopFixedLength);
   score::setHelp(
       m_LoopFixedLength,
@@ -249,6 +258,7 @@ SETTINGS_UI_COMBOBOX_IMPL(VideoCodec)
 SETTINGS_UI_SPINBOX_IMPL(VideoWidth)
 SETTINGS_UI_SPINBOX_IMPL(VideoHeight)
 SETTINGS_UI_SPINBOX_IMPL(TouchRelease)
+SETTINGS_UI_SPINBOX_IMPL(CaptureBars)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -270,6 +280,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(VideoWidth);
   SETTINGS_PRESENTER(VideoHeight);
   SETTINGS_PRESENTER(TouchRelease);
+  SETTINGS_PRESENTER(CaptureBars);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();

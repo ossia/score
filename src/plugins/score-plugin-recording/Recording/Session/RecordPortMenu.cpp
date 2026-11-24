@@ -7,6 +7,7 @@
 
 #include <Automation/AutomationModel.hpp>
 #include <Midi/MidiProcess.hpp>
+#include <Process/LiveTake.hpp>
 #include <Process/Process.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Takes/PlaceAddressTakes.hpp>
@@ -273,6 +274,30 @@ void RecordPortMenu::setupMenu(
       opt.target = RecordOptions::Target::FileOnly;
       record(opt);
     });
+  }
+
+  // Arming: what the process plays is kept while playing, for Capture
+  if(auto* proc = Process::parentProcess(&port); proc && Process::RecordArm::canArm(*proc))
+  {
+    sub->addSeparator();
+    auto& arm = Process::RecordArm::instance();
+    auto act = sub->addAction(QObject::tr("Armed for recording"));
+    act->setCheckable(true);
+    act->setChecked(arm.armed(*proc));
+    act->setToolTip(QObject::tr(
+        "What %1 plays is kept while playing: Capture places its last bars, and Record "
+        "records it when nothing is selected")
+                        .arg(proc->prettyName()));
+    const QPointer<const Process::ProcessModel> pp = proc;
+    QObject::connect(act, &QAction::toggled, plug, [pp](bool b) {
+      if(pp)
+        Process::RecordArm::instance().setArmed(*pp, b);
+    });
+    if(plug->captureSession())
+    {
+      auto cap = sub->addAction(QObject::tr("Capture the last bars played"));
+      QObject::connect(cap, &QAction::triggered, plug, [plug] { plug->capture(); });
+    }
   }
 }
 }

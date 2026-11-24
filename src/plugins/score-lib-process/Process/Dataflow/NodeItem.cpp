@@ -6,6 +6,7 @@
 #include <Process/Dataflow/PortVisibility.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/LiveTake.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
@@ -132,6 +133,12 @@ void NodeItem::createWithDecorations()
       &NodeItem::updateLabel);
 
   con(process, &Process::ProcessModel::loopsChanged, this, [&] { updateZoomRatio(); });
+  connect(
+      &Process::RecordArm::instance(), &Process::RecordArm::armedChanged, this,
+      [this](const Process::ProcessModel* p, bool) {
+    if(p == &m_model)
+      update();
+  });
   // A muted process, e.g. a recording's alternative take, is drawn dimmed
   setOpacity(process.muted() ? 0.35 : 1.);
   con(process, &Process::ProcessModel::mutedChanged, this,
@@ -1106,6 +1113,15 @@ void NodeItem::paint(
 #endif
 
   painter->drawRoundedRect(rect, Corner, Corner);
+  // Armed for recording: outlined in the record button's red
+  if(Process::RecordArm::instance().armed(m_model))
+  {
+    painter->setPen(QPen{QColor{220, 60, 50}, 2.});
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRoundedRect(rect.adjusted(-1.5, -1.5, 1.5, 1.5), Corner + 1., Corner + 1.);
+    painter->setPen(pen);
+    painter->setBrush(fillbrush);
+  }
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 

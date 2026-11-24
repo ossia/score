@@ -2,6 +2,11 @@
 
 #include <QFontMetrics>
 #include <QPainter>
+
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Process.hpp>
+
+#include <score/document/DocumentInterface.hpp>
 #include <QPainterPath>
 #include <QRectF>
 
@@ -12,6 +17,7 @@
 
 W_OBJECT_IMPL(Process::LiveTake)
 W_OBJECT_IMPL(Process::LiveTakes)
+W_OBJECT_IMPL(Process::RecordArm)
 
 namespace Process
 {
@@ -150,6 +156,55 @@ void LiveTake::paintContent(
     }
   }
   p.restore();
+}
+
+RecordArm& RecordArm::instance()
+{
+  static RecordArm a;
+  return a;
+}
+
+bool RecordArm::armed(const ProcessModel& p) const noexcept
+{
+  for(const auto& a : m_armed)
+    if(a == &p)
+      return true;
+  return false;
+}
+
+void RecordArm::setArmed(const ProcessModel& p, bool b)
+{
+  std::erase_if(m_armed, [](const auto& a) { return !a; });
+  if(b == armed(p))
+    return;
+  if(b)
+    m_armed.emplace_back(&p);
+  else
+    std::erase_if(m_armed, [&](const auto& a) { return a == &p; });
+  armedChanged(&p, b);
+}
+
+std::vector<const ProcessModel*> RecordArm::armedIn(const QObject& document) const
+{
+  std::vector<const ProcessModel*> r;
+  for(const auto& a : m_armed)
+    if(a && score::IDocument::documentFromObject(*a) == &document)
+      r.push_back(a.data());
+  return r;
+}
+
+bool RecordArm::canArm(const ProcessModel& p) noexcept
+{
+  for(auto* out : p.outlets())
+    switch(out->type())
+    {
+      case PortType::Audio:
+      case PortType::Midi:
+        return true;
+      default:
+        break;
+    }
+  return false;
 }
 
 LiveTakes& LiveTakes::instance()

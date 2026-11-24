@@ -238,8 +238,11 @@ RecordSession::~RecordSession()
     m_writing = false;
     if(m_writer.joinable())
       m_writer.join();
-    m_ctx.document.commandStack().enableActions();
+    if(!m_options.capture)
+      m_ctx.document.commandStack().enableActions();
   }
+  if(m_options.capture && m_discard)
+    removeFiles();
   QObject::disconnect(m_started);
   QObject::disconnect(m_finished);
 }
@@ -393,6 +396,41 @@ int64_t RecordSession::freeBytes() const
   return info.bytesAvailable();
 }
 
+void RecordSession::lockUndo()
+{
+  // Undo and redo stay off: a command pushed meanwhile (live editing) would
+  // turn them back on
+  auto& stack = m_ctx.document.commandStack();
+  stack.disableActions();
+  m_undoGuard = connect(&stack, &score::CommandStack::canUndoChanged, this, [this](bool b) {
+    if(b && m_running)
+      m_ctx.document.commandStack().disableActions();
+  }, Qt::QueuedConnection);
+  m_redoGuard = connect(&stack, &score::CommandStack::canRedoChanged, this, [this](bool b) {
+    if(b && m_running)
+      m_ctx.document.commandStack().disableActions();
+  }, Qt::QueuedConnection);
+}
+
+void RecordSession::capture()
+{
+  if(!m_options.capture || !m_running)
+    return;
+  m_discard = false;
+  stop();
+}
+
+void RecordSession::removeFiles()
+{
+  for(auto& s : m_sources)
+  {
+    if(s->wav.isOpen())
+      s->wav.close();
+    if(!s->file.isEmpty())
+      QFile::remove(s->file);
+  }
+}
+
 bool RecordSession::start()
 {
   if(m_running || m_sources.empty())
@@ -424,18 +462,12 @@ bool RecordSession::start()
   }
 
   m_running = true;
-  // Undo and redo stay off: a command pushed meanwhile (live editing) would
-  // turn them back on
-  auto& stack = m_ctx.document.commandStack();
-  stack.disableActions();
-  m_undoGuard = connect(&stack, &score::CommandStack::canUndoChanged, this, [this](bool b) {
-    if(b && m_running)
-      m_ctx.document.commandStack().disableActions();
-  }, Qt::QueuedConnection);
-  m_redoGuard = connect(&stack, &score::CommandStack::canRedoChanged, this, [this](bool b) {
-    if(b && m_running)
-      m_ctx.document.commandStack().disableActions();
-  }, Qt::QueuedConnection);
+  // Capture keeps what is played in the background: the document is as
+  // usual until Capture places it
+  if(!m_options.capture)
+    lockUndo();
+  else
+    m_discard = true;
 
   // Counted in: a whole bar of clicks at least, then the next bar line
   const double startRate
@@ -515,7 +547,8 @@ bool RecordSession::start()
   m_writing = true;
   m_writer = std::thread{[this] { writerLoop(); }};
   m_poll.start();
-  showLiveTakes();
+  if(!m_options.capture)
+    showLiveTakes();
   return true;
 }
 
@@ -750,6 +783,11 @@ void RecordSession::createRecorders(bool atStart)
       s->values->startRequested = true;
   }
   m_recordersCreated = true;
+  m_linkedAny = ossia::any_of(m_sources, [](const auto& s) { return bool(s->link); });
+  if(!m_linkedAny)
+    m_warnings.push_back(
+        tr("Nothing could be recorded: what was asked does not run (a plug-in that did "
+           "not load, a process that is not executed)"));
   // The engine records them from now on
   stopListening();
 
@@ -993,6 +1031,7 @@ void RecordSession::writerLoop()
 
 void RecordSession::stop()
 {
+
   if(!m_running)
     return;
   for(auto& s : m_sources)
@@ -1054,6 +1093,7 @@ void RecordSession::finish()
 {
   if(!m_running)
     return;
+
   m_running = false;
   m_poll.stop();
   QObject::disconnect(m_started);
@@ -1103,8 +1143,21 @@ void RecordSession::finish()
   warnAboutTiming();
 
   hideLiveTakes();
-  place();
-  m_ctx.document.commandStack().enableActions();
+  if(m_options.capture && m_discard)
+  {
+    removeFiles();
+  }
+  else
+  {
+    place();
+    // Capture keeps the loops cut from what played, not all of it
+    if(m_options.capture)
+      for(auto& s : m_sources)
+        if(s->audio && !s->file.isEmpty())
+          QFile::remove(s->file);
+  }
+  if(!m_options.capture)
+    m_ctx.document.commandStack().enableActions();
   finished();
 }
 
@@ -1219,6 +1272,16 @@ bool RecordSession::placePasses(
   {
     passes = passesOf(t.startDate, t.endDate, length);
     loops = m_options.passes != P::SideBySide;
+    if(m_options.capture)
+    {
+      // What was just played: the last whole bars, up to the length asked
+      const int64_t bar = int64_t(std::llround(quarters_per_bar * flicks_per_quarter));
+      const int64_t last_line = t.startDate + (t.endDate - t.startDate) / bar * bar;
+      const int64_t from = std::max(t.startDate, last_line - length);
+      passes.clear();
+      if(last_line > from)
+        passes.push_back({from, last_line});
+    }
     if(m_options.passes == P::LastOnly && !passes.empty())
       passes.erase(passes.begin(), passes.end() - 1);
   }

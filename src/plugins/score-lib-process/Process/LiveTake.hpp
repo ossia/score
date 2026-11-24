@@ -115,6 +115,35 @@ private:
   std::vector<LiveTake*> m_takes;
 };
 
+class ProcessModel;
+/**
+ * The processes armed for recording: what they play is kept while playback
+ * runs, for the Record button and for Capture. UI state of the session: not
+ * in the document, not undoable.
+ */
+class SCORE_LIB_PROCESS_EXPORT RecordArm final : public QObject
+{
+  W_OBJECT(RecordArm)
+public:
+  static RecordArm& instance();
+
+  //! Set by the recording plug-in: the views show the arm toggles
+  bool enabled{};
+
+  bool armed(const ProcessModel& p) const noexcept;
+  void setArmed(const ProcessModel& p, bool b);
+  //! The armed processes of a document (those that still exist)
+  std::vector<const ProcessModel*> armedIn(const QObject& document) const;
+  //! The processes a toggle is shown for: those with an output to record
+  static bool canArm(const ProcessModel& p) noexcept;
+
+  void armedChanged(const ProcessModel* p, bool b)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, armedChanged, p, b)
+
+private:
+  std::vector<QPointer<const ProcessModel>> m_armed;
+};
+
 /**
  * A take being recorded, as a node of the node view of its box: where it will
  * be placed, with what it recorded so far.

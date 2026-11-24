@@ -83,6 +83,12 @@ public:
   //! The Record button: records the ports selected, or the audio and MIDI
   //! outlets of the processes selected; stops the recording when one runs
   void recordSelection();
+  //! Places the last bars the armed processes played (Capture)
+  void capture();
+  //! Keeps what the armed processes of a document play, while it plays
+  void startCapture(const score::Document& doc);
+  void stopCapture();
+  RecordSession* captureSession() const noexcept { return m_capture.get(); }
   //! The same, in a given document (remote control)
   void recordSelection(
       const score::DocumentContext& ctx, std::optional<QPointF> nodePosition = {});
@@ -95,6 +101,7 @@ private:
   QAction* m_stopAction{};
   QAction* m_recordAct{};
   QTimer m_blink;
+  QTimer m_captureWatch;
 
   //! score:/recording/active and /waiting of each document
   struct Published
@@ -113,6 +120,12 @@ private:
   RecordSession* adopt(std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx);
 
   std::unique_ptr<RecordSession> m_session;
+  std::unique_ptr<RecordSession> m_capture;
+  const score::Document* m_captureDocument{};
+  //! Its armed processes could not be recorded in this playback
+  const score::Document* m_captureBlocked{};
+  QAction* m_captureAct{};
+  void watchPlayback(score::Document& doc);
   const score::Document* m_sessionDocument{};
 };
 }
