@@ -47,6 +47,13 @@ void RecordPortMenu::setupMenu(
     QObject::connect(stop, &QAction::triggered, plug, [plug] { plug->stopSession(); });
     return;
   }
+  // One recording at a time, in the whole application
+  if(plug->session())
+  {
+    auto busy = menu.addAction(QObject::tr("Recording in another document"));
+    busy->setEnabled(false);
+    return;
+  }
 
   const QPointer<const Process::Port> p = &port;
   const auto record = [plug, p, &ctx](RecordOptions opt) {
@@ -55,6 +62,7 @@ void RecordPortMenu::setupMenu(
   };
 
   auto sub = menu.addMenu(QObject::tr("Record"));
+  sub->setToolTipsVisible(true);
   {
     auto act = sub->addAction(QObject::tr("Record now"));
     QObject::connect(act, &QAction::triggered, plug, [=] { record(plug->defaultOptions()); });
@@ -97,6 +105,7 @@ void RecordPortMenu::setupMenu(
   {
     // A number of bars from the next one: a loop that long
     auto bars = sub->addMenu(QObject::tr("Record bars from the next bar"));
+    bars->setToolTipsVisible(true);
     const auto record_bars = [=](int n) {
       auto opt = plug->defaultOptions();
       opt.startRate = 1.;

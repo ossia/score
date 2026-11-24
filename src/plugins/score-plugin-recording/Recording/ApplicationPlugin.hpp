@@ -104,6 +104,8 @@ private:
   void publishState();
 
   void showRecording(bool);
+  //! Says at the pointer why nothing records
+  void tell(const QString& why) const;
   RecordSession* adopt(std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx);
 
   std::unique_ptr<RecordSession> m_session;

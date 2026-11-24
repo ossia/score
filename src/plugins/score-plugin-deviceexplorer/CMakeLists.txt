@@ -50,6 +50,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/DefaultListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandlerFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandlerFactoryList.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorerMenuFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Panel/DeviceExplorerPanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Panel/DeviceExplorerPanelFactory.hpp"
@@ -69,6 +70,7 @@ set(HDRS
 
 
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorerMenuFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPluginSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddAddress.cpp"

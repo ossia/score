@@ -29,8 +29,16 @@ void RecordNodalMenu::setupMenu(
     QObject::connect(stop, &QAction::triggered, plug, [plug] { plug->stopSession(); });
     return;
   }
+  // One recording at a time, in the whole application
+  if(plug->session())
+  {
+    auto busy = menu.addAction(QObject::tr("Recording in another document"));
+    busy->setEnabled(false);
+    return;
+  }
 
   auto sub = menu.addMenu(QObject::tr("Record"));
+  sub->setToolTipsVisible(true);
 
   // The outputs of the processes selected, as the Record button does
   bool processes = false;
@@ -38,7 +46,9 @@ void RecordNodalMenu::setupMenu(
     processes = processes || qobject_cast<const Process::ProcessModel*>(obj.data())
                 || qobject_cast<const Process::Port*>(obj.data());
   {
-    auto act = sub->addAction(QObject::tr("Record the selected processes"));
+    auto act = sub->addAction(
+        processes ? QObject::tr("Record the selected processes")
+                  : QObject::tr("Record the selected processes (none selected)"));
     act->setEnabled(processes);
     act->setToolTip(QObject::tr("Their audio and MIDI outputs, or the ports selected"));
     QObject::connect(
@@ -52,10 +62,15 @@ void RecordNodalMenu::setupMenu(
       {AddressPlacement::Automations,
        QObject::tr("Record the selected addresses as automations")},
       {AddressPlacement::Messages, QObject::tr("Record the selected addresses as messages")}};
-  for(const auto& [placement, text] : kinds)
+  if(addresses.empty())
+  {
+    auto act = sub->addAction(
+        QObject::tr("Select devices or addresses in the explorer to record them"));
+    act->setEnabled(false);
+  }
+  else for(const auto& [placement, text] : kinds)
   {
     auto act = sub->addAction(text);
-    act->setEnabled(!addresses.empty());
     act->setToolTip(QObject::tr(
         "The addresses selected in the device explorer, into this box from now: "
         "audio inputs as sounds, cameras as videos"));

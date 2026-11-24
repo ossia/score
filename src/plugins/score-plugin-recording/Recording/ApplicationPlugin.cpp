@@ -45,6 +45,8 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QApplication>
+#include <QCursor>
+#include <QToolTip>
 
 namespace Recording
 {
@@ -128,7 +130,15 @@ RecordSession* ApplicationPlugin::recordAddresses(
     const std::vector<State::Address>& addresses, AddressPlacement placement)
 {
   if(m_session)
+  {
+    tell(tr("A recording is already running"));
     return nullptr;
+  }
+  if(addresses.empty())
+  {
+    tell(tr("Select devices or addresses in the device explorer to record them"));
+    return nullptr;
+  }
   auto& ctx = score::IDocument::documentContext(scenario);
   const auto& curves = context.settings<Curve::Settings::Model>();
 
@@ -298,6 +308,12 @@ void ApplicationPlugin::on_loadedDocument(score::Document& doc)
     publish(doc);
 }
 
+void ApplicationPlugin::tell(const QString& why) const
+{
+  if(context.applicationSettings.gui)
+    QToolTip::showText(QCursor::pos(), why);
+}
+
 void ApplicationPlugin::showRecording(bool b)
 {
   publishState();
@@ -370,8 +386,16 @@ void ApplicationPlugin::recordSelection(const score::DocumentContext& ctx)
           ports.push_back(out);
     }
   }
-  if(ports.empty() || !startSession(*doc, ports, defaultOptions()))
+  if(ports.empty())
+  {
+    tell(tr("Select ports or processes to record their outputs"));
     showRecording(false);
+  }
+  else if(!startSession(*doc, ports, defaultOptions()))
+  {
+    tell(tr("Nothing in the selection can be recorded"));
+    showRecording(false);
+  }
 }
 
 void ApplicationPlugin::on_documentSaveAs(score::Document& doc, const QString& newFileName)

@@ -761,7 +761,9 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     });
   }
 
-  // What plug-ins do in this box (record into it, ...)
+  // What plug-ins do in this box (record into it, ...): on its background
+  // only, a cable or a node has its own entries
+  if(!cableAt(event->scenePos()) && !nodeAt(event->scenePos()))
   {
     const auto& facs = m_context.app.interfaces<Process::NodalViewMenuFactoryList>();
     if(facs.begin() != facs.end())

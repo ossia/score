@@ -213,7 +213,7 @@ PlayContextMenu::PlayContextMenu(
                pres.view().mapFromScene(recdata.point), pres.zoomRatio(),
                pres.view().boundingRect().height()));
 
-    m_recordAutomations->setData({});
+    m_recordMessages->setData({});
   });
 
   auto& exec_ctx = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();

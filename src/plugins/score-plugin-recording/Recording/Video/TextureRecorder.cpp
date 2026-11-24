@@ -8,7 +8,17 @@
 #include <Gfx/TexturePort.hpp>
 #include <Gfx/Widgets/TexturePreview.hpp>
 
+#include <Process/Dataflow/Cable.hpp>
+
+#include <Device/Protocol/DeviceInterface.hpp>
+
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Gfx/GfxInputDevice.hpp>
+
 #include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 #include <QDateTime>
 #include <QElapsedTimer>
@@ -59,17 +69,42 @@ videoSettings(const QString& file, QSize size, int fps, bool lossless)
 
 bool TextureRecorder::canRecord(const Process::Port& port) noexcept
 {
-  return qobject_cast<const Gfx::TextureOutlet*>(&port) != nullptr;
+  return qobject_cast<const Gfx::TextureOutlet*>(&port)
+         || qobject_cast<const Gfx::TextureInlet*>(&port);
+}
+
+ossia::gfx::port_index
+TextureRecorder::producerOf(const Process::Port& port, const score::DocumentContext& doc)
+{
+  constexpr ossia::gfx::port_index none{-1, -1};
+  if(auto* out = qobject_cast<const Gfx::TextureOutlet*>(&port))
+    return out->graphicsPort();
+  // An inlet: what its cables bring, else the device its address names
+  for(const auto& path : port.cables())
+    if(auto* cable = path.try_find(doc))
+      if(auto* src = qobject_cast<Gfx::TextureOutlet*>(cable->source().try_find(doc)))
+        return src->graphicsPort();
+  const auto& addr = port.address().address;
+  if(addr.device.isEmpty())
+    return none;
+  auto* devices = doc.findPlugin<Explorer::DeviceDocumentPlugin>();
+  auto* dev = devices ? devices->list().findDevice(addr.device) : nullptr;
+  auto* ossia_dev = dev ? dev->getDevice() : nullptr;
+  if(!ossia_dev)
+    return none;
+  if(auto* node = Device::findNodeFromPath(addr.path, *ossia_dev))
+    if(auto* p = dynamic_cast<Gfx::texture_source_parameter*>(node->get_parameter()))
+      return p->source();
+  return none;
 }
 
 TextureRecorder::TextureRecorder(
     const Process::Port& port, const score::DocumentContext& ctx, QString file, int fps,
     bool lossless)
     : TextureRecorder{
-          [p = QPointer<const Gfx::TextureOutlet>{
-               qobject_cast<const Gfx::TextureOutlet*>(&port)}]() -> ossia::gfx::port_index {
+          [p = QPointer<const Process::Port>{&port}, &ctx]() -> ossia::gfx::port_index {
     if(p)
-      return p->graphicsPort();
+      return producerOf(*p, ctx);
     return {-1, -1};
   }, ctx, std::move(file), fps, lossless}
 {

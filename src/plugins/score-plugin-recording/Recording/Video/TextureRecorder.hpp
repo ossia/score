@@ -46,8 +46,12 @@ namespace Recording
 class SCORE_PLUGIN_RECORDING_EXPORT TextureRecorder final : public QObject
 {
 public:
-  //! The texture outlets the recorder can record
+  //! The texture ports the recorder can record: outlets, and inlets (what
+  //! their cable or their device brings)
   static bool canRecord(const Process::Port& port) noexcept;
+  //! What renders the texture of a port now; {-1, -1} for nothing
+  static ossia::gfx::port_index
+  producerOf(const Process::Port& port, const score::DocumentContext& doc);
 
   //! Where the frames come from, asked on each frame: a producer can be made
   //! again while playing

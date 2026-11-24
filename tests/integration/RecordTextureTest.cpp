@@ -16,7 +16,19 @@
 #include <Execution/ExecutionController.hpp>
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/Video/Process.hpp>
+#include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordSession.hpp>
+
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <JS/Qml/EditContext.hpp>
+
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node.hpp>
+
+#include <QQmlEngine>
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
@@ -155,5 +167,94 @@ TEST_CASE("A texture outlet is recorded to a video take", "[recording][texture][
     CHECK(box->processes.size() == processes_before + 1);
     doc->commandStack().undo();
     CHECK(box->processes.size() == processes_before);
+  });
+}
+
+TEST_CASE("A camera selected in the explorer is recorded to a video take", "[recording][texture][camera][gui]")
+{
+  score::test::run_in_gui_app([](const score::GUIApplicationContext& ctx) {
+    constexpr auto camera_uuid = "d615690b-f2e2-447b-b70e-a800552db69c";
+    if(!ctx.interfaces<Device::ProtocolFactoryList>().get(
+           UuidKey<Device::ProtocolFactory>::fromString(QString{camera_uuid})))
+      SKIP("no Camera protocol in this build");
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+
+    // A real camera, as the explorer's "Add device" lists them
+    QQmlEngine js;
+    auto* api = new JS::EditJsContext;
+    js.globalObject().setProperty("Score", js.newQObject(api));
+    js.evaluate(
+        QString{"var e = Score.enumerateDevices(\"%1\"); e.enumerate = true;"}.arg(camera_uuid));
+    const int n = js.evaluate("e.devices.length").toInt();
+    int pick = -1;
+    for(int i = 0; i < n && pick < 0; i++)
+    {
+      const auto name = js.evaluate(QString{"e.devices[%1].name"}.arg(i)).toString();
+      const auto cat = js.evaluate(QString{"e.devices[%1].category"}.arg(i)).toString();
+      const QString both = name + " " + cat;
+      if(both.contains("1280x720") && !both.contains("Default"))
+        pick = i;
+    }
+    if(pick < 0)
+      SKIP("no camera with a 1280x720 mode here");
+    js.evaluate(
+        QString{"Score.createDevice(\"Cam\", \"%1\", e.devices[%2].settings)"}
+            .arg(camera_uuid)
+            .arg(pick));
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    REQUIRE(spin_until([&] {
+      auto* d = plug.list().findDevice("Cam");
+      return d && d->connected() && d->getDevice()
+             && d->getDevice()->get_root_node().get_parameter();
+    }));
+
+    // A GUI application's first playback can be stopped by the audio engine
+    // starting up: play until it stays playing
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    bool steady = false;
+    for(int i = 0; i < 5 && !steady; i++)
+    {
+      if(!exec.isPlaying())
+        engine.execution().request_play_global(true);
+      spin(1500);
+      steady = exec.isPlaying();
+    }
+    REQUIRE(steady);
+
+    // Recorded as the explorer's Record menu does: the device, into the main box
+    auto& box = score::test::base_interval(*doc);
+    const auto before = box.processes.size();
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto* session = rec.recordAddressesInto(
+        box, {State::Address{"Cam", {}}}, Recording::AddressPlacement::Automations);
+    REQUIRE(session);
+    REQUIRE(session->sources() == 1);
+    bool finished = false;
+    std::vector<Recording::RecordSession::Take> takes;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      takes = session->takes();
+    });
+    spin(3000);
+    REQUIRE(!finished);
+    rec.stopSession();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(takes.size() == 1);
+    INFO(takes[0].file.toStdString());
+    REQUIRE(QFile::exists(takes[0].file));
+    const auto info = probe(takes[0].file);
+    CHECK(info.width > 0);
+    CHECK(info.seconds > 1.0);
+    REQUIRE(box.processes.size() == before + 1);
+    bool video = false;
+    for(auto& p : box.processes)
+      video = video || qobject_cast<Gfx::Video::Model*>(&p);
+    CHECK(video);
   });
 }

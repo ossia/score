@@ -2460,7 +2460,8 @@ if(TARGET score_plugin_recording AND TARGET score_plugin_gfx)
     SOURCES RecordTextureTest.cpp
     GUI
     PLUGINS score_plugin_recording score_plugin_gfx score_plugin_engine
-      score_plugin_scenario score_lib_process)
+      score_plugin_scenario score_lib_process score_plugin_js
+      score_plugin_deviceexplorer)
   target_compile_definitions(test_integration_record_texture PRIVATE
     "GFX_TEST_CORPUS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../gfx/corpus\"")
   set_tests_properties(test_integration_record_texture PROPERTIES TIMEOUT 120)

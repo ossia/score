@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Explorer/Explorer/ExplorerMenuFactory.hpp>
 #include "score_plugin_deviceexplorer.hpp"
 
 #include <State/ValueSerialization.hpp>
@@ -70,7 +71,8 @@ score_plugin_deviceexplorer::factoryFamilies()
 {
   return make_ptr_vector<
       score::InterfaceListBase, Device::ProtocolFactoryList,
-      Device::DeviceModelProviderList, Explorer::ListeningHandlerFactoryList>();
+      Device::DeviceModelProviderList, Explorer::ListeningHandlerFactoryList,
+      Explorer::ExplorerMenuFactoryList>();
 }
 
 std::vector<score::InterfaceBase*>

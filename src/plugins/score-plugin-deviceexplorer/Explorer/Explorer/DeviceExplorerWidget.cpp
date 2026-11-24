@@ -1,6 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerWidget.hpp"
+
+#include <Explorer/Explorer/ExplorerMenuFactory.hpp>
 #include <core/view/Window.hpp>
 #include <core/view/FixedTabWidget.hpp>
 
@@ -554,6 +556,17 @@ void DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
   contextMenu->addAction(m_findUsageAction);
   contextMenu->addSeparator();
   contextMenu->addAction(m_removeNodeAction);
+
+  // What plug-ins do with the selection (record it, ...)
+  if(auto* m = model())
+  {
+    const auto& ctx = m->deviceModel().context();
+    const auto& facs = ctx.app.interfaces<ExplorerMenuFactoryList>();
+    if(facs.begin() != facs.end())
+      contextMenu->addSeparator();
+    for(auto& fac : facs)
+      fac.setupMenu(*contextMenu, *m, ctx);
+  }
 
   contextMenu->exec(event->globalPos());
   contextMenu->deleteLater();
