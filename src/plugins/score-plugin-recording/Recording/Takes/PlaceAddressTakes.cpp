@@ -35,7 +35,7 @@ namespace
 void placeAutomations(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
     const AddressTake& take, int components, int64_t start, int64_t end,
-    CurveOptions curves)
+    int64_t offset, CurveOptions curves)
 {
   for(int c = 0; c < components; c++)
   {
@@ -54,12 +54,14 @@ void placeAutomations(
                                             take.address, {uint8_t(c)}, take.unit};
     macro.submit(new Automation::InitAutomation{
         autom, std::move(addr), curve->min, curve->max, std::move(curve->segments)});
+    if(offset != 0)
+      macro.submit(new Process::SetStartOffset{autom, TimeVal{offset}});
   }
 }
 
 void placeMessages(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
-    const std::vector<const AddressTake*>& takes, int64_t start)
+    const std::vector<const AddressTake*>& takes, int64_t start, int64_t offset)
 {
   // The values by date, in the order they came
   std::map<int64_t, State::MessageList> by_date;
@@ -75,6 +77,8 @@ void placeMessages(
   if(!proc)
     return;
   auto& sub = *safe_cast<Scenario::ProcessModel*>(proc);
+  if(offset != 0)
+    macro.submit(new Process::SetStartOffset{sub, TimeVal{offset}});
   const auto& first_states = sub.startEvent().states();
   if(first_states.empty())
     return;
@@ -94,10 +98,11 @@ void placeMessages(
 }
 }
 
-Scenario::IntervalModel* placeAddressTakes(
-    Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario, double y,
-    const std::vector<AddressTake>& takes, AddressPlacement placement,
-    CurveOptions curves, const std::vector<FileTake>& files)
+namespace
+{
+//! The span of the takes: [start, end)
+std::pair<int64_t, int64_t>
+spanOf(const std::vector<AddressTake>& takes, const std::vector<FileTake>& files)
 {
   int64_t start = std::numeric_limits<int64_t>::max();
   int64_t end = std::numeric_limits<int64_t>::lowest();
@@ -113,11 +118,20 @@ Scenario::IntervalModel* placeAddressTakes(
     start = std::min(start, f.startDate);
     end = std::max(end, f.endDate);
   }
-  if(end <= start)
-    return nullptr;
+  return {start, end};
+}
 
-  auto& box = macro.createBox(scenario, TimeVal{start}, TimeVal{end}, y);
-
+/**
+ * The processes of the takes in `box`: their content starts at the box's
+ * date `origin` and spans `span`; `offset` is their start offset, 0 in a box
+ * made for them, -origin in a box that was there.
+ */
+void placeInto(
+    Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
+    const std::vector<AddressTake>& takes, AddressPlacement placement,
+    CurveOptions curves, const std::vector<FileTake>& files, int64_t origin,
+    int64_t span, int64_t offset)
+{
   std::vector<const AddressTake*> as_messages;
   for(const auto& t : takes)
   {
@@ -126,11 +140,11 @@ Scenario::IntervalModel* placeAddressTakes(
     const int components
         = placement == AddressPlacement::Automations ? numericComponents(t.events) : 0;
     if(components > 0)
-      placeAutomations(macro, box, t, components, start, end, curves);
+      placeAutomations(macro, box, t, components, origin, origin + span, offset, curves);
     else
       as_messages.push_back(&t);
   }
-  placeMessages(macro, box, as_messages, start);
+  placeMessages(macro, box, as_messages, origin, offset);
 
   // The files as their drop makes them, each from where it was recorded
   if(!files.empty())
@@ -149,10 +163,37 @@ Scenario::IntervalModel* placeAddressTakes(
         if(d.setup)
           d.setup(*p, disp);
         macro.submit(new Process::SetLoop{*p, false});
-        macro.submit(new Process::SetStartOffset{*p, TimeVal{start - f.startDate}});
+        macro.submit(
+            new Process::SetStartOffset{*p, TimeVal{offset + origin - f.startDate}});
       }
     }
   }
+}
+}
+
+Scenario::IntervalModel* placeAddressTakes(
+    Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario, double y,
+    const std::vector<AddressTake>& takes, AddressPlacement placement,
+    CurveOptions curves, const std::vector<FileTake>& files)
+{
+  const auto [start, end] = spanOf(takes, files);
+  if(end <= start)
+    return nullptr;
+  auto& box = macro.createBox(scenario, TimeVal{start}, TimeVal{end}, y);
+  placeInto(macro, box, takes, placement, curves, files, start, end - start, 0);
   return &box;
+}
+
+bool placeAddressTakesInBox(
+    Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
+    const std::vector<AddressTake>& takes, AddressPlacement placement,
+    CurveOptions curves, const std::vector<FileTake>& files)
+{
+  const auto [start, end] = spanOf(takes, files);
+  if(end <= start)
+    return false;
+  const int64_t span = std::max(end - start, box.duration.defaultDuration().impl);
+  placeInto(macro, box, takes, placement, curves, files, start, span, -start);
+  return true;
 }
 }

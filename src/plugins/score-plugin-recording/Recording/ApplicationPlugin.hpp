@@ -30,6 +30,7 @@ class Document;
 }
 namespace Scenario
 {
+class IntervalModel;
 class ProcessModel;
 struct Point;
 } // namespace Scenario
@@ -48,6 +49,12 @@ public:
   //! automations or as messages
   void record(Scenario::ProcessModel*, Scenario::Point pt);
   void recordMessages(Scenario::ProcessModel*, Scenario::Point pt);
+  //! Starts a session on these addresses, recorded into `box` from now
+  RecordSession* recordAddressesInto(
+      Scenario::IntervalModel& box, const std::vector<State::Address>& addresses,
+      AddressPlacement placement);
+  //! The addresses selected in the explorer of a document
+  std::vector<State::Address> selectedAddresses(const score::DocumentContext& ctx) const;
   //! Starts a session on these addresses, placed in a new box at `pt`
   RecordSession* recordAddresses(
       Scenario::ProcessModel& scenario, Scenario::Point pt,

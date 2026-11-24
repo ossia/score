@@ -310,6 +310,8 @@ void RecordSession::placeInNewBox(
 
 Scenario::IntervalModel* RecordSession::placedBox() const noexcept
 {
+  if(m_intoBox)
+    return m_intoBox;
   if(!m_placedBox || !m_scenario)
     return nullptr;
   auto it = m_scenario->intervals.find(*m_placedBox);
@@ -328,6 +330,15 @@ bool RecordSession::waiting() const noexcept
   return true;
 }
 
+void RecordSession::placeInBox(
+    Scenario::IntervalModel& box, AddressPlacement placement, CurveOptions curves)
+{
+  m_intoBox = &box;
+  m_placement = placement;
+  m_curves = curves;
+  m_playOnFirst = false;
+}
+
 bool RecordSession::hasAddresses() const noexcept
 {
   return ossia::any_of(m_sources, [](const auto& s) { return !s->port; });
@@ -343,9 +354,10 @@ bool RecordSession::start()
   // Addresses are recorded on the clock of the box their scenario plays in
   if(hasAddresses())
   {
-    if(!m_scenario)
+    if(!m_scenario && !m_intoBox)
       return false;
-    auto* clock = Scenario::closestParentInterval(m_scenario.data());
+    auto* clock = m_intoBox ? m_intoBox.data()
+                            : Scenario::closestParentInterval(m_scenario.data());
     if(!clock)
       return false;
     for(auto& s : m_sources)
@@ -1168,7 +1180,7 @@ void RecordSession::place()
       macro->submit(new Process::SetProcessMuted{*proc, true});
   }
 
-  if(hasAddresses() && m_scenario)
+  if(hasAddresses() && (m_scenario || m_intoBox))
   {
     std::vector<AddressTake> takes;
     std::vector<FileTake> files;
@@ -1237,8 +1249,14 @@ void RecordSession::place()
     {
       if(!macro)
         macro.emplace(new PlaceTakes, m_ctx);
-      if(auto* box = placeAddressTakes(
-             *macro, *m_scenario, m_point.y, takes, m_placement, m_curves, files))
+      if(m_intoBox)
+      {
+        if(placeAddressTakesInBox(
+               *macro, *m_intoBox, takes, m_placement, m_curves, files))
+          placed_any = true;
+      }
+      else if(auto* box = placeAddressTakes(
+                  *macro, *m_scenario, m_point.y, takes, m_placement, m_curves, files))
       {
         m_placedBox = box->id();
         placed_any = true;

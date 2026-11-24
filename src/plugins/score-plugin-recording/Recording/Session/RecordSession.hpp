@@ -99,6 +99,10 @@ public:
   void placeInNewBox(
       const Scenario::ProcessModel& scenario, Scenario::Point point,
       AddressPlacement placement, CurveOptions curves, bool playOnFirst);
+  //! The takes of addresses go to processes of `box`, which is also their
+  //! clock: they start where they were recorded in it
+  void placeInBox(
+      Scenario::IntervalModel& box, AddressPlacement placement, CurveOptions curves);
   //! The box the takes of addresses were placed in
   Scenario::IntervalModel* placedBox() const noexcept;
 
@@ -164,6 +168,7 @@ private:
 
   // Takes of addresses
   QPointer<const Scenario::ProcessModel> m_scenario;
+  QPointer<Scenario::IntervalModel> m_intoBox;
   Scenario::Point m_point{};
   AddressPlacement m_placement{AddressPlacement::Automations};
   CurveOptions m_curves{};

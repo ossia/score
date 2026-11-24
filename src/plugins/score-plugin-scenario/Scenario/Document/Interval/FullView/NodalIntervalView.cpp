@@ -761,6 +761,15 @@ void NodalIntervalView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
     });
   }
 
+  // What plug-ins do in this box (record into it, ...)
+  {
+    const auto& facs = m_context.app.interfaces<Process::NodalViewMenuFactoryList>();
+    if(facs.begin() != facs.end())
+      menu.addSeparator();
+    for(auto& fac : facs)
+      fac.setupMenu(menu, const_cast<Scenario::IntervalModel&>(m_model), m_context);
+  }
+
   // The nodes selected, with the cables between them.
   if(ossia::any_of(m_context.selectionStack.currentSelection(), [](const auto& obj) {
        return qobject_cast<const Process::ProcessModel*>(obj.data());

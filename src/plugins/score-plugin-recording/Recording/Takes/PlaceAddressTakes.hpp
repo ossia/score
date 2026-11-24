@@ -62,4 +62,16 @@ Scenario::IntervalModel* placeAddressTakes(
     Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario, double y,
     const std::vector<AddressTake>& takes, AddressPlacement placement,
     CurveOptions curves, const std::vector<FileTake>& files = {});
+
+/**
+ * The same in a box that is there, whose time the takes are dated in: their
+ * processes start where the takes started (a negative start offset), and play
+ * the takes' last values up to the end of the box. False when no take has a
+ * value.
+ */
+SCORE_PLUGIN_RECORDING_EXPORT
+bool placeAddressTakesInBox(
+    Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
+    const std::vector<AddressTake>& takes, AddressPlacement placement,
+    CurveOptions curves, const std::vector<FileTake>& files = {});
 }

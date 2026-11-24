@@ -3,6 +3,7 @@
 #include "score_plugin_recording.hpp"
 
 #include <Recording/ApplicationPlugin.hpp>
+#include <Recording/Session/RecordNodalMenu.hpp>
 #include <Recording/Session/RecordPortMenu.hpp>
 #include <Recording/Settings/RecordingSettings.hpp>
 #include <Recording/Commands/RecordingCommandFactory.hpp>
@@ -32,6 +33,7 @@ std::vector<score::InterfaceBase*> score_plugin_recording::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::PortContextMenuFactory, Recording::RecordPortMenu>,
+      FW<Process::NodalViewMenuFactory, Recording::RecordNodalMenu>,
       FW<score::SettingsDelegateFactory, Recording::Settings::Factory>>(ctx, key);
 }
 

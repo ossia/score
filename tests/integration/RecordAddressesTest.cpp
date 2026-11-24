@@ -425,3 +425,72 @@ TEST_CASE("An audio address is recorded to a sound in the new box", "[recording]
     CHECK(takes[0].file.endsWith(".wav"));
   });
 }
+
+TEST_CASE("Addresses recorded into a box: its processes, from where they started", "[recording][addresses][box]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    Addresses dev{ctx, *doc};
+    const auto x = dev.add("box_x", 0.f);
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* audio = plug.list().audioDevice();
+    REQUIRE(audio);
+    const State::Address out{audio->name(), {"out", "main"}};
+    spin(100);
+
+    // The root of the document, as its node view at the centre shows it
+    auto& box = score::test::base_interval(*doc);
+    const auto before = box.processes.size();
+
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(1000);
+
+    auto* session = rec.recordAddressesInto(box, {x, out}, Recording::AddressPlacement::Automations);
+    REQUIRE(session);
+    REQUIRE(session->sources() == 2);
+    bool finished = false;
+    std::vector<Recording::RecordSession::Take> takes;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      takes = session->takes();
+    });
+    spin(300);
+    dev.push(x, 0.25f);
+    spin(300);
+    dev.push(x, 0.75f);
+    spin(300);
+    rec.stopSession();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    // An automation and a sound, in the box itself
+    REQUIRE(box.processes.size() == before + 2);
+    Automation::ProcessModel* autom{};
+    Process::ProcessModel* sound{};
+    for(auto& p : box.processes)
+    {
+      if(auto* a = qobject_cast<Automation::ProcessModel*>(&p))
+        autom = a;
+      else if(p.concreteKey() == Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get())
+        sound = &p;
+    }
+    REQUIRE(autom);
+    REQUIRE(sound);
+    CHECK(autom->address().address == x);
+    CHECK(std::abs(autom->max() - 0.75) < 1e-6);
+    // Started a second in: their content too
+    CHECK(autom->startOffset() < TimeVal::fromMsecs(-900));
+    CHECK(sound->startOffset() < TimeVal::fromMsecs(-900));
+    CHECK(!sound->loops());
+
+    // One step
+    doc->commandStack().undo();
+    CHECK(box.processes.size() == before);
+  });
+}

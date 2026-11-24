@@ -93,7 +93,7 @@ score_lib_process::factoryFamilies()
       Process::ProcessDropHandlerList, Process::MagnetismAdjuster,
       Process::OfflineActionList, Process::MediaTrimmerList,
       Execution::ExecutionActionList, Process::PortProbeFactoryList,
-      Process::PortContextMenuFactoryList,
+      Process::PortContextMenuFactoryList, Process::NodalViewMenuFactoryList,
       LocalTree::ProcessComponentFactoryList, Process::RemoteControlProviderList,
       Process::LoadPresetCommandFactoryList, Process::ChangePortsCommandFactoryList>();
 }

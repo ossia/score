@@ -157,6 +157,37 @@ RecordSession* ApplicationPlugin::recordAddresses(
   return adopt(std::move(session), ctx);
 }
 
+std::vector<State::Address>
+ApplicationPlugin::selectedAddresses(const score::DocumentContext& ctx) const
+{
+  if(auto* explorer = Explorer::try_deviceExplorerFromContext(ctx))
+    return addressesToRecord(*explorer);
+  return {};
+}
+
+RecordSession* ApplicationPlugin::recordAddressesInto(
+    Scenario::IntervalModel& box, const std::vector<State::Address>& addresses,
+    AddressPlacement placement)
+{
+  if(m_session)
+    return nullptr;
+  auto& ctx = score::IDocument::documentContext(box);
+  const auto& curves = context.settings<Curve::Settings::Model>();
+
+  RecordOptions options = defaultOptions();
+  options.start = RecordOptions::Start::Now;
+  auto session = std::make_unique<RecordSession>(ctx, options);
+  for(const auto& addr : addresses)
+    session->addAddress(addr);
+
+  CurveOptions c;
+  c.stepped = curves.getCurveMode() == Curve::Settings::Mode::Parameter;
+  c.simplify = curves.getSimplify();
+  c.simplificationRatio = curves.getSimplificationRatio();
+  session->placeInBox(box, placement, c);
+  return adopt(std::move(session), ctx);
+}
+
 void ApplicationPlugin::record(Scenario::ProcessModel* scenar, Scenario::Point pt)
 {
   if(!scenar)
