@@ -95,6 +95,16 @@ notesOf(const std::vector<MidiTake::Event>& events, int64_t endDate)
   return notes;
 }
 
+void quantizeNotes(std::vector<RecordedNote>& notes, double quarters)
+{
+  if(!(quarters > 0.))
+    return;
+  const double grid = quarters * 352800000.;
+  for(auto& n : notes)
+    n.start = int64_t(std::llround(std::round(double(n.start) / grid) * grid));
+  std::stable_sort(notes.begin(), notes.end(), [](auto& a, auto& b) { return a.start < b.start; });
+}
+
 std::string smfOf(
     const std::vector<RecordedNote>& notes, int64_t start, int64_t length, double tempo,
     int meterNumerator, int meterDenominator)

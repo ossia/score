@@ -31,6 +31,11 @@ SCORE_PLUGIN_RECORDING_EXPORT
 std::vector<RecordedNote>
 notesOf(const std::vector<MidiTake::Event>& events, int64_t endDate);
 
+//! Moves the start of each note to the nearest multiple of `quarters` quarter
+//! notes (box dates, flicks: a quarter is 352800000); 0 leaves them
+SCORE_PLUGIN_RECORDING_EXPORT
+void quantizeNotes(std::vector<RecordedNote>& notes, double quarters);
+
 /**
  * A Standard MIDI File of the notes, dated from `start` (flicks), the file
  * lasting `length`. Ticks count quarters at `tempo`, which is how score places

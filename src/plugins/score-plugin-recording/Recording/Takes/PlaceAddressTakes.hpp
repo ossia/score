@@ -2,6 +2,8 @@
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 
+#include <QString>
+
 #include <Recording/Engine/ValueRecorder.hpp>
 #include <Recording/Takes/RecordedCurves.hpp>
 
@@ -31,6 +33,15 @@ struct AddressTake
   int64_t endDate{};
 };
 
+//! A take written to a file (an audio or a texture input), dated in the
+//! scenario it is placed in
+struct FileTake
+{
+  QString file;
+  int64_t startDate{};
+  int64_t endDate{};
+};
+
 enum class AddressPlacement
 {
   //! An automation for every number of the addresses; the values an
@@ -50,5 +61,5 @@ SCORE_PLUGIN_RECORDING_EXPORT
 Scenario::IntervalModel* placeAddressTakes(
     Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario, double y,
     const std::vector<AddressTake>& takes, AddressPlacement placement,
-    CurveOptions curves);
+    CurveOptions curves, const std::vector<FileTake>& files = {});
 }

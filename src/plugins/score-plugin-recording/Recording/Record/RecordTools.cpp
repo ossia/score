@@ -34,8 +34,7 @@ std::vector<State::Address> addressesToRecord(Explorer::DeviceExplorerModel& exp
   {
     if(!node->is<Device::AddressSettings>())
       continue;
-    if(!node->get<Device::AddressSettings>().value.valid())
-      continue;
+    // Audio and texture inputs hold no value, and are recorded too
     auto addr = Device::address(*node).address;
     if(std::find(res.begin(), res.end(), addr) == res.end())
       res.push_back(std::move(addr));

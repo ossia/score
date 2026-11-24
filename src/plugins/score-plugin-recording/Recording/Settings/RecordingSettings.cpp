@@ -17,6 +17,7 @@
 #include <QFormLayout>
 #include <QSettings>
 #include <QSpinBox>
+#include <QTabWidget>
 
 #include <wobjectimpl.h>
 
@@ -39,10 +40,19 @@ SETTINGS_PARAMETER_IMPL(Target){
     QStringLiteral("score_plugin_recording/Target"), Targets{}.box};
 SETTINGS_PARAMETER_IMPL(MuteSource){
     QStringLiteral("score_plugin_recording/MuteSource"), false};
+SETTINGS_PARAMETER_IMPL(LoopFixedLength){
+    QStringLiteral("score_plugin_recording/LoopFixedLength"), true};
+SETTINGS_PARAMETER_IMPL(MidiQuantize){
+    QStringLiteral("score_plugin_recording/MidiQuantize"), Quantizes{}.none};
+SETTINGS_PARAMETER_IMPL(VideoFps){QStringLiteral("score_plugin_recording/VideoFps"), 30};
+SETTINGS_PARAMETER_IMPL(VideoCodec){
+    QStringLiteral("score_plugin_recording/VideoCodec"), VideoCodecs{}.h264};
 
 static auto list()
 {
-  return std::tie(AudioFormat, Start, StartOn, LengthBars, Target, MuteSource);
+  return std::tie(
+      AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
+      MidiQuantize, VideoFps, VideoCodec);
 }
 }
 
@@ -82,6 +92,19 @@ RecordOptions Model::options() const
   o.target = m_Target == Targets{}.file ? RecordOptions::Target::FileOnly
                                         : RecordOptions::Target::ThisBox;
   o.muteSource = m_MuteSource;
+  o.loopFixedLength = m_LoopFixedLength;
+  if(m_MidiQuantize == Quantizes{}.quarter)
+    o.midiQuantize = 1.;
+  else if(m_MidiQuantize == Quantizes{}.eighth)
+    o.midiQuantize = 0.5;
+  else if(m_MidiQuantize == Quantizes{}.sixteenth)
+    o.midiQuantize = 0.25;
+  else if(m_MidiQuantize == Quantizes{}.thirtysecond)
+    o.midiQuantize = 0.125;
+  else
+    o.midiQuantize = 0.;
+  o.videoFps = std::clamp(m_VideoFps, 1, 240);
+  o.videoLossless = m_VideoCodec == VideoCodecs{}.ffv1;
   return o;
 }
 
@@ -91,14 +114,23 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, StartOn)
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, LengthBars)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Target)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MuteSource)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, LoopFixedLength)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, MidiQuantize)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoFps)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, VideoCodec)
 
 View::View()
 {
-  m_widg = new score::FormWidget{tr("Recording")};
-  auto lay = m_widg->layout();
+  m_tabs = new QTabWidget;
+  QFormLayout* lay{};
+  const auto tab = [&](const QString& name) {
+    auto f = new score::FormWidget{name};
+    m_tabs->addTab(f, name);
+    m_widg = f;
+    lay = f->layout();
+  };
 
-  SETTINGS_UI_COMBOBOX_SETUP("Audio takes", AudioFormat, AudioFormats{});
-  score::setHelp(m_AudioFormat, tr("The sample format of the WAV files audio takes are written to."));
+  tab(tr("General"));
   SETTINGS_UI_COMBOBOX_SETUP("Start", Start, Starts{});
   score::setHelp(
       m_Start, tr("When \"Record now\" starts recording. Audio starts at once when told to "
@@ -112,6 +144,11 @@ View::View()
   m_LengthBars->setDecimals(2);
   m_LengthBars->setSpecialValueText(tr("Until stopped"));
   score::setHelp(m_LengthBars, tr("The recording stops by itself after this many bars."));
+  SETTINGS_UI_TOGGLE_SETUP("Loop takes of a number of bars", LoopFixedLength);
+  score::setHelp(
+      m_LoopFixedLength,
+      tr("A take of a number of bars is placed as a loop that long from the start of "
+         "its box, turned so that each moment of the box plays what was played there."));
   SETTINGS_UI_COMBOBOX_SETUP("Takes go to", Target, Targets{});
   score::setHelp(
       m_Target, tr("Where a take is placed when the recording ends; it is always "
@@ -122,6 +159,26 @@ View::View()
       m_MuteSource, tr("When a take is placed, the process it was recorded from is muted "
                        "in the same step, so that it is not heard twice."));
 
+  tab(tr("Audio"));
+  SETTINGS_UI_COMBOBOX_SETUP("Sample format", AudioFormat, AudioFormats{});
+  score::setHelp(
+      m_AudioFormat, tr("The sample format of the WAV files audio takes are written to."));
+
+  tab(tr("MIDI"));
+  SETTINGS_UI_COMBOBOX_SETUP("Quantize notes to", MidiQuantize, Quantizes{});
+  score::setHelp(
+      m_MidiQuantize, tr("The start of each recorded note is moved to the nearest of these, "
+                         "in the box's bars."));
+
+  tab(tr("Video"));
+  SETTINGS_UI_SPINBOX_SETUP("Frames per second", VideoFps);
+  m_VideoFps->setRange(1, 240);
+  SETTINGS_UI_COMBOBOX_SETUP("Codec", VideoCodec, VideoCodecs{});
+  score::setHelp(
+      m_VideoCodec, tr("H.264 makes small files; FFV1 keeps every pixel, in large files. "
+                       "Without an H.264 encoder, FFV1 is used."));
+
+  tab(tr("Automations"));
   SETTINGS_UI_SPINBOX_SETUP("Simplification ratio", SimplificationRatio);
   m_SimplificationRatio->setRange(1, 10000);
   score::setHelp(
@@ -143,7 +200,7 @@ View::View()
 
 QWidget* View::getWidget()
 {
-  return m_widg;
+  return m_tabs;
 }
 
 SETTINGS_UI_COMBOBOX_IMPL(AudioFormat)
@@ -152,6 +209,10 @@ SETTINGS_UI_COMBOBOX_IMPL(StartOn)
 SETTINGS_UI_DOUBLE_SPINBOX_IMPL(LengthBars)
 SETTINGS_UI_COMBOBOX_IMPL(Target)
 SETTINGS_UI_TOGGLE_IMPL(MuteSource)
+SETTINGS_UI_TOGGLE_IMPL(LoopFixedLength)
+SETTINGS_UI_COMBOBOX_IMPL(MidiQuantize)
+SETTINGS_UI_SPINBOX_IMPL(VideoFps)
+SETTINGS_UI_COMBOBOX_IMPL(VideoCodec)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -166,6 +227,10 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(LengthBars);
   SETTINGS_PRESENTER(Target);
   SETTINGS_PRESENTER(MuteSource);
+  SETTINGS_PRESENTER(LoopFixedLength);
+  SETTINGS_PRESENTER(MidiQuantize);
+  SETTINGS_PRESENTER(VideoFps);
+  SETTINGS_PRESENTER(VideoCodec);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();

@@ -14,6 +14,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QTabWidget;
 class QDoubleSpinBox;
 class QSpinBox;
 namespace score
@@ -45,6 +46,21 @@ struct Grids
   QString quarter{"Next quarter note"};
   operator QStringList() const { return {none, bar, quarter}; }
 };
+struct VideoCodecs
+{
+  QString h264{"H.264"};
+  QString ffv1{"FFV1, lossless"};
+  operator QStringList() const { return {h264, ffv1}; }
+};
+struct Quantizes
+{
+  QString none{"No quantization"};
+  QString quarter{"Quarter notes"};
+  QString eighth{"Eighth notes"};
+  QString sixteenth{"Sixteenth notes"};
+  QString thirtysecond{"Thirty-second notes"};
+  operator QStringList() const { return {none, quarter, eighth, sixteenth, thirtysecond}; }
+};
 struct Targets
 {
   QString box{"A new process in the box"};
@@ -68,6 +84,10 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   double m_LengthBars{};
   QString m_Target;
   bool m_MuteSource{};
+  bool m_LoopFixedLength{true};
+  QString m_MidiQuantize;
+  int m_VideoFps{30};
+  QString m_VideoCodec;
 
 public:
   Model(
@@ -83,6 +103,10 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, double, LengthBars)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, Target)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, MuteSource)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, LoopFixedLength)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, MidiQuantize)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoFps)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, VideoCodec)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, AudioFormat)
@@ -91,6 +115,10 @@ SCORE_SETTINGS_PARAMETER(Model, StartOn)
 SCORE_SETTINGS_PARAMETER(Model, LengthBars)
 SCORE_SETTINGS_PARAMETER(Model, Target)
 SCORE_SETTINGS_PARAMETER(Model, MuteSource)
+SCORE_SETTINGS_PARAMETER(Model, LoopFixedLength)
+SCORE_SETTINGS_PARAMETER(Model, MidiQuantize)
+SCORE_SETTINGS_PARAMETER(Model, VideoFps)
+SCORE_SETTINGS_PARAMETER(Model, VideoCodec)
 
 class View : public score::GlobalSettingsView
 {
@@ -104,6 +132,10 @@ public:
   SETTINGS_UI_DOUBLE_SPINBOX_HPP(LengthBars)
   SETTINGS_UI_COMBOBOX_HPP(Target)
   SETTINGS_UI_TOGGLE_HPP(MuteSource)
+  SETTINGS_UI_TOGGLE_HPP(LoopFixedLength)
+  SETTINGS_UI_COMBOBOX_HPP(MidiQuantize)
+  SETTINGS_UI_SPINBOX_HPP(VideoFps)
+  SETTINGS_UI_COMBOBOX_HPP(VideoCodec)
 
   // The curve plug-in's
   SETTINGS_UI_SPINBOX_HPP(SimplificationRatio)
@@ -113,7 +145,9 @@ public:
 
 private:
   QWidget* getWidget() override;
-  score::FormWidget* m_widg{};
+  QTabWidget* m_tabs{};
+  //! The tab the controls being set up go to
+  QWidget* m_widg{};
 };
 
 class Presenter : public score::GlobalSettingsPresenter

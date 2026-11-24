@@ -7,7 +7,10 @@
 
 #include <score_plugin_recording_export.h>
 
+#include <ossia/gfx/port_index.hpp>
+
 #include <atomic>
+#include <functional>
 #include <condition_variable>
 #include <deque>
 #include <memory>
@@ -46,9 +49,18 @@ public:
   //! The texture outlets the recorder can record
   static bool canRecord(const Process::Port& port) noexcept;
 
+  //! Where the frames come from, asked on each frame: a producer can be made
+  //! again while playing
+  using Producer = std::function<ossia::gfx::port_index()>;
+
+  //! What a texture outlet produces
   TextureRecorder(
       const Process::Port& port, const score::DocumentContext& ctx, QString file,
-      int fps = 30);
+      int fps = 30, bool lossless = false);
+  //! Any producer: a camera or another texture input of a device
+  TextureRecorder(
+      Producer producer, const score::DocumentContext& ctx, QString file, int fps = 30,
+      bool lossless = false);
   ~TextureRecorder() override;
 
   bool start();
@@ -65,10 +77,11 @@ private:
   void take();
   void encodeLoop();
 
-  QPointer<const Process::Port> m_port;
+  Producer m_producer;
   const score::DocumentContext& m_ctx;
   QString m_file;
   int m_fps{30};
+  bool m_lossless{};
   std::unique_ptr<Gfx::TexturePreview> m_preview;
   QTimer m_timer;
   QSize m_frameSize;

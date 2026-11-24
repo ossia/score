@@ -2474,5 +2474,5 @@ if(TARGET score_plugin_recording AND TARGET score_plugin_automation)
     APP
     PLUGINS score_plugin_recording score_plugin_automation score_plugin_curve
       score_plugin_engine score_plugin_scenario score_lib_process
-      score_plugin_deviceexplorer score_plugin_protocols)
+      score_plugin_deviceexplorer score_plugin_protocols score_plugin_media)
 endif()

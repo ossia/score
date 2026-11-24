@@ -30,7 +30,8 @@ constexpr int max_side = Gfx::GfxContext::max_preview_size;
 constexpr std::size_t max_queued = 30;
 
 #if SCORE_HAS_LIBAV
-Gfx::LibavOutputSettings videoSettings(const QString& file, QSize size, int fps)
+Gfx::LibavOutputSettings
+videoSettings(const QString& file, QSize size, int fps, bool lossless)
 {
   Gfx::LibavOutputSettings s;
   s.path = file;
@@ -40,7 +41,7 @@ Gfx::LibavOutputSettings videoSettings(const QString& file, QSize size, int fps)
   s.muxer = QStringLiteral("matroska");
   s.video_render_pixfmt = QStringLiteral("rgba");
   // H.264 when it is there, else lossless FFV1, which every FFmpeg has
-  if(avcodec_find_encoder_by_name("libx264"))
+  if(!lossless && avcodec_find_encoder_by_name("libx264"))
   {
     s.video_encoder_short = QStringLiteral("libx264");
     s.video_converted_pixfmt = QStringLiteral("yuv420p");
@@ -62,11 +63,26 @@ bool TextureRecorder::canRecord(const Process::Port& port) noexcept
 }
 
 TextureRecorder::TextureRecorder(
-    const Process::Port& port, const score::DocumentContext& ctx, QString file, int fps)
-    : m_port{&port}
+    const Process::Port& port, const score::DocumentContext& ctx, QString file, int fps,
+    bool lossless)
+    : TextureRecorder{
+          [p = QPointer<const Gfx::TextureOutlet>{
+               qobject_cast<const Gfx::TextureOutlet*>(&port)}]() -> ossia::gfx::port_index {
+    if(p)
+      return p->graphicsPort();
+    return {-1, -1};
+  }, ctx, std::move(file), fps, lossless}
+{
+}
+
+TextureRecorder::TextureRecorder(
+    Producer producer, const score::DocumentContext& ctx, QString file, int fps,
+    bool lossless)
+    : m_producer{std::move(producer)}
     , m_ctx{ctx}
     , m_file{std::move(file)}
     , m_fps{std::max(1, fps)}
+    , m_lossless{lossless}
 {
   m_timer.setTimerType(Qt::PreciseTimer);
   m_timer.setInterval(1000 / m_fps);
@@ -83,12 +99,11 @@ bool TextureRecorder::start()
 #if !SCORE_HAS_LIBAV
   return false;
 #endif
-  auto* out = qobject_cast<const Gfx::TextureOutlet*>(m_port.data());
   auto* plug = m_ctx.findPlugin<Gfx::DocumentPlugin>();
-  if(!out || !plug)
+  if(!m_producer || !plug)
     return false;
   m_preview = std::make_unique<Gfx::TexturePreview>();
-  m_preview->attach(&plug->context, out->graphicsPort(), QSize{max_side, max_side});
+  m_preview->attach(&plug->context, m_producer(), QSize{max_side, max_side});
   if(!m_preview->attached())
     return false;
   m_startMs = QDateTime::currentMSecsSinceEpoch();
@@ -100,9 +115,8 @@ void TextureRecorder::take()
 {
   if(!m_preview)
     return;
-  // The outlet gets another producer when its process is made again
-  if(auto* out = qobject_cast<const Gfx::TextureOutlet*>(m_port.data()))
-    m_preview->setProducer(out->graphicsPort());
+  // The producer changes when its process or device is made again
+  m_preview->setProducer(m_producer());
 
   QImage img = m_preview->image();
   if(img.isNull())
@@ -139,7 +153,7 @@ void TextureRecorder::take()
 void TextureRecorder::encodeLoop()
 {
 #if SCORE_HAS_LIBAV
-  Gfx::LibavEncoder enc{videoSettings(m_file, m_frameSize, m_fps)};
+  Gfx::LibavEncoder enc{videoSettings(m_file, m_frameSize, m_fps, m_lossless)};
   if(enc.start() != 0)
   {
     std::unique_lock lk{m_lock};

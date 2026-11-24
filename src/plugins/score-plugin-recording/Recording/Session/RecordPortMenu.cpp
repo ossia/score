@@ -15,7 +15,11 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 
+#include <QHBoxLayout>
 #include <QMenu>
+#include <QPushButton>
+#include <QSpinBox>
+#include <QWidgetAction>
 
 namespace Recording
 {
@@ -91,13 +95,47 @@ void RecordPortMenu::setupMenu(
     });
   }
   {
-    auto act = sub->addAction(QObject::tr("Record one bar from the next bar"));
-    QObject::connect(act, &QAction::triggered, plug, [=] {
+    // A number of bars from the next one: a loop that long
+    auto bars = sub->addMenu(QObject::tr("Record bars from the next bar"));
+    const auto record_bars = [=](int n) {
       auto opt = plug->defaultOptions();
       opt.startRate = 1.;
-      opt.lengthBars = 1.;
+      opt.lengthBars = n;
       record(opt);
-    });
+    };
+    for(int n : {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 20, 24, 28, 32, 64})
+    {
+      auto act = bars->addAction(
+          n == 1 ? QObject::tr("1 bar") : QObject::tr("%1 bars").arg(n));
+      QObject::connect(act, &QAction::triggered, plug, [=] { record_bars(n); });
+    }
+    bars->addSeparator();
+    {
+      // Any other number
+      auto w = new QWidget{bars};
+      auto lay = new QHBoxLayout{w};
+      lay->setContentsMargins(6, 2, 6, 2);
+      auto spin = new QSpinBox{w};
+      spin->setRange(1, 1024);
+      spin->setValue(16);
+      spin->setSuffix(QObject::tr(" bars"));
+      auto go = new QPushButton{QObject::tr("Record"), w};
+      lay->addWidget(spin);
+      lay->addWidget(go);
+      auto wa = new QWidgetAction{bars};
+      wa->setDefaultWidget(w);
+      bars->addAction(wa);
+      const auto start = [=, &menu] {
+        const int n = spin->value();
+        menu.close();
+        record_bars(n);
+      };
+      QObject::connect(go, &QPushButton::clicked, plug, start);
+      QObject::connect(spin, &QSpinBox::editingFinished, plug, [=] {
+        if(spin->hasFocus())
+          start();
+      });
+    }
   }
   // Over and over, a bar at a time: the passes are kept as the user chooses
   {

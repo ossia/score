@@ -9,6 +9,15 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <Process/Commands/Properties.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
+
+#include <score/application/ApplicationContext.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
+
+#include <QMimeData>
+#include <QUrl>
+
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/InitAutomation.hpp>
 #include <Recording/Takes/RecordedValues.hpp>
@@ -88,7 +97,7 @@ void placeMessages(
 Scenario::IntervalModel* placeAddressTakes(
     Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario, double y,
     const std::vector<AddressTake>& takes, AddressPlacement placement,
-    CurveOptions curves)
+    CurveOptions curves, const std::vector<FileTake>& files)
 {
   int64_t start = std::numeric_limits<int64_t>::max();
   int64_t end = std::numeric_limits<int64_t>::lowest();
@@ -98,6 +107,11 @@ Scenario::IntervalModel* placeAddressTakes(
       continue;
     start = std::min(start, t.startDate);
     end = std::max(end, t.endDate);
+  }
+  for(const auto& f : files)
+  {
+    start = std::min(start, f.startDate);
+    end = std::max(end, f.endDate);
   }
   if(end <= start)
     return nullptr;
@@ -117,6 +131,28 @@ Scenario::IntervalModel* placeAddressTakes(
       as_messages.push_back(&t);
   }
   placeMessages(macro, box, as_messages, start);
+
+  // The files as their drop makes them, each from where it was recorded
+  if(!files.empty())
+  {
+    const auto& handlers = score::AppContext().interfaces<Process::ProcessDropHandlerList>();
+    score::Dispatcher_T disp{macro};
+    for(const auto& f : files)
+    {
+      QMimeData mime;
+      mime.setUrls({QUrl::fromLocalFile(f.file)});
+      for(auto& d : handlers.getDrop(mime, box.context()))
+      {
+        auto* p = macro.createProcessInNewSlot(box, d.creation);
+        if(!p)
+          continue;
+        if(d.setup)
+          d.setup(*p, disp);
+        macro.submit(new Process::SetLoop{*p, false});
+        macro.submit(new Process::SetStartOffset{*p, TimeVal{start - f.startDate}});
+      }
+    }
+  }
   return &box;
 }
 }

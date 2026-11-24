@@ -38,6 +38,7 @@
 
 #include <Automation/AutomationModel.hpp>
 #include <Engine/ApplicationPlugin.hpp>
+#include <Media/Sound/SoundModel.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Recording/ApplicationPlugin.hpp>
@@ -55,6 +56,9 @@
 
 #include <QApplication>
 #include <QElapsedTimer>
+#include <QFile>
+#include <QPointer>
+#include <QTemporaryDir>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -201,7 +205,14 @@ TEST_CASE(
     spin(300);
     CHECK(!exec.isPlaying());
     bool finished = false;
-    QObject::connect(session, &Recording::RecordSession::finished, [&] { finished = true; });
+    // The session is gone once its takes are placed: what it made is kept here
+    QPointer<Scenario::IntervalModel> placed_box;
+    std::vector<Recording::RecordSession::Take> takes;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      placed_box = session->placedBox();
+      takes = session->takes();
+    });
 
     dev.push(x, 0.5f);
     REQUIRE(spin_until([&] { return exec.isPlaying(); }));
@@ -220,7 +231,7 @@ TEST_CASE(
     spin(200);
 
     REQUIRE(scenar.intervals.size() == boxes_before + 1);
-    auto* box = session ? session->placedBox() : nullptr;
+    auto* box = placed_box.data();
     REQUIRE(box);
     CHECK(box->parent() == &scenar);
     // Where playback started, at the point
@@ -288,7 +299,14 @@ TEST_CASE(
         scenar, {TimeVal::zero(), 0.5}, {x}, Recording::AddressPlacement::Messages);
     REQUIRE(session);
     bool finished = false;
-    QObject::connect(session, &Recording::RecordSession::finished, [&] { finished = true; });
+    // The session is gone once its takes are placed: what it made is kept here
+    QPointer<Scenario::IntervalModel> placed_box;
+    std::vector<Recording::RecordSession::Take> takes;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      placed_box = session->placedBox();
+      takes = session->takes();
+    });
 
     dev.push(x, 1);
     REQUIRE(spin_until([&] { return exec.isPlaying(); }));
@@ -302,7 +320,7 @@ TEST_CASE(
     engine.execution().request_stop();
     REQUIRE(spin_until([&] { return finished; }));
 
-    auto* box = session->placedBox();
+    auto* box = placed_box.data();
     REQUIRE(box);
     CHECK(automations(*box).empty());
     auto* sc = subScenario(*box);
@@ -333,7 +351,14 @@ TEST_CASE("A recording of addresses stopped before any value places nothing", "[
         scenar, {TimeVal::zero(), 0.5}, {x}, Recording::AddressPlacement::Automations);
     REQUIRE(session);
     bool finished = false;
-    QObject::connect(session, &Recording::RecordSession::finished, [&] { finished = true; });
+    // The session is gone once its takes are placed: what it made is kept here
+    QPointer<Scenario::IntervalModel> placed_box;
+    std::vector<Recording::RecordSession::Take> takes;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      placed_box = session->placedBox();
+      takes = session->takes();
+    });
     spin(200);
     rec.stopSession();
     REQUIRE(spin_until([&] { return finished; }));
@@ -342,5 +367,61 @@ TEST_CASE("A recording of addresses stopped before any value places nothing", "[
     CHECK(doc->commandStack().currentIndex() == commands_before);
     // Another can start
     CHECK(spin_until([&] { return rec.session() == nullptr; }));
+  });
+}
+
+TEST_CASE("An audio address is recorded to a sound in the new box", "[recording][addresses][audio]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* audio = plug.list().audioDevice();
+    REQUIRE(audio);
+    const State::Address out{audio->name(), {"out", "main"}};
+
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    const auto boxes_before = scenar.intervals.size();
+
+    auto* session = rec.recordAddresses(
+        scenar, {TimeVal::fromMsecs(500), 0.4}, {out},
+        Recording::AddressPlacement::Automations);
+    REQUIRE(session);
+    REQUIRE(session->sources() == 1);
+    bool finished = false;
+    // The session is gone once its takes are placed: what it made is kept here
+    QPointer<Scenario::IntervalModel> placed_box;
+    std::vector<Recording::RecordSession::Take> takes;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      placed_box = session->placedBox();
+      takes = session->takes();
+    });
+    // A sound sends no first message: it records from the point at once
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(1000);
+    rec.stopSession();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(scenar.intervals.size() == boxes_before + 1);
+    auto* box = placed_box.data();
+    REQUIRE(box);
+    CHECK(std::abs((box->date() - TimeVal::fromMsecs(500)).msec()) < 60.);
+    Process::ProcessModel* sound{};
+    for(auto& p : box->processes)
+      if(p.concreteKey() == Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get())
+        sound = &p;
+    REQUIRE(sound);
+    CHECK(!sound->loops());
+    REQUIRE(takes.size() == 1);
+    CHECK(QFile::exists(takes[0].file));
+    CHECK(takes[0].file.endsWith(".wav"));
   });
 }

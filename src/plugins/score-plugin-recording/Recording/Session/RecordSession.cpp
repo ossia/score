@@ -34,8 +34,11 @@
 #include <Recording/Takes/RecordedNotes.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
 #if SCORE_RECORDING_TEXTURES
+#include <Gfx/GfxInputDevice.hpp>
 #include <Recording/Video/TextureRecorder.hpp>
 #endif
+
+#include <ossia/audio/audio_parameter.hpp>
 #include <Recording/Takes/Passes.hpp>
 #include <Recording/Takes/RecordedCurves.hpp>
 #include <Recording/Takes/RecordedValues.hpp>
@@ -149,6 +152,21 @@ Execution::DocumentPlugin* executionOf(const score::DocumentContext& ctx)
   return ctx.findPlugin<Execution::DocumentPlugin>();
 }
 
+//! The parameter of an address in its device, on the GUI thread
+ossia::net::parameter_base*
+parameterOf(const score::DocumentContext& ctx, const State::Address& addr)
+{
+  auto* devices = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+  if(!devices)
+    return nullptr;
+  auto* dev = devices->list().findDevice(addr.device);
+  auto* ossia_dev = dev ? dev->getDevice() : nullptr;
+  if(!ossia_dev)
+    return nullptr;
+  auto* node = Device::findNodeFromPath(addr.path, *ossia_dev);
+  return node ? node->get_parameter() : nullptr;
+}
+
 QString prefixFor(const State::Address& addr)
 {
   QString name = addr.toString();
@@ -227,20 +245,56 @@ bool RecordSession::addAddress(const State::Address& address)
   auto* devices = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   if(!devices)
     return false;
+  // The explorer's node, or the device's parameter when the explorer does
+  // not show it
   auto* node = Device::try_getNodeFromAddress(devices->rootNode(), address);
-  if(!node || !node->is<Device::AddressSettings>())
+  auto* param = parameterOf(m_ctx, address);
+  if(!(node && node->is<Device::AddressSettings>()) && !param)
     return false;
-  const auto& settings = node->get<Device::AddressSettings>();
 
   auto s = std::make_unique<Source>();
   s->address = address;
-  s->unit = settings.unit;
-  s->initial = settings.value;
-  s->type = Process::PortType::Message;
+  if(node && node->is<Device::AddressSettings>())
+  {
+    const auto& settings = node->get<Device::AddressSettings>();
+    s->unit = settings.unit;
+    s->initial = settings.value;
+  }
+  else
+  {
+    s->unit = param->get_unit();
+    s->initial = param->value();
+  }
   s->prefix = prefixFor(address);
-  s->values = std::make_shared<ValueTake>(65536);
+  // An audio input is recorded as sound, a camera as video, anything else as
+  // its values
+  if(dynamic_cast<ossia::audio_parameter*>(param))
+  {
+    s->type = Process::PortType::Audio;
+    s->audio = std::make_shared<AudioTake>(8, 1024, 512);
+  }
+#if SCORE_RECORDING_TEXTURES
+  else if(dynamic_cast<Gfx::texture_source_parameter*>(param))
+  {
+    s->type = Process::PortType::Texture;
+    s->values = std::make_shared<ValueTake>(16);
+  }
+#endif
+  else
+  {
+    s->type = Process::PortType::Message;
+    s->values = std::make_shared<ValueTake>(65536);
+  }
   m_sources.push_back(std::move(s));
   return true;
+}
+
+bool RecordSession::hasStreamAddresses() const noexcept
+{
+  return ossia::any_of(m_sources, [](const auto& s) {
+    return !s->port
+           && (s->type == Process::PortType::Audio || s->type == Process::PortType::Texture);
+  });
 }
 
 void RecordSession::placeInNewBox(
@@ -252,6 +306,14 @@ void RecordSession::placeInNewBox(
   m_placement = placement;
   m_curves = curves;
   m_playOnFirst = playOnFirst;
+}
+
+Scenario::IntervalModel* RecordSession::placedBox() const noexcept
+{
+  if(!m_placedBox || !m_scenario)
+    return nullptr;
+  auto it = m_scenario->intervals.find(*m_placedBox);
+  return it != m_scenario->intervals.end() ? &*it : nullptr;
 }
 
 bool RecordSession::waiting() const noexcept
@@ -360,9 +422,21 @@ bool RecordSession::start()
   {
     m_started = connect(
         exec, &Execution::DocumentPlugin::started, this,
-        [this] { createRecorders(); }, Qt::QueuedConnection);
+        [this] { createRecorders(true); }, Qt::DirectConnection);
     if(m_options.start == RecordOptions::Start::FirstEvent && hasAddresses())
-      listenToDevices();
+    {
+      // A sound or a camera sends no first message: they start from the point
+      if(hasStreamAddresses())
+      {
+        m_firstReceived = true;
+        if(auto* engine = m_ctx.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>())
+          engine->execution().on_record(m_point.date);
+      }
+      else
+      {
+        listenToDevices();
+      }
+    }
     else if(m_options.start != RecordOptions::Start::OnPlay)
       if(auto* engine = m_ctx.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>())
         engine->execution().request_play_global(true);
@@ -374,12 +448,14 @@ bool RecordSession::start()
   return true;
 }
 
-void RecordSession::createRecorders()
+void RecordSession::createRecorders(bool atStart)
 {
   if(m_recordersCreated || !m_running)
     return;
   auto* exec = executionOf(m_ctx);
-  if(!exec || !exec->isPlaying())
+  // Linked as playback is set up, before its first tick: a take that starts
+  // on the next bar from a stop starts on the first one
+  if(!exec || !(exec->isPlaying() || (atStart && exec->baseScenario())))
     return;
   const auto& ectx = exec->context();
   const int rate = ectx.execState ? ectx.execState->sampleRate : 48000;
@@ -401,7 +477,7 @@ void RecordSession::createRecorders()
     else
       s->node = std::make_shared<value_record_node>(s->values, clock);
 
-    if(s->port && s->type == Process::PortType::Texture)
+    if(s->type == Process::PortType::Texture)
     {
 #if SCORE_RECORDING_TEXTURES
       // The clock alone; the frames come through the graphics context
@@ -411,7 +487,23 @@ void RecordSession::createRecorders()
         return Process::takeFile(folder, s->prefix, k, QStringLiteral("mkv"));
       });
       s->file = Process::takeFile(folder, s->prefix, n, QStringLiteral("mkv"));
-      s->video = std::make_unique<TextureRecorder>(*s->port, m_ctx, s->file);
+      if(s->port)
+      {
+        s->video = std::make_unique<TextureRecorder>(
+            *s->port, m_ctx, s->file, m_options.videoFps, m_options.videoLossless);
+      }
+      else
+      {
+        // A texture input of a device: the node that renders it
+        auto producer = [&ctx = m_ctx, addr = s->address]() -> ossia::gfx::port_index {
+          if(auto* p = dynamic_cast<Gfx::texture_source_parameter*>(parameterOf(ctx, addr)))
+            return p->source();
+          return {-1, -1};
+        };
+        s->video = std::make_unique<TextureRecorder>(
+            std::move(producer), m_ctx, s->file, m_options.videoFps,
+            m_options.videoLossless);
+      }
       if(!s->video->start())
       {
         s->video.reset();
@@ -755,7 +847,8 @@ void RecordSession::finish()
 }
 
 bool RecordSession::placePasses(
-    Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro)
+    Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro, double bars,
+    bool oneLoop)
 {
   constexpr int64_t flicks_per_quarter = 352800000;
   const int num = s.audio ? s.audio->meterNumerator.load()
@@ -766,14 +859,26 @@ bool RecordSession::placePasses(
                            : s.values->meterDenominator.load();
   const double quarters_per_bar = (num > 0 && den > 0) ? 4. * num / den : 4.;
   const int64_t length
-      = int64_t(std::llround(m_options.passBars * quarters_per_bar * flicks_per_quarter));
-  auto passes = passesOf(t.startDate, t.endDate, length);
-  if(passes.empty())
+      = int64_t(std::llround(bars * quarters_per_bar * flicks_per_quarter));
+  if(length <= 0)
     return false;
   using P = RecordOptions::Passes;
-  const bool loops = m_options.passes != P::SideBySide;
-  if(m_options.passes == P::LastOnly)
-    passes.erase(passes.begin(), passes.end() - 1);
+  std::vector<Pass> passes;
+  bool loops = true;
+  if(oneLoop)
+  {
+    // Exactly the length asked: where the take falls short of it, silence
+    passes.push_back({t.startDate, t.startDate + length});
+  }
+  else
+  {
+    passes = passesOf(t.startDate, t.endDate, length);
+    loops = m_options.passes != P::SideBySide;
+    if(m_options.passes == P::LastOnly && !passes.empty())
+      passes.erase(passes.begin(), passes.end() - 1);
+  }
+  if(passes.empty())
+    return false;
 
   const QFileInfo full{t.file};
   const QString ext = full.suffix();
@@ -787,7 +892,8 @@ bool RecordSession::placePasses(
     const double ratio = tempo > 0. ? 120. / tempo : 1.;
     return int64_t(std::llround(double(flicks) / flicks_per_second * s.rate * ratio));
   };
-  const auto notes = s.midi ? notesOf(s.events, t.endDate) : std::vector<RecordedNote>{};
+  auto notes = s.midi ? notesOf(s.events, t.endDate) : std::vector<RecordedNote>{};
+  quantizeNotes(notes, m_options.midiQuantize);
 
   bool placed = false;
   bool first = true;
@@ -968,7 +1074,8 @@ void RecordSession::place()
         continue;
       t.startDate = s->midi->startDate;
       t.endDate = s->midi->endDate;
-      const auto notes = notesOf(s->events, t.endDate);
+      auto notes = notesOf(s->events, t.endDate);
+      quantizeNotes(notes, m_options.midiQuantize);
       if(notes.empty())
         continue;
       const QString folder = Process::takesFolder(m_ctx);
@@ -1004,11 +1111,15 @@ void RecordSession::place()
     }
 
     // Passes: a file and a process for each
-    if(m_options.passes != RecordOptions::Passes::One && s->box
+    const bool fixed_loop = m_options.passes == RecordOptions::Passes::One
+                            && m_options.loopFixedLength && m_options.lengthBars > 0.
+                            && m_options.target == RecordOptions::Target::ThisBox;
+    if((m_options.passes != RecordOptions::Passes::One || fixed_loop) && s->box
        && m_options.target != RecordOptions::Target::FileOnly
        && s->type != Process::PortType::Texture)
     {
-      if(placePasses(*s, t, macro))
+      const double bars = fixed_loop ? m_options.lengthBars : m_options.passBars;
+      if(placePasses(*s, t, macro, bars, fixed_loop))
         placed_any = true;
       m_takes.push_back(std::move(t));
       continue;
@@ -1060,10 +1171,43 @@ void RecordSession::place()
   if(hasAddresses() && m_scenario)
   {
     std::vector<AddressTake> takes;
+    std::vector<FileTake> files;
     for(auto& s : m_sources)
     {
       if(s->port)
         continue;
+      // An audio or texture input: its file, in the same box
+      if(s->type == Process::PortType::Audio || s->type == Process::PortType::Texture)
+      {
+        FileTake f;
+        if(s->audio)
+        {
+          if(s->file.isEmpty() || s->wav.frames() == 0)
+            continue;
+          f.startDate = s->audio->startDate;
+          f.endDate = s->audio->endDate;
+        }
+        else
+        {
+#if SCORE_RECORDING_TEXTURES
+          if(!s->video || s->video->frames() == 0 || !QFile::exists(s->file))
+            continue;
+          f.startDate = s->values->startDate;
+          f.endDate = s->values->endDate;
+#else
+          continue;
+#endif
+        }
+        f.file = s->file;
+        Take r;
+        r.box = s->box;
+        r.file = f.file;
+        r.startDate = f.startDate;
+        r.endDate = f.endDate;
+        m_takes.push_back(r);
+        files.push_back(std::move(f));
+        continue;
+      }
       AddressTake t;
       t.address = s->address;
       t.unit = s->unit;
@@ -1089,13 +1233,16 @@ void RecordSession::place()
       m_takes.push_back(r);
       takes.push_back(std::move(t));
     }
-    if(!takes.empty())
+    if(!takes.empty() || !files.empty())
     {
       if(!macro)
         macro.emplace(new PlaceTakes, m_ctx);
-      m_placedBox = placeAddressTakes(
-          *macro, *m_scenario, m_point.y, takes, m_placement, m_curves);
-      placed_any = placed_any || m_placedBox;
+      if(auto* box = placeAddressTakes(
+             *macro, *m_scenario, m_point.y, takes, m_placement, m_curves, files))
+      {
+        m_placedBox = box->id();
+        placed_any = true;
+      }
     }
   }
 

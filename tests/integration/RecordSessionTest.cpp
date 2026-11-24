@@ -857,3 +857,180 @@ TEST_CASE("Muting what was recorded mutes the source with the take placed", "[re
     CHECK(box->processes.size() == 1);
   });
 }
+
+namespace
+{
+//! A sound of the ramp directly in the root interval, as processes of a
+//! document's main node view are
+Process::ProcessModel* rootSound(score::Document& doc, const QString& ramp)
+{
+  auto& root = score::test::base_interval(doc);
+  Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc.context()};
+  auto* p = m.createProcessInNewSlot(
+      root, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+  m.commit();
+  return p;
+}
+}
+
+TEST_CASE("Bars from the next bar, from a stop: the first bar, as a loop", "[recording][session][bars]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 30);
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* sound = rootSound(*doc, ramp);
+    REQUIRE(sound);
+    auto& root = score::test::base_interval(*doc);
+    const auto before = root.processes.size();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.startRate = 1.;
+    opt.lengthBars = 1.;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    REQUIRE(spin_until([&] { return finished; }, 8000));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(session.takes().size() == 1);
+    const auto& take = session.takes()[0];
+    // The first bar: playback starts on it
+    CHECK(take.startDate == 0);
+    REQUIRE(take.placed);
+    REQUIRE(root.processes.size() == before + 1);
+    const int64_t bar = 2 * 705600000;
+    CHECK(take.placed->loops());
+    CHECK(take.placed->loopDuration() == TimeVal{bar});
+    CHECK(take.placed->startOffset() == TimeVal::zero());
+
+    // Its content is the bar played: the ramp from its start
+    auto* placed = static_cast<Media::Sound::ProcessModel*>(take.placed.data());
+    int channels{};
+    const auto rec = read_wav(placed->file()->absoluteFileName(), channels);
+    REQUIRE(int64_t(rec.size() / channels) == 2 * rate);
+    for(int64_t i : {int64_t(0), int64_t(rate), int64_t(2 * rate - 1)})
+      CHECK(std::abs(std::llround(rec[i * channels] * 1e6) - 1 - i) <= 2);
+  });
+}
+
+TEST_CASE("Bars from the next bar while playing long: a loop from 0, turned to the bars", "[recording][session][bars]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 30);
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* sound = rootSound(*doc, ramp);
+    REQUIRE(sound);
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    // Well into the third bar
+    spin(5300);
+
+    Recording::RecordOptions opt;
+    opt.startRate = 1.;
+    opt.lengthBars = 1.;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    REQUIRE(spin_until([&] { return finished; }, 8000));
+    engine.execution().request_stop();
+    spin(200);
+
+    const auto& take = session.takes().at(0);
+    const int64_t bar = 2 * 705600000;
+    CHECK(take.startDate >= 3 * bar - 705600000 / rate);
+    REQUIRE(take.placed);
+    CHECK(take.placed->loops());
+    CHECK(take.placed->loopDuration() == TimeVal{bar});
+    CHECK(take.placed->startOffset() == TimeVal::zero());
+
+    // At each moment of a bar, the ramp frame played then during the take
+    auto* placed = static_cast<Media::Sound::ProcessModel*>(take.placed.data());
+    int channels{};
+    const auto rec = read_wav(placed->file()->absoluteFileName(), channels);
+    const int64_t loop = 2 * rate;
+    REQUIRE(int64_t(rec.size() / channels) == loop);
+    const int64_t s = std::llround(take.startDate / flicks_per_second * rate);
+    const int64_t r = s % loop;
+    for(int64_t i : {int64_t(0), loop / 3, loop - 1})
+    {
+      const int64_t heard = std::llround(rec[i * channels] * 1e6) - 1;
+      CHECK(std::abs(heard - (s + ((i - r + loop) % loop))) <= 2);
+    }
+  });
+}
+
+TEST_CASE("Bars of MIDI from a cable while playing long: a one-bar piano roll loop from 0", "[recording][session][bars]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& root = score::test::base_interval(*doc);
+    Midi::ProcessModel* source{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      source = static_cast<Midi::ProcessModel*>(m.createProcessInNewSlot(
+          root, Metadata<ConcreteKey_k, Midi::ProcessModel>::get(), {}));
+      REQUIRE(source);
+      // A note every quarter, over the whole process
+      std::vector<Midi::NoteData> notes;
+      const int quarters = int(source->duration().impl / 352800000);
+      for(int i = 0; i < quarters; i++)
+        notes.emplace_back(double(i) / quarters, 0.25 / quarters, 60 + (i % 4), 100);
+      m.submit(new Midi::ReplaceNotes{*source, notes, 0, 127, source->duration()});
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(3300);
+
+    Recording::RecordOptions opt;
+    opt.startRate = 1.;
+    opt.lengthBars = 1.;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*source->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    REQUIRE(spin_until([&] { return finished; }, 8000));
+    engine.execution().request_stop();
+    spin(200);
+
+    const auto& take = session.takes().at(0);
+    REQUIRE(take.placed);
+    auto* midi = qobject_cast<Midi::ProcessModel*>(take.placed.data());
+    REQUIRE(midi);
+    const int64_t bar = 2 * 705600000;
+    CHECK(midi->loops());
+    CHECK(midi->loopDuration() == TimeVal{bar});
+    CHECK(midi->startOffset() == TimeVal::zero());
+    // Four quarter notes, spread over the bar, not squashed
+    REQUIRE(midi->notes.size() == 4);
+    std::vector<double> starts;
+    for(auto& n : midi->notes)
+      starts.push_back(n.start() * midi->duration().impl / 352800000.);
+    std::sort(starts.begin(), starts.end());
+    for(int i = 0; i < 4; i++)
+      CHECK(std::abs(starts[i] - i) < 0.05);
+  });
+}

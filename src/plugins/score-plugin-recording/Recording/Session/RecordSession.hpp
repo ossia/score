@@ -14,6 +14,8 @@
 
 #include <QObject>
 #include <QPointer>
+
+#include <score/model/Identifier.hpp>
 #include <QString>
 #include <QTimer>
 
@@ -98,7 +100,7 @@ public:
       const Scenario::ProcessModel& scenario, Scenario::Point point,
       AddressPlacement placement, CurveOptions curves, bool playOnFirst);
   //! The box the takes of addresses were placed in
-  Scenario::IntervalModel* placedBox() const noexcept { return m_placedBox; }
+  Scenario::IntervalModel* placedBox() const noexcept;
 
   //! Starts the recording, or waits for playback (RecordOptions::Start)
   bool start();
@@ -128,14 +130,21 @@ public:
 
 private:
   struct Source;
-  void createRecorders();
+  //! `atStart`: playback is being set up, its clock not running yet
+  void createRecorders(bool atStart = false);
   void writerLoop();
   void drain();
   void poll();
   void finish();
   void place();
-  bool placePasses(Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro);
+  //! `bars`: the passes' length; with `oneLoop`, the take is one loop that
+  //! long whatever it lasted
+  bool placePasses(
+      Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro, double bars,
+      bool oneLoop);
   bool hasAddresses() const noexcept;
+  //! Audio or texture inputs among the addresses: they wait for no message
+  bool hasStreamAddresses() const noexcept;
   void listenToDevices();
   void stopListening();
   void deviceValue(const State::Address& addr, const ossia::value& v);
@@ -159,7 +168,8 @@ private:
   AddressPlacement m_placement{AddressPlacement::Automations};
   CurveOptions m_curves{};
   bool m_playOnFirst{true};
-  QPointer<Scenario::IntervalModel> m_placedBox;
+  //! By id: the command that makes it may make it again
+  std::optional<Id<Scenario::IntervalModel>> m_placedBox;
   // Waiting for the first value, while stopped
   std::vector<QPointer<Device::DeviceInterface>> m_listened;
   std::vector<State::Address> m_listeningAdded;

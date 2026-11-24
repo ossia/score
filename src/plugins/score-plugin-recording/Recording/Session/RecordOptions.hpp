@@ -42,6 +42,16 @@ struct RecordOptions
   //! Bars after which the take stops by itself, counted in the box's musical
   //! time from where it starts; 0: none. Takes precedence over `length`.
   double lengthBars{0.};
+  //! A take of a length in bars is placed as a loop of that length, from the
+  //! start of the box, turned so that each moment of the box hears what was
+  //! played there
+  bool loopFixedLength{true};
+  //! MIDI takes: the start of each note moves to the nearest multiple of
+  //! this many quarter notes in the box; 0: as played
+  double midiQuantize{0.};
+  //! Video takes
+  int videoFps{30};
+  bool videoLossless{false};
   //! The metronome clicks the box's beats on the main output while the takes
   //! wait for their start (with a start on the next bar: a count-in)
   bool countIn{false};
