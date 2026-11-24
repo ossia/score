@@ -5,6 +5,8 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/LiveTake.hpp>
+#include <Media/Commands/ChangeAudioFile.hpp>
+#include <Media/Sound/SoundModel.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Drop/TakeDrop.hpp>
@@ -1039,8 +1041,17 @@ void RecordSession::finish()
     m_writer.join();
   drain();
   for(auto& s : m_sources)
-    if(s->wav.isOpen())
-      s->wav.close();
+  {
+    if(!s->wav.isOpen())
+      continue;
+    // Its tempo, for other programs and score to play it in time
+    const int64_t len = s->audio->endDate.load() - s->audio->startDate.load();
+    s->wav.setAcid(
+        {s->audio->tempo.load(), s->audio->meterNumerator.load(),
+         s->audio->meterDenominator.load(), double(len) / 352800000., false});
+    s->wav.close();
+  }
+  warnAboutTiming();
 
   hideLiveTakes();
   place();
@@ -1074,6 +1085,43 @@ void RecordSession::connectToInlet(
       continue;
     macro.createCable(*doc, *out, *inlet, Process::CableType::ImmediateGlutton);
     return;
+  }
+}
+
+void RecordSession::setTiming(
+    Scenario::Command::Macro& macro, Process::ProcessModel& take, double tempo, bool loop)
+{
+  auto* sound = qobject_cast<Media::Sound::ProcessModel*>(&take);
+  if(!sound || tempo <= 0.)
+    return;
+  // Said here rather than guessed from the file: a loop follows the tempo of
+  // its box, which its bars must keep; a one-shot take plays as it was heard
+  macro.submit(new Media::ChangeTempo{*sound, tempo});
+  macro.submit(new Media::ChangeStretchMode{
+      *sound, loop ? ossia::audio_stretch_mode::RubberBandPercussive
+                   : ossia::audio_stretch_mode::None});
+}
+
+void RecordSession::warnAboutTiming()
+{
+  for(auto& s : m_sources)
+  {
+    const bool changed = s->audio ? s->audio->tempoChanged.load()
+                         : s->midi ? s->midi->tempoChanged.load()
+                         : s->values ? s->values->tempoChanged.load()
+                                     : false;
+    const bool speed = s->audio ? s->audio->offSpeed.load()
+                       : s->midi ? s->midi->offSpeed.load()
+                       : s->values ? s->values->offSpeed.load()
+                                   : false;
+    if(changed && s->audio)
+      m_warnings.push_back(
+          tr("%1: the tempo changed while it recorded; the take plays at the tempo it "
+             "started at")
+              .arg(s->prefix));
+    if(speed)
+      m_warnings.push_back(
+          tr("%1: recorded while playing at another speed than 1").arg(s->prefix));
   }
 }
 
@@ -1142,7 +1190,9 @@ bool RecordSession::placePasses(
     {
       ok = writeWavSegment(
           t.file, file, frame_of(p.start - t.startDate), frame_of(len),
-          frame_of(rotate), m_options.audioFormat);
+          frame_of(rotate), m_options.audioFormat,
+          {tempo, s.audio->meterNumerator.load(), s.audio->meterDenominator.load(),
+           double(len) / 352800000., loops});
     }
     else if(s.midi)
     {
@@ -1202,6 +1252,7 @@ bool RecordSession::placePasses(
         connectToInlet(*macro, *proc, *s.port);
       if(d.setup)
         d.setup(*proc, disp);
+      setTiming(*macro, *proc, tempo, loops);
       if(loops)
       {
         Process::loop_clip(*proc, TimeVal{len}, disp);
@@ -1388,6 +1439,8 @@ void RecordSession::place()
           if(d.setup)
             d.setup(*p, disp);
           connectToInlet(*macro, *p, *s->port);
+          if(s->audio)
+            setTiming(*macro, *p, s->audio->tempo.load(), false);
           // The take starts where the recording started in the box
           macro->submit(new Process::SetLoop{*p, false});
           macro->submit(new Process::SetStartOffset{*p, TimeVal{-t.startDate}});

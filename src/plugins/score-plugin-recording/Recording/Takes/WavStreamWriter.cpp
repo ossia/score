@@ -36,6 +36,7 @@ constexpr unsigned char guid_tail[14]
 // RIFF / RF64 header (12) + JUNK or ds64 chunk (8 + 28) + fmt chunk + data
 // chunk header. The fmt chunk is 16 bytes, or 40 with WAVE_FORMAT_EXTENSIBLE.
 constexpr int junk_payload = 28;
+constexpr int acid_size = 24;
 
 bool seek(std::FILE* f, int64_t pos)
 {
@@ -107,7 +108,9 @@ bool WavStreamWriter::open(
   const int block_align = bps * m_channels;
   const int fmt_size = extensible ? 40 : 16;
 
-  std::vector<unsigned char> h(12 + 8 + junk_payload + 8 + fmt_size + 8, 0);
+  // A second JUNK chunk, before the data where readers look for it, becomes
+  // the ACID chunk at close
+  std::vector<unsigned char> h(12 + 8 + junk_payload + 8 + fmt_size + 8 + acid_size + 8, 0);
   unsigned char* p = h.data();
   std::memcpy(p, "RIFF", 4);
   // size: at close
@@ -133,6 +136,10 @@ bool WavStreamWriter::open(
     std::memcpy(p + 34, guid_tail, 14);
   }
   p += 8 + fmt_size;
+  m_acidStart = p - h.data();
+  std::memcpy(p, "JUNK", 4);
+  put32(p + 4, acid_size);
+  p += 8 + acid_size;
   std::memcpy(p, "data", 4);
   // size: at close
 
@@ -237,6 +244,26 @@ bool WavStreamWriter::close()
 
     put32(b8, 0xFFFFFFFFu);
     ok = ok && seek(m_file, m_dataStart - 4) && std::fwrite(b8, 1, 4, m_file) == 4;
+  }
+
+  if(m_acid.tempo > 0.)
+  {
+    // ACID: type flags, root note, 2 reserved, beats, meter, tempo
+    unsigned char acid[8 + acid_size]{};
+    std::memcpy(acid, "acid", 4);
+    put32(acid + 4, acid_size);
+    put32(acid + 8, m_acid.loop ? 0x04u : 0x01u); // stretches, or one shot
+    put16(acid + 12, 60);
+    put16(acid + 14, 0x8000);
+    put32(acid + 20, uint32_t(std::max(0., std::round(m_acid.beats))));
+    put16(acid + 24, uint16_t(m_acid.denominator));
+    put16(acid + 26, uint16_t(m_acid.numerator));
+    const float tempo = float(m_acid.tempo);
+    uint32_t bits;
+    std::memcpy(&bits, &tempo, 4);
+    put32(acid + 28, bits);
+    ok = ok && seek(m_file, m_acidStart)
+         && std::fwrite(acid, 1, sizeof(acid), m_file) == sizeof(acid);
   }
 
   ok = (std::fclose(m_file) == 0) && ok;

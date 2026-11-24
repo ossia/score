@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <dr_wav.h>
+#include <ossia/audio/drwav_handle.hpp>
 #include <vector>
 
 using Recording::WavStreamWriter;
@@ -161,4 +162,33 @@ TEST_CASE("A take that cannot be created says so", "[recording][wav]")
   CHECK(!w.open("/nonexistent-directory/take.wav", 2, 48000, WavStreamWriter::Format::Float32));
   CHECK(w.failed());
   CHECK(!w.isOpen());
+}
+
+TEST_CASE("A take's tempo and meter are in its ACID chunk, as score reads it", "[recording][wav][acid]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  for(bool loop : {false, true})
+  {
+    const QString path = dir.filePath(loop ? "loop.wav" : "oneshot.wav");
+    {
+      WavStreamWriter w;
+      REQUIRE(w.open(path.toStdString(), 2, 48000, WavStreamWriter::Format::Pcm24));
+      write_take(w, 2, 4801, 512); // odd: a pad byte before the chunk
+      w.setAcid({93.5, 3, 4, 6., loop});
+      REQUIRE(w.close());
+    }
+    QFile f{path};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const QByteArray bytes = f.readAll();
+    ossia::drwav_handle h{bytes.constData(), std::size_t(bytes.size())};
+    REQUIRE(h);
+    CHECK(h.totalPCMFrameCount() == 4801);
+    CHECK(h.acid().tempo == 93.5f);
+    CHECK(h.acid().meter_num == 3);
+    CHECK(h.acid().meter_denom == 4);
+    CHECK(h.acid().num_beats == 6);
+    // One shot, or a loop that stretches
+    CHECK(h.acid().file_type == (loop ? 0x04 : 0x01));
+  }
 }

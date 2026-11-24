@@ -103,6 +103,12 @@ RecordSession* ApplicationPlugin::adopt(
     QMetaObject::invokeMethod(this, [this] {
       if(m_session && !m_session->running())
       {
+        if(!m_session->warnings().isEmpty())
+        {
+          for(const auto& w : m_session->warnings())
+            qWarning() << "Recording:" << w;
+          tell(m_session->warnings().join('\n'));
+        }
         m_session.reset();
         m_sessionDocument = nullptr;
         showRecording(false);

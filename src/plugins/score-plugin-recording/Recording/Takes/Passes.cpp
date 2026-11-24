@@ -20,7 +20,7 @@ std::vector<Pass> passesOf(int64_t start, int64_t end, int64_t length)
 
 bool writeWavSegment(
     const QString& source, const QString& dest, int64_t from, int64_t count,
-    int64_t rotate, WavStreamWriter::Format format)
+    int64_t rotate, WavStreamWriter::Format format, WavStreamWriter::Acid acid)
 {
   if(count <= 0)
     return false;
@@ -58,6 +58,7 @@ bool writeWavSegment(
   for(auto& ch : planar)
     ptrs.push_back(ch.data());
   w.write(ptrs.data(), count);
+  w.setAcid(acid);
   return w.close();
 }
 

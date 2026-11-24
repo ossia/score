@@ -1199,6 +1199,14 @@ TEST_CASE("What is being recorded is shown in its box while it records", "[recor
     // Gone once the take is a process
     CHECK(removed == 1);
     CHECK(live.takes().empty());
+    // A one-shot take plays as it was heard, at the tempo it was recorded at
+    REQUIRE(session.takes().size() == 1);
+    auto* snd = qobject_cast<Media::Sound::ProcessModel*>(session.takes()[0].placed.data());
+    REQUIRE(snd);
+    CHECK(snd->nativeTempo() == Catch::Approx(120.));
+    CHECK(snd->stretchMode() == ossia::audio_stretch_mode::None);
+    CHECK(snd->position() == shown);
+    CHECK(session.warnings().isEmpty());
     QObject::disconnect(c1);
     QObject::disconnect(c2);
   });
@@ -1279,5 +1287,49 @@ TEST_CASE("Values recorded into an automation where touched: it plays until touc
 
     doc->commandStack().undo();
     CHECK(target->max() == 1.);
+  });
+}
+
+TEST_CASE("A take recorded at another speed than 1 is said to be", "[recording][session][speed]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      REQUIRE(sound);
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(300);
+    box->duration.setSpeed(2.);
+    spin(500);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+    REQUIRE(session.warnings().size() == 1);
+    CHECK(session.warnings()[0].contains("speed"));
   });
 }

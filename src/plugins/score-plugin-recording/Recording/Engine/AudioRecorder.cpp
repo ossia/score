@@ -1,5 +1,6 @@
 #include "AudioRecorder.hpp"
 
+#include <cmath>
 #include <ossia/dataflow/audio_port.hpp>
 
 #include <Process/Execution/TapLink.hpp>
@@ -172,6 +173,7 @@ void audio_record_node::run(
         take.startPosition.store(tk.musical_start_position, std::memory_order_relaxed);
       }
       take.tempo.store(tk.tempo, std::memory_order_relaxed);
+      m_startSpeed = tk.speed;
       take.meterNumerator.store(tk.signature.upper, std::memory_order_relaxed);
       take.meterDenominator.store(tk.signature.lower, std::memory_order_relaxed);
       m_endPosition = -1.;
@@ -227,6 +229,15 @@ void audio_record_node::run(
       take.state.store(AudioTake::Done, std::memory_order_release);
       return;
     }
+    // The tempo of the box, whatever the speed it plays at
+    if(tk.speed > 1e-9 && m_startSpeed > 1e-9
+       && std::abs(
+              tk.tempo / tk.speed
+              - take.tempo.load(std::memory_order_relaxed) / m_startSpeed)
+              > 1e-6)
+      take.tempoChanged.store(true, std::memory_order_relaxed);
+    if(std::abs(tk.speed - 1.) > 1e-6)
+      take.offSpeed.store(true, std::memory_order_relaxed);
     take.endDate.store(tk.date.impl, std::memory_order_relaxed);
   }
 }

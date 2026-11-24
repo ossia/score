@@ -18,6 +18,7 @@
 
 #include <score/model/Identifier.hpp>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 
 #include <score_plugin_recording_export.h>
@@ -133,6 +134,9 @@ public:
     QPointer<Process::ProcessModel> placed;
   };
   const std::vector<Take>& takes() const noexcept { return m_takes; }
+  //! What the user should know of the takes: a tempo that changed meanwhile,
+  //! a speed other than 1. Filled when the session ends.
+  const QStringList& warnings() const noexcept { return m_warnings; }
 
 private:
   struct Source;
@@ -145,6 +149,12 @@ private:
   //! Frames of audio a peak of the live view covers
   static constexpr int peakFrames = 256;
   void place();
+  //! A Sound take's tempo and stretch, said rather than guessed from its file
+  void setTiming(
+      Scenario::Command::Macro& macro, Process::ProcessModel& take, double tempo,
+      bool loop);
+  void warnAboutTiming();
+  QStringList m_warnings;
   //! What the takes recorded so far, for the views of their boxes
   void showLiveTakes();
   void updateLiveTakes();

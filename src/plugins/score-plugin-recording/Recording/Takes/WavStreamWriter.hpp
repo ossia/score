@@ -40,6 +40,20 @@ public:
   //! Appends frames given one channel after the other
   bool write(const float* const* channels, int64_t frames);
 
+  //! The tempo and meter it was recorded at, written as an ACID chunk at
+  //! close: other programs, and score when it is dropped again, play it in
+  //! time from it
+  struct Acid
+  {
+    double tempo{};
+    int numerator{4};
+    int denominator{4};
+    //! Quarter notes it lasts
+    double beats{};
+    bool loop{};
+  };
+  void setAcid(const Acid& a) noexcept { m_acid = a; }
+
   //! Writes the sizes in; the file is complete afterwards
   bool close();
 
@@ -60,9 +74,11 @@ private:
   uint64_t m_riffLimit{0xFFFFFFFFull};
   int64_t m_frames{};
   int64_t m_dataStart{};
+  int64_t m_acidStart{};
   int m_channels{};
   int m_rate{};
   Format m_format{Format::Float32};
   bool m_failed{};
+  Acid m_acid{};
 };
 }

@@ -83,6 +83,10 @@ struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
   std::atomic<int64_t> droppedFrames{0};
   //! The tempo when the take started
   std::atomic<double> tempo{0.};
+  //! The tempo changed while it recorded: a Sound take has one tempo
+  std::atomic<bool> tempoChanged{false};
+  //! It recorded at a speed other than 1
+  std::atomic<bool> offSpeed{false};
   //! The meter when the take started
   std::atomic<int> meterNumerator{4};
   std::atomic<int> meterDenominator{4};
@@ -144,5 +148,8 @@ private:
   AudioTake::Block* m_current{};
   //! Where the take ends musically, in quarters; < 0: not by bars
   double m_endPosition{-1.};
+  StartGate m_gate;
+  //! The speed when the take started: the tempo ticks give follows it
+  double m_startSpeed{1.};
 };
 }

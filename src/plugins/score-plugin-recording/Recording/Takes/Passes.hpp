@@ -35,7 +35,7 @@ std::vector<Pass> passesOf(int64_t start, int64_t end, int64_t length);
 SCORE_PLUGIN_RECORDING_EXPORT
 bool writeWavSegment(
     const QString& source, const QString& dest, int64_t from, int64_t count,
-    int64_t rotate, WavStreamWriter::Format format);
+    int64_t rotate, WavStreamWriter::Format format, WavStreamWriter::Acid acid = {});
 
 //! The notes of a pass, dated from its start, turned by `rotate` (flicks)
 //! round its length; a note is cut at the end of the pass
