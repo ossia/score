@@ -3399,3 +3399,7 @@ endif()
 score_add_test(test_unit_timers
   SOURCES TimersTest.cpp
   PLUGINS score_lib_base)
+
+score_add_test(test_unit_layered_layout
+  SOURCES LayeredLayoutTest.cpp
+  PLUGINS score_plugin_scenario)

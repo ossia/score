@@ -37,6 +37,8 @@
 
 #include <QCursor>
 #include <QGraphicsScene>
+#include <Process/Dataflow/NodeItemGeometry.hpp>
+
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QMenu>
@@ -48,7 +50,7 @@ W_OBJECT_IMPL(Process::NodeItem)
 namespace Process
 {
 
-static const constexpr qreal TitleHeight = 20.;
+static const constexpr qreal TitleHeight = NodeItemGeometry::TitleHeight;
 //static const constexpr qreal TitleX0 = 15;
 static const constexpr qreal TitleY0 = -TitleHeight + 2.;
 static const constexpr qreal FoldX0 = 2;
@@ -60,14 +62,14 @@ static const constexpr qreal SpacingIcon = 3;
 
 static const constexpr qreal FooterHeight = 0.;
 static const constexpr qreal Corner = 2.;
-static const constexpr qreal PortSpacing = 10.;
+static const constexpr qreal PortSpacing = NodeItemGeometry::PortSpacing;
 static const constexpr qreal InletX0 = -10.;
 static const constexpr qreal InletY0 = 0;
 static const constexpr qreal OutletX0 = -2.;
 static const constexpr qreal OutletY0 = InletY0; // Add to height
 static const constexpr qreal TopButtonX0 = -12.;
 static const constexpr qreal TopButtonY0 = TitleY0 + 2.;
-static const constexpr qreal LeftSideWidth = 10.;
+static const constexpr qreal LeftSideWidth = NodeItemGeometry::SideWidth;
 static const constexpr qreal RightSideWidth = LeftSideWidth;
 
 NodeItem::NodeItem(

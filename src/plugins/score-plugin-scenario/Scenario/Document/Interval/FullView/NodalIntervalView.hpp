@@ -17,6 +17,7 @@ class QGraphicsRectItem;
 namespace Scenario
 {
 class IntervalModel;
+struct NodeGeometry;
 class SCORE_PLUGIN_SCENARIO_TEST_EXPORT NodalIntervalView final
     : public score::EmptyRectItem
     , public Nano::Observer
@@ -66,6 +67,7 @@ public:
   //! panels and cables on them), never about a new scale.
   double zoom() const noexcept { return m_container->transform().m11(); }
   const IntervalModel& model() const noexcept { return m_model; }
+  NodeGeometry nodeGeometry() const;
 
   //! Where to put what is pasted, in nodeContainer() coordinates: at `scenePos`
   //! when it is over the visible part of this item, else in the middle of it.

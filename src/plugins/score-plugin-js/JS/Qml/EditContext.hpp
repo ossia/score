@@ -175,6 +175,17 @@ public:
   void setName(QObject* sel, QString new_name);
   W_SLOT(setName)
 
+  //! Layered left-to-right layout of an interval's nodes, as one undoable
+  //! command; `processes` empty means all of them.
+  void autoLayout(QObject* interval, QVariantList processes);
+  W_SLOT(autoLayout, (QObject*, QVariantList))
+  void autoLayout(QObject* interval);
+  W_SLOT(autoLayout, (QObject*))
+
+  //! Draw a process's node folded (title and ports only) or unfolded.
+  void setFolded(QObject* process, bool folded);
+  W_SLOT(setFolded)
+
   //! Set an object's comment, as an undoable command.
   void setComment(QObject* sel, QString comment);
   W_SLOT(setComment)
