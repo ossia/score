@@ -19,6 +19,11 @@ bool TexturePreview::attached() const noexcept
   return m_ctx && m_id >= 0;
 }
 
+GfxContext* TexturePreview::context() const noexcept
+{
+  return m_ctx;
+}
+
 bool TexturePreview::tapped() const noexcept
 {
   return attached() && m_ctx->preview_is_tapped(m_id);
@@ -29,6 +34,14 @@ bool TexturePreview::onHub() const noexcept
   return attached() && m_ctx->preview_is_on_hub(m_id);
 }
 
+void TexturePreview::makeReadback()
+{
+  m_readback = std::make_shared<QRhiReadbackResult>();
+  m_frames = std::make_shared<std::atomic<int64_t>>(0);
+  m_readback->completed
+      = [f = m_frames] { f->fetch_add(1, std::memory_order_release); };
+}
+
 void TexturePreview::attach(GfxContext* ctx, port_index producer, QSize size)
 {
   detach();
@@ -36,8 +49,31 @@ void TexturePreview::attach(GfxContext* ctx, port_index producer, QSize size)
     return;
   m_ctx = ctx;
   m_producer = producer;
-  m_readback = std::make_shared<QRhiReadbackResult>();
+  makeReadback();
   m_id = ctx->add_preview(producer, size, m_readback);
+}
+
+void TexturePreview::attachNative(GfxContext* ctx, port_index producer)
+{
+  detach();
+  if(!ctx)
+    return;
+  m_ctx = ctx;
+  m_producer = producer;
+  m_native = true;
+  makeReadback();
+  m_id = ctx->add_capture(producer, m_readback);
+}
+
+void TexturePreview::request() const
+{
+  if(attached())
+    m_ctx->want_preview_frame(m_id);
+}
+
+int64_t TexturePreview::frames() const noexcept
+{
+  return m_frames ? m_frames->load(std::memory_order_acquire) : 0;
 }
 
 void TexturePreview::setProducer(port_index producer)
@@ -62,7 +98,9 @@ void TexturePreview::detach()
   m_id = -1;
   m_ctx = nullptr;
   m_producer = {-1, -1};
+  m_native = false;
   m_readback.reset();
+  m_frames.reset();
 }
 
 QImage TexturePreview::image() const
@@ -70,8 +108,7 @@ QImage TexturePreview::image() const
   if(!m_readback)
     return {};
   // Taken: the next frame is read back
-  if(attached())
-    m_ctx->want_preview_frame(m_id);
+  request();
 
   const auto& rb = *m_readback;
   const int w = rb.pixelSize.width(), h = rb.pixelSize.height();

@@ -11,8 +11,10 @@
 #include <ossia/detail/hash_map.hpp>
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <memory>
+#include <optional>
 
 namespace Gfx
 {
@@ -254,9 +256,10 @@ public:
    *
    * What the node's renderer exposes for the port, else the target it renders
    * into for one of its edges, one it renders alone into if there is one.
-   * Null when there is none to sample.
+   * Null when there is none to sample. A native tap reads only the texture
+   * the renderer exposes: a target is the consumer's size, not the node's.
    */
-  QRhiTexture* previewSource(const Node& node, int port) const noexcept;
+  QRhiTexture* previewSource(const Node& node, int port, bool native = false) const noexcept;
 
   /**
    * @brief The list that reads back the previews of @p port of @p node.
@@ -265,7 +268,12 @@ public:
    * and has rendered lately (rendersLive), else the preview hub if it renders
    * the node, else none.
    */
-  static const RenderList* previewHost(const Node& node, int port) noexcept;
+  static const RenderList*
+  previewHost(const Node& node, int port, bool native = false) noexcept;
+
+  //! Test seam: while set, the preview taps record their pass but not the
+  //! readback, as a frame that never completes would.
+  static inline std::atomic_bool dropPreviewReadbacks{false};
 
   //! Whether this list rendered a frame lately. A hidden window or a slow
   //! output does not: its previews move to the hub meanwhile.
@@ -701,8 +709,9 @@ private:
     QRhiTexture* source{};
     //! The kind of texture the pipeline samples
     TextureKind kind{};
-    //! What the last readback recorded writes into, when its frame completes
-    std::shared_ptr<QRhiReadbackResult> readback;
+    //! What the readbacks are recorded into; completing one hands its data to
+    //! the tap's readback
+    std::shared_ptr<QRhiReadbackResult> staging;
     //! The last frame of the list that hosted the tap
     int64_t visited{-1};
     void release();
@@ -715,10 +724,17 @@ private:
   struct RetiredPreviewReadback
   {
     std::shared_ptr<QRhiReadbackResult> readback;
+    std::weak_ptr<PreviewTap> tap;
     int64_t until{};
   };
   std::vector<RetiredPreviewReadback> m_retiredPreviewReadbacks;
   void retirePreviewTap(PreviewTapTarget& t);
+  //! The readback of `tap` recorded here will not complete: it is asked again.
+  void previewReadbackDropped(const std::weak_ptr<PreviewTap>& tap) const noexcept;
+  static inline std::atomic<uint64_t> s_nextPreviewListId{1};
+  const uint64_t m_previewListId{s_nextPreviewListId++};
+  //! Whether native taps can render into RGBA32F, checked once
+  std::optional<bool> m_floatTaps;
   std::chrono::steady_clock::time_point m_lastRender{std::chrono::steady_clock::now()};
   ossia::small_flat_map<const Port*, QRhiTexture*, 2> m_selfFeedbackPlaceholders;
   ossia::flat_set<const Port*> m_selfFeedbackWarned;

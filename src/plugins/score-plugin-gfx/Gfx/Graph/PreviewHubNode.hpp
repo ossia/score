@@ -23,12 +23,16 @@ namespace score::gfx
 struct SCORE_PLUGIN_GFX_EXPORT PreviewHubNode final : OutputNode
 {
   static constexpr int max_inputs = 32;
+  //! Inputs after the max_inputs ones, for full-resolution captures: they grab
+  //! the producer's own texture (Flag::GrabsFromSource), so that a camera
+  //! publishes its frame at its own size instead of drawing into a target.
+  static constexpr int capture_inputs = 8;
 
   PreviewHubNode();
   ~PreviewHubNode() override;
 
   //! A free input, or -1 when they are all taken.
-  int acquireInput();
+  int acquireInput(bool capture = false);
   void releaseInput(int k);
   bool anyInputUsed() const noexcept;
   //! The size the node on input `k` renders at.

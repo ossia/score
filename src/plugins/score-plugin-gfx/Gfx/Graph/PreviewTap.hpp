@@ -9,6 +9,23 @@ struct QRhiReadbackResult;
 
 namespace score::gfx
 {
+//! Why a native tap (Gfx::TextureCapture) reads nothing back.
+enum class CaptureProblem : uint8_t
+{
+  None,
+  //! No node of the graph at the producer's port index
+  NoProducer,
+  //! Every capture input of the preview hub is taken
+  NoFreeInput,
+  //! The producer has published no texture of its own: no frame yet, or it
+  //! only ever draws into its consumers' targets
+  NoOwnTexture,
+  //! The texture is not a single 2D image (an array, a cubemap, a volume)
+  NotTexture2D,
+  //! The backend cannot render into an RGBA32F target
+  FloatUnsupported,
+};
+
 /**
  * @brief A preview of what a node outputs, read back by a render list that
  *        already renders the node.
@@ -30,6 +47,14 @@ struct PreviewTap
   int port{};
   //! The largest the image may be; it keeps the aspect of the texture.
   QSize size{256, 256};
+  //! Read back at the texture's own size, as RGBA32F, from the texture the
+  //! producer publishes (NodeRenderer::textureForOutput) only: a capture of
+  //! the frames for measurement (Gfx::TextureCapture), not a thumbnail. The
+  //! producer publishes one while such a tap is on the port
+  //! (outputGrabbedBySink).
+  bool native{};
+  //! Set by the render list that renders the producer, for a native tap.
+  std::atomic<CaptureProblem> problem{CaptureProblem::None};
   std::shared_ptr<QRhiReadbackResult> readback;
 
   //! Set when the consumer has taken the latest image: the next frame of the
@@ -37,6 +62,10 @@ struct PreviewTap
   //! asks again. A readback costs a pass and, on OpenGL, a synchronous
   //! glReadPixels: the views repaint far less often than the outputs render.
   std::atomic_bool wanted{true};
+  //! The render list a readback is recorded in and not completed yet, 0 when
+  //! none: a list that drops it, or another that hosts the tap meanwhile, asks
+  //! again.
+  std::atomic<uint64_t> pendingIn{};
 
   //! False while the hub, hosting the tap, cannot read the port (no texture it
   //! could sample): the preview then renders it on an output of its own.

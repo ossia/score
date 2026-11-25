@@ -32,6 +32,7 @@ struct QRhiReadbackResult;
 namespace score::gfx
 {
 struct PreviewTap;
+enum class CaptureProblem : uint8_t;
 struct PreviewHubNode;
 struct BackgroundNode;
 struct Graph;
@@ -99,6 +100,14 @@ public:
    */
   int32_t add_preview(
       port_index producer, QSize size, std::shared_ptr<QRhiReadbackResult> readback);
+  //! As add_preview, at the producer's own size and in RGBA32F, top row first,
+  //! from the texture the producer publishes: a full-resolution capture of its
+  //! frames (Gfx::TextureCapture). Never on an output of its own: when nothing
+  //! can read the texture, capture_problem says why. Reads back only once
+  //! want_preview_frame asks.
+  int32_t add_capture(port_index producer, std::shared_ptr<QRhiReadbackResult> readback);
+  //! Why a capture reads nothing back, or CaptureProblem::None.
+  score::gfx::CaptureProblem capture_problem(int32_t id) const noexcept;
   void set_preview_producer(int32_t id, port_index producer);
   void set_preview_size(int32_t id, QSize size);
   void remove_preview(int32_t id);
@@ -217,6 +226,8 @@ private:
     //! The hub rendered the producer into nothing it could read: the preview
     //! keeps its own output until it shows another producer
     bool hubUnreadable{};
+    //! Why a capture has nowhere to be read back, as far as the context knows
+    score::gfx::CaptureProblem problem{};
     //! An output of its own, when neither can read the producer
     int32_t fallbackId{-1};
     score::gfx::BackgroundNode* fallback{};
