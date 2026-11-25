@@ -2,12 +2,21 @@
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
+#include <score_plugin_gfx_export.h>
+
+class QFormLayout;
+
 namespace Gfx
 {
-class LibavSettingsWidget final : public Device::ProtocolSettingsWidget
+class SCORE_PLUGIN_GFX_EXPORT LibavSettingsWidget final
+    : public Device::ProtocolSettingsWidget
 {
 public:
   explicit LibavSettingsWidget(QWidget* parent = nullptr);
+
+  //! Only how video is encoded: no device name, direction, path or audio, for
+  //! the files score writes itself (video takes)
+  void setEncodingOnly();
 
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
@@ -43,6 +52,8 @@ private:
   QLabel* m_validationLabel{};
 
   Device::DeviceSettings m_settings;
+  QFormLayout* m_topForm{};
+  QFormLayout* m_outForm{};
 
   void validateOutput();
 };

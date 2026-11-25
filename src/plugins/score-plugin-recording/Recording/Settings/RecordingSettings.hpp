@@ -14,6 +14,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QFormLayout;
 class QTabWidget;
 class QDoubleSpinBox;
 class QSpinBox;
@@ -45,15 +46,6 @@ struct Grids
   QString bar{"Next bar"};
   QString quarter{"Next quarter note"};
   operator QStringList() const { return {none, bar, quarter}; }
-};
-struct VideoCodecs
-{
-  QString h264{"H.264 (MKV)"};
-  QString h265{"H.265 (MKV)"};
-  QString hap{"HAP (MOV)"};
-  QString prores{"ProRes 422 (MOV)"};
-  QString ffv1{"FFV1, lossless (MKV)"};
-  operator QStringList() const { return {h264, h265, hap, prores, ffv1}; }
 };
 struct Quantizes
 {
@@ -89,10 +81,7 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   bool m_MuteSource{};
   bool m_LoopFixedLength{true};
   QString m_MidiQuantize;
-  int m_VideoFps{30};
-  QString m_VideoCodec;
-  int m_VideoWidth{1920};
-  int m_VideoHeight{1080};
+  QString m_VideoEncoder;
   int m_TouchRelease{500};
   int m_CaptureBars{4};
   int m_InputLatency{0};
@@ -114,10 +103,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, MuteSource)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, LoopFixedLength)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, MidiQuantize)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoFps)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, VideoCodec)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoWidth)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, VideoHeight)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, VideoEncoder)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, TouchRelease)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, CaptureBars)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, InputLatency)
@@ -132,10 +118,7 @@ SCORE_SETTINGS_PARAMETER(Model, Target)
 SCORE_SETTINGS_PARAMETER(Model, MuteSource)
 SCORE_SETTINGS_PARAMETER(Model, LoopFixedLength)
 SCORE_SETTINGS_PARAMETER(Model, MidiQuantize)
-SCORE_SETTINGS_PARAMETER(Model, VideoFps)
-SCORE_SETTINGS_PARAMETER(Model, VideoCodec)
-SCORE_SETTINGS_PARAMETER(Model, VideoWidth)
-SCORE_SETTINGS_PARAMETER(Model, VideoHeight)
+SCORE_SETTINGS_PARAMETER(Model, VideoEncoder)
 SCORE_SETTINGS_PARAMETER(Model, TouchRelease)
 SCORE_SETTINGS_PARAMETER(Model, CaptureBars)
 SCORE_SETTINGS_PARAMETER(Model, InputLatency)
@@ -155,11 +138,20 @@ public:
   SETTINGS_UI_TOGGLE_HPP(MuteSource)
   SETTINGS_UI_TOGGLE_HPP(LoopFixedLength)
   SETTINGS_UI_COMBOBOX_HPP(MidiQuantize)
-  SETTINGS_UI_SPINBOX_HPP(VideoFps)
-  SETTINGS_UI_COMBOBOX_HPP(VideoCodec)
-  SETTINGS_UI_SPINBOX_HPP(VideoWidth)
-  SETTINGS_UI_SPINBOX_HPP(VideoHeight)
   SETTINGS_UI_SPINBOX_HPP(TouchRelease)
+
+public:
+  void setVideoEncoder(QString);
+  void VideoEncoderChanged(QString arg) W_SIGNAL(VideoEncoderChanged, arg);
+
+private:
+  //! The FFmpeg output device's settings, and presets of them
+  void setupVideo(QFormLayout& lay);
+  void refreshVideoPresets();
+  QComboBox* m_videoPreset{};
+  QWidget* m_videoEncoding{};
+  QString m_videoJson;
+  bool m_videoUpdating{};
   SETTINGS_UI_SPINBOX_HPP(CaptureBars)
   SETTINGS_UI_SPINBOX_HPP(InputLatency)
   SETTINGS_UI_TOGGLE_HPP(EngineLatency)

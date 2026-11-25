@@ -70,7 +70,9 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 if(TARGET score_plugin_gfx)
   target_sources(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Video/TextureRecorder.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Video/TextureRecorder.cpp")
+    "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Video/TextureRecorder.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Video/VideoEncoding.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Video/VideoEncoding.cpp")
   target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_gfx)
   target_compile_definitions(${PROJECT_NAME} PUBLIC SCORE_RECORDING_TEXTURES=1)
 endif()

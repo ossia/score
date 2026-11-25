@@ -3,6 +3,7 @@
 
 #include <QPointer>
 #include <QPointF>
+#include <score_plugin_recording_export.h>
 #include <QSize>
 
 #include <optional>
@@ -29,9 +30,12 @@ struct VideoSettings
   QSize size{1920, 1080};
   int fps{30};
   Codec codec{H264};
+  //! How it is encoded, as the FFmpeg output device's settings (JSON): its
+  //! size, rate, muxer, encoder, pixel format and options. Empty: `codec`.
+  QString encoder;
 
   //! The file extension of the codec's container
-  QString extension() const;
+  SCORE_PLUGIN_RECORDING_EXPORT QString extension() const;
 };
 
 //! How a recording session starts, stops, writes and places its takes.

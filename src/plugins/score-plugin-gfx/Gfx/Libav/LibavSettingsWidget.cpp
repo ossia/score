@@ -363,6 +363,7 @@ LibavSettingsWidget::LibavSettingsWidget(QWidget* parent)
 
     m_showOptions = new QPushButton{tr("Show options..."), page};
 
+    m_outForm = form;
     form->addRow(tr("Path / URL"), m_outPath);
     form->addRow(tr("Width"), m_width);
     form->addRow(tr("Height"), m_height);
@@ -397,6 +398,7 @@ LibavSettingsWidget::LibavSettingsWidget(QWidget* parent)
   }
 
   auto* topLayout = new QFormLayout;
+  m_topForm = topLayout;
   topLayout->addRow(tr("Device Name"), m_deviceNameEdit);
   topLayout->addRow(tr("Direction"), m_direction);
 
@@ -781,4 +783,24 @@ void LibavSettingsWidget::setSettings(const Device::DeviceSettings& settings)
   }
 }
 
+}
+namespace Gfx
+{
+void LibavSettingsWidget::setEncodingOnly()
+{
+  m_direction->setCurrentIndex(1);
+  onDirectionChanged();
+  if(m_topForm)
+  {
+    m_topForm->setRowVisible(m_deviceNameEdit, false);
+    m_topForm->setRowVisible(m_direction, false);
+  }
+  if(m_outForm)
+  {
+    m_outForm->setRowVisible(m_outPath, false);
+    m_outForm->setRowVisible(m_audioChannels, false);
+    m_outForm->setRowVisible(m_aencoder, false);
+    m_outForm->setRowVisible(m_smpfmt, false);
+  }
+}
 }

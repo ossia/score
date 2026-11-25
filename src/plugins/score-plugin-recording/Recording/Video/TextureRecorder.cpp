@@ -1,4 +1,5 @@
 #include "TextureRecorder.hpp"
+#include "VideoEncoding.hpp"
 
 #include <Media/Libav.hpp>
 
@@ -34,6 +35,8 @@ namespace Recording
 {
 QString VideoSettings::extension() const
 {
+  if(auto e = videoEncodingFromJson(encoder))
+    return extensionOfMuxer(e->muxer);
   switch(codec)
   {
     case Hap:
@@ -56,6 +59,27 @@ bool hasEncoder(const char* name)
 //! which every FFmpeg has
 Gfx::LibavOutputSettings outputSettings(const QString& file, const VideoSettings& v)
 {
+  // The FFmpeg output device's settings, as chosen
+  if(auto e = videoEncodingFromJson(v.encoder))
+  {
+    auto s = e->toOutputSettings();
+    s.path = file;
+    s.audio_channels = 0;
+    s.audio_encoder_short.clear();
+    if(s.video_render_pixfmt.isEmpty())
+      s.video_render_pixfmt = QStringLiteral("rgba");
+    s.width = std::max(16, s.width);
+    s.height = std::max(16, s.height);
+    s.rate = std::max(1., s.rate);
+    // An encoder this FFmpeg lacks: lossless, which every FFmpeg has
+    if(!hasEncoder(s.video_encoder_short.toUtf8().constData()))
+    {
+      s.video_encoder_short = QStringLiteral("ffv1");
+      s.video_converted_pixfmt = QStringLiteral("yuv420p");
+      s.options.clear();
+    }
+    return s;
+  }
   Gfx::LibavOutputSettings s;
   s.path = file;
   s.width = std::max(16, v.size.width());

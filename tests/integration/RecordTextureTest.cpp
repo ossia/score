@@ -18,6 +18,7 @@
 #include <Gfx/Video/Process.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordSession.hpp>
+#include <Recording/Video/VideoEncoding.hpp>
 
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
@@ -315,6 +316,36 @@ TEST_CASE("Video takes are encoded with the codec and size asked", "[recording][
       CHECK(info.codec == name);
       CHECK(info.width == 640);
       CHECK(info.height == 360);
+    }
+    // The FFmpeg output device's settings, as the Video tab gives them
+    {
+      auto enc = Recording::defaultVideoEncoding();
+      enc.width = 320;
+      enc.height = 240;
+      enc.rate = 12;
+      enc.muxer = "mov";
+      enc.video_encoder_short = "prores_ks";
+      enc.video_converted_pixfmt = "yuv422p10le";
+      enc.options = {{"profile", "2"}};
+      Recording::RecordOptions opt;
+      opt.target = Recording::RecordOptions::Target::FileOnly;
+      opt.video.encoder = Recording::videoEncodingToJson(enc);
+      CHECK(opt.video.extension() == "mov");
+      Recording::RecordSession session{doc->context(), opt};
+      REQUIRE(session.addSource(*shader->outlets()[0]));
+      bool finished = false;
+      QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+      REQUIRE(session.start());
+      spin(1500);
+      session.stop();
+      REQUIRE(spin_until([&] { return finished; }));
+      REQUIRE(session.takes().size() == 1);
+      const auto info = probe(session.takes()[0].file);
+      INFO(session.takes()[0].file.toStdString());
+      CHECK(session.takes()[0].file.endsWith(".mov"));
+      CHECK(info.codec == "prores");
+      CHECK(info.width == 320);
+      CHECK(info.height == 240);
     }
     engine.execution().request_stop();
     spin(200);

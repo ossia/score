@@ -1,5 +1,20 @@
 #include "RecordingSettings.hpp"
 
+#if SCORE_RECORDING_TEXTURES
+#include <Recording/Video/VideoEncoding.hpp>
+#include <Gfx/Libav/LibavSettingsWidget.hpp>
+#endif
+
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QHBoxLayout>
+#include <QInputDialog>
+#include <QPlainTextEdit>
+#include <QPushButton>
+#include <QSettings>
+#include <QSignalBlocker>
+#include <QSpinBox>
+
 #include <Curve/Settings/CurveSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -44,12 +59,8 @@ SETTINGS_PARAMETER_IMPL(LoopFixedLength){
     QStringLiteral("score_plugin_recording/LoopFixedLength"), true};
 SETTINGS_PARAMETER_IMPL(MidiQuantize){
     QStringLiteral("score_plugin_recording/MidiQuantize"), Quantizes{}.none};
-SETTINGS_PARAMETER_IMPL(VideoFps){QStringLiteral("score_plugin_recording/VideoFps"), 30};
-SETTINGS_PARAMETER_IMPL(VideoCodec){
-    QStringLiteral("score_plugin_recording/VideoCodec"), VideoCodecs{}.h264};
-SETTINGS_PARAMETER_IMPL(VideoWidth){QStringLiteral("score_plugin_recording/VideoWidth"), 1920};
-SETTINGS_PARAMETER_IMPL(VideoHeight){
-    QStringLiteral("score_plugin_recording/VideoHeight"), 1080};
+SETTINGS_PARAMETER_IMPL(VideoEncoder){
+    QStringLiteral("score_plugin_recording/VideoEncoder"), QString{}};
 SETTINGS_PARAMETER_IMPL(InputLatency){
     QStringLiteral("score_plugin_recording/InputLatency"), 0};
 SETTINGS_PARAMETER_IMPL(EngineLatency){
@@ -63,7 +74,7 @@ static auto list()
 {
   return std::tie(
       AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
-      MidiQuantize, VideoFps, VideoCodec, VideoWidth, VideoHeight, TouchRelease, CaptureBars, InputLatency, EngineLatency);
+      MidiQuantize, VideoEncoder, TouchRelease, CaptureBars, InputLatency, EngineLatency);
 }
 }
 
@@ -114,17 +125,10 @@ RecordOptions Model::options() const
     o.midiQuantize = 0.125;
   else
     o.midiQuantize = 0.;
-  o.video.fps = std::clamp(m_VideoFps, 1, 240);
   o.inputLatencyMs = std::clamp(m_InputLatency, 0, 500);
   o.engineLatency = m_EngineLatency;
   o.touchRelease = int64_t(std::max(0, m_TouchRelease)) * 705600;
-  o.video.size = QSize{std::clamp(m_VideoWidth, 16, 8192), std::clamp(m_VideoHeight, 16, 8192)};
-  const VideoCodecs c;
-  o.video.codec = m_VideoCodec == c.h265     ? VideoSettings::H265
-                  : m_VideoCodec == c.hap    ? VideoSettings::Hap
-                  : m_VideoCodec == c.prores ? VideoSettings::ProRes
-                  : m_VideoCodec == c.ffv1   ? VideoSettings::Ffv1
-                                             : VideoSettings::H264;
+  o.video.encoder = m_VideoEncoder;
   return o;
 }
 
@@ -136,10 +140,7 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Target)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MuteSource)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, LoopFixedLength)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, MidiQuantize)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoFps)
-SCORE_SETTINGS_PARAMETER_CPP(QString, Model, VideoCodec)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoWidth)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, VideoHeight)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, VideoEncoder)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, TouchRelease)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, CaptureBars)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, InputLatency)
@@ -215,24 +216,10 @@ View::View()
       m_MidiQuantize, tr("The start of each recorded note is moved to the nearest of these, "
                          "in the box's bars."));
 
+#if SCORE_RECORDING_TEXTURES
   tab(tr("Video"));
-  SETTINGS_UI_SPINBOX_SETUP("Frames per second", VideoFps);
-  m_VideoFps->setRange(1, 240);
-  SETTINGS_UI_SPINBOX_SETUP("Width", VideoWidth);
-  m_VideoWidth->setRange(16, 8192);
-  m_VideoWidth->setSuffix(tr(" px"));
-  SETTINGS_UI_SPINBOX_SETUP("Height", VideoHeight);
-  m_VideoHeight->setRange(16, 8192);
-  m_VideoHeight->setSuffix(tr(" px"));
-  score::setHelp(
-      m_VideoWidth, tr("The size video takes are rendered and encoded at, whatever the "
-                       "size of what is recorded."));
-  SETTINGS_UI_COMBOBOX_SETUP("Codec", VideoCodec, VideoCodecs{});
-  score::setHelp(
-      m_VideoCodec,
-      tr("H.264 and H.265 make small files; HAP plays back with little CPU, as score "
-         "decodes it on the GPU; ProRes is for editing; FFV1 keeps every pixel. A codec "
-         "this FFmpeg cannot encode falls back to FFV1."));
+  setupVideo(*lay);
+#endif
 
   tab(tr("Automations"));
   SETTINGS_UI_SPINBOX_SETUP("Simplification ratio", SimplificationRatio);
@@ -261,6 +248,147 @@ View::View()
          "the first value; else it records once playback is started."));
 }
 
+#if SCORE_RECORDING_TEXTURES
+namespace
+{
+constexpr auto videoPresetsKey = "score_plugin_recording/VideoPresets";
+
+QVariantMap userVideoPresets()
+{
+  return QSettings{}.value(videoPresetsKey).toMap();
+}
+
+//! Two encodings that write the same file
+bool sameEncoding(const Gfx::LibavSettings& a, const Gfx::LibavSettings& b)
+{
+  return a.width == b.width && a.height == b.height && a.rate == b.rate
+         && a.muxer == b.muxer && a.video_encoder_short == b.video_encoder_short
+         && a.video_converted_pixfmt == b.video_converted_pixfmt && a.options == b.options;
+}
+}
+
+void View::setupVideo(QFormLayout& lay)
+{
+  auto row = new QWidget;
+  auto h = new QHBoxLayout{row};
+  h->setContentsMargins(0, 0, 0, 0);
+  m_videoPreset = new QComboBox;
+  auto save = new QPushButton{tr("Save as preset")};
+  auto del = new QPushButton{tr("Delete preset")};
+  h->addWidget(m_videoPreset, 1);
+  h->addWidget(save);
+  h->addWidget(del);
+  lay.addRow(tr("Preset"), row);
+  score::setHelp(
+      m_videoPreset,
+      tr("H.264 and H.265 make small files; HAP plays back with little CPU, as score "
+         "decodes it on the GPU; ProRes is for editing; FFV1 keeps every pixel. Your own "
+         "presets follow. An encoder this FFmpeg cannot use falls back to FFV1."));
+
+  auto* w = new Gfx::LibavSettingsWidget;
+  w->setEncodingOnly();
+  m_videoEncoding = w;
+  lay.addRow(w);
+  refreshVideoPresets();
+
+  connect(m_videoPreset, &QComboBox::activated, this, [this](int i) {
+    const auto json = m_videoPreset->itemData(i).toString();
+    if(json.isEmpty())
+      return;
+    setVideoEncoder(json);
+    VideoEncoderChanged(json);
+  });
+
+  const auto edited = [this, w] {
+    if(m_videoUpdating)
+      return;
+    const auto ls = w->getSettings().deviceSpecificSettings.value<Gfx::LibavSettings>();
+    const auto json = videoEncodingToJson(ls);
+    if(json == m_videoJson)
+      return;
+    m_videoJson = json;
+    refreshVideoPresets();
+    VideoEncoderChanged(json);
+  };
+  for(auto* c : w->findChildren<QComboBox*>())
+    connect(c, &QComboBox::currentIndexChanged, this, edited);
+  for(auto* c : w->findChildren<QSpinBox*>())
+    connect(c, &QSpinBox::valueChanged, this, edited);
+  for(auto* c : w->findChildren<QDoubleSpinBox*>())
+    connect(c, &QDoubleSpinBox::valueChanged, this, edited);
+  for(auto* c : w->findChildren<QPlainTextEdit*>())
+    connect(c, &QPlainTextEdit::textChanged, this, edited);
+
+  connect(save, &QPushButton::clicked, this, [this] {
+    bool ok{};
+    const auto name = QInputDialog::getText(
+        m_videoPreset, tr("Save as preset"), tr("Name"), QLineEdit::Normal, {}, &ok);
+    if(!ok || name.trimmed().isEmpty())
+      return;
+    auto presets = userVideoPresets();
+    presets[name.trimmed()] = m_videoJson;
+    QSettings{}.setValue(videoPresetsKey, presets);
+    refreshVideoPresets();
+  });
+  connect(del, &QPushButton::clicked, this, [this] {
+    const auto name = m_videoPreset->currentText();
+    auto presets = userVideoPresets();
+    if(!presets.contains(name))
+      return;
+    presets.remove(name);
+    QSettings{}.setValue(videoPresetsKey, presets);
+    refreshVideoPresets();
+  });
+}
+
+void View::refreshVideoPresets()
+{
+  if(!m_videoPreset)
+    return;
+  QSignalBlocker _{m_videoPreset};
+  m_videoPreset->clear();
+  const auto current = videoEncodingFromJson(m_videoJson);
+  int selected = -1;
+  const auto add = [&](const QString& name, const QString& json) {
+    m_videoPreset->addItem(name, json);
+    if(auto e = videoEncodingFromJson(json); selected < 0 && e && current
+                                            && sameEncoding(*e, *current))
+      selected = m_videoPreset->count() - 1;
+  };
+  for(const auto& p : builtinVideoPresets())
+    add(p.name, videoEncodingToJson(p.settings));
+  const auto user = userVideoPresets();
+  if(!user.isEmpty())
+    m_videoPreset->insertSeparator(m_videoPreset->count());
+  for(auto it = user.begin(); it != user.end(); ++it)
+    add(it.key(), it.value().toString());
+  if(selected < 0)
+  {
+    m_videoPreset->addItem(tr("Custom"), QString{});
+    selected = m_videoPreset->count() - 1;
+  }
+  m_videoPreset->setCurrentIndex(selected);
+}
+
+void View::setVideoEncoder(QString json)
+{
+  if(!m_videoEncoding)
+    return;
+  const auto ls = videoEncodingFromJson(json).value_or(defaultVideoEncoding());
+  m_videoJson = videoEncodingToJson(ls);
+  Device::DeviceSettings ds;
+  ds.name = QStringLiteral("take");
+  ds.protocol = Gfx::LibavProtocolFactory::static_concreteKey();
+  ds.deviceSpecificSettings = QVariant::fromValue(ls);
+  m_videoUpdating = true;
+  auto* w = static_cast<Gfx::LibavSettingsWidget*>(m_videoEncoding);
+  w->setSettings(ds);
+  w->setEncodingOnly();
+  m_videoUpdating = false;
+  refreshVideoPresets();
+}
+#endif
+
 QWidget* View::getWidget()
 {
   return m_tabs;
@@ -274,10 +402,6 @@ SETTINGS_UI_COMBOBOX_IMPL(Target)
 SETTINGS_UI_TOGGLE_IMPL(MuteSource)
 SETTINGS_UI_TOGGLE_IMPL(LoopFixedLength)
 SETTINGS_UI_COMBOBOX_IMPL(MidiQuantize)
-SETTINGS_UI_SPINBOX_IMPL(VideoFps)
-SETTINGS_UI_COMBOBOX_IMPL(VideoCodec)
-SETTINGS_UI_SPINBOX_IMPL(VideoWidth)
-SETTINGS_UI_SPINBOX_IMPL(VideoHeight)
 SETTINGS_UI_SPINBOX_IMPL(TouchRelease)
 SETTINGS_UI_SPINBOX_IMPL(CaptureBars)
 SETTINGS_UI_SPINBOX_IMPL(InputLatency)
@@ -298,10 +422,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(MuteSource);
   SETTINGS_PRESENTER(LoopFixedLength);
   SETTINGS_PRESENTER(MidiQuantize);
-  SETTINGS_PRESENTER(VideoFps);
-  SETTINGS_PRESENTER(VideoCodec);
-  SETTINGS_PRESENTER(VideoWidth);
-  SETTINGS_PRESENTER(VideoHeight);
+  SETTINGS_PRESENTER(VideoEncoder);
   SETTINGS_PRESENTER(TouchRelease);
   SETTINGS_PRESENTER(CaptureBars);
   SETTINGS_PRESENTER(InputLatency);
