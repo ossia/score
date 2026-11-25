@@ -56,7 +56,15 @@ void midi_record_node::run(
   if(st != MidiTake::Waiting && st != MidiTake::Recording)
     return;
   if(!m_clock || m_clock->requested_tokens.empty())
+  {
+    // Its box stopped (its end, a trigger): the take ends where it was
+    if(st == MidiTake::Recording && ++m_idleTicks >= 2)
+    {
+      take.state.store(MidiTake::Done, std::memory_order_release);
+    }
     return;
+  }
+  m_idleTicks = 0;
 
   const auto& messages = m_inlets.front()->target<ossia::midi_port>()->messages;
   const double ratio = e.modelToSamples();

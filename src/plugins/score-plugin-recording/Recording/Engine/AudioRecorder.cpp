@@ -141,7 +141,16 @@ void audio_record_node::run(
 
   // The box does not play: nothing of it to record
   if(!m_clock || m_clock->requested_tokens.empty())
+  {
+    // Its box stopped (its end, a trigger): the take ends where it was
+    if(st == AudioTake::Recording && ++m_idleTicks >= 2)
+    {
+      flush();
+      take.state.store(AudioTake::Done, std::memory_order_release);
+    }
     return;
+  }
+  m_idleTicks = 0;
 
   const auto& in = *m_inlets.front()->target<ossia::audio_port>();
   const double ratio = e.modelToSamples();

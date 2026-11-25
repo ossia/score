@@ -212,3 +212,20 @@ TEST_CASE("A seek ends the take where it was", "[recording][midi][seek]")
   b.tick();
   CHECK(b.take->state == MidiTake::Done);
 }
+
+TEST_CASE("A take ends when its box stops playing", "[recording][midi][box-stop]")
+{
+  Rig r;
+  r.take->startRequested = true;
+  r.tick({{10, on(60)}});
+  r.tick();
+  const int64_t end = r.take->endDate;
+  CHECK(r.take->state == MidiTake::Recording);
+  // Its box does not play any more: no token
+  r.clock->requested_tokens.clear();
+  ossia::graph_node& base = r.node;
+  base.run(ossia::token_request{}, ossia::exec_state_facade{&r.st});
+  base.run(ossia::token_request{}, ossia::exec_state_facade{&r.st});
+  CHECK(r.take->state == MidiTake::Done);
+  CHECK(r.take->endDate == end);
+}

@@ -59,7 +59,15 @@ void value_record_node::run(
   if(st != ValueTake::Waiting && st != ValueTake::Recording)
     return;
   if(!m_clock || m_clock->requested_tokens.empty())
+  {
+    // Its box stopped (its end, a trigger): the take ends where it was
+    if(st == ValueTake::Recording && ++m_idleTicks >= 2)
+    {
+      take.state.store(ValueTake::Done, std::memory_order_release);
+    }
     return;
+  }
+  m_idleTicks = 0;
 
   const auto& values = m_inlets.front()->target<ossia::value_port>()->get_data();
   const double ratio = e.modelToSamples();
