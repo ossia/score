@@ -1041,6 +1041,9 @@ score_add_test(test_gfx_camera_controls
 # The Vulkan device score creates enables the extensions QRhi relies on.
 score_add_gfx_test(shared_device_extensions GfxSharedDeviceExtensions.cpp)
 
+# Node profiling across an output's rebuild, and turned off and on.
+score_add_gfx_test(profiler_rebuild GfxProfilerRebuild.cpp)
+
 # Randomised sequences of the window disruptions a user can inflict -- hide,
 # re-show, resize, render-size override, full screen -- across all three output
 # modes and both clocks. The paths that set m_running / m_hasSwapChain /

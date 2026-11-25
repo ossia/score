@@ -36,6 +36,7 @@
 
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/bench_map.hpp>
+#include <Execution/Profiler/Profiler.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/for_each_port.hpp>
@@ -77,9 +78,14 @@ DocumentPlugin::ContextData::ContextData(const score::DocumentContext& ctx)
 DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* parent)
     : score::DocumentPlugin{ctx, "OSSIADocumentPlugin", parent}
     , settings{ctx.app.settings<Execution::Settings::Model>()}
+    , m_profiler{new Profiler{this}}
     , m_ctxData{std::make_shared<ContextData>(ctx)}
 {
   m_ctxData->context.alias = m_ctxData;
+  connect(&settings, &Settings::Model::BenchChanged, this, [this](bool on) {
+    if(!on)
+      m_profiler->clearLabels();
+  });
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   local_device = devs.list().localDevice();
@@ -196,6 +202,8 @@ void DocumentPlugin::ContextData::processEditCommands()
 void DocumentPlugin::processEditCommands()
 {
   m_ctxData->processEditCommands();
+  if(m_benchChannel)
+    m_benchChannel->drain([this](const AudioBenchReport& r) { slot_bench(r); });
 }
 
 void DocumentPlugin::on_finished()
@@ -385,6 +393,8 @@ void DocumentPlugin::makeGraph()
     bench = std::make_shared<bench_map>();
     opt.bench = bench;
     opt.bench->clear();
+    m_profiler->clear();
+    m_benchChannel = std::make_shared<AudioBenchChannel>();
   }
 
   if(sched == sched_t.StaticFixed)
@@ -578,23 +588,21 @@ void DocumentPlugin::registerAction(ExecutionAction& act)
   m_actions.push_back(&act);
 }
 
-void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
+void DocumentPlugin::flushBenchmark()
 {
-  for(const auto& p : b)
-  {
-    if(p.second)
-    {
-      auto proc = m_ctxData->setupContext.proc_map.find(p.first);
-      if(proc != m_ctxData->setupContext.proc_map.end())
-      {
-        if(proc->second)
-        {
-          const_cast<Process::ProcessModel*>(proc->second)
-              ->benchmark(100. * *p.second / (double)ns);
-        }
-      }
-    }
-  }
+  if(m_benchChannel)
+    m_benchChannel->drain([this](const AudioBenchReport& r) { slot_bench(r); });
+  m_profiler->flush();
+}
+
+void DocumentPlugin::slot_bench(const AudioBenchReport& report)
+{
+  const auto& procs = m_ctxData->setupContext.proc_map;
+  m_profiler->pushAudio(
+      report, [&](const ossia::graph_node* n) -> const Process::ProcessModel* {
+        auto it = procs.find(n);
+        return it != procs.end() ? it->second : nullptr;
+      });
 }
 
 void DocumentPlugin::on_deviceAdded(Device::DeviceInterface* dev)

@@ -1,10 +1,14 @@
 #include "GfxApplicationPlugin.hpp"
 
 #include <Process/PreviewSettings.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
+#include <Execution/Profiler/Profiler.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 
 #include <score/model/Skin.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/HelpInteraction.hpp>
 #include <score/widgets/SetIcons.hpp>
 
@@ -12,6 +16,11 @@
 #include <core/document/DocumentModel.hpp>
 
 #include <QAction>
+#include <QTimerEvent>
+
+#if __has_include(<cxxabi.h>)
+#include <cxxabi.h>
+#endif
 #include <QToolBar>
 
 namespace Gfx
@@ -23,9 +32,104 @@ DocumentPlugin::DocumentPlugin(const score::DocumentContext& ctx, QObject* paren
 {
   auto& exec_plug = ctx.plugin<Execution::DocumentPlugin>();
   exec_plug.registerAction(exec);
+
+  con(exec_plug.settings, &Execution::Settings::Model::BenchChanged, this,
+      [this](bool) { updateProfiling(); });
+  exec_plug.profiler().addSource(this, [this] { pullProfile(); });
+  updateProfiling();
 }
 
 DocumentPlugin::~DocumentPlugin() { }
+
+void DocumentPlugin::updateProfiling()
+{
+  auto& exec_plug = score::DocumentPlugin::context().plugin<Execution::DocumentPlugin>();
+  const bool on = exec_plug.settings.getBench();
+  context.profiler().setEnabled(on);
+  if(on && m_profileTimer < 0)
+    m_profileTimer = startTimer(200);
+  else if(!on && m_profileTimer >= 0)
+  {
+    killTimer(m_profileTimer);
+    m_profileTimer = -1;
+  }
+}
+
+namespace
+{
+QString nodeTypeName(const char* mangled)
+{
+  if(!mangled)
+    return QObject::tr("Render node");
+  QString name;
+#if __has_include(<cxxabi.h>)
+  int status = 0;
+  char* d = abi::__cxa_demangle(mangled, nullptr, nullptr, &status);
+  if(d && status == 0)
+    name = QString::fromUtf8(d);
+  std::free(d);
+#endif
+  if(name.isEmpty())
+    name = QString::fromUtf8(mangled);
+  if(name.startsWith(QStringLiteral("struct ")))
+    name.remove(0, 7);
+  else if(name.startsWith(QStringLiteral("class ")))
+    name.remove(0, 6);
+  name.remove(QStringLiteral("score::gfx::"));
+  name.remove(QStringLiteral("Gfx::"));
+  return name;
+}
+}
+
+void DocumentPlugin::timerEvent(QTimerEvent*)
+{
+  pullProfile();
+}
+
+void DocumentPlugin::pullProfile()
+{
+  auto frames = context.profiler().take();
+  if(frames.empty())
+    return;
+
+  auto& exec_plug = score::DocumentPlugin::context().plugin<Execution::DocumentPlugin>();
+  ossia::hash_map<int32_t, const Process::ProcessModel*> procOfNode;
+  for(const auto& [node, proc] : exec_plug.contextData()->setupContext.proc_map)
+    if(auto gfx = dynamic_cast<const gfx_exec_node*>(node))
+      procOfNode[gfx->id] = proc;
+
+  std::vector<Execution::RenderFrameReport> reports;
+  reports.reserve(frames.size());
+  ossia::hash_map<const char*, QString, ossia::pointer_hash_rapid> names;
+  for(auto& f : frames)
+  {
+    auto& r = reports.emplace_back();
+    r.output = f.list;
+    r.frame = f.frame;
+    r.cpuNs = f.cpu_ns;
+    r.gpuNs = f.gpu_ns;
+    r.nodes.reserve(f.nodes.size());
+    for(const auto& n : f.nodes)
+    {
+      auto& rn = r.nodes.emplace_back();
+      if(auto it = procOfNode.find(n.node); it != procOfNode.end())
+        rn.process = it->second;
+      rn.key = (quintptr(uint32_t(n.node)) << 1) | 1;
+      if(!rn.process)
+      {
+        auto [it, inserted] = names.try_emplace(n.type);
+        if(inserted)
+          it->second = nodeTypeName(n.type);
+        rn.name = it->second;
+      }
+      rn.cpuNs = n.cpu_ns;
+      rn.gpuNs = n.gpu_ns;
+      rn.gpuShared = n.gpu_shared;
+      rn.targetBytes = n.target_bytes;
+    }
+  }
+  exec_plug.profiler().pushRender(reports);
+}
 
 
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)

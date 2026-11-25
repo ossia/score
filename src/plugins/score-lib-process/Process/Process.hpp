@@ -306,7 +306,9 @@ public:
   void controlOutletRemoved(const Process::Port& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlOutletRemoved, arg_1)
 
-  void benchmark(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1)
+  //! Short execution cost shown in the header, empty to hide it.
+  void benchmarkLabel(const QString& label)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmarkLabel, label)
   void externalUIVisible(bool v) const
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v)
   void scriptUIVisible(bool v) const

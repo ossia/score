@@ -576,6 +576,28 @@ public:
   void stop(QObject* obj);
   W_SLOT(stop, (QObject*))
 
+  //! The document's execution profile: per-process audio, render-thread and
+  //! GPU times, frame and tick totals, and the kept spikes. Times in ms, except
+  //! audioUs. Filled while profiling is on and the score plays.
+  QVariantMap profile();
+  W_SLOT(profile)
+
+  void clearProfile();
+  W_SLOT(clearProfile)
+
+  //! The Benchmark execution setting: saved, so it stays for every document
+  //! and later sessions. Audio timings start with the next play, render
+  //! timings at once.
+  bool profiling();
+  W_SLOT(profiling)
+  void setProfiling(bool enabled);
+  W_SLOT(setProfiling)
+
+  //! Ticks over audioPercent of their duration and frames over renderMs are
+  //! kept as spikes; 0 disables either.
+  void setProfileSpikes(double audioPercent, double renderMs);
+  W_SLOT(setProfileSpikes)
+
   void reinitialize();
   W_SLOT(reinitialize)
 
