@@ -83,6 +83,19 @@ TapLink::TapLink(
   link(ctx, std::move(node), &address);
 }
 
+TapLink::TapLink(
+    ossia::net::node_base& device_node, const Execution::Context& ctx,
+    std::shared_ptr<ossia::graph_node> node)
+    : m_queue{ctx.weakExecutionQueue()}
+    , m_gc{ctx.weakGCQueue()}
+    , m_graph{ctx.execGraph}
+    , m_state{ctx.execState}
+{
+  if(!node || !TapTicker::instance() || ctx.retired || !ctx.execGraph)
+    return;
+  link(ctx, std::move(node), nullptr, &device_node);
+}
+
 TapLink::TapLink(const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node)
     : m_queue{ctx.weakExecutionQueue()}
     , m_gc{ctx.weakGCQueue()}
@@ -96,12 +109,12 @@ TapLink::TapLink(const Execution::Context& ctx, std::shared_ptr<ossia::graph_nod
 
 void TapLink::link(
     const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node,
-    ossia::net::parameter_base* address)
+    ossia::net::parameter_base* address, ossia::net::node_base* node_address)
 {
   m_node = std::move(node);
   ctx.executionQueue.enqueue([g = ctx.execGraph, ws = std::weak_ptr{ctx.execState},
                               node = m_node, edges = m_edges, observed = m_observed,
-                              address] {
+                              address, node_address] {
     OSSIA_ENSURE_CURRENT_THREAD_KIND(ossia::thread_type::Audio);
     g->add_node(node);
     for(auto& e : edges)
@@ -111,7 +124,9 @@ void TapLink::link(
       tap.address = observed->address;
     else if(address)
       tap.address = address;
-    if(observed || address)
+    else if(node_address)
+      tap.address = node_address;
+    if(observed || address || node_address)
       if(auto s = ws.lock())
         s->register_port(tap);
     g->mark_dirty();

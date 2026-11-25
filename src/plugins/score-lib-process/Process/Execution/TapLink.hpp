@@ -16,6 +16,7 @@ struct inlet;
 namespace net
 {
 class parameter_base;
+class node_base;
 }
 }
 namespace Process
@@ -59,6 +60,10 @@ public:
   //! Runs `node` every tick without linking it to anything: a node that only
   //! reads the time of another (a clock probe)
   TapLink(const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node);
+  //! What a device gives as a whole, as an inlet bound to its root gets it: the
+  //! messages of a MIDI device
+  TapLink(ossia::net::node_base& device_node, const Execution::Context& ctx,
+          std::shared_ptr<ossia::graph_node> node);
   //! Unlinks the node, on the execution thread; it is freed on the GUI thread.
   ~TapLink();
   TapLink(const TapLink&) = delete;
@@ -70,7 +75,8 @@ public:
 
 private:
   void link(const Execution::Context& ctx, std::shared_ptr<ossia::graph_node> node,
-            ossia::net::parameter_base* address);
+            ossia::net::parameter_base* address,
+            ossia::net::node_base* node_address = nullptr);
 
   std::weak_ptr<ExecutionCommandQueue> m_queue;
   std::weak_ptr<GCCommandQueue> m_gc;

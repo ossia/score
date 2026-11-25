@@ -46,6 +46,7 @@
 #endif
 
 #include <ossia/audio/audio_parameter.hpp>
+#include <ossia/protocols/midi/midi_device.hpp>
 #include <Recording/Takes/Passes.hpp>
 #include <Recording/Takes/RecordedCurves.hpp>
 #include <Recording/Takes/RecordedValues.hpp>
@@ -309,6 +310,20 @@ bool RecordSession::addAddress(const State::Address& address)
     return false;
   // The explorer's node, or the device's parameter when the explorer does
   // not show it
+  // A MIDI device as a whole: its messages, as notes
+  if(address.path.isEmpty())
+    if(auto* dev = devices->list().findDevice(address.device))
+      if(dynamic_cast<ossia::net::midi::midi_device*>(dev->getDevice()))
+      {
+        auto s = std::make_unique<Source>();
+        s->address = address;
+        s->type = Process::PortType::Midi;
+        s->midi = std::make_shared<MidiTake>(65536);
+        s->prefix = prefixFor(address);
+        m_sources.push_back(std::move(s));
+        return true;
+      }
+
   auto* node = Device::try_getNodeFromAddress(devices->rootNode(), address);
   auto* param = parameterOf(m_ctx, address);
   if(!(node && node->is<Device::AddressSettings>()) && !param)
@@ -356,7 +371,8 @@ bool RecordSession::hasStreamAddresses() const noexcept
 {
   return ossia::any_of(m_sources, [](const auto& s) {
     return !s->port
-           && (s->type == Process::PortType::Audio || s->type == Process::PortType::Texture);
+           && (s->type == Process::PortType::Audio || s->type == Process::PortType::Texture
+               || s->type == Process::PortType::Midi);
   });
 }
 
@@ -790,6 +806,14 @@ void RecordSession::createRecorders(bool atStart)
     else if(s->port)
     {
       s->link = std::make_unique<Execution::TapLink>(*s->port, ectx, s->node);
+    }
+    else if(s->midi)
+    {
+      // A MIDI device: what an inlet bound to it gets
+      auto* devices = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+      auto* dev = devices ? devices->list().findDevice(s->address.device) : nullptr;
+      if(auto* odev = dev ? dev->getDevice() : nullptr)
+        s->link = std::make_unique<Execution::TapLink>(odev->get_root_node(), ectx, s->node);
     }
     else if(ectx.execState)
     {
@@ -1659,6 +1683,38 @@ void RecordSession::place()
     {
       if(s->port)
         continue;
+      // A MIDI device: its notes as a MIDI file, in the same box
+      if(s->midi)
+      {
+        auto notes = notesOf(s->events, s->midi->endDate);
+        quantizeNotes(notes, m_options.midiQuantize);
+        if(notes.empty())
+          continue;
+        FileTake f;
+        f.startDate = s->midi->startDate;
+        f.endDate = s->midi->endDate;
+        const QString folder = Process::takesFolder(m_ctx);
+        const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
+          return Process::takeFile(folder, s->prefix, k, QStringLiteral("mid"));
+        });
+        f.file = Process::takeFile(folder, s->prefix, n, QStringLiteral("mid"));
+        const auto smf
+            = smfOf(notes, f.startDate, f.endDate - f.startDate, s->midi->tempo.load());
+        QFile out{f.file};
+        if(!out.open(QIODevice::WriteOnly)
+           || out.write(smf.data(), qint64(smf.size())) != qint64(smf.size()))
+          continue;
+        out.close();
+        Take r;
+        r.box = s->box;
+        r.midi = true;
+        r.file = f.file;
+        r.startDate = f.startDate;
+        r.endDate = f.endDate;
+        m_takes.push_back(r);
+        files.push_back(std::move(f));
+        continue;
+      }
       // An audio or texture input: its file, in the same box
       if(s->type == Process::PortType::Audio || s->type == Process::PortType::Texture)
       {

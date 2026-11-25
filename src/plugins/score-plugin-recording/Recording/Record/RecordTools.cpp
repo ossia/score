@@ -11,6 +11,8 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 
+#include <ossia/protocols/midi/midi_device.hpp>
+
 namespace Recording
 {
 namespace
@@ -22,6 +24,16 @@ void nodesUnder(Device::Node& parent, std::vector<Device::Node*>& vec)
     vec.push_back(&node);
     nodesUnder(node, vec);
   }
+}
+
+//! A MIDI device: recorded as a whole, as the messages it gives
+bool isMidiDevice(const Device::Node& node, Explorer::DeviceDocumentPlugin& devices)
+{
+  if(!node.is<Device::DeviceSettings>())
+    return false;
+  auto* dev = devices.list().findDevice(node.get<Device::DeviceSettings>().name);
+  auto* ossia_dev = dev ? dev->getDevice() : nullptr;
+  return dynamic_cast<ossia::net::midi::midi_device*>(ossia_dev);
 }
 
 //! A device whose root is itself a parameter: a camera, a video, a window
@@ -43,7 +55,9 @@ std::vector<State::Address> addressesToRecord(Explorer::DeviceExplorerModel& exp
   for(auto* node : nodes.parents.empty() ? nodes.messages : nodes.parents)
   {
     all.push_back(node);
-    nodesUnder(*node, all);
+    // A MIDI device's notes and controllers are in what it gives as a whole
+    if(!isMidiDevice(*node, devices))
+      nodesUnder(*node, all);
   }
 
   std::vector<State::Address> res;
@@ -51,7 +65,7 @@ std::vector<State::Address> addressesToRecord(Explorer::DeviceExplorerModel& exp
   {
     // Audio and texture inputs hold no value, and are recorded too
     const bool address = node->is<Device::AddressSettings>();
-    if(!address && !rootHasParameter(*node, devices))
+    if(!address && !rootHasParameter(*node, devices) && !isMidiDevice(*node, devices))
       continue;
     auto addr = Device::address(*node).address;
     if(std::find(res.begin(), res.end(), addr) == res.end())

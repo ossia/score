@@ -39,6 +39,15 @@
 #include <Automation/AutomationModel.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Midi/MidiProcess.hpp>
+#include <Midi/MidiNote.hpp>
+#include <Protocols/MIDI/MIDIProtocolFactory.hpp>
+#include <Protocols/MIDI/MIDISpecificSettings.hpp>
+#include <QProcess>
+#include <libremidi/libremidi.hpp>
+#include <optional>
+#include <QStandardPaths>
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -819,5 +828,104 @@ TEST_CASE("A sound card input is recorded earlier by the latency set", "[recordi
     const auto [off1, start1] = run(100);
     CHECK(off0 + start0 == 0);
     CHECK(std::abs((off1 + start1) - 70560000) < 705600);
+  });
+}
+
+namespace
+{
+//! "client:port" of an ALSA sequencer port whose name contains `name`
+QString alsaPort(const QString& name)
+{
+  QProcess p;
+  // Ports other programs write to: score's inputs
+  p.start("aconnect", {"-o", "-l"});
+  if(!p.waitForFinished(3000))
+    return {};
+  QString client;
+  for(const auto& line : QString::fromUtf8(p.readAllStandardOutput()).split('\n'))
+  {
+    if(line.startsWith("client "))
+      client = line.section(' ', 1, 1).chopped(1);
+    else if(line.contains(name))
+      return client + ":" + line.trimmed().section(' ', 0, 0);
+  }
+  return {};
+}
+}
+
+TEST_CASE("A MIDI device of the explorer is recorded as notes", "[recording][addresses][midi-device]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    if(QStandardPaths::findExecutable("aseqsend").isEmpty()
+       || QStandardPaths::findExecutable("aconnect").isEmpty())
+      SKIP("needs ALSA's aseqsend and aconnect");
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& devices = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+
+    // A MIDI input of its own, which notes are sent to from outside
+    Device::DeviceSettings dev;
+    dev.name = "keys";
+    dev.protocol = Protocols::MIDIInputProtocolFactory::static_concreteKey();
+    Protocols::MIDISpecificSettings ms;
+    ms.io = Protocols::MIDISpecificSettings::IO::In;
+    ms.handle.api = libremidi::API::ALSA_SEQ;
+    ms.virtualPort = true;
+    ms.handle.port_name = "score-record-test";
+    ms.handle.display_name = "score-record-test";
+    dev.deviceSpecificSettings = QVariant::fromValue(ms);
+    CommandDispatcher<>{doc->context().commandStack}.submit(
+        new Explorer::Command::LoadDevice{devices, Device::Node{dev, nullptr}});
+    spin(500);
+    const QString port = alsaPort("score-record-test");
+    if(port.isEmpty())
+      SKIP("the MIDI input did not appear in ALSA");
+
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    bool steady = false;
+    for(int i = 0; i < 5 && !steady; i++)
+    {
+      if(!exec.isPlaying())
+        engine.execution().request_play_global(true);
+      spin(1500);
+      steady = exec.isPlaying();
+    }
+    REQUIRE(steady);
+
+    Recording::RecordOptions opt;
+    opt.start = Recording::RecordOptions::Start::Now;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addAddress(State::Address{"keys", {}}));
+    session.placeInBox(*box, Recording::AddressPlacement::Automations, {});
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(400);
+    QProcess::execute("aseqsend", {"-p", port, "90", "3C", "64"});
+    spin(500);
+    QProcess::execute("aseqsend", {"-p", port, "80", "3C", "00"});
+    spin(400);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    Midi::ProcessModel* midi{};
+    for(auto& p : box->processes)
+      if(auto* m = qobject_cast<Midi::ProcessModel*>(&p))
+        midi = m;
+    INFO(session.warnings().join(" | ").toStdString());
+    REQUIRE(midi);
+    REQUIRE(midi->notes.size() == 1);
+    CHECK(midi->notes.begin()->pitch() == 60);
   });
 }
