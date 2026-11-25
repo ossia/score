@@ -2,6 +2,8 @@
 
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Record/RecordTools.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -45,6 +47,7 @@ void addTimingEntries(
       record(opt);
     });
   }
+  if(sources.bars)
   {
     // A number of bars from the next one: a loop that long
     auto bars = sub.addMenu(QObject::tr("Record bars from the next bar"));
@@ -90,6 +93,7 @@ void addTimingEntries(
     }
   }
   // Over and over, a bar at a time: the passes are kept as the user chooses
+  if(sources.bars)
   {
     auto passes = sub.addMenu(QObject::tr("Record passes of one bar"));
     using P = RecordOptions::Passes;
@@ -129,27 +133,38 @@ void addTimingEntries(
       record(opt);
     });
   }
+  if(sources.files)
+  {
+    auto act = sub.addAction(QObject::tr("Record only the file"));
+    act->setToolTip(QObject::tr("The take is written to Takes but not placed"));
+    QObject::connect(act, &QAction::triggered, &plug, [=] {
+      auto opt = pplug->defaultOptions();
+      opt.target = RecordOptions::Target::FileOnly;
+      record(opt);
+    });
+  }
 }
 
-//! The entries recording the addresses of the explorer into `box`
-void addAddressEntries(
-    QMenu& sub, QMenu& root, ApplicationPlugin& plug, Scenario::IntervalModel& box,
-    std::vector<State::Address> addresses, std::optional<QPointF> pos,
-    const score::DocumentContext& ctx)
+namespace
 {
-  AddressKinds kinds;
-  if(auto* devices = ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
-    kinds = addressKinds(*devices, addresses);
-  const QPointer<Scenario::IntervalModel> target = &box;
-  auto* pplug = &plug;
-  const auto recordAs = [=](AddressPlacement placement) {
-    return [=](RecordOptions opt) {
-      if(target)
-        pplug->recordAddressesInto(*target, addresses, placement, pos, opt);
-    };
+using AddressRecorder = std::function<void(AddressPlacement, RecordOptions)>;
+
+//! The timing entries for addresses, values as automations (MIDI devices as
+//! notes, sound and video inputs as files), and the same with values as messages
+void addAddressTiming(
+    QMenu& sub, QMenu& root, ApplicationPlugin& plug, AddressKinds kinds,
+    AddressRecorder rec)
+{
+  const auto as = [=](AddressPlacement placement) {
+    return [=](RecordOptions opt) { rec(placement, opt); };
   };
-  const RecordMenuSources sources{.events = kinds.values || kinds.midi, .notes = kinds.midi && !kinds.values};
-  addTimingEntries(sub, root, plug, recordAs(AddressPlacement::Automations), sources);
+  // Values are recorded into curves or states: no file of their own
+  const RecordMenuSources sources{
+      .events = kinds.values || kinds.midi,
+      .notes = kinds.midi && !kinds.values,
+      .bars = true,
+      .files = !kinds.values};
+  addTimingEntries(sub, root, plug, as(AddressPlacement::Automations), sources);
   if(kinds.values)
   {
     sub.addSeparator();
@@ -158,7 +173,118 @@ void addAddressEntries(
     msgs->setToolTip(QObject::tr(
         "The values in states of a scenario, one where each changed, rather than in "
         "automations"));
-    addTimingEntries(*msgs, root, plug, recordAs(AddressPlacement::Messages), sources);
+    addTimingEntries(*msgs, root, plug, as(AddressPlacement::Messages), sources);
+  }
+}
+
+AddressKinds kindsOf(
+    const score::DocumentContext& ctx, const std::vector<State::Address>& addresses)
+{
+  if(auto* devices = ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
+    return addressKinds(*devices, addresses);
+  return {};
+}
+}
+
+void addAddressEntries(
+    QMenu& sub, QMenu& root, ApplicationPlugin& plug, Scenario::IntervalModel& box,
+    std::vector<State::Address> addresses, std::optional<QPointF> pos,
+    const score::DocumentContext& ctx)
+{
+  const QPointer<Scenario::IntervalModel> target = &box;
+  auto* pplug = &plug;
+  addAddressTiming(
+      sub, root, plug, kindsOf(ctx, addresses),
+      [=](AddressPlacement placement, RecordOptions opt) {
+    if(target)
+      pplug->recordAddressesInto(*target, addresses, placement, pos, opt);
+  });
+}
+
+void addRecordEntries(
+    QMenu& menu, ApplicationPlugin& plug, const score::DocumentContext& ctx,
+    RecordMenuTarget target)
+{
+  auto* pplug = &plug;
+  if(plug.recording(ctx))
+  {
+    auto stop = menu.addAction(QObject::tr("Stop recording"));
+    QObject::connect(stop, &QAction::triggered, &plug, [pplug] { pplug->stopSession(); });
+    return;
+  }
+
+  auto sub = menu.addMenu(QObject::tr("Record"));
+  sub->setToolTipsVisible(true);
+  // One recording at a time, in the whole application
+  if(plug.session())
+  {
+    sub->addAction(QObject::tr("Recording in another document"))->setEnabled(false);
+    return;
+  }
+
+  // The processes selected, else those armed: what the Record button records
+  {
+    bool armed{};
+    const auto ports = plug.portsToRecord(ctx, &armed);
+    if(ports.empty())
+    {
+      sub->addAction(QObject::tr("Select or arm processes to record them"))
+          ->setEnabled(false);
+    }
+    else
+    {
+      auto procs = sub->addMenu(
+          armed ? QObject::tr("The armed processes")
+                : QObject::tr("The selected processes"));
+      procs->setToolTipsVisible(true);
+      bool midi = false;
+      for(auto* p : ports)
+        midi = midi || p->type() == Process::PortType::Midi;
+      const auto pos = target.nodePosition;
+      const auto* pctx = &ctx;
+      addTimingEntries(
+          *procs, menu, plug,
+          [=](RecordOptions opt) { pplug->recordSelection(*pctx, pos, opt); },
+          {.events = midi, .notes = true, .bars = true, .files = true});
+    }
+  }
+
+  // The addresses selected in the explorer
+  {
+    const auto addresses = plug.selectedAddresses(ctx);
+    if(addresses.empty())
+    {
+      sub->addAction(QObject::tr("Select devices or addresses in the explorer to record them"))
+          ->setEnabled(false);
+    }
+    else
+    {
+      auto addr = sub->addMenu(QObject::tr("The selected addresses"));
+      addr->setToolTipsVisible(true);
+      addr->setToolTip(
+          target.box ? QObject::tr("Recorded into this box")
+                     : QObject::tr("Recorded into a new box where the menu was opened"));
+      const QPointer<Scenario::IntervalModel> box = target.box;
+      const QPointer<Scenario::ProcessModel> scenario = target.scenario;
+      const auto pt = target.point;
+      const auto pos = target.nodePosition;
+      addAddressTiming(
+          *addr, menu, plug, kindsOf(ctx, addresses),
+          [=](AddressPlacement placement, RecordOptions opt) {
+        if(box)
+          pplug->recordAddressesInto(*box, addresses, placement, pos, opt);
+        else if(scenario)
+          pplug->recordAddresses(*scenario, pt, addresses, placement, opt);
+      });
+    }
+  }
+
+  // What the armed processes just played
+  if(plug.captureSession())
+  {
+    sub->addSeparator();
+    auto cap = sub->addAction(QObject::tr("Capture the last bars played"));
+    QObject::connect(cap, &QAction::triggered, &plug, [pplug] { pplug->capture(); });
   }
 }
 }

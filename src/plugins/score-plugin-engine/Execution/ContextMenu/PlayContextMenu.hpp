@@ -37,9 +37,6 @@ public:
 private:
   const score::GUIApplicationContext& m_ctx;
 
-  QAction* m_recordAutomations{};
-  QAction* m_recordMessages{};
-
   QAction* m_playStates{};
   QAction* m_playEvents{};
   QAction* m_playIntervals{};

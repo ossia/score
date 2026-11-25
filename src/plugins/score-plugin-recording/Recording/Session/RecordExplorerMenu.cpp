@@ -21,30 +21,11 @@ void RecordExplorerMenu::setupMenu(
   auto* doc = score::IDocument::try_get<Scenario::ScenarioDocumentModel>(ctx.document);
   if(!plug)
     return;
-  if(plug->recording(ctx))
-  {
-    auto stop = menu.addAction(QObject::tr("Stop recording"));
-    QObject::connect(stop, &QAction::triggered, plug, [plug] { plug->stopSession(); });
+  if(!doc)
     return;
-  }
-
-  auto sub = menu.addMenu(QObject::tr("Record"));
-  sub->setToolTipsVisible(true);
-  if(plug->session())
-  {
-    sub->addAction(QObject::tr("Recording in another document"))->setEnabled(false);
-    return;
-  }
-
-  const auto addresses = addressesToRecord(explorer);
-  if(addresses.empty() || !doc)
-  {
-    sub->addAction(QObject::tr("Select devices or addresses to record them"))
-        ->setEnabled(false);
-    return;
-  }
-
   // Into the box of the document's main node view
-  addAddressEntries(*sub, menu, *plug, doc->baseInterval(), addresses, {}, ctx);
+  RecordMenuTarget target;
+  target.box = &doc->baseInterval();
+  addRecordEntries(menu, *plug, ctx, target);
 }
 }

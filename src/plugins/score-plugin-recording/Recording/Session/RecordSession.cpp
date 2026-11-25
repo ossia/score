@@ -584,8 +584,16 @@ bool RecordSession::start()
       }
     }
     else if(m_options.start != RecordOptions::Start::OnPlay)
+    {
       if(auto* engine = m_ctx.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>())
-        engine->execution().request_play_global(true);
+      {
+        // Into a new box of a scenario: from where it was asked
+        if(hasAddresses() && m_scenario && !m_intoBox)
+          engine->execution().on_record(m_point.date);
+        else
+          engine->execution().request_play_global(true);
+      }
+    }
   }
 
   m_writing = true;
@@ -1799,6 +1807,12 @@ void RecordSession::place()
       r.endDate = t.endDate;
       m_takes.push_back(r);
       takes.push_back(std::move(t));
+    }
+    // Only the files: written, not placed
+    if(m_options.target == RecordOptions::Target::FileOnly)
+    {
+      takes.clear();
+      files.clear();
     }
     if(!takes.empty() || !files.empty())
     {

@@ -60,6 +60,21 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
 #include <Recording/ApplicationPlugin.hpp>
+#include <Recording/Session/RecordMenus.hpp>
+#include <Process/Dataflow/PortContextMenu.hpp>
+#include <Explorer/Explorer/ExplorerMenuFactory.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerView.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/DocumentPlugin.hpp>
+#include <Process/Commands/Properties.hpp>
+#include <Process/ProcessContext.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <QItemSelectionModel>
+#include <QMenu>
+#include <QWidgetAction>
 #include <Recording/Session/RecordSession.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -987,5 +1002,289 @@ TEST_CASE("Addresses recorded for a number of bars loop as a port's take does", 
     REQUIRE(sound);
     CHECK(sound->loops());
     CHECK(sound->loopDuration().impl == int64_t(4 * 352800000LL));
+  });
+}
+
+namespace
+{
+//! Every entry of a menu, "Sub/Entry", disabled ones marked
+QStringList menuTree(const QMenu& m, const QString& prefix = {})
+{
+  QStringList r;
+  for(auto* a : m.actions())
+  {
+    if(a->isSeparator() || qobject_cast<QWidgetAction*>(a))
+      continue;
+    const QString t = prefix + a->text() + (a->isEnabled() ? "" : " (off)");
+    r.push_back(t);
+    if(auto* sub = a->menu())
+      r += menuTree(*sub, t + "/");
+  }
+  return r;
+}
+QStringList under(const QStringList& tree, const QString& prefix)
+{
+  QStringList r;
+  for(auto& t : tree)
+    if(t.startsWith(prefix))
+      r.push_back(t.mid(prefix.size()));
+  return r;
+}
+}
+
+TEST_CASE("Every background's Record menu has the same entries", "[recording][menus]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    Addresses dev{ctx, *doc};
+    dev.add("a", 0.f);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), {});
+      m.commit();
+    }
+    REQUIRE(sound);
+    score::SelectionDispatcher{doc->context().selectionStack}.select(*sound);
+
+    // The address selected in the explorer, through a view as in the app
+    auto& explorer = Explorer::deviceExplorerFromContext(doc->context());
+    Explorer::DeviceExplorerView view;
+    view.setModel(&explorer);
+    explorer.setView(&view);
+    Device::Node* a{};
+    for(auto& n : *dev.node())
+      if(n.displayName() == "a")
+        a = &n;
+    REQUIRE(a);
+    view.selectionModel()->select(
+        explorer.modelIndexFromNode(*a, 0), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+
+    auto& plug = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    REQUIRE(plug.selectedAddresses(doc->context()).size() == 1);
+
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+
+    QMenu nodal, scenario, exp;
+    for(auto& f : ctx.interfaces<Process::NodalViewMenuFactoryList>())
+      f.setupMenu(nodal, *box, QPointF{}, pctx);
+    Recording::RecordMenuTarget t;
+    t.scenario = &scenar;
+    t.point = {TimeVal::fromMsecs(1000), 0.5};
+    Recording::addRecordEntries(scenario, plug, doc->context(), t);
+    for(auto& f : ctx.interfaces<Explorer::ExplorerMenuFactoryList>())
+      f.setupMenu(exp, explorer, doc->context());
+
+    const auto a1 = menuTree(nodal), a2 = menuTree(scenario), a3 = menuTree(exp);
+    INFO(a1.join("\n").toStdString());
+    INFO(a2.join("\n").toStdString());
+    CHECK(a1 == a2);
+    CHECK(a1 == a3);
+    // What they offer
+    CHECK(a1.contains("Record/The selected processes/Record bars from the next bar/4 bars"));
+    CHECK(a1.contains("Record/The selected processes/Record passes of one bar/Keeping only the last one"));
+    CHECK(a1.contains("Record/The selected addresses/Record from the next bar, counting in"));
+    CHECK(a1.contains("Record/The selected addresses/Record bars from the next bar/1 bar"));
+    CHECK(a1.contains("Record/The selected addresses/Record from the first value"));
+    CHECK(a1.contains("Record/The selected addresses/Values as messages/Record bars from the next bar/2 bars"));
+    // Values have no file of their own; sounds do
+    CHECK(!a1.contains("Record/The selected addresses/Record only the file"));
+    CHECK(a1.contains("Record/The selected processes/Record only the file"));
+
+    // A port's menu: the same timing entries, for the port itself
+    QMenu port;
+    for(auto& f : ctx.interfaces<Process::PortContextMenuFactoryList>())
+      f.setupMenu(port, *sound->outlets()[0], pctx);
+    const auto pt = under(menuTree(port), "Record/");
+    const auto procs = under(a1, "Record/The selected processes/");
+    INFO(pt.join("\n").toStdString());
+    for(const auto& e : procs)
+      CHECK(pt.contains(e));
+
+    // Nothing selected, nothing armed: said, and the addresses still offered
+    score::SelectionDispatcher{doc->context().selectionStack}.deselect();
+    QMenu none;
+    Recording::addRecordEntries(none, plug, doc->context(), t);
+    const auto n = menuTree(none);
+    CHECK(n.contains("Record/Select or arm processes to record them (off)"));
+    CHECK(n.contains("Record/The selected addresses/Record now"));
+    explorer.setView(nullptr);
+  });
+}
+
+TEST_CASE("Addresses recorded from a scenario's menu for a bar, while playing, end by themselves in a new box", "[recording][addresses][menus][scenario-bars]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Addresses dev{ctx, *doc};
+    const auto x = dev.add("bx", 0.f);
+    spin(100);
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    bool steady = false;
+    for(int i = 0; i < 5 && !steady; i++)
+    {
+      if(!exec.isPlaying())
+        engine.execution().request_play_global(true);
+      spin(1500);
+      steady = exec.isPlaying();
+    }
+    REQUIRE(steady);
+
+    const auto boxes_before = scenar.intervals.size();
+    auto opt = rec.defaultOptions();
+    opt.startRate = 1.;
+    opt.lengthBars = 1.;
+    const Scenario::Point pt{TimeVal::fromMsecs(1000), 0.4};
+    auto* session = rec.recordAddresses(
+        scenar, pt, {x}, Recording::AddressPlacement::Automations, opt);
+    REQUIRE(session);
+    bool finished = false;
+    QPointer<Scenario::IntervalModel> placed;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      placed = session->placedBox();
+    });
+    // Playback goes on: it is not restarted from the point
+    spin(100);
+    CHECK(exec.isPlaying());
+    for(int i = 0; i < 40 && !finished; i++)
+    {
+      dev.push(x, float(i % 10) / 10.f);
+      spin(100);
+    }
+    // One bar at 120 is 2 s, waiting for the next bar at most 2 s more
+    REQUIRE(spin_until([&] { return finished; }, 3000));
+    engine.execution().request_stop();
+    spin(300);
+    CHECK(scenar.intervals.size() == boxes_before + 1);
+    REQUIRE(placed);
+    REQUIRE(automations(*placed).size() == 1);
+    // A bar long, at 120: 2 s
+    CHECK(std::abs(placed->duration.defaultDuration().msec() - 2000.) < 50.);
+  });
+}
+
+TEST_CASE("The count-in clicks are heard on the main output, then stop", "[recording][countin][heard]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    auto& devs = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* audio = devs.list().audioDevice();
+    REQUIRE(audio);
+    const State::Address out{audio->name(), {"out", "main"}};
+
+    // A sound, muted: the main output only gets the clicks
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), {});
+      REQUIRE(sound);
+      m.submit(new Process::SetProcessMuted{*sound, true});
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    bool steady = false;
+    for(int i = 0; i < 5 && !steady; i++)
+    {
+      if(!exec.isPlaying())
+        engine.execution().request_play_global(true);
+      spin(1500);
+      steady = exec.isPlaying();
+    }
+    REQUIRE(steady);
+
+    // Counted in, on a muted sound
+    QElapsedTimer clock;
+    clock.start();
+    Recording::RecordOptions opt;
+    opt.startRate = 1.;
+    opt.countIn = true;
+    opt.target = Recording::RecordOptions::Target::FileOnly;
+    Recording::RecordSession counted{doc->context(), opt};
+    REQUIRE(counted.addSource(*sound->outlets()[0]));
+    bool counted_done = false;
+    QObject::connect(&counted, &Recording::RecordSession::finished, [&] { counted_done = true; });
+    REQUIRE(counted.start());
+
+    // What reaches the main output, read after the count-in has written to
+    // it: the graph runs the nodes in the order they came
+    spin(50);
+    Recording::RecordOptions heard_opt;
+    heard_opt.target = Recording::RecordOptions::Target::FileOnly;
+    Recording::RecordSession heard{doc->context(), heard_opt};
+    REQUIRE(heard.addAddress(out));
+    heard.placeInBox(*box, Recording::AddressPlacement::Automations, {});
+    bool heard_done = false;
+    QObject::connect(&heard, &Recording::RecordSession::finished, [&] { heard_done = true; });
+    REQUIRE(heard.start());
+    const qint64 asked = clock.elapsed();
+    REQUIRE(spin_until([&] { return counted.running() && !counted.waiting(); }, 8000));
+    const qint64 recording = clock.elapsed();
+    spin(1500);
+    counted.stop();
+    REQUIRE(spin_until([&] { return counted_done; }));
+    heard.stop();
+    REQUIRE(spin_until([&] { return heard_done; }));
+    engine.execution().request_stop();
+    spin(300);
+
+    REQUIRE(heard.takes().size() == 1);
+    const QString file = heard.takes()[0].file;
+    INFO(file.toStdString());
+    REQUIRE(QFile::exists(file));
+    unsigned int ch{}, sr{};
+    drwav_uint64 frames{};
+    float* data = drwav_open_file_and_read_pcm_frames_f32(
+        file.toUtf8().constData(), &ch, &sr, &frames, nullptr);
+    REQUIRE(data);
+    // The clicks: onsets in windows of 10 ms
+    std::vector<double> onsets;
+    const int win = int(sr) / 100;
+    bool loud = false;
+    for(drwav_uint64 i = 0; i + win <= frames; i += win)
+    {
+      float peak = 0.f;
+      for(int k = 0; k < win; k++)
+        for(unsigned c = 0; c < ch; c++)
+          peak = std::max(peak, std::abs(data[(i + k) * ch + c]));
+      if(peak > 0.05f && !loud)
+        onsets.push_back(double(i) / sr * 1000.);
+      loud = peak > 0.05f;
+    }
+    drwav_free(data, nullptr);
+    INFO("asked at " << asked << " ms, recording from " << recording << " ms");
+    for(auto o : onsets)
+      UNSCOPED_INFO("click at " << o << " ms");
+    // A beat every 500 ms while counting in, none once it records
+    int during = 0, after = 0;
+    // The file starts when the main output began to be read, at `asked`
+    for(auto o : onsets)
+    {
+      if(o < recording - asked - 50)
+        during++;
+      else if(o >= recording - asked + 300)
+        after++;
+    }
+    CHECK(during >= 3);
+    CHECK(after == 0);
   });
 }

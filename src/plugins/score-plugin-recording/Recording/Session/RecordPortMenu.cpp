@@ -79,28 +79,15 @@ void RecordPortMenu::setupMenu(
 
   auto sub = menu.addMenu(QObject::tr("Record"));
   sub->setToolTipsVisible(true);
-  // A texture is recorded as a video from when it starts
-  if(texture)
-  {
-    auto now = sub->addAction(QObject::tr("Record now"));
-    QObject::connect(now, &QAction::triggered, plug, [=] { record(plug->defaultOptions()); });
-    auto act = sub->addAction(QObject::tr("Record when playback starts"));
-    QObject::connect(act, &QAction::triggered, plug, [=] {
-      auto opt = plug->defaultOptions();
-      opt.start = RecordOptions::Start::OnPlay;
-      record(opt);
-    });
-    auto file = sub->addAction(QObject::tr("Record only the file"));
-    QObject::connect(file, &QAction::triggered, plug, [=] {
-      auto opt = plug->defaultOptions();
-      opt.target = RecordOptions::Target::FileOnly;
-      record(opt);
-    });
-    return;
-  }
+  // A texture is recorded as a video from when it starts: no grid, no loop
   addTimingEntries(
       *sub, menu, *plug, record,
-      {.events = type != Process::PortType::Audio, .notes = type == Process::PortType::Midi});
+      {.events = !texture && type != Process::PortType::Audio,
+       .notes = type == Process::PortType::Midi,
+       .bars = !texture,
+       .files = true});
+  if(texture)
+    return;
   // MIDI into the piano rolls of its box
   if(type == Process::PortType::Midi)
   {
@@ -166,16 +153,6 @@ void RecordPortMenu::setupMenu(
       }
     }
   }
-  {
-    auto act = sub->addAction(QObject::tr("Record only the file"));
-    act->setToolTip(QObject::tr("The take is written to Takes but not placed in the box"));
-    QObject::connect(act, &QAction::triggered, plug, [=] {
-      auto opt = plug->defaultOptions();
-      opt.target = RecordOptions::Target::FileOnly;
-      record(opt);
-    });
-  }
-
   // Arming: what the process plays is kept while playing, for Capture
   if(auto* proc = Process::parentProcess(&port); proc && Process::RecordArm::canArm(*proc))
   {

@@ -6,7 +6,6 @@
 
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/ScenarioRecordInitData.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -179,43 +178,6 @@ PlayContextMenu::PlayContextMenu(
     }
   });
 
-  /// Record signals ///
-  m_recordAutomations = new QAction{tr("Record automations from here"), this};
-  connect(m_recordAutomations, &QAction::triggered, [this, &exec_signals]() {
-    const auto& recdata = m_recordAutomations->data().value<ScenarioRecordInitData>();
-    if(!recdata.presenter)
-      return;
-
-    auto& pres = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
-    auto p = const_cast<Scenario::ProcessModel*>(proc);
-
-    exec_signals.startRecording(
-        p, Scenario::ConvertToScenarioPoint(
-               pres.view().mapFromScene(recdata.point), pres.zoomRatio(),
-               pres.view().boundingRect().height()));
-
-    m_recordAutomations->setData({});
-  });
-
-  m_recordMessages = new QAction{tr("Record messages from here"), this};
-  connect(m_recordMessages, &QAction::triggered, [this, &exec_signals]() {
-    const auto& recdata = m_recordMessages->data().value<ScenarioRecordInitData>();
-    if(!recdata.presenter)
-      return;
-
-    auto& pres = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
-    auto p = const_cast<Scenario::ProcessModel*>(proc);
-
-    exec_signals.startRecordingMessages(
-        p, Scenario::ConvertToScenarioPoint(
-               pres.view().mapFromScene(recdata.point), pres.zoomRatio(),
-               pres.view().boundingRect().height()));
-
-    m_recordMessages->setData({});
-  });
-
   auto& exec_ctx = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
   m_playFromHere = new QAction{tr("Play from here"), this};
   connect(m_playFromHere, &QAction::triggered, this, [&]() {
@@ -275,24 +237,6 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     m_playFromHereInterval = Scenario::closestParentInterval(&pres.model());
     menu.addAction(m_playFromHere);
 
-    auto sel = ctx.context.selectionStack.currentSelection();
-
-    {
-      auto record = menu.addMenu(tr("Record"));
-      record->addAction(m_recordAutomations);
-      record->addAction(m_recordMessages);
-      if(Scenario::selectionHasScenarioElements(sel))
-      {
-        record->setEnabled(false);
-      }
-      else
-      {
-        auto data
-            = QVariant::fromValue(Scenario::ScenarioRecordInitData{&pres, scenept});
-        m_recordAutomations->setData(data);
-        m_recordMessages->setData(data);
-      }
-    }
   });
 }
 }

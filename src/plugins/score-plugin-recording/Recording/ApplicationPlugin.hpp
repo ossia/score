@@ -48,10 +48,6 @@ public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
   ~ApplicationPlugin() override;
 
-  //! The addresses selected in the explorer, from `pt` of the scenario, as
-  //! automations or as messages
-  void record(Scenario::ProcessModel*, Scenario::Point pt);
-  void recordMessages(Scenario::ProcessModel*, Scenario::Point pt);
   //! Starts a session on these addresses, recorded into `box` from now
   RecordSession* recordAddressesInto(
       Scenario::IntervalModel& box, const std::vector<State::Address>& addresses,
@@ -59,10 +55,17 @@ public:
       std::optional<RecordOptions> options = {});
   //! The addresses selected in the explorer of a document
   std::vector<State::Address> selectedAddresses(const score::DocumentContext& ctx) const;
-  //! Starts a session on these addresses, placed in a new box at `pt`
+  //! Starts a session on these addresses, placed in a new box at `pt`.
+  //! Without options: from the first value, playback starting from `pt`
   RecordSession* recordAddresses(
       Scenario::ProcessModel& scenario, Scenario::Point pt,
-      const std::vector<State::Address>& addresses, AddressPlacement placement);
+      const std::vector<State::Address>& addresses, AddressPlacement placement,
+      std::optional<RecordOptions> options = {});
+  //! What the Record button records in a document: the ports selected, the
+  //! audio and MIDI outputs of the processes selected, else of those armed.
+  //! `armed` says it is the latter.
+  std::vector<const Process::Port*>
+  portsToRecord(const score::DocumentContext& ctx, bool* armed = nullptr) const;
 
   //! Starts recording these ports of a document; one session at a time.
   //! Null when nothing could be recorded.
@@ -92,7 +95,8 @@ public:
   RecordSession* captureSession() const noexcept { return m_capture.get(); }
   //! The same, in a given document (remote control)
   void recordSelection(
-      const score::DocumentContext& ctx, std::optional<QPointF> nodePosition = {});
+      const score::DocumentContext& ctx, std::optional<QPointF> nodePosition = {},
+      std::optional<RecordOptions> options = {});
 
   void on_createdDocument(score::Document& doc) override;
   void on_loadedDocument(score::Document& doc) override;

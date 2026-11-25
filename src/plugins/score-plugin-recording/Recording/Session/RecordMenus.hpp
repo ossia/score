@@ -1,6 +1,8 @@
 #pragma once
 #include <Recording/Session/RecordOptions.hpp>
+#include <score_plugin_recording_export.h>
 
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <State/Address.hpp>
 
 #include <QPointF>
@@ -17,6 +19,7 @@ struct DocumentContext;
 namespace Scenario
 {
 class IntervalModel;
+class ProcessModel;
 }
 namespace Recording
 {
@@ -29,6 +32,21 @@ struct RecordMenuSources
   bool events{true};
   //! MIDI: "first note" rather than "first value"
   bool notes{false};
+  //! Bars and passes: loops of a number of bars (not for video)
+  bool bars{true};
+  //! "Record only the file": they are recorded into files
+  bool files{true};
+};
+
+//! Where the takes of addresses go: into a box, or into a new box of a
+//! scenario at a point
+struct RecordMenuTarget
+{
+  Scenario::IntervalModel* box{};
+  Scenario::ProcessModel* scenario{};
+  Scenario::Point point{};
+  //! In the node view of `box`: where the take's node goes
+  std::optional<QPointF> nodePosition;
 };
 
 /**
@@ -44,12 +62,13 @@ void addTimingEntries(
     std::function<void(RecordOptions)> record, RecordMenuSources sources);
 
 /**
- * The entries recording addresses of the explorer into `box`: the timing
- * entries, values as automations (MIDI devices as notes, audio and video
- * inputs as files), and the same with values as messages.
+ * The Record menu of every background a recording starts from: a scenario, a
+ * node view, the device explorer. The same entries everywhere: the selected
+ * (or armed) processes, the addresses selected in the explorer, each with the
+ * timing entries, and Capture. Stop recording instead while one runs.
  */
-void addAddressEntries(
-    QMenu& sub, QMenu& root, ApplicationPlugin& plug, Scenario::IntervalModel& box,
-    std::vector<State::Address> addresses, std::optional<QPointF> pos,
-    const score::DocumentContext& ctx);
+SCORE_PLUGIN_RECORDING_EXPORT
+void addRecordEntries(
+    QMenu& menu, ApplicationPlugin& plug, const score::DocumentContext& ctx,
+    RecordMenuTarget target);
 }

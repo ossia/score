@@ -1,6 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationPlugin.hpp"
+#include <Process/ApplicationPlugin.hpp>
+#include <Process/Layer/LayerContextMenu.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Recording/Session/RecordMenus.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
+#include <QMenu>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <Process/LiveTake.hpp>
@@ -60,12 +67,27 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   // Since we have declared the dependency, we can assume
   // that ScenarioApplicationPlugin is instantiated already.
   auto& scenario_plugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
-  connect(
-      &scenario_plugin.execution(), &ScenarioExecution::startRecording, this,
-      &ApplicationPlugin::record, Qt::QueuedConnection);
-  connect(
-      &scenario_plugin.execution(), &ScenarioExecution::startRecordingMessages, this,
-      &ApplicationPlugin::recordMessages, Qt::QueuedConnection);
+  // The Record menu of a scenario's background: the same as the node view's
+  // and the explorer's, the addresses going into a new box at the point
+  if(ctx.applicationSettings.gui)
+  {
+    auto& procs = ctx.applicationPlugin<Process::ApplicationPlugin>();
+    procs.layerContextMenuRegistrar()
+        .menu<ContextMenus::ScenarioModelContextMenu>()
+        .functions.push_back([this](
+                                 QMenu& menu, QPoint, QPointF scenept,
+                                 const Process::LayerContext& lctx) {
+      auto* pres = dynamic_cast<Scenario::ScenarioPresenter*>(&lctx.presenter);
+      if(!pres)
+        return;
+      auto& scenar = const_cast<Scenario::ProcessModel&>(pres->model());
+      RecordMenuTarget target;
+      target.scenario = &scenar;
+      target.point = Scenario::ConvertToScenarioPoint(
+          scenept, pres->zoomRatio(), pres->view().height());
+      addRecordEntries(menu, *this, lctx.context, target);
+    });
+  }
   connect(
       &scenario_plugin.execution(), &ScenarioExecution::stopRecording, this,
       &ApplicationPlugin::stopSession);
@@ -161,7 +183,8 @@ RecordSession* ApplicationPlugin::startSession(
 
 RecordSession* ApplicationPlugin::recordAddresses(
     Scenario::ProcessModel& scenario, Scenario::Point pt,
-    const std::vector<State::Address>& addresses, AddressPlacement placement)
+    const std::vector<State::Address>& addresses, AddressPlacement placement,
+    std::optional<RecordOptions> chosen)
 {
   if(m_session)
   {
@@ -176,9 +199,14 @@ RecordSession* ApplicationPlugin::recordAddresses(
   auto& ctx = score::IDocument::documentContext(scenario);
   const auto& curves = context.settings<Curve::Settings::Model>();
 
-  // Recorded from the point: playback stops, and starts from there with the
-  // first value (when the settings say so; else when the user plays)
-  if(auto* exec = ctx.findPlugin<Execution::DocumentPlugin>(); exec && exec->isPlaying())
+  RecordOptions options = chosen ? *chosen : defaultOptions();
+  if(!chosen)
+    options.start = RecordOptions::Start::FirstEvent;
+  // From the first value, recorded from the point: playback stops, and starts
+  // from there with the first value (when the settings say so; else when the
+  // user plays). Otherwise it records while it plays.
+  if(auto* exec = ctx.findPlugin<Execution::DocumentPlugin>();
+     exec && exec->isPlaying() && options.start == RecordOptions::Start::FirstEvent)
   {
     m_ossiaplug->execution().request_stop();
     // What the stop reports is not for the session
@@ -187,8 +215,6 @@ RecordSession* ApplicationPlugin::recordAddresses(
       return nullptr;
   }
 
-  RecordOptions options = defaultOptions();
-  options.start = RecordOptions::Start::FirstEvent;
   auto session = std::make_unique<RecordSession>(ctx, options);
   for(const auto& addr : addresses)
     session->addAddress(addr);
@@ -233,26 +259,6 @@ RecordSession* ApplicationPlugin::recordAddressesInto(
   c.simplificationRatio = curves.getSimplificationRatio();
   session->placeInBox(box, placement, c);
   return adopt(std::move(session), ctx);
-}
-
-void ApplicationPlugin::record(Scenario::ProcessModel* scenar, Scenario::Point pt)
-{
-  if(!scenar)
-    return;
-  auto& ctx = score::IDocument::documentContext(*scenar);
-  recordAddresses(
-      *scenar, pt, addressesToRecord(Explorer::deviceExplorerFromContext(ctx)),
-      AddressPlacement::Automations);
-}
-
-void ApplicationPlugin::recordMessages(Scenario::ProcessModel* scenar, Scenario::Point pt)
-{
-  if(!scenar)
-    return;
-  auto& ctx = score::IDocument::documentContext(*scenar);
-  recordAddresses(
-      *scenar, pt, addressesToRecord(Explorer::deviceExplorerFromContext(ctx)),
-      AddressPlacement::Messages);
 }
 
 void ApplicationPlugin::stopSession()
@@ -549,18 +555,11 @@ void ApplicationPlugin::recordSelection()
     showRecording(false);
 }
 
-void ApplicationPlugin::recordSelection(
-    const score::DocumentContext& ctx, std::optional<QPointF> nodePosition)
+std::vector<const Process::Port*>
+ApplicationPlugin::portsToRecord(const score::DocumentContext& ctx, bool* armed) const
 {
-  if(m_session)
-  {
-    stopSession();
-    showRecording(m_session && m_session->running());
-    return;
-  }
-  auto* doc = &ctx;
   std::vector<const Process::Port*> ports;
-  for(const auto& obj : doc->selectionStack.currentSelection())
+  for(const auto& obj : ctx.selectionStack.currentSelection())
   {
     if(auto* port = qobject_cast<const Process::Port*>(obj.data()))
     {
@@ -573,13 +572,30 @@ void ApplicationPlugin::recordSelection(
           ports.push_back(out);
     }
   }
+  if(armed)
+    *armed = ports.empty();
   // Nothing selected: the armed processes
   if(ports.empty())
     for(auto* proc : Process::RecordArm::instance().armedIn(ctx.document))
       for(auto* out : proc->outlets())
         if(out->type() == Process::PortType::Audio || out->type() == Process::PortType::Midi)
           ports.push_back(out);
-  auto opt = defaultOptions();
+  return ports;
+}
+
+void ApplicationPlugin::recordSelection(
+    const score::DocumentContext& ctx, std::optional<QPointF> nodePosition,
+    std::optional<RecordOptions> chosen)
+{
+  if(m_session)
+  {
+    stopSession();
+    showRecording(m_session && m_session->running());
+    return;
+  }
+  auto* doc = &ctx;
+  const auto ports = portsToRecord(ctx);
+  auto opt = chosen ? *chosen : defaultOptions();
   opt.nodePosition = nodePosition;
   if(ports.empty())
   {
