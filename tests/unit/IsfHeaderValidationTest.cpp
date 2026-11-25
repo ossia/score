@@ -560,7 +560,9 @@ TEST_CASE("in a COMPUTE_SHADER's RESOURCES an image is a storage image", "[isf][
   CHECK(ossia::get_if<isf::float_input>(&d.inputs[0].data));
   CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[1].data));
   CHECK(ossia::get_if<isf::texture_input>(&d.inputs[2].data));
-  CHECK(ossia::get_if<isf::cubemap_input>(&d.inputs[3].data));
+  auto* cube = ossia::get_if<isf::texture_input>(&d.inputs[3].data);
+  REQUIRE(cube);
+  CHECK(cube->cube);
   CHECK(ossia::get_if<isf::csf_image_input>(&d.inputs[4].data));
   CHECK(!warnsAboutInputs(d));
 }

@@ -1323,6 +1323,9 @@ score_add_gfx_process_test(shader_load_error GfxShaderLoadError.cpp)
 score_add_gfx_process_test(long_input_control GfxLongInputControl.cpp)
 # A point4D input is a vec4 control; its value survives save, reload and a re-read.
 score_add_gfx_process_test(point4d_control GfxPoint4dControl.cpp)
+
+# An ISF process created from its source text (Score.createProcess) runs it.
+score_add_gfx_process_test(isf_inline_source GfxIsfInlineSource.cpp)
 score_add_gfx_process_test(images          GfxImagesProcess.cpp)
 score_add_gfx_process_test(video_text      GfxVideoTextProcess.cpp)
 
@@ -2372,3 +2375,25 @@ endforeach()
 
 # The Graphics settings' GPU index selects the Vulkan physical device.
 score_add_gfx_test(gpu_selection GfxGpuSelection.cpp)
+
+# A PER_CUBE_FACE raw raster without a depth output depth-tests every face,
+# with its DEPTH_COMPARE.
+score_add_gfx_test(cube_face_implicit_depth GfxCubeFaceImplicitDepth.cpp)
+
+# A raw raster's own storage images are clamped to the device's TextureSizeMax.
+score_add_gfx_test(raw_raster_size_clamp GfxRawRasterSizeClamp.cpp)
+
+# CSF: a write-only image after a PERSISTENT one publishes its own content; a
+# TYPE cubemap resource is a samplerCube.
+score_add_gfx_test(csf_resource_fixes GfxCsfResourceFixes.cpp)
+
+# Script values convert to a texture inlet's optional sampler settings.
+score_add_test(test_gfx_texture_port_converters
+  SOURCES GfxTexturePortConverters.cpp
+  PLUGINS score_plugin_gfx)
+
+# The converters are there once the gfx library is loaded, with no call of
+# its own: a process of its own, so no other test registers them first.
+score_add_test(test_gfx_texture_port_converters_at_load
+  SOURCES GfxTexturePortConvertersAtLoad.cpp
+  PLUGINS score_plugin_gfx)

@@ -69,6 +69,19 @@ void main() {
   (void)setProgram({ShaderSource::ProgramType::ISF, QByteArray{}, defaultFrag});
 }
 
+static bool isShaderSource(const QString& init) noexcept
+{
+  if(init.contains(QLatin1Char('\n')))
+    return true;
+  const qsizetype comment = init.indexOf(QStringLiteral("/*"));
+  if(comment < 0)
+    return false;
+  for(qsizetype i = comment + 2; i < init.size(); i++)
+    if(!init[i].isSpace())
+      return init[i] == QLatin1Char('{');
+  return false;
+}
+
 Model::Model(
     const TimeVal& duration, const QString& init, const Id<Process::ProcessModel>& id,
     QObject* parent)
@@ -76,6 +89,12 @@ Model::Model(
 {
   metadata().setInstanceName(*this);
   m_outlets.push_back(new TextureOutlet{"Texture Out", Id<Process::Port>(1), this});
+
+  if(isShaderSource(init))
+  {
+    (void)setProgram(programFromISFFragmentShaderPath({}, init.toUtf8()));
+    return;
+  }
 
   const QString path = locateShaderPath(init, *this);
   if(path.endsWith("fs") || path.endsWith("frag"))
