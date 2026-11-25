@@ -1,4 +1,5 @@
 #include "RecordNodalMenu.hpp"
+#include "RecordMenus.hpp"
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
@@ -58,29 +59,15 @@ void RecordNodalMenu::setupMenu(
 
   // What the explorer has selected, into this box
   const auto addresses = plug->selectedAddresses(ctx);
-  const QPointer<Scenario::IntervalModel> target = box;
-  const std::pair<AddressPlacement, QString> kinds[]{
-      {AddressPlacement::Automations,
-       QObject::tr("Record the selected addresses as automations")},
-      {AddressPlacement::Messages, QObject::tr("Record the selected addresses as messages")}};
   if(addresses.empty())
   {
     auto act = sub->addAction(
         QObject::tr("Select devices or addresses in the explorer to record them"));
     act->setEnabled(false);
+    return;
   }
-  else for(const auto& [placement, text] : kinds)
-  {
-    auto act = sub->addAction(text);
-    act->setToolTip(QObject::tr(
-        "The addresses selected in the device explorer, into this box from now: "
-        "audio inputs as sounds, cameras as videos"));
-    QObject::connect(
-        act, &QAction::triggered, plug,
-        [plug, target, addresses, pos, placement = placement] {
-      if(target)
-        plug->recordAddressesInto(*target, addresses, placement, pos);
-    });
-  }
+  auto addr = sub->addMenu(QObject::tr("Record the selected addresses"));
+  addr->setToolTipsVisible(true);
+  addAddressEntries(*addr, menu, *plug, *box, addresses, pos, ctx);
 }
 }

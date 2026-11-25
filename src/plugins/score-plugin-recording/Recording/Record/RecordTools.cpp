@@ -10,6 +10,8 @@
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
+#include <ossia/network/base/node_functions.hpp>
+#include <ossia/audio/audio_parameter.hpp>
 
 #include <ossia/protocols/midi/midi_device.hpp>
 
@@ -72,5 +74,34 @@ std::vector<State::Address> addressesToRecord(Explorer::DeviceExplorerModel& exp
       res.push_back(std::move(addr));
   }
   return res;
+}
+
+AddressKinds addressKinds(
+    Explorer::DeviceDocumentPlugin& devices, const std::vector<State::Address>& addresses)
+{
+  AddressKinds k;
+  for(const auto& a : addresses)
+  {
+    auto* dev = devices.list().findDevice(a.device);
+    auto* odev = dev ? dev->getDevice() : nullptr;
+    if(!odev)
+      continue;
+    if(a.path.isEmpty() && dynamic_cast<ossia::net::midi::midi_device*>(odev))
+    {
+      k.midi = true;
+      continue;
+    }
+    auto* node = a.path.isEmpty() ? &odev->get_root_node()
+                                  : ossia::net::find_node(
+                                      odev->get_root_node(),
+                                      a.toString_unsafe().section(':', 1).toStdString());
+    auto* p = node ? node->get_parameter() : nullptr;
+    // Sounds, and a device whose root is its image (a camera)
+    if(p && (dynamic_cast<ossia::audio_parameter*>(p) || a.path.isEmpty()))
+      k.streams = true;
+    else
+      k.values = true;
+  }
+  return k;
 }
 }

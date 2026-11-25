@@ -61,6 +61,7 @@ class TapLink;
 }
 namespace ossia
 {
+class time_interval;
 class time_process;
 class graph_node;
 }
@@ -189,6 +190,8 @@ private:
       Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro, double bars,
       bool oneLoop);
   bool hasAddresses() const noexcept;
+  //! The takes are cut in passes, or looped over a number of bars
+  bool inPasses() const noexcept;
   //! Audio or texture inputs among the addresses: they wait for no message
   bool hasStreamAddresses() const noexcept;
   void listenToDevices();
@@ -232,6 +235,16 @@ private:
 
   // The count-in, while the takes wait
   std::shared_ptr<ossia::graph_node> m_countIn;
+public:
+  //! The beats the count-in clicked, while it counts in
+  int countInBeats() const noexcept;
+
+private:
+  //! Every process the takes were placed as, passes included
+  std::vector<QPointer<Process::ProcessModel>> m_placed;
+  int m_countInBeats{};
+  //! The boxes the takes are timed on, ticked while recording even empty
+  std::vector<std::shared_ptr<ossia::time_interval>> m_observed;
   void removeCountIn();
 };
 }

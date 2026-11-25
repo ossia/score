@@ -211,15 +211,17 @@ ApplicationPlugin::selectedAddresses(const score::DocumentContext& ctx) const
 
 RecordSession* ApplicationPlugin::recordAddressesInto(
     Scenario::IntervalModel& box, const std::vector<State::Address>& addresses,
-    AddressPlacement placement, std::optional<QPointF> nodePosition)
+    AddressPlacement placement, std::optional<QPointF> nodePosition,
+    std::optional<RecordOptions> chosen)
 {
   if(m_session)
     return nullptr;
   auto& ctx = score::IDocument::documentContext(box);
   const auto& curves = context.settings<Curve::Settings::Model>();
 
-  RecordOptions options = defaultOptions();
-  options.start = RecordOptions::Start::Now;
+  RecordOptions options = chosen ? *chosen : defaultOptions();
+  if(!chosen)
+    options.start = RecordOptions::Start::Now;
   options.nodePosition = nodePosition;
   auto session = std::make_unique<RecordSession>(ctx, options);
   for(const auto& addr : addresses)

@@ -1,4 +1,5 @@
 #include "RecordPortMenu.hpp"
+#include "RecordMenus.hpp"
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ProcessContext.hpp>
@@ -78,13 +79,11 @@ void RecordPortMenu::setupMenu(
 
   auto sub = menu.addMenu(QObject::tr("Record"));
   sub->setToolTipsVisible(true);
-  {
-    auto act = sub->addAction(QObject::tr("Record now"));
-    QObject::connect(act, &QAction::triggered, plug, [=] { record(plug->defaultOptions()); });
-  }
   // A texture is recorded as a video from when it starts
   if(texture)
   {
+    auto now = sub->addAction(QObject::tr("Record now"));
+    QObject::connect(now, &QAction::triggered, plug, [=] { record(plug->defaultOptions()); });
     auto act = sub->addAction(QObject::tr("Record when playback starts"));
     QObject::connect(act, &QAction::triggered, plug, [=] {
       auto opt = plug->defaultOptions();
@@ -99,108 +98,9 @@ void RecordPortMenu::setupMenu(
     });
     return;
   }
-  {
-    auto act = sub->addAction(QObject::tr("Record from the next bar"));
-    QObject::connect(act, &QAction::triggered, plug, [=] {
-      auto opt = plug->defaultOptions();
-      opt.startRate = 1.;
-      record(opt);
-    });
-  }
-  {
-    auto act = sub->addAction(QObject::tr("Record from the next bar, counting in"));
-    act->setToolTip(QObject::tr("The beats are clicked on the main output until it starts"));
-    QObject::connect(act, &QAction::triggered, plug, [=] {
-      auto opt = plug->defaultOptions();
-      opt.startRate = 1.;
-      opt.countIn = true;
-      record(opt);
-    });
-  }
-  {
-    // A number of bars from the next one: a loop that long
-    auto bars = sub->addMenu(QObject::tr("Record bars from the next bar"));
-    bars->setToolTipsVisible(true);
-    const auto record_bars = [=](int n) {
-      auto opt = plug->defaultOptions();
-      opt.startRate = 1.;
-      opt.lengthBars = n;
-      record(opt);
-    };
-    for(int n : {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 20, 24, 28, 32, 64})
-    {
-      auto act = bars->addAction(
-          n == 1 ? QObject::tr("1 bar") : QObject::tr("%1 bars").arg(n));
-      QObject::connect(act, &QAction::triggered, plug, [=] { record_bars(n); });
-    }
-    bars->addSeparator();
-    {
-      // Any other number
-      auto w = new QWidget{bars};
-      auto lay = new QHBoxLayout{w};
-      lay->setContentsMargins(6, 2, 6, 2);
-      auto spin = new QSpinBox{w};
-      spin->setRange(1, 1024);
-      spin->setValue(16);
-      spin->setSuffix(QObject::tr(" bars"));
-      auto go = new QPushButton{QObject::tr("Record"), w};
-      lay->addWidget(spin);
-      lay->addWidget(go);
-      auto wa = new QWidgetAction{bars};
-      wa->setDefaultWidget(w);
-      bars->addAction(wa);
-      const auto start = [=, &menu] {
-        const int n = spin->value();
-        menu.close();
-        record_bars(n);
-      };
-      QObject::connect(go, &QPushButton::clicked, plug, start);
-      QObject::connect(spin, &QSpinBox::editingFinished, plug, [=] {
-        if(spin->hasFocus())
-          start();
-      });
-    }
-  }
-  // Over and over, a bar at a time: the passes are kept as the user chooses
-  {
-    auto passes = sub->addMenu(QObject::tr("Record passes of one bar"));
-    using P = RecordOptions::Passes;
-    const std::pair<P, QString> kinds[]{
-        {P::Alternatives, QObject::tr("As alternatives, the last one playing")},
-        {P::SideBySide, QObject::tr("Side by side, where they were played")},
-        {P::LastOnly, QObject::tr("Keeping only the last one")}};
-    for(const auto& [kind, text] : kinds)
-    {
-      auto act = passes->addAction(text);
-      QObject::connect(act, &QAction::triggered, plug, [=, kind = kind] {
-        auto opt = plug->defaultOptions();
-        opt.startRate = 1.;
-        opt.lengthBars = 0.;
-        opt.passes = kind;
-        opt.passBars = 1.;
-        record(opt);
-      });
-    }
-  }
-  if(type != Process::PortType::Audio)
-  {
-    auto act = sub->addAction(
-        type == Process::PortType::Midi ? QObject::tr("Record from the first note")
-                                        : QObject::tr("Record from the first value"));
-    QObject::connect(act, &QAction::triggered, plug, [=] {
-      auto opt = plug->defaultOptions();
-      opt.start = RecordOptions::Start::FirstEvent;
-      record(opt);
-    });
-  }
-  {
-    auto act = sub->addAction(QObject::tr("Record when playback starts"));
-    QObject::connect(act, &QAction::triggered, plug, [=] {
-      auto opt = plug->defaultOptions();
-      opt.start = RecordOptions::Start::OnPlay;
-      record(opt);
-    });
-  }
+  addTimingEntries(
+      *sub, menu, *plug, record,
+      {.events = type != Process::PortType::Audio, .notes = type == Process::PortType::Midi});
   // MIDI into the piano rolls of its box
   if(type == Process::PortType::Midi)
   {

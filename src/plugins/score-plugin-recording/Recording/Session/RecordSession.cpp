@@ -97,6 +97,8 @@ struct RecordSession::Source
   QPointer<const Process::Port> port;
   //! Recorded from a port (which can be deleted meanwhile)
   bool fromPort{};
+  //! An address placed as a port's take is (in passes or loops)
+  bool placedAsPort{};
   //! A sound card input: it arrives late, by the latency compensated
   bool hardwareInput{};
   int64_t latencyFrames{};
@@ -250,6 +252,9 @@ RecordSession::RecordSession(const score::DocumentContext& ctx, RecordOptions op
 RecordSession::~RecordSession()
 {
   hideLiveTakes();
+  if(auto* exec = executionOf(m_ctx); exec && exec->isPlaying())
+    for(auto& itv : m_observed)
+      exec->context().executionQueue.enqueue([itv] { itv->remove_observer(); });
   stopListening();
   if(m_running)
   {
@@ -538,7 +543,7 @@ bool RecordSession::start()
       // The takes of addresses start together, at the first value any of
       // them gets (listenToDevices) or with the playback
       s->values->startOnFirstEvent
-          = m_options.start == RecordOptions::Start::FirstEvent && s->port;
+          = m_options.start == RecordOptions::Start::FirstEvent && (s->port || m_intoBox);
     }
     // A texture's frames are taken from when it starts: its clock does not
     // wait for a grid or an event
@@ -564,7 +569,7 @@ bool RecordSession::start()
     m_started = connect(
         exec, &Execution::DocumentPlugin::started, this,
         [this] { createRecorders(true); }, Qt::DirectConnection);
-    if(m_options.start == RecordOptions::Start::FirstEvent && hasAddresses())
+    if(m_options.start == RecordOptions::Start::FirstEvent && hasAddresses() && !m_intoBox)
     {
       // A sound or a camera sends no first message: they start from the point
       if(hasStreamAddresses())
@@ -755,6 +760,12 @@ void RecordSession::createRecorders(bool atStart)
     if(!comp || !comp->OSSIAInterval())
       continue;
     auto clock = comp->OSSIAInterval()->node;
+    // An empty box ticks its node only when something reads it
+    if(auto itv = comp->OSSIAInterval(); !ossia::contains(m_observed, itv))
+    {
+      m_observed.push_back(itv);
+      ectx.executionQueue.enqueue([itv] { itv->add_observer(); });
+    }
 
     s->rate = rate;
     if(s->hardwareInput)
@@ -1158,6 +1169,10 @@ void RecordSession::finish()
   removeCountIn();
   auto* exec = executionOf(m_ctx);
   const bool engine_over = !exec || !exec->isPlaying();
+  if(!engine_over)
+    for(auto& itv : m_observed)
+      exec->context().executionQueue.enqueue([itv] { itv->remove_observer(); });
+  m_observed.clear();
   if(m_latched)
   {
     if(!engine_over)
@@ -1300,6 +1315,13 @@ void RecordSession::warnAboutTiming()
       m_warnings.push_back(
           tr("%1: its file could not be written (%2)").arg(s->prefix, s->file));
   }
+}
+
+bool RecordSession::inPasses() const noexcept
+{
+  return m_options.target == RecordOptions::Target::ThisBox
+         && (m_options.passes != RecordOptions::Passes::One
+             || (m_options.loopFixedLength && m_options.lengthBars > 0.));
 }
 
 bool RecordSession::placePasses(
@@ -1474,9 +1496,11 @@ void RecordSession::place()
 
   for(auto& s : m_sources)
   {
-    // Addresses are placed by placeAddressTakes
-    if(!s->fromPort)
+    // Addresses are placed by placeAddressTakes; their sounds and notes in
+    // passes or loops of bars, as those of ports
+    if(!s->fromPort && !(s->box && (s->audio || s->midi) && inPasses()))
       continue;
+    s->placedAsPort = true;
     Take t;
     t.box = s->box;
     t.midi = bool(s->midi);
@@ -1685,7 +1709,7 @@ void RecordSession::place()
     std::vector<FileTake> files;
     for(auto& s : m_sources)
     {
-      if(s->port)
+      if(s->port || s->placedAsPort)
         continue;
       // A MIDI device: its notes as a MIDI file, in the same box
       if(s->midi)

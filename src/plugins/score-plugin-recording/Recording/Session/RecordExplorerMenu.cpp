@@ -1,4 +1,5 @@
 #include "RecordExplorerMenu.hpp"
+#include "RecordMenus.hpp"
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
@@ -44,24 +45,6 @@ void RecordExplorerMenu::setupMenu(
   }
 
   // Into the box of the document's main node view
-  const QPointer<Scenario::IntervalModel> box = &doc->baseInterval();
-  const std::pair<AddressPlacement, QString> kinds[]{
-      {AddressPlacement::Automations, QObject::tr("Record as automations")},
-      {AddressPlacement::Messages, QObject::tr("Record as messages")}};
-  for(const auto& [placement, text] : kinds)
-  {
-    auto act = sub->addAction(text);
-    act->setToolTip(QObject::tr(
-        "Into the main box of the document, from now: audio inputs as sounds, "
-        "cameras and other video inputs as videos, the other addresses as %1")
-                        .arg(placement == AddressPlacement::Automations
-                                 ? QObject::tr("automations")
-                                 : QObject::tr("messages")));
-    QObject::connect(
-        act, &QAction::triggered, plug, [plug, box, addresses, placement = placement] {
-      if(box)
-        plug->recordAddressesInto(*box, addresses, placement);
-    });
-  }
+  addAddressEntries(*sub, menu, *plug, doc->baseInterval(), addresses, {}, ctx);
 }
 }

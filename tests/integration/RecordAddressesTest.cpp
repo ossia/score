@@ -929,3 +929,61 @@ TEST_CASE("A MIDI device of the explorer is recorded as notes", "[recording][add
     CHECK(midi->notes.begin()->pitch() == 60);
   });
 }
+
+TEST_CASE("Addresses recorded for a number of bars loop as a port's take does", "[recording][addresses][bars]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* audio = plug.list().audioDevice();
+    REQUIRE(audio);
+    const State::Address out{audio->name(), {"out", "main"}};
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    bool steady = false;
+    for(int i = 0; i < 5 && !steady; i++)
+    {
+      if(!exec.isPlaying())
+        engine.execution().request_play_global(true);
+      spin(1500);
+      steady = exec.isPlaying();
+    }
+    REQUIRE(steady);
+
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto opt = rec.defaultOptions();
+    opt.startRate = 1.;
+    opt.lengthBars = 1.;
+    opt.loopFixedLength = true;
+    opt.target = Recording::RecordOptions::Target::ThisBox;
+    auto* session = rec.recordAddressesInto(
+        *box, {out}, Recording::AddressPlacement::Automations, {}, opt);
+    REQUIRE(session);
+    bool finished = false;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] { finished = true; });
+    // A bar is 2 s at 120: it ends by itself
+    for(int i = 0; i < 16 && !finished; i++)
+    {
+      spin(500);
+    }
+    REQUIRE(finished);
+    engine.execution().request_stop();
+    spin(300);
+    Process::ProcessModel* sound{};
+    for(auto& p : box->processes)
+      if(p.concreteKey() == Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get())
+        sound = &p;
+    REQUIRE(sound);
+    CHECK(sound->loops());
+    CHECK(sound->loopDuration().impl == int64_t(4 * 352800000LL));
+  });
+}

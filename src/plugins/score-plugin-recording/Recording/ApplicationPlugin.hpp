@@ -55,7 +55,8 @@ public:
   //! Starts a session on these addresses, recorded into `box` from now
   RecordSession* recordAddressesInto(
       Scenario::IntervalModel& box, const std::vector<State::Address>& addresses,
-      AddressPlacement placement, std::optional<QPointF> nodePosition = {});
+      AddressPlacement placement, std::optional<QPointF> nodePosition = {},
+      std::optional<RecordOptions> options = {});
   //! The addresses selected in the explorer of a document
   std::vector<State::Address> selectedAddresses(const score::DocumentContext& ctx) const;
   //! Starts a session on these addresses, placed in a new box at `pt`
