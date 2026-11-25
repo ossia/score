@@ -10,6 +10,7 @@
 
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
+#include <Effect/EffectLayer.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortVisibility.hpp>
 #include <Process/DocumentPlugin.hpp>
@@ -178,7 +179,7 @@ struct DropFixture
     // "Port destroyed before its item" assert fires.
     QObject::connect(
         &p, &IdentifiedObjectAbstract::identified_object_destroying, &p,
-        [item] { delete item; });
+        [item = QPointer<Process::NodeItem>{item}] { delete item.data(); });
 
     QCoreApplication::processEvents();
     return item;
@@ -201,6 +202,35 @@ struct DropFixture
 
     // Normally gone with its process by now; only left over if the drop
     // decided not to replace anything.
+    delete item.data();
+  }
+
+  //! Drop `dragged`, held by its folder icon, onto `on`: what
+  //! EffectLayer's drag puts in the mime data.
+  //! `pathOf` stands for a process with the same identifiers as `dragged`,
+  //! as two documents opened from one file have.
+  void dropNode(
+      Process::ProcessModel& on, const Process::ProcessModel& dragged,
+      const Process::ProcessModel* pathOf = nullptr)
+  {
+    QByteArray data;
+    {
+      JSONReader r;
+      r.stream.StartObject();
+      Process::copyProcess(r, dragged);
+      r.obj["Path"] = score::IDocument::path(pathOf ? *pathOf : dragged);
+      r.stream.EndObject();
+      data = r.toByteArray();
+    }
+    QPointer<Process::NodeItem> item = nodeFor(on);
+    auto& sm = static_cast<Scenario::ScenarioDocumentModel&>(doc.model().modelDelegate());
+
+    Scenario::DropOnNode dropper{*item, sm, pctx};
+    QMimeData mime;
+    mime.setData(score::mime::layerdata(), data);
+    dropper.drop(mime);
+
+    QCoreApplication::processEvents();
     delete item.data();
   }
 
@@ -284,5 +314,70 @@ TEST_CASE(
     auto* replacement = fx.replacementOf(old);
     REQUIRE(replacement != nullptr);
     CHECK(replacement->foldMode() == Process::FoldMode::Auto);
+  });
+}
+
+TEST_CASE(
+    "A node dragged onto another replaces it with a copy, in its own document only",
+    "[integration][drop][node]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    score::Document* doc = score::test::new_document(ctx);
+    REQUIRE(doc != nullptr);
+    auto& interval = base_interval(*doc);
+    auto& dragged = add_lfo(*doc, interval);
+    const auto draggedId = dragged.id();
+    {
+      CommandDispatcher<> disp{doc->context().commandStack};
+      disp.submit<Scenario::Command::AddOnlyProcessToInterval>(
+          interval, lfo_key, QString{}, QPointF{300., 200.});
+    }
+    Process::ProcessModel* target{};
+    for(auto& p : interval.processes)
+      if(p.concreteKey() == lfo_key && p.id() != draggedId)
+        target = &p;
+    REQUIRE(target);
+    const auto targetId = target->id();
+    const auto targetPos = target->position();
+    dragged.metadata().setName("dragged");
+    const auto count = interval.processes.size();
+
+    {
+      DropFixture fx{*doc, interval};
+      fx.dropNode(*target, dragged);
+    }
+
+    // The target is gone, a copy of the dragged node stands where it was, and
+    // the dragged node is still there
+    CHECK(interval.processes.size() == count);
+    CHECK(interval.processes.find(targetId) == interval.processes.end());
+    REQUIRE(interval.processes.find(draggedId) != interval.processes.end());
+    Process::ProcessModel* copy{};
+    for(auto& p : interval.processes)
+      if(p.concreteKey() == lfo_key && p.id() != draggedId)
+        copy = &p;
+    REQUIRE(copy);
+    CHECK(copy->position() == targetPos);
+
+    // One step to undo
+    doc->commandStack().undo();
+    CHECK(interval.processes.find(targetId) != interval.processes.end());
+    CHECK(interval.processes.size() == count);
+
+    // Dragged from another document: its path means nothing here, even when a
+    // process sits at the same path. Nothing is replaced.
+    score::Document* other = score::test::new_document(ctx);
+    REQUIRE(other != nullptr);
+    auto& otherInterval = base_interval(*other);
+    auto& otherDragged = add_lfo(*other, otherInterval);
+    auto& there = *interval.processes.find(targetId);
+    const int index = doc->commandStack().currentIndex();
+    {
+      DropFixture fx{*doc, interval};
+      fx.dropNode(there, otherDragged, &*interval.processes.find(draggedId));
+    }
+    CHECK(doc->commandStack().currentIndex() == index);
+    CHECK(interval.processes.find(targetId) != interval.processes.end());
+    CHECK(interval.processes.size() == count);
   });
 }

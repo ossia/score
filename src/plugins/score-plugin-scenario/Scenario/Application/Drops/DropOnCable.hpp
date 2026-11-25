@@ -13,6 +13,7 @@
 #include <Library/Snippet.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Scenario/PasteAnchors.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessCreation.hpp>
 #include <Scenario/Library/Snippets.hpp>
@@ -215,6 +216,31 @@ public:
   // brings: the port-count heuristic is only meant to decide for a node nobody
   // has an opinion about yet. One-directional -- a folded node does not force
   // the replacement folded, that is still left to the heuristic.
+  //! A node dragged by its folder icon onto this one: a copy of it takes its
+  //! place, with its cables
+  void replaceWithCopy(const rapidjson::Document& json)
+  {
+    if(!item || !m_interval || !json.IsObject() || !json.HasMember("Path"))
+      return;
+    // The path is only meaningful in the document it was dragged from
+    if(!Scenario::copiedFromHere(json, m_context))
+      return;
+    ObjectPath path;
+    path <<= JsonValue{json["Path"]};
+    auto* src = path.try_find<Process::ProcessModel>(m_context);
+    auto& old = item->model();
+    if(!src || src == &old)
+      return;
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, m_context};
+    auto& p = m.duplicateProcess(*m_interval, *src);
+    m.setProperty<Process::ProcessModel::p_position>(p, old.position());
+    linkNewProcess(&p, m);
+    keepUnfolded(&p, m);
+    m.removeProcess(*m_interval, old.id());
+    m.commit();
+  }
+
   void keepUnfolded(Process::ProcessModel* p, Scenario::Command::Macro& m)
   {
     if(!item)
@@ -414,7 +440,11 @@ public:
 
     if(mime.hasFormat(score::mime::layerdata()))
     {
-      // TODO
+      // The mime data is gone once the drop returns: read now, done after
+      auto json = std::make_shared<rapidjson::Document>(
+          readJson(mime.data(score::mime::layerdata())));
+      QMetaObject::invokeMethod(this, [json, this]() { replaceWithCopy(*json); },
+                                Qt::QueuedConnection);
     }
     else if(mime.hasFormat(score::mime::processpreset()))
     {
