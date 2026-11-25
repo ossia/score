@@ -418,7 +418,8 @@ struct MultiWindowRig
 
   bool build(
       score::gfx::GraphicsApi api, std::vector<Gfx::OutputMapping> mappings,
-      const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"))
+      const QString& shader = QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+      QSize canvasSize = QSize{1280, 720})
   {
     m_backend = backend_name(api);
 
@@ -462,8 +463,9 @@ struct MultiWindowRig
     node = std::make_unique<score::gfx::MultiWindowNode>(
         score::gfx::OutputNode::Configuration{
             .manualRenderingRate = 1000. / 60., .supportsVSync = false},
-        mappings);
+        mappings, canvasSize);
     node->nodeId = 2;
+    node->setReadbackSupport(true);
     node->onFps = [this](float f) { ++fpsCount; };
     node->onWindowsCreated = [this] { ++windowsCreatedCount; };
 

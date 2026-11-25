@@ -378,7 +378,9 @@ private:
                      .arg(load.avg(), 0, 'f', 1)
                      .arg(load.max(), 0, 'f', 1);
     if(!cpu.empty())
-      summary << tr("Frame: render CPU %1 ms").arg(cpu.avg() / 1e6, 0, 'f', 3);
+      summary << tr("Frame: %1 fps, render CPU %2 ms")
+                     .arg(m_profiler.framesPerSecond(), 0, 'f', 1)
+                     .arg(cpu.avg() / 1e6, 0, 'f', 3);
     if(!gpu.empty())
       summary << tr("GPU %1 ms avg, %2 ms max")
                      .arg(gpu.avg() / 1e6, 0, 'f', 3)

@@ -241,12 +241,43 @@ TEST_CASE("MultiWindowNode render size recreates the offscreen target",
   CHECK(afterSame == QSize{640, 360});
 }
 
+TEST_CASE("MultiWindowNode renders at the canvas size it is given",
+          "[gfx][window][multiwindow]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+
+  Outcome o;
+  QSize given;
+
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    MultiWindowRig rig;
+    if(!rig.build(
+           api, two_up(), QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+           QSize{2048, 768}))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    rig.render(2);
+    given = rig.node->offscreenTarget().texture->pixelSize();
+  });
+
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+
+  INFO("backend: " << o.backend);
+  CHECK(given == QSize{2048, 768});
+}
+
 TEST_CASE("MultiWindowNode window close and re-expose", "[gfx][window][multiwindow]")
 {
   const auto api = GENERATE(from_range(platform_backends()));
 
   Outcome o;
   bool otherStillReady{}, closedReleased{}, reacquired{};
+  bool inhibitedShown{}, releasedOnClose{}, otherInhibited{}, inhibitedAgain{};
 
   run_in_gui_app([&](const score::GUIApplicationContext&) {
     MultiWindowRig rig;
@@ -259,12 +290,16 @@ TEST_CASE("MultiWindowNode window close and re-expose", "[gfx][window][multiwind
     rig.render(3);
 
     auto* w0 = rig.node->windowOutputs()[0].window.get();
+    auto* w1 = rig.node->windowOutputs()[1].window.get();
+    inhibitedShown = w0->inhibitsIdle() && w1->inhibitsIdle();
     QCloseEvent close;
     QCoreApplication::sendEvent(w0, &close);
     pump_for(150);
 
     closedReleased = !rig.node->windowOutputs()[0].hasSwapChain;
     otherStillReady = rig.node->windowOutputs()[1].hasSwapChain;
+    releasedOnClose = !w0->inhibitsIdle();
+    otherInhibited = w1->inhibitsIdle();
     // Rendering with one window down must keep serving the other.
     rig.render(3);
 
@@ -272,6 +307,7 @@ TEST_CASE("MultiWindowNode window close and re-expose", "[gfx][window][multiwind
     pump_until([&] { return rig.node->windowOutputs()[0].hasSwapChain; }, 5000);
     rig.render(3);
     reacquired = rig.node->windowOutputs()[0].hasSwapChain;
+    inhibitedAgain = w0->inhibitsIdle();
   });
 
   if(o.skipped)
@@ -284,6 +320,11 @@ TEST_CASE("MultiWindowNode window close and re-expose", "[gfx][window][multiwind
   // down with it.
   CHECK(otherStillReady);
   CHECK(reacquired);
+  // The screen saver stays off while an output window is up, and only then.
+  CHECK(inhibitedShown);
+  CHECK(releasedOnClose);
+  CHECK(otherInhibited);
+  CHECK(inhibitedAgain);
 }
 
 TEST_CASE("MultiWindowNode renders black without a graph", "[gfx][window][multiwindow]")
@@ -364,11 +405,11 @@ TEST_CASE("MultiWindowNode swapchain flag and format rebuild",
     node.setSwapchainFormat(Gfx::SwapchainFormat::HDR10);
     afterFormat = bool(node.renderState());
 
-    // Coming back must honour both: the offscreen target is then RGBA32F
+    // Coming back must honour both: the offscreen target is then RGBA16F
     // rather than RGBA8, and every swapchain carries the sRGB flag.
     node.createOutput({.graphicsApi = api, .onReady = [] {}, .onResize = [] {}});
     rebuilt = node.canRender()
-              && node.offscreenTarget().texture->format() == QRhiTexture::RGBA32F;
+              && node.offscreenTarget().texture->format() == QRhiTexture::RGBA16F;
     node.destroyOutput();
   });
 

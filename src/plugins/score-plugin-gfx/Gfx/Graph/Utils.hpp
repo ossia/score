@@ -94,13 +94,13 @@ struct OffscreenFrame
            || m_endResult == QRhi::FrameOpDeviceLost;
   }
 
-  QRhi::FrameOpResult end() noexcept
+  QRhi::FrameOpResult end(QRhi::EndFrameFlags flags = {}) noexcept
   {
     if(auto* rhi = m_rhi)
     {
       m_rhi = nullptr;
       m_commands = nullptr;
-      m_endResult = rhi->endOffscreenFrame();
+      m_endResult = rhi->endOffscreenFrame(flags);
     }
     return m_endResult;
   }

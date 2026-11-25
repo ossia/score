@@ -106,6 +106,11 @@ inline void prepare_test_environment(bool headless)
   if(!qEnvironmentVariableIsSet("SCORE_AUDIO_BACKEND"))
     qputenv("SCORE_AUDIO_BACKEND", "dummy");
 
+  // Window and readback sizes in the tests are device pixels: a HiDPI
+  // desktop would otherwise double them.
+  if(!qEnvironmentVariableIsSet("QT_ENABLE_HIGHDPI_SCALING"))
+    qputenv("QT_ENABLE_HIGHDPI_SCALING", "0");
+
   // Every document opens the local OSC / WebSocket device, on 6666 / 9999 by
   // default: the ports of the developer's own session. Port 0 has the system
   // pick free ones, also for the score processes a test spawns.

@@ -34,6 +34,11 @@ struct FrameTiming
   //! Which output rendered the frame.
   const void* list{};
   int64_t frame{};
+  //! steady_clock time the frame started, for the frame rate.
+  int64_t time_ns{};
+  //! Node times measured outside a render list's frame (an output's own
+  //! passes): no frame totals, the nodes only.
+  bool nodesOnly{};
   int64_t cpu_ns{};
   int64_t gpu_ns{-1};
   std::vector<NodeTiming> nodes;

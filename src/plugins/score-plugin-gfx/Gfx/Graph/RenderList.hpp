@@ -442,6 +442,7 @@ public:
   void setAssetTable(Gfx::AssetTable* t) noexcept { m_assetTable = t; }
 
   void setNodeProfiler(NodeProfiler* p) noexcept { m_nodeProfiler = p; }
+  NodeProfiler* nodeProfiler() const noexcept { return m_nodeProfiler; }
 
   /**
    * @brief A quad mesh correct for this API

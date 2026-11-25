@@ -103,6 +103,10 @@ struct RenderFrameReport
   };
   const void* output{};
   int64_t frame{};
+  //! steady_clock time the frame started.
+  int64_t timeNs{};
+  //! Only node times (an output's own passes), no frame of its own.
+  bool nodesOnly{};
   int64_t cpuNs{};
   int64_t gpuNs{-1};
   std::vector<Node> nodes;
@@ -209,6 +213,12 @@ public:
   const ProfilerSeries& audioLoad() const noexcept { return m_audioLoad; }
   const ProfilerSeries& frameGpuNs() const noexcept { return m_frameGpu; }
   const ProfilerSeries& frameCpuNs() const noexcept { return m_frameCpu; }
+  //! Frames per second of the fastest output over its last frames, among those
+  //! that rendered in the last second; 0 when unknown.
+  double framesPerSecond() const noexcept;
+  //! The same at steady_clock time `nowNs`.
+  double framesPerSecond(int64_t nowNs) const noexcept;
+  static constexpr int64_t frameTimeoutNs = 1'000'000'000;
 
   //! An audio tick longer than this percentage of its duration is kept as a
   //! spike; 0 disables.
@@ -239,6 +249,7 @@ private:
   std::deque<float> m_audioHistory, m_gpuHistory, m_cpuHistory;
   ProfilerSeries m_audioTick, m_audioLoad, m_frameGpu, m_frameCpu;
   std::shared_ptr<std::atomic<double>> m_audioSpikeFraction;
+  ossia::hash_map<const void*, std::deque<int64_t>> m_frameTimes;
   double m_renderSpikeMs{};
   QElapsedTimer m_clock;
   qint64 m_lastLabels{-1};

@@ -5,6 +5,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include <Gfx/Window/CalibrationSet.hpp>
 #include <Gfx/Window/CollapsibleSection.hpp>
 #include <Gfx/Window/DesktopLayout.hpp>
 #include <Gfx/Window/OutputMapping.hpp>
@@ -13,8 +14,10 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/ProjectFiles.hpp>
 
 #include <QApplication>
+#include <QFileDialog>
 #include <QSplitter>
 
 #include <wobjectimpl.h>
@@ -23,6 +26,15 @@ W_OBJECT_IMPL(Gfx::FlatHeaderButton)
 W_OBJECT_IMPL(Gfx::CollapsibleSection)
 namespace Gfx
 {
+namespace
+{
+//! Whether `s` shows `v` as setValue(v) would: rounded to its decimals, clamped.
+bool showsValue(const QDoubleSpinBox& s, double v)
+{
+  const double r = QString::number(v, 'f', s.decimals()).toDouble();
+  return s.value() == std::clamp(r, s.minimum(), s.maximum());
+}
+}
 
 WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -184,6 +196,20 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
       m_outputButtonsLayout->setSpacing(2);
       m_outputButtonsLayout->addStretch(1);
       outputsLayout->addWidget(buttonsWidget);
+
+      auto* loadSetBtn = new QPushButton(tr("Load calibration set..."));
+      loadSetBtn->setToolTip(
+          tr("Pick name.json: output 1 gets name, output 2 name_p1, output 3 name_p2..."));
+      outputsLayout->addWidget(loadSetBtn);
+      m_calibrationSetStatus = new QLabel;
+      m_calibrationSetStatus->setWordWrap(true);
+      outputsLayout->addWidget(m_calibrationSetStatus);
+      connect(loadSetBtn, &QPushButton::clicked, this, [this] {
+        const QString f = QFileDialog::getOpenFileName(
+            this, tr("Calibration set"), {}, tr("Calibrations (*.json);;All files (*)"));
+        if(!f.isEmpty())
+          assignCalibrationSet(f);
+      });
 
       connect(addBtn, &QPushButton::clicked, this, [this] {
         m_canvas->addOutput();
@@ -394,6 +420,186 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
       outputSectionsLayout->addWidget(section);
     }
 
+    // -- Section: Calibration maps (collapsed) --
+    {
+      auto* section = new CollapsibleSection(tr("Calibration Maps"));
+      auto* mapsLayout = new QFormLayout;
+
+      auto makeFileRow = [&](const QString& label, const QString& tooltip,
+                             const QString& filter, QLineEdit*& edit) {
+        edit = new QLineEdit;
+        edit->setToolTip(tooltip);
+        auto* browse = new QPushButton(tr("..."));
+        browse->setMaximumWidth(30);
+        auto* row = new QHBoxLayout;
+        row->addWidget(edit, 1);
+        row->addWidget(browse);
+        mapsLayout->addRow(label, row);
+        connect(browse, &QPushButton::clicked, this, [this, e = edit, filter] {
+          const QString f = QFileDialog::getOpenFileName(
+              this, tr("Calibration map"), score::locateFilePath(e->text(), pathRoots()),
+              filter + QStringLiteral(";;") + tr("All files (*)"));
+          if(!f.isEmpty())
+          {
+            e->setText(f);
+            Q_EMIT e->editingFinished();
+          }
+        });
+      };
+
+      {
+        m_calibrationEdit = new QLineEdit;
+        m_calibrationEdit->setToolTip(
+            tr("A calibration (name.json of Structured Light Calibration, Projector "
+               "Blend Maps or Manual Projector Calibration): fills the maps below that "
+               "exist for that name, and follows them when they are written again"));
+        auto* browse = new QPushButton(tr("..."));
+        browse->setMaximumWidth(30);
+        auto* row = new QHBoxLayout;
+        row->addWidget(m_calibrationEdit, 1);
+        row->addWidget(browse);
+        mapsLayout->addRow(tr("Calibration"), row);
+        connect(browse, &QPushButton::clicked, this, [this] {
+          const QString f = QFileDialog::getOpenFileName(
+              this, tr("Calibration"),
+              score::locateFilePath(m_calibrationEdit->text(), pathRoots()),
+              tr("Calibrations (*.json);;All files (*)"));
+          if(!f.isEmpty())
+            assignCalibration(m_selectedOutput, f);
+        });
+        connect(m_calibrationEdit, &QLineEdit::editingFinished, this, [this] {
+          assignCalibration(m_selectedOutput, m_calibrationEdit->text());
+        });
+      }
+
+      const QString imageMaps
+          = tr("Maps (*.pfm *.png *.tif *.tiff *.exr *.data *.mpcdi)");
+      makeFileRow(
+          tr("UV warp"),
+          tr("UV lookup map, in output pixels: xy = source UV (v down), w = valid. "
+             "Rotation, mirror and corner warp then move the UV it gives."),
+          imageMaps, m_warpMapEdit);
+      makeFileRow(
+          tr("Alpha"), tr("Blend weight map (RGB, a grey map applies to all three), in output pixels"),
+          imageMaps, m_alphaMapEdit);
+      makeFileRow(
+          tr("Beta"), tr("Black level map (RGB, a grey map applies to all three), added after the alpha"),
+          imageMaps, m_betaMapEdit);
+      makeFileRow(
+          tr("Colour LUT"),
+          tr("3D or 1D lookup table (.cube, Adobe Cube LUT 1.0), applied last"),
+          tr("Cube LUTs (*.cube)"), m_lutEdit);
+      makeFileRow(
+          tr("Response"),
+          tr("Measured projector response (.response.json or 1D .cube): blending runs "
+             "in linear light, and its inverse encodes back to projector codes"),
+          tr("Projector responses (*.response.json *.cube *.json)"), m_responseEdit);
+      makeFileRow(
+          tr("Compensation"),
+          tr("Radiometric compensation of the surface colour (.comp.json), applied to "
+             "the linear content before the alpha"),
+          tr("Compensations (*.comp.json *.json)"), m_compensationEdit);
+
+      m_blendSpaceCombo = new QComboBox;
+      m_blendSpaceCombo->addItems({tr("Auto"), tr("Linear light"), tr("Signal")});
+      m_blendSpaceCombo->setToolTip(
+          tr("Space the alpha and beta maps apply in (out = content * alpha + beta). "
+             "Auto: linear light for float maps (PFM, EXR) and an MPCDI alpha, decoded "
+             "with its embedded gamma; signal (gamma-encoded values, as media servers "
+             "blend) for 8 and 16-bit images such as PNG masks. The edge ramps follow "
+             "Blend in linear light instead."));
+      mapsLayout->addRow(tr("Blend map space"), m_blendSpaceCombo);
+
+      m_mapsStatus = new QLabel;
+      m_mapsStatus->setWordWrap(true);
+      m_mapsStatus->setTextInteractionFlags(Qt::TextSelectableByMouse);
+      mapsLayout->addRow(m_mapsStatus);
+
+      section->setContentLayout(mapsLayout);
+      section->setExpanded(false);
+      outputSectionsLayout->addWidget(section);
+    }
+
+    // -- Section: Colour (collapsed) --
+    {
+      auto* section = new CollapsibleSection(tr("Color"));
+      auto* colorLayout = new QFormLayout;
+
+      auto makeRgbRow = [&](const QString& label, QDoubleSpinBox* (&spins)[3],
+                            double min, double max, double init) {
+        auto* row = new QHBoxLayout;
+        const char* names[3] = {"R", "G", "B"};
+        for(int c = 0; c < 3; c++)
+        {
+          spins[c] = new QDoubleSpinBox;
+          spins[c]->setRange(min, max);
+          spins[c]->setSingleStep(0.01);
+          spins[c]->setDecimals(3);
+          spins[c]->setValue(init);
+          row->addWidget(new QLabel(QString::fromLatin1(names[c])));
+          row->addWidget(spins[c]);
+        }
+        row->addStretch(1);
+        colorLayout->addRow(label, row);
+      };
+      makeRgbRow(tr("Gain"), m_gain, 0., 16., 1.);
+      makeRgbRow(tr("Offset"), m_offset, -4., 4., 0.);
+
+      m_gamma = new QDoubleSpinBox;
+      m_gamma->setRange(0.01, 10.0);
+      m_gamma->setSingleStep(0.05);
+      m_gamma->setDecimals(3);
+      m_gamma->setValue(1.0);
+      m_gamma->setToolTip(tr("Applied last: out = pow(c, 1 / gamma)"));
+      colorLayout->addRow(tr("Gamma"), m_gamma);
+
+      m_linearBlendCheck = new QCheckBox;
+      m_linearBlendCheck->setToolTip(
+          tr("Apply the edge blend ramps in linear light (the alpha and beta maps "
+             "follow Blend map space)"));
+      colorLayout->addRow(tr("Blend in linear light"), m_linearBlendCheck);
+
+      section->setContentLayout(colorLayout);
+      section->setExpanded(false);
+      outputSectionsLayout->addWidget(section);
+    }
+
+    // -- Section: Quality (collapsed) --
+    {
+      auto* section = new CollapsibleSection(tr("Quality"));
+      auto* qualityLayout = new QFormLayout;
+
+      m_samplingCombo = new QComboBox;
+      m_samplingCombo->addItems(
+          {tr("Auto"), tr("Linear"), tr("Mipmapped"), tr("Anisotropic")});
+      m_samplingCombo->setToolTip(
+          tr("How the output reads the canvas. Auto: anisotropic where a warp map "
+             "shrinks the canvas onto the output, linear otherwise (a corner warp "
+             "included)"));
+      qualityLayout->addRow(tr("Sampling"), m_samplingCombo);
+
+      m_maxAnisotropy = new QSpinBox;
+      m_maxAnisotropy->setRange(1, 16);
+      m_maxAnisotropy->setValue(8);
+      qualityLayout->addRow(tr("Max anisotropy"), m_maxAnisotropy);
+
+      m_warpInterpCombo = new QComboBox;
+      m_warpInterpCombo->addItems({tr("Bilinear"), tr("Bicubic (Catmull-Rom)")});
+      m_warpInterpCombo->setCurrentIndex(1);
+      qualityLayout->addRow(tr("Warp map interpolation"), m_warpInterpCombo);
+
+      m_ditherCombo = new QComboBox;
+      m_ditherCombo->addItems({tr("Auto"), tr("Off"), tr("On")});
+      m_ditherCombo->setToolTip(
+          tr("Blue-noise dither before quantization to the output's bit depth. "
+             "Auto: on when a calibration map, a LUT or the colour stage is active"));
+      qualityLayout->addRow(tr("Dither"), m_ditherCombo);
+
+      section->setContentLayout(qualityLayout);
+      section->setExpanded(false);
+      outputSectionsLayout->addWidget(section);
+    }
+
     inspectorLayout->addWidget(m_outputSectionsContainer);
     inspectorLayout->addStretch(1);
     scrollArea->setWidget(m_inspectorPanel);
@@ -584,6 +790,22 @@ WindowSettingsWidget::WindowSettingsWidget(QWidget* parent)
         applyProps);
     connect(m_mirrorXCheck, &QCheckBox::toggled, this, applyProps);
     connect(m_mirrorYCheck, &QCheckBox::toggled, this, applyProps);
+    for(auto* e : {m_warpMapEdit, m_alphaMapEdit, m_betaMapEdit, m_lutEdit, m_responseEdit,
+                   m_compensationEdit})
+      connect(e, &QLineEdit::editingFinished, this, applyProps);
+    for(auto* c : {m_samplingCombo, m_warpInterpCombo, m_ditherCombo, m_blendSpaceCombo})
+      connect(c, qOverload<int>(&QComboBox::currentIndexChanged), this, applyProps);
+    connect(m_maxAnisotropy, qOverload<int>(&QSpinBox::valueChanged), this, applyProps);
+    for(int c = 0; c < 3; c++)
+    {
+      connect(
+          m_gain[c], qOverload<double>(&QDoubleSpinBox::valueChanged), this, applyProps);
+      connect(
+          m_offset[c], qOverload<double>(&QDoubleSpinBox::valueChanged), this,
+          applyProps);
+    }
+    connect(m_gamma, qOverload<double>(&QDoubleSpinBox::valueChanged), this, applyProps);
+    connect(m_linearBlendCheck, &QCheckBox::toggled, this, applyProps);
 
     // Wire source rect spinboxes to update canvas item geometry
     auto applySrc = [this] { applySourceRectToSelection(); };
@@ -783,6 +1005,51 @@ void WindowSettingsWidget::updatePropertiesFromSelection()
           m_mirrorYCheck->setChecked(mi->mirrorY);
         }
 
+        {
+          const QSignalBlocker b22(m_warpMapEdit);
+          const QSignalBlocker b23(m_alphaMapEdit);
+          const QSignalBlocker b24(m_betaMapEdit);
+          m_warpMapEdit->setText(mi->maps.warp);
+          m_alphaMapEdit->setText(mi->maps.alpha);
+          m_betaMapEdit->setText(mi->maps.beta);
+          const QSignalBlocker b25(m_lutEdit);
+          m_lutEdit->setText(mi->maps.lut);
+          const QSignalBlocker b26(m_responseEdit);
+          m_responseEdit->setText(mi->maps.response);
+          const QSignalBlocker b27(m_compensationEdit);
+          m_compensationEdit->setText(mi->maps.compensation);
+          const QSignalBlocker b28(m_calibrationEdit);
+          m_calibrationEdit->setText(mi->maps.calibration);
+          const QSignalBlocker b29(m_blendSpaceCombo);
+          m_blendSpaceCombo->setCurrentIndex(int(mi->maps.blendSpace));
+          updateMapsStatus(mi->maps);
+        }
+
+        {
+          const QSignalBlocker q1(m_samplingCombo);
+          const QSignalBlocker q2(m_warpInterpCombo);
+          const QSignalBlocker q3(m_ditherCombo);
+          const QSignalBlocker q4(m_maxAnisotropy);
+          m_samplingCombo->setCurrentIndex(int(mi->quality.sampling));
+          m_warpInterpCombo->setCurrentIndex(int(mi->quality.warpInterpolation));
+          m_ditherCombo->setCurrentIndex(int(mi->quality.dither));
+          m_maxAnisotropy->setValue(mi->quality.maxAnisotropy);
+        }
+
+        {
+          for(int c = 0; c < 3; c++)
+          {
+            const QSignalBlocker bg(m_gain[c]);
+            const QSignalBlocker bo(m_offset[c]);
+            m_gain[c]->setValue(mi->color.gain[c]);
+            m_offset[c]->setValue(mi->color.offset[c]);
+          }
+          const QSignalBlocker bgm(m_gamma);
+          const QSignalBlocker bl(m_linearBlendCheck);
+          m_gamma->setValue(mi->color.gamma);
+          m_linearBlendCheck->setChecked(mi->color.linearBlend);
+        }
+
         updatePixelLabels();
         return;
       }
@@ -881,12 +1148,122 @@ void WindowSettingsWidget::applyPropertiesToSelection()
         mi->rotation = m_rotationCombo->currentIndex() * 90;
         mi->mirrorX = m_mirrorXCheck->isChecked();
         mi->mirrorY = m_mirrorYCheck->isChecked();
+        mi->maps.warp = m_warpMapEdit->text();
+        mi->maps.alpha = m_alphaMapEdit->text();
+        mi->maps.beta = m_betaMapEdit->text();
+        mi->maps.lut = m_lutEdit->text();
+        mi->maps.response = m_responseEdit->text();
+        mi->maps.compensation = m_compensationEdit->text();
+        mi->maps.blendSpace = Gfx::BlendMapSpace(m_blendSpaceCombo->currentIndex());
+        mi->maps = relativizedMaps(mi->maps, pathRoots());
+        updateMapsStatus(mi->maps);
+        mi->quality.sampling = Gfx::OutputSampling(m_samplingCombo->currentIndex());
+        mi->quality.warpInterpolation
+            = Gfx::WarpInterpolation(m_warpInterpCombo->currentIndex());
+        mi->quality.dither = Gfx::OutputDither(m_ditherCombo->currentIndex());
+        mi->quality.maxAnisotropy = m_maxAnisotropy->value();
+        auto edited = [](const QDoubleSpinBox* s, float& v) {
+          if(!showsValue(*s, v))
+            v = (float)s->value();
+        };
+        for(int c = 0; c < 3; c++)
+        {
+          edited(m_gain[c], mi->color.gain[c]);
+          edited(m_offset[c], mi->color.offset[c]);
+        }
+        edited(m_gamma, mi->color.gamma);
+        mi->color.linearBlend = m_linearBlendCheck->isChecked();
         mi->update(); // Repaint to show blend zones
         // NOTE: caller is responsible for calling syncPreview with the correct flag
         return;
       }
     }
   }
+}
+
+bool WindowSettingsWidget::assignCalibration(int outputIndex, const QString& path)
+{
+  if(!m_canvas)
+    return false;
+  for(auto* item : m_canvas->scene()->items())
+  {
+    if(auto* mi = dynamic_cast<OutputMappingItem*>(item);
+       mi && mi->outputIndex() == outputIndex)
+    {
+      const auto roots = pathRoots();
+      auto maps = locatedMaps(mi->maps, roots);
+      applyCalibration(maps, path.isEmpty() ? path : score::locateFilePath(path, roots));
+      mi->maps = relativizedMaps(maps, roots);
+      if(outputIndex == m_selectedOutput)
+        updatePropertiesFromSelection();
+      return true;
+    }
+  }
+  return false;
+}
+
+int WindowSettingsWidget::assignCalibrationSet(const QString& path)
+{
+  if(!m_canvas)
+    return 0;
+  std::vector<OutputMappingItem*> items;
+  for(auto* item : m_canvas->scene()->items())
+    if(auto* mi = dynamic_cast<OutputMappingItem*>(item))
+      items.push_back(mi);
+  std::sort(items.begin(), items.end(), [](auto* a, auto* b) {
+    return a->outputIndex() < b->outputIndex();
+  });
+
+  const auto roots = pathRoots();
+  const QString base = calibrationSetBase(score::locateFilePath(path, roots));
+  int assigned = 0;
+  QStringList missing;
+  for(int k = 0; k < (int)items.size(); k++)
+  {
+    const QString name = calibrationSetName(base, k);
+    if(!calibrationExists(name))
+    {
+      missing.push_back(QFileInfo{name}.fileName());
+      continue;
+    }
+    auto maps = locatedMaps(items[k]->maps, roots);
+    applyCalibration(maps, name);
+    items[k]->maps = relativizedMaps(maps, roots);
+    assigned++;
+  }
+  updatePropertiesFromSelection();
+  if(m_calibrationSetStatus)
+  {
+    QString msg = tr("%1 of %2 outputs assigned").arg(assigned).arg(items.size());
+    if(!missing.isEmpty())
+      msg += tr("; not found: %1").arg(missing.join(QStringLiteral(", ")));
+    m_calibrationSetStatus->setText(msg);
+  }
+  return assigned;
+}
+
+score::PathRoots WindowSettingsWidget::pathRoots() const
+{
+  if(m_pathRoots)
+    return *m_pathRoots;
+  if(auto doc = score::GUIAppContext().currentDocument())
+    return score::pathRoots(*doc);
+  return score::pathRoots();
+}
+
+void WindowSettingsWidget::setPathRoots(std::optional<score::PathRoots> roots)
+{
+  m_pathRoots = std::move(roots);
+}
+
+void WindowSettingsWidget::updateMapsStatus(const OutputMaps& maps)
+{
+  if(!m_mapsStatus)
+    return;
+  const QStringList missing = missingMapFiles(maps, pathRoots());
+  m_mapsStatus->setText(
+      missing.isEmpty() ? QString{}
+                        : tr("Not found:\n%1").arg(missing.join(QLatin1Char('\n'))));
 }
 
 void WindowSettingsWidget::applySourceRectToSelection()
