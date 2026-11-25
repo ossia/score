@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <Gfx/Graph/FloatImageIO.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
 #include <Gfx/Graph/OutputQuality.hpp>
@@ -40,6 +41,31 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     float gamma{2.2f};
   };
 
+  //! A projector-pixel image shown as it is, top row first.
+  struct CalibrationImage
+  {
+    int width{}, height{};
+    std::vector<uint8_t> rgba;
+  };
+
+  enum MapSlot
+  {
+    WarpSlot,
+    AlphaSlot,
+    BetaSlot,
+    ResponseSlot,
+    Comp0Slot,
+    Comp1Slot,
+    Comp2Slot,
+    PointsSlot,
+    MapSlotCount,
+    LutSlot = MapSlotCount
+  };
+
+  //! The files of OutputMaps an output loads: warp, alpha, beta, LUT, response,
+  //! compensation, points.
+  static constexpr int MapFileCount = 7;
+
   struct WindowOutput
   {
     std::shared_ptr<Window> window;
@@ -73,11 +99,14 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
     std::shared_ptr<const FloatImage> responseMap;
     //! Rows of the compensation matrix, rgba = (M_k0, M_k1, M_k2, o_k).
     std::array<std::shared_ptr<const FloatImage>, 3> compensationMaps;
+    std::shared_ptr<const FloatImage> pointsMap;
 
     //! Bumped when the texture of a slot changes: MapSlot order, then the LUT.
-    std::array<int, 8> mapVersions{};
+    std::array<int, MapSlotCount + 1> mapVersions{};
+    std::shared_ptr<const CalibrationImage> calibration;
+    int calibrationVersion{};
     //! What each map field was loaded from: path, modification time and size.
-    std::array<QString, 6> mapStamps;
+    std::array<QString, MapFileCount> mapStamps;
     bool responseWithMixing{};
     //! The map load whose result this output takes.
     uint64_t mapRequest{};
@@ -90,28 +119,15 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   //! The map fields of a WindowOutput, as a load produces them.
   struct LoadedMaps
   {
-    std::shared_ptr<const FloatImage> warpMap, alphaMap, betaMap, responseMap;
+    std::shared_ptr<const FloatImage> warpMap, alphaMap, betaMap, responseMap, pointsMap;
     std::shared_ptr<const CubeLut> lut;
     std::array<std::shared_ptr<const FloatImage>, 3> compensationMaps;
     std::array<float, 4> warpStep{};
-    std::array<QString, 6> mapStamps;
+    std::array<QString, MapFileCount> mapStamps;
     bool responseWithMixing{};
     bool alphaLinear{}, betaLinear{};
     //! The MapSlot and LutSlot textures that changed.
-    std::array<bool, 8> changed{};
-  };
-
-  enum MapSlot
-  {
-    WarpSlot,
-    AlphaSlot,
-    BetaSlot,
-    ResponseSlot,
-    Comp0Slot,
-    Comp1Slot,
-    Comp2Slot,
-    MapSlotCount,
-    LutSlot = MapSlotCount
+    std::array<bool, MapSlotCount + 1> changed{};
   };
 
   const std::vector<WindowOutput>& windowOutputs() const noexcept
@@ -145,6 +161,15 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   //! Whether a setMaps() load has not reached its output yet.
   bool mapsLoading() const noexcept { return m_mapsLoading > 0; }
   void setQuality(int windowIndex, const Gfx::OutputQuality& quality);
+  void setCanvasLayout(const Gfx::CanvasLayout& layout) noexcept { m_canvasLayout = layout; }
+
+  //! While set, window i shows images[i] pixel for pixel (black without one)
+  //! instead of the canvas through its output stage: what a projector
+  //! calibration projects. Windows keep their settings.
+  void setCalibration(std::vector<std::shared_ptr<const CalibrationImage>> images);
+  void clearCalibration();
+  bool calibrating() const noexcept { return m_calibrating; }
+  const Gfx::CanvasLayout& canvasLayout() const noexcept { return m_canvasLayout; }
 
   //! What the per-window blit does with a window's settings.
   struct EffectiveQuality
@@ -164,6 +189,19 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   std::pair<QRhiTexture::Format, bool> canvasSpec() const noexcept;
 
   void setSwapchainFlag(Gfx::SwapchainFlag flag);
+  Gfx::SwapchainFlag swapchainFlag() const noexcept { return m_swapchainFlag; }
+  Gfx::SwapchainFormat swapchainFormat() const noexcept { return m_swapchainFormat; }
+
+  //! The GPU resources the renderer holds for a window, for tests.
+  struct RendererState
+  {
+    bool bakeTarget{};
+    bool calibration{};
+  };
+  RendererState rendererState(int windowIndex) const;
+
+  //! Distinct for every node made in the process.
+  const uint64_t instance{++s_instances};
   void setSwapchainFormat(Gfx::SwapchainFormat format);
 
   std::function<void(float)> onFps;
@@ -173,6 +211,7 @@ struct SCORE_PLUGIN_GFX_TEST_EXPORT MultiWindowNode : OutputNode
   std::function<void()> onWindowsCreated;
 
 private:
+  static inline std::atomic<uint64_t> s_instances{};
   void renderBlack();
   // Per-window swap chain init / release. Idempotent and safe to call
   // multiple times (e.g. on window re-expose after a close).
@@ -205,6 +244,9 @@ private:
   Configuration m_conf;
   std::vector<Gfx::OutputMapping> m_mappings;
   QSize m_canvasSize;
+  Gfx::CanvasLayout m_canvasLayout;
+  std::vector<std::shared_ptr<const CalibrationImage>> m_calibration;
+  bool m_calibrating{};
   std::vector<WindowOutput> m_windowOutputs;
 
   std::shared_ptr<RenderState> m_renderState;

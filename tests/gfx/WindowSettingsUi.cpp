@@ -1000,3 +1000,45 @@ TEST_CASE("WindowSettingsWidget stores map files relative to the project", "[gfx
     CHECK(settingsOf(w).outputs[0].maps.blendSpace == BlendMapSpace::Signal);
   });
 }
+
+TEST_CASE("the warp and points slots of a calibration", "[gfx][window][calibration]")
+{
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("dome");
+  touch(base + ".json");
+  touch(base + ".warp.pfm");
+
+  OutputMaps m;
+  CHECK(applyCalibration(m, base + ".json") == 1);
+  CHECK(m.warp == base + ".warp.pfm");
+  CHECK(m.points.isEmpty());
+
+  touch(base + ".points.pfm");
+  CHECK(refreshCalibration(m));
+  CHECK(m.points == base + ".points.pfm");
+  CHECK(mapFiles(m).contains(base + ".points.pfm"));
+  CHECK(watchedCalibrationFiles({m}).contains(base + ".points.pfm"));
+
+  QFile::remove(base + ".warp.pfm");
+  CHECK(refreshCalibration(m));
+  CHECK(m.warp.isEmpty());
+  CHECK(m.points == base + ".points.pfm");
+}
+
+TEST_CASE("WindowSettingsWidget wraps a canvas orientation outside ±180°", "[gfx][window][settingswidget][canvas]")
+{
+  score::test::run_in_app([&](const score::GUIApplicationContext&) {
+    WindowSettingsWidget w;
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {mapping({0.0, 0.0, 1.0, 1.0}, {0, 0}, {320, 240})};
+    ws.canvas.projection = CanvasProjection::Equirectangular;
+    ws.canvas.orientation = {190.f, -200.f, 90.f};
+    w.setSettings(makeSettings(ws));
+    const auto got = settingsOf(w);
+    CHECK(got.canvas.orientation[0] == Approx(-170.f));
+    CHECK(got.canvas.orientation[1] == Approx(160.f));
+    CHECK(got.canvas.orientation[2] == Approx(90.f));
+  });
+}

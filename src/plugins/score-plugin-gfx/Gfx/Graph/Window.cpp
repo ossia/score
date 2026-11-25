@@ -1,4 +1,6 @@
 #include <Gfx/Graph/Window.hpp>
+
+#include <QColorSpace>
 #include <Gfx/Graph/Utils.hpp>
 #include <Gfx/Settings/Model.hpp>
 
@@ -131,6 +133,20 @@ Window::Window(GraphicsApi graphicsApi)
 Window::~Window()
 {
   m_closed = true;
+}
+
+void Window::requestSrgbSurface(bool srgb)
+{
+  if(m_api != OpenGL)
+    return;
+  QSurfaceFormat fmt = requestedFormat();
+  fmt.setColorSpace(srgb ? QColorSpace{QColorSpace::SRgb} : QColorSpace{});
+  setFormat(fmt);
+}
+
+bool Window::encodesSrgb() const noexcept
+{
+  return m_api != OpenGL || format().colorSpace() == QColorSpace{QColorSpace::SRgb};
 }
 
 void Window::init()

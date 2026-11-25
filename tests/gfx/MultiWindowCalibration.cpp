@@ -841,3 +841,250 @@ TEST_CASE("a compensation offset of another size is reported", "[gfx][calibratio
   CHECK(m.rows[0].data[3] == 0.f);
   CHECK(log.count(QStringLiteral("(3x3, 3 channels) does not match the 4x2 RGB rows")) == 1);
 }
+
+TEST_CASE(
+    "multi-window calibration override shows each window's image pixel for pixel",
+    "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  m.color.gain = {0.25f, 0.25f, 0.25f};
+  m.cornerWarp.bottomRight = {0.8, 0.9};
+  m.blendLeft = {0.3f, 2.2f};
+
+  auto img = std::make_shared<score::gfx::MultiWindowNode::CalibrationImage>();
+  img->width = m.windowSize.width();
+  img->height = m.windowSize.height();
+  img->rgba.resize(std::size_t(img->width) * img->height * 4);
+  for(int y = 0; y < img->height; y++)
+    for(int x = 0; x < img->width; x++)
+    {
+      uint8_t* p = &img->rgba[(std::size_t(y) * img->width + x) * 4];
+      const bool top = y < 8, left = x < img->width / 2;
+      p[0] = top ? 255 : left ? 200 : 0;
+      p[1] = top ? 0 : left ? 200 : 0;
+      p[2] = top ? 0 : left ? 200 : 0;
+      p[3] = 255;
+    }
+
+  Frame before, cal, black, normal;
+  bool ok0{}, ok1{}, ok2{}, ok3{};
+  auto o = runRig(
+      api, m,
+      [&](MultiWindowRig& rig, Outcome&) {
+    ok0 = grab(rig, before);
+    rig.node->setCalibration({img});
+    ok1 = grab(rig, cal);
+    rig.node->setCalibration({nullptr});
+    ok2 = grab(rig, black);
+    rig.node->clearCalibration();
+    ok3 = grab(rig, normal);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-y.fs"));
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok0);
+  REQUIRE(ok1);
+  REQUIRE(ok2);
+  REQUIRE(ok3);
+  // The readback's row order, from the canvas through the output stage: the
+  // top of the screen is where isf-gradient-y is brightest.
+  const int cx = before.width / 2;
+  const bool topFirst = before.px(cx, 2)[1] > before.px(cx, before.height - 3)[1];
+  REQUIRE(cal.width == img->width);
+  REQUIRE(cal.height == img->height);
+  int wrong = 0;
+  for(int y = 0; y < cal.height; y++)
+    for(int x = 0; x < cal.width; x++)
+    {
+      const auto px = cal.px(x, topFirst ? y : cal.height - 1 - y);
+      const uint8_t* q = &img->rgba[(std::size_t(y) * img->width + x) * 4];
+      wrong += px[0] != q[0] || px[1] != q[1] || px[2] != q[2];
+    }
+  CHECK(wrong == 0);
+  CHECK(black.px(10, 40) == std::array<int, 3>{0, 0, 0});
+  CHECK(black.px(100, 4) == std::array<int, 3>{0, 0, 0});
+  // Back to the canvas through the output stage, as before the calibration.
+  for(int c = 0; c < 3; c++)
+    CHECK(std::abs(normal.px(cx, normal.height / 2)[c] - before.px(cx, before.height / 2)[c]) <= 2);
+  CHECK(normal.px(cx, normal.height / 2)[1] < 60);
+}
+
+TEST_CASE(
+    "multi-window calibration override shows the images with nothing connected",
+    "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto m = single();
+  auto img = std::make_shared<score::gfx::MultiWindowNode::CalibrationImage>();
+  img->width = m.windowSize.width();
+  img->height = m.windowSize.height();
+  img->rgba.assign(std::size_t(img->width) * img->height * 4, 255);
+  for(std::size_t i = 0; i < img->rgba.size(); i += 4)
+    img->rgba[i + 2] = 0;
+
+  Frame cal;
+  bool ok2{};
+  Outcome o;
+  run_in_gui_app([&](const score::GUIApplicationContext&) {
+    MultiWindowRig rig;
+    if(!rig.build(
+           api, {m}, QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+           QSize{1280, 720}, false))
+    {
+      o = {rig.skipped(), rig.skipReason(), rig.error(), rig.backend()};
+      return;
+    }
+    o.backend = rig.backend();
+    rig.node->setCalibration({img});
+    ok2 = grab(rig, cal);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok2);
+  CHECK(cal.px(cal.width / 2, cal.height / 2) == std::array<int, 3>{255, 255, 0});
+  CHECK(cal.px(2, 2) == std::array<int, 3>{255, 255, 0});
+}
+
+namespace
+{
+std::shared_ptr<score::gfx::MultiWindowNode::CalibrationImage>
+calibrationImage(int w, int h, const std::function<std::array<uint8_t, 3>(int, int)>& f)
+{
+  auto img = std::make_shared<score::gfx::MultiWindowNode::CalibrationImage>();
+  img->width = w;
+  img->height = h;
+  img->rgba.resize(std::size_t(w) * h * 4);
+  for(int y = 0; y < h; y++)
+    for(int x = 0; x < w; x++)
+    {
+      const auto c = f(x, y);
+      uint8_t* p = &img->rgba[(std::size_t(y) * w + x) * 4];
+      p[0] = c[0];
+      p[1] = c[1];
+      p[2] = c[2];
+      p[3] = 255;
+    }
+  return img;
+}
+}
+
+TEST_CASE("multi-window calibration override stops rendering the scene", "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto img = calibrationImage(128, 64, [](int, int) { return std::array<uint8_t, 3>{10, 20, 30}; });
+  int64_t during{-1}, after{-1};
+  bool heldResources{}, released{true};
+  auto o = runRig(api, single(), [&](MultiWindowRig& rig, Outcome&) {
+    Frame f;
+    grab(rig, f);
+    auto* rl = rig.node->renderer();
+    REQUIRE(rl);
+    rig.node->setCalibration({img});
+    grab(rig, f);
+    heldResources = rig.node->rendererState(0).calibration;
+    const int64_t before = rl->frame;
+    rig.render(5);
+    during = rl->frame - before;
+    rig.node->clearCalibration();
+    grab(rig, f);
+    after = rl->frame - before;
+    released = rig.node->rendererState(0).calibration;
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  CHECK(during == 0);
+  CHECK(after > 0);
+  CHECK(heldResources);
+  CHECK_FALSE(released);
+}
+
+TEST_CASE("multi-window calibration image of another size is shown 1:1 from the top left", "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto img = calibrationImage(64, 32, [](int x, int y) {
+    return std::array<uint8_t, 3>{uint8_t(x * 4), uint8_t(y * 8), 200};
+  });
+  Frame f;
+  bool ok{};
+  auto o = runRig(api, single(), [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCalibration({img});
+    ok = grab(rig, f);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok);
+  REQUIRE(f.width == 128);
+  int wrong = 0;
+  for(int y = 0; y < 32; y++)
+    for(int x = 0; x < 64; x++)
+      wrong += f.top(x, y) != std::array<int, 3>{x * 4, y * 8, 200};
+  CHECK(wrong == 0);
+  CHECK(f.top(100, 10) == std::array<int, 3>{0, 0, 0});
+  CHECK(f.top(10, 50) == std::array<int, 3>{0, 0, 0});
+}
+
+TEST_CASE("multi-window calibration codes reach an sRGB swap chain unchanged", "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto img = calibrationImage(128, 64, [](int x, int y) {
+    const int code = (y / 8) * 32 + x / 4;
+    return std::array<uint8_t, 3>{uint8_t(code), uint8_t(255 - code), uint8_t(code)};
+  });
+  Frame f;
+  bool ok{};
+  auto o = runRig(
+      api, single(),
+      [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCalibration({img});
+    ok = grab(rig, f);
+      },
+      QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-gradient-x.fs"),
+      [](score::gfx::MultiWindowNode& n) { n.setSwapchainFlag(Gfx::SwapchainFlag::sRGB); });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok);
+  int wrong = 0;
+  for(int y = 0; y < 64; y++)
+    for(int x = 0; x < 128; x++)
+    {
+      const int code = (y / 8) * 32 + x / 4;
+      wrong += f.top(x, y) != std::array<int, 3>{code, 255 - code, code};
+    }
+  CHECK(wrong == 0);
+}
+
+TEST_CASE("multi-window calibration: each window its own image", "[gfx][window][multiwindow][calibration]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  auto a = single();
+  auto b = single();
+  b.windowPosition = {200, 40};
+  auto red = calibrationImage(128, 64, [](int, int) { return std::array<uint8_t, 3>{255, 0, 0}; });
+  auto blue = calibrationImage(128, 64, [](int, int) { return std::array<uint8_t, 3>{0, 0, 255}; });
+  Frame f0, f1;
+  bool ok0{}, ok1{};
+  auto o = runRig(api, std::vector<Gfx::OutputMapping>{a, b}, [&](MultiWindowRig& rig, Outcome&) {
+    rig.node->setCalibration({red, blue});
+    ok0 = grab(rig, f0, 0);
+    ok1 = grab(rig, f1, 1);
+  });
+  if(o.skipped)
+    SKIP(o.backend << ": " << o.skipReason);
+  REQUIRE(o.error.empty());
+  INFO("backend: " << o.backend);
+  REQUIRE(ok0);
+  REQUIRE(ok1);
+  CHECK(f0.top(64, 32) == std::array<int, 3>{255, 0, 0});
+  CHECK(f1.top(64, 32) == std::array<int, 3>{0, 0, 255});
+}

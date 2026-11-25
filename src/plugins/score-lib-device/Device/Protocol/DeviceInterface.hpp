@@ -126,7 +126,7 @@ public:
   virtual bool connected() const;
   W_INVOKABLE(connected)
 
-  void updateSettings(const Device::DeviceSettings&);
+  virtual void updateSettings(const Device::DeviceSettings&);
 
   // Asks, and returns all the new addresses if the device can refresh itself
   // Minuit-like.
@@ -204,6 +204,11 @@ public:
   // In case the device changed
   void deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev)
+
+  //! updateSettings() applied the settings to the running device, which did
+  //! not reconnect: no deviceChanged follows.
+  void settingsUpdatedInPlace()
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, settingsUpdatedInPlace)
 
   //! Emitted by disconnect() before it destroys the device's nodes: holders of
   //! parameter pointers into that tree must drop them here, deviceChanged

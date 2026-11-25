@@ -20,7 +20,14 @@
 #include <Gfx/Window/MultiWindowDevice.hpp>
 #include <Gfx/WindowDevice.hpp>
 
+#include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <core/document/Document.hpp>
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
@@ -725,4 +732,340 @@ TEST_CASE("A calibration fills only the slots its last run wrote", "[gfx][window
   CHECK(refreshCalibration(m));
   CHECK(m.compensation == base + ".comp.json");
   CHECK(m.alpha == base + ".alpha.pfm");
+}
+
+TEST_CASE("Multi-window device canvas projection and orientation", "[gfx][window][device]")
+{
+  Outcome o;
+  bool connected{};
+  Gfx::CanvasLayout initial, pushed;
+  std::vector<float> initialParam;
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {192, 144};
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+    ws.canvas.projection = CanvasProjection::Equirectangular;
+    ws.canvas.orientation = {10.f, 20.f, 30.f};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinCanvas"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    auto* d = dev.getDevice();
+    REQUIRE(d != nullptr);
+    pump_for(400);
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*d);
+    REQUIRE(node);
+    initial = node->canvasLayout();
+    if(auto* p = param(*d, "/canvas/orientation"))
+    {
+      const auto val = p->value();
+      if(auto v = val.target<ossia::vec3f>())
+        initialParam = {(*v)[0], (*v)[1], (*v)[2]};
+    }
+
+    push(param(*d, "/canvas/orientation"), ossia::vec3f{0.f, 90.f, -5.f});
+    push(param(*d, "/canvas/viewer"), ossia::vec3f{0.5f, 1.6f, 0.f});
+    push(param(*d, "/canvas/projection"), 0);
+    pushed = node->canvasLayout();
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  CHECK(initial.projection == CanvasProjection::Equirectangular);
+  CHECK(initial.orientation == std::array<float, 3>{10.f, 20.f, 30.f});
+  CHECK(initialParam == std::vector<float>{10.f, 20.f, 30.f});
+  CHECK(pushed.projection == CanvasProjection::None);
+  CHECK(pushed.orientation == std::array<float, 3>{0.f, 90.f, -5.f});
+  CHECK(pushed.viewer == std::array<float, 3>{0.5f, 1.6f, 0.f});
+}
+
+TEST_CASE(
+    "Multi-window device takes processing changes without a reconnect",
+    "[gfx][window][device]")
+{
+  Outcome o;
+  bool connected{};
+  uint64_t before{}, afterProcessing{}, afterResize{};
+  float gain{}, gainParam{};
+  int projectionParam{-1};
+  bool linear{};
+  Gfx::CanvasProjection projection{};
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {192, 144};
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m, m};
+    ws.outputs[1].windowPosition = {240, 40};
+
+    WindowDevice dev{makeSettings(ws, "MultiWinLive"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    pump_for(300);
+    if(auto* n = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice()))
+      before = n->instance;
+
+    auto ws2 = ws;
+    ws2.outputs[1].color.gain = {0.25f, 0.25f, 0.25f};
+    ws2.outputs[1].color.linearBlend = true;
+    ws2.outputs[0].blendRight = {0.2f, 2.2f};
+    ws2.canvas.projection = CanvasProjection::Equirectangular;
+    dev.updateSettings(makeSettings(ws2, "MultiWinLive"));
+    pump_for(100);
+    if(auto* n = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice()))
+    {
+      afterProcessing = n->instance;
+      gain = n->windowOutputs()[1].color.gain[0];
+      linear = n->mappings()[1].color.linearBlend;
+      projection = n->canvasLayout().projection;
+    }
+    if(auto* p = param(*dev.getDevice(), "/1/color/gain"))
+      gainParam = ossia::convert<ossia::vec3f>(p->value())[0];
+    if(auto* p = param(*dev.getDevice(), "/canvas/projection"))
+      projectionParam = ossia::convert<int>(p->value());
+
+    auto ws3 = ws2;
+    ws3.outputs[0].windowSize = {160, 120};
+    dev.updateSettings(makeSettings(ws3, "MultiWinLive"));
+    pump_for(300);
+    if(auto* n = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice()))
+      afterResize = n->instance;
+
+    dev.disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  REQUIRE(before);
+  CHECK(afterProcessing == before);
+  CHECK(gain == Approx(0.25f));
+  CHECK(gainParam == Approx(0.25f));
+  CHECK(projectionParam == 1);
+  CHECK(linear);
+  CHECK(projection == CanvasProjection::Equirectangular);
+  CHECK(afterResize);
+  CHECK(afterResize != before);
+}
+
+TEST_CASE(
+    "Multi-window device: maps assigned by an Update a device command, undone and redone, "
+    "reach the running outputs",
+    "[gfx][window][device][calibration]")
+{
+  Outcome o;
+  bool connected{};
+  uint64_t first{}, last{};
+  int alphaAssigned{-1}, alphaUndone{-1}, alphaRedone{-1};
+  std::string paramAssigned, paramUndone, paramRedone;
+  float gainUndone{-1.f}, gainRedone{-1.f};
+
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString base = dir.filePath("room");
+  {
+    score::gfx::FloatImage img;
+    img.width = img.height = 4;
+    img.channels = 1;
+    img.data.assign(16, 0.5f);
+    REQUIRE(score::gfx::writePFM(base + ".alpha.pfm", img));
+    QFile f{base + ".json"};
+    REQUIRE(f.open(QIODevice::WriteOnly));
+    f.write("{}");
+  }
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {160, 120};
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+    auto submit = [&](score::Command* c) {
+      CommandDispatcher<>{doc->context().commandStack}.submit(c);
+    };
+    submit(new Explorer::Command::LoadDevice{plug, makeSettings(ws, "MultiWinUndo")});
+    pump_for(400);
+    auto* dev = dynamic_cast<WindowDevice*>(plug.list().findDevice("MultiWinUndo"));
+    if(!dev || !dev->getDevice())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    auto node = [&] { return sinkOf<score::gfx::MultiWindowNode>(*dev->getDevice()); };
+    auto settle = [&] {
+      pump_until([&] { return node() && !node()->mapsLoading(); }, 10000);
+      pump_for(100);
+    };
+    auto alpha = [&] {
+      auto* n = node();
+      return n && n->windowOutputs()[0].alphaMap ? n->windowOutputs()[0].alphaMap->width : 0;
+    };
+    auto alphaParam = [&] {
+      auto* p = param(*dev->getDevice(), "/0/maps/alpha");
+      return p ? ossia::convert<std::string>(p->value()) : std::string{};
+    };
+    first = node() ? node()->instance : 0;
+
+    auto ws2 = ws;
+    applyCalibration(ws2.outputs[0].maps, base + ".json");
+    ws2.outputs[0].color.gain = {0.5f, 0.5f, 0.5f};
+    submit(new Explorer::Command::UpdateDeviceSettings{
+        plug, "MultiWinUndo", makeSettings(ws2, "MultiWinUndo")});
+    settle();
+    alphaAssigned = alpha();
+    paramAssigned = alphaParam();
+
+    doc->commandStack().undo();
+    settle();
+    alphaUndone = alpha();
+    paramUndone = alphaParam();
+    if(auto* p = param(*dev->getDevice(), "/0/color/gain"))
+      gainUndone = ossia::convert<ossia::vec3f>(p->value())[0];
+
+    doc->commandStack().redo();
+    settle();
+    alphaRedone = alpha();
+    paramRedone = alphaParam();
+    if(auto* p = param(*dev->getDevice(), "/0/color/gain"))
+      gainRedone = ossia::convert<ossia::vec3f>(p->value())[0];
+    last = node() ? node()->instance : 0;
+    dev->disconnect();
+    pump_for(200);
+  });
+
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  CHECK(first != 0);
+  CHECK(last == first);
+  CHECK(alphaAssigned == 4);
+  CHECK(paramAssigned == QString(base + ".alpha.pfm").toStdString());
+  CHECK(alphaUndone == 0);
+  CHECK(paramUndone.empty());
+  CHECK(gainUndone == Approx(1.f));
+  CHECK(alphaRedone == 4);
+  CHECK(paramRedone == paramAssigned);
+  CHECK(gainRedone == Approx(0.5f));
+}
+
+TEST_CASE("Multi-window device follows its points map on disk", "[gfx][window][device][points]")
+{
+  Outcome o;
+  bool connected{};
+  int atStart{}, afterRewrite{};
+  QTemporaryDir dir;
+  REQUIRE(dir.isValid());
+  const QString path = dir.filePath("wall.points.pfm");
+  auto write = [&](int size) {
+    score::gfx::FloatImage img;
+    img.width = img.height = size;
+    img.channels = 3;
+    img.data.assign(std::size_t(size) * size * 3, -1.f);
+    REQUIRE(score::gfx::writePFM(path, img));
+  };
+  write(4);
+
+  run_in_gui_app([&](const score::GUIApplicationContext& ctx) {
+    if(!can_present())
+    {
+      o = {true, "no windowing system able to expose a native window"};
+      return;
+    }
+    auto* doc = score::test::new_document(ctx);
+    if(!doc)
+    {
+      o = {true, "no document delegate"};
+      return;
+    }
+    OutputMapping m;
+    m.windowPosition = {20, 40};
+    m.windowSize = {160, 120};
+    m.maps.points = path;
+    WindowSettings ws;
+    ws.mode = WindowMode::MultiWindow;
+    ws.outputs = {m};
+    WindowDevice dev{makeSettings(ws, "MultiWinPoints"), doc->context()};
+    if(!dev.reconnect())
+    {
+      o = {true, "the multi-window device could not connect"};
+      return;
+    }
+    connected = true;
+    pump_for(400);
+    auto* node = sinkOf<score::gfx::MultiWindowNode>(*dev.getDevice());
+    REQUIRE(node);
+    auto width = [&] {
+      const auto& p = node->windowOutputs()[0].pointsMap;
+      return p ? p->width : 0;
+    };
+    atStart = width();
+    QFile::remove(path);
+    pump_for(50);
+    write(8);
+    pump_until([&] { return width() == 8; }, 5000);
+    afterRewrite = width();
+    dev.disconnect();
+    pump_for(200);
+  });
+  if(o.skipped)
+    SKIP(o.skipReason);
+  REQUIRE(connected);
+  CHECK(atStart == 4);
+  CHECK(afterRewrite == 8);
 }

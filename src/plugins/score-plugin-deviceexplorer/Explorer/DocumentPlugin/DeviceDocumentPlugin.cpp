@@ -315,13 +315,15 @@ void DeviceDocumentPlugin::refreshDeviceTreeOnReconnect(Device::DeviceInterface&
   // handler (DeviceInterface::updateSettings) then replays the previous nodes
   // into the new device; exploring is deferred to run after that replay.
   auto con_handle = std::make_shared<QMetaObject::Connection>();
+  auto in_place = std::make_shared<QMetaObject::Connection>();
   *con_handle = connect(
       &dev, &Device::DeviceInterface::deviceChanged, this,
-      [this, ptr = QPointer{&dev},
-       con_handle](ossia::net::device_base*, ossia::net::device_base* newd) {
+      [this, ptr = QPointer{&dev}, con_handle,
+       in_place](ossia::net::device_base*, ossia::net::device_base* newd) {
     if(!newd)
       return;
     QObject::disconnect(*con_handle);
+    QObject::disconnect(*in_place);
     if(!ptr)
       return;
     m_pendingTreeRefresh.erase(ptr.data());
@@ -350,8 +352,18 @@ void DeviceDocumentPlugin::refreshDeviceTreeOnReconnect(Device::DeviceInterface&
         Qt::QueuedConnection);
       });
 
+  *in_place = connect(
+      &dev, &Device::DeviceInterface::settingsUpdatedInPlace, this,
+      [this, ptr = QPointer{&dev}, con_handle, in_place] {
+    QObject::disconnect(*con_handle);
+    QObject::disconnect(*in_place);
+    if(ptr)
+      m_pendingTreeRefresh.erase(ptr.data());
+  });
+
   // If the device goes away before reconnecting, forget about it.
   m_connections[&dev].push_back(*con_handle);
+  m_connections[&dev].push_back(*in_place);
 }
 
 std::optional<Device::Node>

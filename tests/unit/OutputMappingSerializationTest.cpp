@@ -26,6 +26,15 @@ template <>
 void DataStreamReader::read(const Gfx::OutputMapping& n);
 template <>
 void DataStreamWriter::write(Gfx::OutputMapping& n);
+#include <Gfx/WindowDevice.hpp>
+template <>
+void JSONReader::read(const Gfx::WindowSettings& n);
+template <>
+void JSONWriter::write(Gfx::WindowSettings& n);
+template <>
+void DataStreamReader::read(const Gfx::WindowSettings& n);
+template <>
+void DataStreamWriter::write(Gfx::WindowSettings& n);
 
 namespace
 {
@@ -315,5 +324,52 @@ TEST_CASE("OutputMapping DataStream round-trip", "[gfx][window][outputmapping]")
     b.lockMode = Gfx::OutputLockMode::FullLock;
     CHECK(score::marshall<DataStream>(a).size()
           == score::marshall<DataStream>(b).size());
+  }
+}
+
+namespace
+{
+QByteArray settingsJson(const Gfx::WindowSettings& ws)
+{
+  JSONReader r;
+  r.stream.StartObject();
+  r.read(ws);
+  r.stream.EndObject();
+  return r.toByteArray();
+}
+}
+
+TEST_CASE("WindowSettings canvas layout round-trip", "[gfx][window][canvas]")
+{
+  Gfx::WindowSettings ws;
+  ws.mode = Gfx::WindowMode::MultiWindow;
+  ws.outputs = {fullyPopulated()};
+  ws.canvas.projection = Gfx::CanvasProjection::Equirectangular;
+  ws.canvas.orientation = {12.5f, -90.f, 3.f};
+  ws.canvas.viewer = {0.5f, 1.6f, -0.25f};
+  ws.outputs[0].maps.points = "/cal/room.points.pfm";
+
+  SECTION("JSON")
+  {
+    const auto back = fromJson<Gfx::WindowSettings>(settingsJson(ws));
+    CHECK(back.canvas == ws.canvas);
+    REQUIRE(back.outputs.size() == 1);
+    CHECK(back.outputs[0].sourceRect == ws.outputs[0].sourceRect);
+    CHECK(back.outputs[0].maps.points == ws.outputs[0].maps.points);
+  }
+  SECTION("JSON omits the default layout and reads it back as default")
+  {
+    Gfx::WindowSettings def;
+    const QByteArray bytes = settingsJson(def);
+    CHECK(!bytes.contains("Canvas"));
+    CHECK(fromJson<Gfx::WindowSettings>(bytes).canvas == Gfx::CanvasLayout{});
+  }
+  SECTION("DataStream")
+  {
+    const auto back
+        = score::unmarshall<Gfx::WindowSettings>(score::marshall<DataStream>(ws));
+    CHECK(back.canvas == ws.canvas);
+    CHECK(back.outputs.size() == 1);
+    CHECK(back.outputs[0].maps.points == ws.outputs[0].maps.points);
   }
 }

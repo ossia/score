@@ -1041,6 +1041,7 @@ void ScreenNode::createOutput(score::gfx::OutputConfiguration conf)
     if(!m_window)
     {
       m_window = std::make_shared<Window>(conf.graphicsApi);
+      m_window->requestSrgbSurface(m_swapchainFlag == Gfx::SwapchainFlag::sRGB);
       if(m_embedded)
         m_window->unsetCursor();
     }

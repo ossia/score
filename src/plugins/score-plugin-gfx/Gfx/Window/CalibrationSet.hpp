@@ -42,7 +42,9 @@ inline const std::vector<CalibrationFileSlot>& calibrationFileSlots()
       {&OutputMaps::beta, {QStringLiteral(".beta.pfm")}},
       {&OutputMaps::lut, {QStringLiteral(".cube"), QStringLiteral(".lut.cube")}, false},
       {&OutputMaps::response, {QStringLiteral(".response.json")}},
-      {&OutputMaps::compensation, {QStringLiteral(".comp.json")}}};
+      {&OutputMaps::compensation, {QStringLiteral(".comp.json")}},
+      {&OutputMaps::warp, {QStringLiteral(".warp.pfm")}},
+      {&OutputMaps::points, {QStringLiteral(".points.pfm")}}};
   return slots;
 }
 
@@ -53,6 +55,8 @@ inline QString calibrationBase(const QString& path)
   if(path.isEmpty())
     return {};
   static const QString suffixes[]{
+      QStringLiteral(".warp.valid.pfm"), QStringLiteral(".warp.pfm"),
+      QStringLiteral(".points.valid.pfm"), QStringLiteral(".points.pfm"),
       QStringLiteral(".blend.json"), QStringLiteral(".response.json"),
       QStringLiteral(".comp.json"),  QStringLiteral(".json"),
       QStringLiteral(".xyz.pfm"),    QStringLiteral(".valid.pfm"),
@@ -212,7 +216,7 @@ inline bool refreshCalibration(OutputMaps& m)
 inline OutputMaps locatedMaps(OutputMaps m, const score::PathRoots& roots)
 {
   for(QString* f : {&m.warp, &m.alpha, &m.beta, &m.lut, &m.response, &m.compensation,
-                    &m.calibration})
+                    &m.points, &m.calibration})
     if(!f->isEmpty())
       *f = score::locateFilePath(*f, roots);
   return m;
@@ -223,7 +227,7 @@ inline OutputMaps locatedMaps(OutputMaps m, const score::PathRoots& roots)
 inline OutputMaps relativizedMaps(OutputMaps m, const score::PathRoots& roots)
 {
   for(QString* f : {&m.warp, &m.alpha, &m.beta, &m.lut, &m.response, &m.compensation,
-                    &m.calibration})
+                    &m.points, &m.calibration})
   {
     if(f->isEmpty())
       continue;
@@ -241,7 +245,7 @@ inline QStringList missingMapFiles(const OutputMaps& m, const score::PathRoots& 
       {"Calibration", &m.calibration}, {"UV warp", &m.warp},
       {"Alpha", &m.alpha},             {"Beta", &m.beta},
       {"Colour LUT", &m.lut},          {"Response", &m.response},
-      {"Compensation", &m.compensation}};
+      {"Compensation", &m.compensation}, {"Points", &m.points}};
   for(const auto& [name, f] : fields)
   {
     if(f->isEmpty())
@@ -257,7 +261,8 @@ inline QStringList missingMapFiles(const OutputMaps& m, const score::PathRoots& 
 inline QStringList mapFiles(const OutputMaps& m)
 {
   QStringList out;
-  for(const QString* f : {&m.warp, &m.alpha, &m.beta, &m.lut, &m.response, &m.compensation})
+  for(const QString* f :
+      {&m.warp, &m.alpha, &m.beta, &m.lut, &m.response, &m.compensation, &m.points})
     if(!f->isEmpty())
       out.push_back(*f);
   return out;

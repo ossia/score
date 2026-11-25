@@ -392,6 +392,38 @@ void WindowDevice::setPointer(int slot, double x, double y, double pressure) con
   }
 }
 
+void WindowDevice::updateSettings(const Device::DeviceSettings& s)
+{
+  auto* mw = dynamic_cast<multiwindow_device*>(m_dev.get());
+  const auto& cur = settings();
+  if(mw && s.name == cur.name && s.protocol == cur.protocol
+     && cur.deviceSpecificSettings.canConvert<WindowSettings>()
+     && s.deviceSpecificSettings.canConvert<WindowSettings>())
+  {
+    const auto a = cur.deviceSpecificSettings.value<WindowSettings>();
+    const auto b = s.deviceSpecificSettings.value<WindowSettings>();
+    bool same = a.mode == WindowMode::MultiWindow && b.mode == a.mode && a.flag == b.flag
+                && a.format == b.format && a.inputWidth == b.inputWidth
+                && a.inputHeight == b.inputHeight && a.outputs.size() == b.outputs.size();
+    for(std::size_t i = 0; same && i < a.outputs.size(); i++)
+    {
+      const auto& x = a.outputs[i];
+      const auto& y = b.outputs[i];
+      same = x.screenIndex == y.screenIndex && x.windowPosition == y.windowPosition
+             && x.windowSize == y.windowSize && x.fullscreen == y.fullscreen
+             && x.lockMode == y.lockMode;
+    }
+    if(same)
+    {
+      m_settings = s;
+      mw->applyProcessing(b.outputs, b.canvas);
+      settingsUpdatedInPlace();
+      return;
+    }
+  }
+  GfxOutputDevice::updateSettings(s);
+}
+
 bool WindowDevice::reconnect()
 {
   disconnect();
@@ -451,7 +483,8 @@ bool WindowDevice::reconnect()
               set.outputs, std::unique_ptr<gfx_protocol_base>(m_protocol),
               m_settings.name.toStdString(), set.flag, set.format,
               score::pathRoots(m_ctx),
-              QSize{std::max(1, set.inputWidth), std::max(1, set.inputHeight)});
+              QSize{std::max(1, set.inputWidth), std::max(1, set.inputHeight)},
+              set.canvas);
           break;
         }
         case WindowMode::Single:
@@ -555,7 +588,7 @@ bool WindowProtocolFactory::checkCompatibility(
 }
 
 template <>
-void DataStreamReader::read(const Gfx::WindowSettings& n)
+SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamReader::read(const Gfx::WindowSettings& n)
 {
   m_stream << (int32_t)n.mode;
   m_stream << (int32_t)n.outputs.size();
@@ -563,11 +596,14 @@ void DataStreamReader::read(const Gfx::WindowSettings& n)
     read(o);
   m_stream << (int32_t)n.inputWidth << (int32_t)n.inputHeight;
   m_stream << (int32_t)n.flag << (int32_t)n.format;
+  m_stream << (int32_t)n.canvas.projection << n.canvas.orientation[0]
+           << n.canvas.orientation[1] << n.canvas.orientation[2];
+  m_stream << n.canvas.viewer[0] << n.canvas.viewer[1] << n.canvas.viewer[2];
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Gfx::WindowSettings& n)
+SCORE_PLUGIN_GFX_TEST_EXPORT void DataStreamWriter::write(Gfx::WindowSettings& n)
 {
   int32_t mode{};
   m_stream >> mode;
@@ -585,11 +621,16 @@ void DataStreamWriter::write(Gfx::WindowSettings& n)
   m_stream >> flag >> format;
   n.flag = (Gfx::SwapchainFlag)flag;
   n.format = (Gfx::SwapchainFormat)format;
+  int32_t projection{};
+  m_stream >> projection >> n.canvas.orientation[0] >> n.canvas.orientation[1]
+      >> n.canvas.orientation[2];
+  n.canvas.projection = (Gfx::CanvasProjection)projection;
+  m_stream >> n.canvas.viewer[0] >> n.canvas.viewer[1] >> n.canvas.viewer[2];
   checkDelimiter();
 }
 
 template <>
-void JSONReader::read(const Gfx::WindowSettings& n)
+SCORE_PLUGIN_GFX_TEST_EXPORT void JSONReader::read(const Gfx::WindowSettings& n)
 {
   obj["Mode"] = (int)n.mode;
   obj["Outputs"] = n.outputs;
@@ -597,10 +638,23 @@ void JSONReader::read(const Gfx::WindowSettings& n)
   obj["InputHeight"] = n.inputHeight;
   obj["SwapchainFlag"] = (int)n.flag;
   obj["SwapchainFormat"] = (int)n.format;
+  if(n.canvas != Gfx::CanvasLayout{})
+  {
+    obj["CanvasProjection"] = (int)n.canvas.projection;
+    auto writeVec3 = [&](const char* key, const std::array<float, 3>& a) {
+      stream.Key(key);
+      stream.StartArray();
+      for(float v : a)
+        stream.Double(v);
+      stream.EndArray();
+    };
+    writeVec3("CanvasOrientation", n.canvas.orientation);
+    writeVec3("CanvasViewer", n.canvas.viewer);
+  }
 }
 
 template <>
-void JSONWriter::write(Gfx::WindowSettings& n)
+SCORE_PLUGIN_GFX_TEST_EXPORT void JSONWriter::write(Gfx::WindowSettings& n)
 {
   // Backward compatibility with old format
   if(auto v = obj.tryGet("Background"); v && v->obj.IsBool())
@@ -626,6 +680,21 @@ void JSONWriter::write(Gfx::WindowSettings& n)
   score::parseJsonField(obj, "InputHeight", n.inputHeight);
   score::parseJsonField(obj, "SwapchainFlag", n.flag);
   score::parseJsonField(obj, "SwapchainFormat", n.format);
+  int projection{};
+  score::parseJsonField(obj, "CanvasProjection", projection);
+  n.canvas.projection = projection == 1 ? Gfx::CanvasProjection::Equirectangular
+                                        : Gfx::CanvasProjection::None;
+  auto readVec3 = [&](const char* key, std::array<float, 3>& out) {
+    if(auto v = obj.tryGet(std::string{key}); v && v->obj.IsArray())
+    {
+      const auto arr = v->obj.GetArray();
+      for(rapidjson::SizeType i = 0; i < arr.Size() && i < 3; i++)
+        if(arr[i].IsNumber())
+          out[i] = arr[i].GetFloat();
+    }
+  };
+  readVec3("CanvasOrientation", n.canvas.orientation);
+  readVec3("CanvasViewer", n.canvas.viewer);
 }
 
 SCORE_SERALIZE_DATASTREAM_DEFINE(Gfx::WindowSettings);

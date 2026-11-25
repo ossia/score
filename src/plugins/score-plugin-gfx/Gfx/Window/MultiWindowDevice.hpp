@@ -79,6 +79,49 @@ class multiwindow_device : public ossia::net::device_base
   std::vector<ossia::net::parameter_base*> m_calibrationParams;
   std::vector<QString> m_mapSignatures;
   std::unique_ptr<CalibrationWatcher> m_calibrationWatcher;
+  //! Parameters and the node state they show, for syncParams().
+  std::vector<std::pair<ossia::net::parameter_base*, std::function<ossia::value()>>>
+      m_paramSources;
+
+  ossia::net::parameter_base*
+  follow(ossia::net::parameter_base* p, std::function<ossia::value()> current)
+  {
+    m_paramSources.emplace_back(p, std::move(current));
+    return p;
+  }
+
+  //! Shows the node's current settings on the parameters, without callbacks.
+  void syncParams()
+  {
+    for(auto& [p, current] : m_paramSources)
+      p->set_value_quiet(current());
+    for(int i = 0; i < (int)m_node->mappings().size(); i++)
+      syncMapParams(i);
+  }
+
+  template <typename F>
+  void addCanvasParam(
+      ossia::net::node_base& parent, const char* name, const char* description,
+      ossia::val_type type, ossia::domain domain, ossia::bounding_mode bounding,
+      std::function<ossia::value(const CanvasLayout&)> get, F&& set)
+  {
+    auto n = std::make_unique<ossia::net::generic_node>(name, *this, parent);
+    ossia::net::set_description(*n, description);
+    auto p = n->create_parameter(type);
+    if(domain)
+      p->set_domain(std::move(domain));
+    p->set_bounding(bounding);
+    p->push_value(get(m_node->canvasLayout()));
+    p->add_callback([this, set = std::forward<F>(set)](const ossia::value& v) {
+      onGui([this, set, v] {
+        auto c = m_node->canvasLayout();
+        if(set(c, v))
+          m_node->setCanvasLayout(c);
+      });
+    });
+    follow(p, [this, get] { return get(m_node->canvasLayout()); });
+    parent.add_child(std::move(n));
+  }
 
   const OutputMaps& maps(int i) const { return m_node->mappings()[i].maps; }
 
@@ -146,9 +189,7 @@ private:
 
   const EdgeBlend& blendSide(int i, int side) const
   {
-    const auto& m = m_node->mappings()[i];
-    const EdgeBlend* sides[4]{&m.blendLeft, &m.blendRight, &m.blendTop, &m.blendBottom};
-    return *sides[side];
+    return *m_node->mappings()[i].blendSides()[side];
   }
 
   void update_viewport(PerWindowParams& pw)
@@ -187,7 +228,8 @@ public:
       std::unique_ptr<gfx_protocol_base> proto, std::string name,
       SwapchainFlag swapFlag = SwapchainFlag::NoFlag,
       SwapchainFormat swapFormat = SwapchainFormat::SDR,
-      score::PathRoots roots = score::pathRoots(), QSize canvasSize = QSize{1280, 720})
+      score::PathRoots roots = score::pathRoots(), QSize canvasSize = QSize{1280, 720},
+      CanvasLayout canvas = {})
       : ossia::net::device_base{std::move(proto)}
       , m_node{createMultiWindowNode(mappings, swapFlag, swapFormat, roots, canvasSize)}
       , m_root{*this, *static_cast<gfx_protocol_base*>(m_protocol.get()), m_node, name}
@@ -204,6 +246,48 @@ public:
       fps_param = fps_node->create_parameter(ossia::val_type::FLOAT);
       m_node->onFps = [this](float fps) { fps_param->push_value(fps); };
       m_root.add_child(std::move(fps_node));
+    }
+
+    m_node->setCanvasLayout(canvas);
+    {
+      auto canvas_node
+          = std::make_unique<ossia::net::generic_node>("canvas", *this, m_root);
+      auto vec3 = [](const std::array<float, 3>& a) { return ossia::vec3f{a[0], a[1], a[2]}; };
+      addCanvasParam(
+          *canvas_node, "projection",
+          "What the canvas holds: 0 none, 1 equirectangular (enables orientation)",
+          ossia::val_type::INT, ossia::make_domain(0, 1), ossia::bounding_mode::CLIP,
+          [](const CanvasLayout& c) { return ossia::value{int(c.projection)}; },
+          [](CanvasLayout& c, const ossia::value& v) {
+        auto x = v.target<int>();
+        if(x)
+          c.projection = *x == 1 ? CanvasProjection::Equirectangular : CanvasProjection::None;
+        return bool(x);
+      });
+      addCanvasParam(
+          *canvas_node, "orientation",
+          "Equirectangular canvas orientation, Euler degrees (pitch, yaw, roll)",
+          ossia::val_type::VEC3F, ossia::make_domain(-180.f, 180.f),
+          ossia::bounding_mode::FREE,
+          [vec3](const CanvasLayout& c) { return ossia::value{vec3(c.orientation)}; },
+          [](CanvasLayout& c, const ossia::value& v) {
+        auto x = v.target<ossia::vec3f>();
+        if(x)
+          c.orientation = {(*x)[0], (*x)[1], (*x)[2]};
+        return bool(x);
+      });
+      addCanvasParam(
+          *canvas_node, "viewer",
+          "Viewer position, in the frame of the outputs' points maps (metres)",
+          ossia::val_type::VEC3F, ossia::domain{}, ossia::bounding_mode::FREE,
+          [vec3](const CanvasLayout& c) { return ossia::value{vec3(c.viewer)}; },
+          [](CanvasLayout& c, const ossia::value& v) {
+        auto x = v.target<ossia::vec3f>();
+        if(x)
+          c.viewer = {(*x)[0], (*x)[1], (*x)[2]};
+        return bool(x);
+      });
+      m_root.add_child(std::move(canvas_node));
     }
 
     // Global rendersize parameter
@@ -440,6 +524,10 @@ public:
                 m_node->setSourceRect(i, r);
               });
           });
+          follow(pw.source_pos, [this, i] {
+            const auto r = m_node->mappings()[i].sourceRect;
+            return ossia::value{ossia::vec2f{float(r.x()), float(r.y())}};
+          });
           source_node->add_child(std::move(pos_node));
         }
         {
@@ -459,6 +547,10 @@ public:
                 r.setSize(QSizeF{v[0], v[1]});
                 m_node->setSourceRect(i, r);
               });
+          });
+          follow(pw.source_size, [this, i] {
+            const auto r = m_node->mappings()[i].sourceRect;
+            return ossia::value{ossia::vec2f{float(r.width()), float(r.height())}};
           });
           source_node->add_child(std::move(sz_node));
         }
@@ -500,6 +592,7 @@ public:
                   m_node->setEdgeBlend(i, side, w, blendSide(i, side).gamma);
                 });
             });
+            follow(w_param, [this, i, side] { return ossia::value{blendSide(i, side).width}; });
             side_node->add_child(std::move(w_node));
           }
           {
@@ -515,6 +608,7 @@ public:
                   m_node->setEdgeBlend(i, side, blendSide(i, side).width, g);
                 });
             });
+            follow(g_param, [this, i, side] { return ossia::value{blendSide(i, side).gamma}; });
             side_node->add_child(std::move(g_node));
           }
           blend_node->add_child(std::move(side_node));
@@ -553,6 +647,10 @@ public:
                 m_node->setCornerWarp(i, w);
               });
           });
+          follow(c_param, [this, i, member] {
+            const QPointF c = m_node->mappings()[i].cornerWarp.*member;
+            return ossia::value{ossia::vec2f{float(c.x()), float(c.y())}};
+          });
           warp_node->add_child(std::move(c_node));
         }
         win_node->add_child(std::move(warp_node));
@@ -581,6 +679,10 @@ public:
             if(auto val = v.target<ossia::vec3f>())
               setColor([v = *val](Gfx::OutputColor& c) { c.gain = {v[0], v[1], v[2]}; });
           });
+          follow(p, [this, i] {
+            const auto& g = m_node->mappings()[i].color.gain;
+            return ossia::value{ossia::vec3f{g[0], g[1], g[2]}};
+          });
           color_node->add_child(std::move(n));
         }
         {
@@ -597,6 +699,10 @@ public:
             if(auto val = v.target<ossia::vec3f>())
               setColor([v = *val](Gfx::OutputColor& c) { c.offset = {v[0], v[1], v[2]}; });
           });
+          follow(p, [this, i] {
+            const auto& o = m_node->mappings()[i].color.offset;
+            return ossia::value{ossia::vec3f{o[0], o[1], o[2]}};
+          });
           color_node->add_child(std::move(n));
         }
         {
@@ -610,6 +716,7 @@ public:
             if(auto val = v.target<float>(); val && *val > 0.f)
               setColor([v = *val](Gfx::OutputColor& c) { c.gamma = v; });
           });
+          follow(p, [this, i] { return ossia::value{m_node->mappings()[i].color.gamma}; });
           color_node->add_child(std::move(n));
         }
         {
@@ -624,6 +731,7 @@ public:
             if(auto val = v.target<bool>())
               setColor([v = *val](Gfx::OutputColor& c) { c.linearBlend = v; });
           });
+          follow(p, [this, i] { return ossia::value{m_node->mappings()[i].color.linearBlend}; });
           color_node->add_child(std::move(n));
         }
         win_node->add_child(std::move(color_node));
@@ -647,7 +755,9 @@ public:
             {"response", "Measured projector response (.response.json, 1D .cube)",
              &Gfx::OutputMaps::response},
             {"compensation", "Radiometric compensation (.comp.json)",
-             &Gfx::OutputMaps::compensation}};
+             &Gfx::OutputMaps::compensation},
+            {"points", "World point per pixel (.points.pfm), looked up from the viewer",
+             &Gfx::OutputMaps::points}};
         for(const auto& [fname, fdesc, member] : fields)
         {
           auto f_node
@@ -710,6 +820,7 @@ public:
                 setOutputMaps(i, m);
               });
           });
+          follow(s_param, [this, i] { return ossia::value{int(maps(i).blendSpace)}; });
           maps_node->add_child(std::move(s_node));
         }
         win_node->add_child(std::move(maps_node));
@@ -726,8 +837,9 @@ public:
             m_node->setQuality(i, q);
           });
         };
-        auto addInt = [&](const char* name, const char* desc, int min, int max, int init,
+        auto addInt = [&](const char* name, const char* desc, int min, int max, auto get,
                           auto apply) {
+          const int init = get(mapping.quality);
           auto n = std::make_unique<ossia::net::generic_node>(name, *this, *quality_node);
           ossia::net::set_description(*n, desc);
           auto p = n->create_parameter(ossia::val_type::INT);
@@ -741,25 +853,27 @@ public:
               setQuality([apply, x](Gfx::OutputQuality& q) { apply(q, x); });
             }
           });
+          follow(p, [this, i, get] { return ossia::value{get(m_node->mappings()[i].quality)}; });
           quality_node->add_child(std::move(n));
         };
         addInt(
             "sampling",
             "Canvas sampling: 0 auto, 1 linear, 2 mipmapped, 3 anisotropic", 0, 3,
-            int(mapping.quality.sampling),
+            [](const Gfx::OutputQuality& q) { return int(q.sampling); },
             [](Gfx::OutputQuality& q, int x) { q.sampling = Gfx::OutputSampling(x); });
         addInt(
             "warp_interpolation", "Warp map interpolation: 0 bilinear, 1 bicubic", 0, 1,
-            int(mapping.quality.warpInterpolation), [](Gfx::OutputQuality& q, int x) {
+            [](const Gfx::OutputQuality& q) { return int(q.warpInterpolation); },
+            [](Gfx::OutputQuality& q, int x) {
           q.warpInterpolation = Gfx::WarpInterpolation(x);
         });
         addInt(
             "dither", "Dither before quantization: 0 auto, 1 off, 2 on", 0, 2,
-            int(mapping.quality.dither),
+            [](const Gfx::OutputQuality& q) { return int(q.dither); },
             [](Gfx::OutputQuality& q, int x) { q.dither = Gfx::OutputDither(x); });
         addInt(
             "max_anisotropy", "Most taps of anisotropic sampling", 1, 16,
-            mapping.quality.maxAnisotropy,
+            [](const Gfx::OutputQuality& q) { return q.maxAnisotropy; },
             [](Gfx::OutputQuality& q, int x) { q.maxAnisotropy = x; });
         win_node->add_child(std::move(quality_node));
       }
@@ -816,6 +930,33 @@ public:
     m_calibrationWatcher
         = std::make_unique<CalibrationWatcher>([this] { reloadCalibrations(); });
     watchCalibrations();
+  }
+
+  //! Applies the per-output processing of `outputs` (same count and windows)
+  //! and the canvas layout to the running node.
+  void applyProcessing(const std::vector<OutputMapping>& outputs, const CanvasLayout& canvas)
+  {
+    const int n = std::min<int>((int)outputs.size(), (int)m_node->mappings().size());
+    for(int i = 0; i < n; i++)
+    {
+      const auto& o = outputs[i];
+      m_node->setSourceRect(i, o.sourceRect);
+      const auto sides = o.blendSides();
+      for(int k = 0; k < 4; k++)
+        m_node->setEdgeBlend(i, k, sides[k]->width, sides[k]->gamma);
+      m_node->setCornerWarp(i, o.cornerWarp);
+      m_node->setTransform(i, o.rotation, o.mirrorX, o.mirrorY);
+      m_node->setColor(i, o.color);
+      m_node->setQuality(i, o.quality);
+      auto maps = locatedMaps(o.maps, m_roots);
+      refreshCalibration(maps);
+      if(i < (int)m_mapSignatures.size())
+        setOutputMaps(i, maps);
+      else
+        m_node->setMaps(i, maps);
+    }
+    m_node->setCanvasLayout(canvas);
+    syncParams();
   }
 
   // Called after windows are created by createOutput() to connect Qt signals
