@@ -12,12 +12,32 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
+#include <QSignalBlocker>
+
+#include <Gfx/Graph/GpuSelection.hpp>
 #include <QSpinBox>
+
+#include <functional>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Settings::View)
 namespace Gfx::Settings
 {
+namespace
+{
+struct GpuComboBox final : QComboBox
+{
+  using QComboBox::QComboBox;
+  std::function<void()> populate;
+  void showPopup() override
+  {
+    if(populate)
+      populate();
+    QComboBox::showPopup();
+  }
+};
+}
+
 View::View()
 {
   m_widg = new score::FormWidget{tr("Graphics")};
@@ -52,6 +72,73 @@ View::View()
 
   static constexpr int buffers_values[]{1, 2, 3};
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Buffer count", Buffers, buffers_values);
+
+  {
+    auto gpuCombo = new GpuComboBox{m_widg};
+    gpuCombo->populate = [this] { populateGpus(); };
+    m_Gpu = gpuCombo;
+    m_Gpu->addItem(tr("Default"), QString{});
+    m_Gpu->setToolTip(
+        tr("GPU the outputs render on, with Vulkan and Direct3D 11 and 12. The score "
+           "interface stays on the default GPU. QT_VK_PHYSICAL_DEVICE_INDEX or "
+           "QT_D3D_ADAPTER_INDEX set at startup win over this setting."));
+#if defined(Q_OS_MACOS)
+    m_Gpu->setVisible(false);
+#else
+    lay->addRow(tr("GPU"), m_Gpu);
+#endif
+    connect(
+        m_Gpu, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [this](int i) { GpuChanged(m_Gpu->itemData(i).toString()); });
+    auto followApi = [this] {
+      const QString api = m_GraphicsApi->currentText();
+      m_Gpu->setEnabled(api != GraphicsApis{}.OpenGL && api != GraphicsApis{}.Metal);
+    };
+    connect(m_GraphicsApi, SignalUtils::QComboBox_currentIndexChanged_int(), this, followApi);
+    followApi();
+  }
+}
+
+static QString gpuLabel(const score::gfx::GpuDescription& g)
+{
+  const QString label = QString::number(g.index) + QStringLiteral(": ") + g.name;
+  return g.type.isEmpty() ? label : label + QStringLiteral(" (") + g.type + ')';
+}
+
+void View::populateGpus()
+{
+  if(m_gpusPopulated)
+    return;
+  m_gpusPopulated = true;
+
+  const QSignalBlocker block{m_Gpu};
+  const QString current = m_Gpu->currentData().toString();
+  while(m_Gpu->count() > 1)
+    m_Gpu->removeItem(1);
+
+  bool currentFound = current.isEmpty();
+  for(const auto& g : score::gfx::availableGpus())
+  {
+    m_Gpu->addItem(gpuLabel(g), g.key);
+    currentFound |= g.key == current;
+  }
+  if(!currentFound)
+    m_Gpu->addItem(tr("Unavailable GPU"), current);
+  m_Gpu->setCurrentIndex(std::max(0, m_Gpu->findData(current)));
+}
+
+void View::setGpu(QString val)
+{
+  if(!val.isEmpty())
+    populateGpus();
+  int idx = m_Gpu->findData(val);
+  if(idx == -1)
+  {
+    m_Gpu->addItem(tr("Unavailable GPU"), val);
+    idx = m_Gpu->count() - 1;
+  }
+  if(idx != m_Gpu->currentIndex())
+    m_Gpu->setCurrentIndex(idx);
 }
 
 QWidget* View::getWidget()

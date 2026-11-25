@@ -25,6 +25,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(Rate);
   SETTINGS_PRESENTER(VSync);
   SETTINGS_PRESENTER(Buffers);
+  SETTINGS_PRESENTER(Gpu);
 }
 
 QString Presenter::settingsName()

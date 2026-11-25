@@ -64,6 +64,7 @@ GfxContext::GfxContext(const score::DocumentContext& ctx)
   con(settings, &Gfx::Settings::Model::VSyncChanged, this, &GfxContext::recompute_graph);
   con(settings, &Gfx::Settings::Model::BuffersChanged, this,
       &GfxContext::recompute_graph);
+  con(settings, &Gfx::Settings::Model::GpuChanged, this, &GfxContext::recompute_graph);
 
   m_graph = new score::gfx::Graph;
   // Hand the session-wide AssetTable down to the Graph so every
