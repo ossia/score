@@ -782,3 +782,42 @@ score_add_test(test_threedim_offaxis_frustum
   SOURCES OffAxisFrustum.cpp
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_offaxis_frustum)
+
+# The equirectangular warp a viewer-camera calibration writes per output.
+score_add_test(test_threedim_equirect_warp
+  SOURCES EquirectWarp.cpp "${THREEDIM_DIR}/EquirectWarp.cpp" "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_equirect_warp)
+
+# Viewer-camera direction maps completed from their flat surfaces (holes,
+# noise and the room corner), as the CAVE's hfill / hcorner scripts did.
+score_add_test(test_threedim_plane_completion
+  SOURCES PlaneCompletion.cpp "${THREEDIM_DIR}/PlaneCompletion.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_plane_completion)
+
+# Room geometry for the calibration tool: a measured box or a mesh, and the
+# viewer-camera directions cast into it.
+score_add_test(test_threedim_room_geometry
+  SOURCES RoomGeometry.cpp "${THREEDIM_DIR}/RoomGeometry.cpp" "${THREEDIM_DIR}/TinyObj.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS threedim_test_mikktspace)
+threedim_test_includes(test_threedim_room_geometry)
+target_link_libraries(test_threedim_room_geometry PRIVATE miniply)
+
+# Camera lens models of the calibration tool, conversion between them and the
+# radial distortion found from flat surfaces.
+score_add_test(test_threedim_camera_lens
+  SOURCES CameraLens.cpp "${THREEDIM_DIR}/LensConversion.cpp" "${THREEDIM_DIR}/PlaneCompletion.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_camera_lens)
+
+# Camera pose in the room found from the outputs' projector consistency.
+score_add_test(test_threedim_pose_refinement
+  SOURCES PoseRefinement.cpp "${THREEDIM_DIR}/PoseRefinement.cpp" "${THREEDIM_DIR}/RoomGeometry.cpp"
+    "${THREEDIM_DIR}/TinyObj.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS threedim_test_mikktspace)
+threedim_test_includes(test_threedim_pose_refinement)
+target_link_libraries(test_threedim_pose_refinement PRIVATE miniply)
