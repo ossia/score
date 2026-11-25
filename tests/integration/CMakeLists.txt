@@ -1881,6 +1881,15 @@ score_add_test(test_integration_scenario_lock_modifier
 
 # Appending a process after an audio outlet hands over its routing state, and
 # the cable commands restore the propagation they saved instead of forcing it on.
+# A process pasted into a box keeps its content's dates: Ctrl+V does not
+# squeeze a piano roll into a shorter box.
+if(TARGET score_plugin_midi)
+  score_add_test(test_integration_process_paste_duration
+    SOURCES ProcessPasteDurationTest.cpp
+    GUI
+    PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)
+endif()
+
 score_add_test(test_integration_audio_outlet_chaining
   SOURCES AudioOutletChainingTest.cpp
   GUI

@@ -457,3 +457,15 @@ Process::ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() c
   return nullptr;
 }
 }
+
+namespace Scenario
+{
+ExpandMode pasteExpandMode(const score::DocumentContext& ctx)
+{
+  if(auto* plug
+     = score::GUIAppContext().findGuiApplicationPlugin<ScenarioApplicationPlugin>())
+    if(plug->editionSettings().expandMode() == ExpandMode::Scale)
+      return ExpandMode::Scale;
+  return ExpandMode::GrowShrink;
+}
+}

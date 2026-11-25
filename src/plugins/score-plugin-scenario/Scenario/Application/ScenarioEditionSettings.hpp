@@ -8,6 +8,10 @@
 #include <score_plugin_scenario_export.h>
 
 #include <verdigris>
+namespace score
+{
+struct DocumentContext;
+}
 namespace Scenario
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
@@ -71,4 +75,10 @@ public:
       ExpandMode,
       expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)
 };
+
+//! How processes pasted or dropped into a box fit it: what the toolbar's
+//! Scale mode says (scaled to the box, or keeping their length and their
+//! content's dates); without the interface, the latter
+SCORE_PLUGIN_SCENARIO_EXPORT
+ExpandMode pasteExpandMode(const score::DocumentContext& ctx);
 }

@@ -1,4 +1,5 @@
 #include "ScenarioEditor.hpp"
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 
 #include <Process/Dataflow/CableCopy.hpp>
 #include <Process/ProcessList.hpp>
@@ -286,8 +287,10 @@ static bool pasteInInterval(
     if(processes.Empty())
       return true;
 
+    // As the toolbar's Scale mode says: scaled to the box, or keeping its
+    // length and its content's dates (a shorter one grows to the box)
     auto cmd = new Scenario::Command::PasteProcessesInInterval{
-        obj, itv, ExpandMode{}, item_pt};
+        obj, itv, pasteExpandMode(ctx), item_pt};
     CommandDispatcher<>{ctx.commandStack}.submit(cmd);
 
     // FIXME paste all cables recursively ! e.g. check copy-pasting a scenario

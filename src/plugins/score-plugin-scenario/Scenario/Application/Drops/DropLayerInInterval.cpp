@@ -1,4 +1,5 @@
 #include <Scenario/Application/Drops/DropLayerInInterval.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
@@ -215,7 +216,7 @@ bool DropLayerInInterval::drop(
     {
       CommandDispatcher<>{ctx.commandStack}.submit(
           new Command::PasteProcessesInInterval{
-              *copy, interval, ExpandMode::GrowShrink, p});
+              *copy, interval, pasteExpandMode(ctx), p});
       return true;
     }
 
