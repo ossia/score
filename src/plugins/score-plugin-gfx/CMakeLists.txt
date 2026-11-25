@@ -446,6 +446,7 @@ set(HDRS
     Gfx/SharedOutputSettings.hpp
 
     Gfx/CameraSettings.hpp
+    Gfx/CameraControls.hpp
     Gfx/CameraDevice.hpp
     Gfx/CameraDeviceEnumerator.hpp
     Gfx/WindowDevice.hpp
@@ -587,6 +588,7 @@ set(SRCS
     Gfx/SharedOutputSettings.cpp
 
     Gfx/InvertYRenderer.cpp
+    Gfx/CameraControls.cpp
     Gfx/CameraDevice.cpp
     Gfx/WindowDevice.cpp
     Gfx/GfxInputDevice.cpp
