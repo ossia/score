@@ -2454,6 +2454,19 @@ if(TARGET score_plugin_recording AND TARGET score_plugin_media)
       score_plugin_automation score_plugin_curve)
 endif()
 
+# What a synth hears around a MIDI recording of its inlet: no note stuck when
+# the take is placed, the take heard from its first loop.
+if(TARGET score_plugin_recording AND TARGET score_plugin_fx)
+  score_add_test(test_integration_record_midi_flow
+    SOURCES RecordMidiFlowTest.cpp
+    APP
+    PLUGINS score_plugin_recording score_plugin_media score_plugin_audio
+      score_plugin_engine score_plugin_scenario score_lib_process
+      score_plugin_dataflow score_plugin_deviceexplorer score_plugin_midi
+      score_plugin_fx score_plugin_avnd)
+  set_tests_properties(test_integration_record_midi_flow PROPERTIES TIMEOUT 180)
+endif()
+
 # A texture outlet recorded to a video take through the preview path.
 if(TARGET score_plugin_recording AND TARGET score_plugin_gfx)
   score_add_test(test_integration_record_texture
