@@ -1,4 +1,5 @@
 #pragma once
+#include <QRegularExpression>
 #include <Media/AudioDecoder.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -44,6 +45,25 @@ resolvePathValue(const ossia::value& value, const score::DocumentContext& ctx)
       return ossia::value{resolved.toStdString()};
   }
   return value;
+}
+
+//! A list of paths, one per line or separated by ';' or '|', each resolved as
+//! resolvePathValue does; the result has one per line.
+[[nodiscard]] static ossia::value
+resolvePathListValue(const ossia::value& value, const score::DocumentContext& ctx)
+{
+  auto str = value.target<std::string>();
+  if(!str || str->empty())
+    return value;
+  QStringList out;
+  for(const auto& part : QString::fromStdString(*str).split(
+          QRegularExpression(QStringLiteral("[\\n;|]")), Qt::SkipEmptyParts))
+    if(const QString p = part.trimmed(); !p.isEmpty())
+    {
+      const QString resolved = score::locateFilePath(p, ctx);
+      out.push_back(resolved.isEmpty() ? p : resolved);
+    }
+  return ossia::value{out.join(QLatin1Char('\n')).toStdString()};
 }
 
 // TODO refactor this into a generic explicit soundfile loaded mechanism

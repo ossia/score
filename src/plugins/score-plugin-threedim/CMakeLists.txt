@@ -97,6 +97,24 @@ add_library(
 
   Threedim/ArrayToTexture.hpp
   Threedim/ArrayToTexture.cpp
+  Threedim/CalibrationJobs.hpp
+  Threedim/CalibrationFiles.hpp
+  Threedim/CalibrationFiles.cpp
+  Threedim/FloatTextureIO.hpp
+  Threedim/FloatTextureIO.cpp
+  Threedim/ProjectorBlend.hpp
+  Threedim/ProjectorBlend.cpp
+  Threedim/CalibrationRegistration.hpp
+  Threedim/CalibrationRegistration.cpp
+  Threedim/ManualProjectorCalibration.hpp
+  Threedim/ManualProjectorCalibration.cpp
+  Threedim/ViewerFrustum.hpp
+  Threedim/ViewerFrustum.cpp
+  Threedim/ViewerFromPose.hpp
+  Threedim/LedWall.hpp
+  Threedim/LedWall.cpp
+  Threedim/LedDiscovery.hpp
+  Threedim/LedDiscovery.cpp
   Threedim/CubemapComposer.hpp
   Threedim/CubemapLoader.hpp
   Threedim/CubemapLoader.cpp

@@ -17,6 +17,8 @@ struct GfxRenderer<Node_T> final
   std::shared_ptr<Node_T> state;
   GpuMessageState m_last_message{};
   ossia::time_value m_last_time{-1};
+  bool m_inputsChanged{};
+  uint64_t m_workerSeen{};
 
   AVND_NO_UNIQUE_ADDRESS texture_inputs_storage<Node_T> texture_ins;
   AVND_NO_UNIQUE_ADDRESS buffer_inputs_storage<Node_T> buffer_ins;
@@ -32,6 +34,7 @@ struct GfxRenderer<Node_T> final
       : score::gfx::OutputNodeRenderer{p}
       , state{std::make_shared<Node_T>()}
   {
+    m_last_message.generation = p.last_message.generation;
     prepareNewState<Node_T>(state, p);
   }
 
@@ -95,6 +98,7 @@ struct GfxRenderer<Node_T> final
       score::gfx::Edge* e) override
   {
     auto& parent = node();
+    m_inputsChanged |= m_last_message.generation != parent.last_message.generation;
     parent.processControlIn(
         *this, *state, m_last_message, parent.last_message, parent.m_ctx);
 
@@ -191,6 +195,25 @@ struct GfxRenderer<Node_T> final
     if_possible(state->inputAboutToFinish(renderer, p, res));
   }
 
+  //! Whether the last frame waited for the GPU before reading its inputs.
+  bool m_waitedForReadback{};
+
+  bool readbackNeedsFinish(
+      score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
+      QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge)
+  {
+    if constexpr(
+        avnd::buffer_input_introspection<Node_T>::size == 0
+        && avnd::geometry_input_introspection<Node_T>::size == 0
+        && !requires {
+             state->inputAboutToFinish(
+                 renderer, std::declval<const score::gfx::Port&>(), res);
+           } && !requires { state->runInitialPasses(renderer, commands, res, edge); })
+      return texture_ins.takeReadbackQueued();
+    else
+      return true;
+  }
+
   void runInitialPasses(
       score::gfx::RenderList& renderer, QRhiCommandBuffer& commands,
       QRhiResourceUpdateBatch*& res, score::gfx::Edge& edge) override
@@ -199,12 +222,20 @@ struct GfxRenderer<Node_T> final
     auto& rhi = *renderer.state.rhi;
 
     // Insert a synchronisation point to allow readbacks to complete
-    rhi.finish();
+    m_waitedForReadback = readbackNeedsFinish(renderer, commands, res, edge);
+    if(m_waitedForReadback)
+      rhi.finish();
 
-    // If we are paused, we don't run the processor implementation.
-    if(parent.last_message.message.token.date == m_last_time)
+    // If we are paused, the processor only runs for what reached it meanwhile:
+    // a control, a readback it asked for, a result of its worker.
+    m_inputsChanged |= m_last_message.generation != parent.last_message.generation;
+    const bool worker = parent.workerActivity(m_workerSeen);
+    if(parent.last_message.message.token.date == m_last_time && !m_inputsChanged
+       && !worker
+       && !(texture_inputs_storage<Node_T>::readbackGated() && m_waitedForReadback))
       return;
     m_last_time = parent.last_message.message.token.date;
+    m_inputsChanged = false;
 
     if constexpr(avnd::texture_input_introspection<Node_T>::size > 0)
       texture_ins.runInitialPasses(*this, renderer);

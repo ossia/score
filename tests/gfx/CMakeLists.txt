@@ -2419,3 +2419,42 @@ score_add_test(test_gfx_texture_port_converters_at_load
 # Crafted calibration files: truncated / CRLF PFM, oversized Bourke meshes,
 # nested MPCDI filesets, bad 1D .cube and response.json tables.
 score_add_gfx_test(calibration_file_hardening CalibrationFileHardening.cpp)
+
+# A CPU texture input declaring request_readback is read back, and its frame
+# waits for the GPU, only on request: filters and analysis nodes.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_readback_gate
+    SOURCES CroustiReadbackGate.cpp
+    PLUGINS score_plugin_avnd)
+endif()
+
+# An analysis node runs while the transport is paused for a control, an
+# impulse or a worker result that reached it.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_analysis_paused
+    SOURCES CroustiAnalysisPaused.cpp
+    PLUGINS score_plugin_avnd)
+endif()
+
+# An object's node_state is shared by the objects of every renderer of its node
+# and kept across renderer rebuilds.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_node_state
+    SOURCES CroustiNodeState.cpp
+    PLUGINS score_plugin_avnd)
+endif()
+
+# A CPU texture input declaring source_size() reads its producer's texture at
+# its own size when the formats match, and reports whether it did.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_source_size_readback
+    SOURCES CroustiSourceSizeReadback.cpp
+    PLUGINS score_plugin_avnd)
+endif()
+
+# A GPU node's save paths and path lists are resolved against the document.
+if(TARGET score_plugin_avnd)
+  score_add_gfx_plugin_test(crousti_gpu_path_controls
+    SOURCES CroustiGpuPathControls.cpp
+    PLUGINS score_plugin_avnd)
+endif()

@@ -58,7 +58,8 @@ struct dynamic_ports_component_data<T>
 // document-relative paths are resolved before the object reads it.
 template <typename T>
 concept folder_control_port = (requires { T::folder; } || requires { T::file; }
-                               || requires { T::placeholders(); })
+                               || requires { T::placeholders(); }
+                               || requires { T::path_list(); })
                               && requires(T t) {
                                    { t.value } -> std::convertible_to<std::string_view>;
                                  };
@@ -74,6 +75,8 @@ ossia::value resolveControlPath(const ossia::value& v, const score::DocumentCont
       return ossia::value{avnd_tools::filter_filename(*str, ctx).toStdString()};
     return v;
   }
+  else if constexpr(requires { Field::path_list(); })
+    return resolvePathListValue(v, ctx);
   else
     return resolvePathValue(v, ctx);
 }

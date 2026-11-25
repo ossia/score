@@ -73,6 +73,8 @@ struct GpuWorker
     ossia::mpmc_queue<Result> queue;
     std::atomic<uint64_t> pushed{};
     std::atomic<int> inflight{};
+    std::atomic<uint64_t> completed{};
+    uint64_t applied{};
 
     void push(std::function<void()> f)
     {
@@ -88,6 +90,7 @@ struct GpuWorker
       std::ranges::sort(batch, {}, &Result::order);
       for(auto& res : batch)
         res.apply();
+      applied += batch.size();
     }
 
     // Waits for the jobs in flight, and for those that the results applied
@@ -126,6 +129,7 @@ struct GpuWorker
       {
         if(auto p = results.lock())
         {
+          p->completed.fetch_add(1);
           p->inflight.fetch_sub(1);
           p->inflight.notify_all();
         }
@@ -159,6 +163,20 @@ struct GpuWorker
       m_workerResults->drain();
   }
 
+  //! Whether the worker has run, or still runs, something since `seen`
+  //! results were applied.
+  bool workerActivity(uint64_t& seen) const noexcept
+  {
+    if(!m_workerResults)
+      return false;
+    const auto& w = *m_workerResults;
+    const uint64_t done = w.completed.load() + w.applied;
+    const bool active
+        = w.inflight.load() > 0 || w.queue.size_approx() > 0 || done != seen;
+    seen = done;
+    return active;
+  }
+
   template <typename T>
   void initWorker(this auto& self, std::shared_ptr<T>& state) noexcept
   {
@@ -172,6 +190,17 @@ struct GpuWorker
   }
 
   mutable std::shared_ptr<WorkerResults> m_workerResults;
+
+  //! The object's `node_state`: one per node, shared by the objects of all its
+  //! renderers and kept while they are rebuilt.
+  template <typename T>
+  std::shared_ptr<T> nodeState() const
+  {
+    if(!m_nodeState)
+      m_nodeState = std::make_shared<T>();
+    return std::static_pointer_cast<T>(m_nodeState);
+  }
+  mutable std::shared_ptr<void> m_nodeState;
 };
 
 #if defined(OSCR_HAS_MMAP_FILE_STORAGE)
@@ -589,6 +618,13 @@ void prepareNewState(std::shared_ptr<Node_T>& eff, const Node& parent)
   }
 
   avnd::init_controls(*eff);
+
+  if constexpr(requires { typename decltype(Node_T::node_state)::element_type; })
+  {
+    using state_type = typename decltype(Node_T::node_state)::element_type;
+    if constexpr(requires { parent.template nodeState<state_type>(); })
+      eff->node_state = parent.template nodeState<state_type>();
+  }
 
   // The monitor of the process, shared by every renderer of the node
   if constexpr(requires { eff->monitor; parent.processModel; })
@@ -1522,6 +1558,8 @@ struct texture_inputs_storage<T>
 
   QRhiReadbackResult m_readbacks[avnd::texture_input_introspection<T>::size];
   bool m_readbackPremultiplied[avnd::texture_input_introspection<T>::size]{};
+  bool m_readbackDirect[avnd::texture_input_introspection<T>::size]{};
+  bool m_readbackResampled[avnd::texture_input_introspection<T>::size]{};
 
   template <typename Tex>
   QRhiTexture* createInput(
@@ -1902,6 +1940,17 @@ struct texture_inputs_storage<T>
            && !requires(F f) { f.request_width; };
   }
 
+  //! A fixed-format CPU input declaring source_size() reads its producer's
+  //! texture as it is, at its size, when its format is the input's. Otherwise
+  //! it reads its own target, which `resampled` says when the producer drew
+  //! its own texture into it: then it holds a resampled copy.
+  template <typename F>
+  static constexpr bool reads_source_size() noexcept
+  {
+    return avnd::cpu_texture_port<F> && !reads_upstream_directly<F>()
+           && requires { F::source_size(); };
+  }
+
   void runInitialPasses(auto& self, score::gfx::RenderList& renderer)
   {
     auto& rhi = *renderer.state.rhi;
@@ -1913,10 +1962,30 @@ struct texture_inputs_storage<T>
     // "completed" callback.
     if constexpr(avnd::cpu_texture_input_introspection<T>::size > 0)
     {
-      avnd::texture_input_introspection<T>::for_all_n(
-          avnd::get_inputs<T>(*self.state), [&]<typename F, std::size_t K>(F& t, avnd::predicate_index<K>) {
+      avnd::texture_input_introspection<T>::for_all_n2(
+          avnd::get_inputs<T>(*self.state),
+          [&]<typename F, std::size_t K, std::size_t N>(
+              F& t, avnd::predicate_index<K>, avnd::field_index<N>) {
         if constexpr(avnd::cpu_texture_port<F>)
           {
+            if constexpr(reads_source_size<F>())
+            {
+              const auto& rb = m_readbacks[K];
+              const bool direct = m_readbackDirect[K] && !rb.pixelSize.isEmpty();
+              if(direct)
+              {
+                t.texture.width = rb.pixelSize.width();
+                t.texture.height = rb.pixelSize.height();
+              }
+              else if(auto it = m_rts.find(self.node().input[N]);
+                      it != m_rts.end() && it->second.texture)
+              {
+                t.texture.width = it->second.texture->pixelSize().width();
+                t.texture.height = it->second.texture->pixelSize().height();
+              }
+              if constexpr(requires { t.resampled = true; })
+                t.resampled = m_readbackResampled[K];
+            }
             if constexpr(reads_upstream_directly<F>())
             {
               const auto& rb = m_readbacks[K];
@@ -1961,16 +2030,24 @@ struct texture_inputs_storage<T>
       avnd::texture_input_introspection<T>::for_all_n2(
           avnd::get_inputs<T>(*self.state),
           [&]<typename F, std::size_t K, std::size_t N>(
-              F&, avnd::predicate_index<K>, avnd::field_index<N>) {
+              F& field, avnd::predicate_index<K>, avnd::field_index<N>) {
         if constexpr(avnd::cpu_texture_port<F>)
         {
           if(N >= inputs.size() || inputs[N] != &p)
             return;
+          if constexpr(requires { bool(field.request_readback); })
+          {
+            if(!field.request_readback)
+            {
+              m_readbacks[K] = {};
+              return;
+            }
+          }
           auto rt_it = m_rts.find(&p);
           if(rt_it == m_rts.end())
             return;
           QRhiTexture* tex = rt_it->second.texture;
-          if constexpr(reads_upstream_directly<F>())
+          if constexpr(reads_upstream_directly<F>() || reads_source_size<F>())
           {
             auto [wired, direct] = upstreamTexture(renderer, self.node(), N, p);
             if(direct && direct->sampleCount() <= 1
@@ -1978,18 +2055,51 @@ struct texture_inputs_storage<T>
                && !(direct->flags()
                     & (QRhiTexture::CubeMap | QRhiTexture::ThreeDimensional
                        | QRhiTexture::TextureArray)))
-              tex = direct;
+            {
+              if constexpr(reads_upstream_directly<F>())
+                tex = direct;
+              else if(direct->format() == gpp::qrhi::textureFormat(field.texture))
+                tex = direct;
+            }
+            m_readbackResampled[K] = direct && tex != direct;
           }
           if(!tex)
             return;
           auto& readback = m_readbacks[K];
           readback = {};
           m_readbackPremultiplied[K] = tex == rt_it->second.texture;
+          m_readbackDirect[K] = tex != rt_it->second.texture;
           res->readBackTexture(QRhiReadbackDescription{tex}, &readback);
+          m_readbackQueued = true;
         }
       });
     }
   }
+
+  //! Whether a CPU texture input declares request_readback: then the frame
+  //! waits for the GPU only when a readback was queued.
+  static constexpr bool readbackGated() noexcept
+  {
+    bool gated = false;
+    avnd::texture_input_introspection<T>::for_all(
+        [&]<std::size_t I, typename F>(avnd::field_reflection<I, F>) {
+      if constexpr(avnd::cpu_texture_port<F>)
+        if constexpr(requires(F f) { bool(f.request_readback); })
+          gated = true;
+    });
+    return gated;
+  }
+
+  //! Whether a readback was queued since the last call; always true for the
+  //! nodes whose inputs do not declare request_readback.
+  bool takeReadbackQueued() noexcept
+  {
+    if constexpr(!readbackGated())
+      return true;
+    else
+      return std::exchange(m_readbackQueued, false);
+  }
+  bool m_readbackQueued{};
 
 };
 template<typename T>
@@ -1998,6 +2108,8 @@ struct texture_inputs_storage<T>
 {
   static void init(auto&&...) { }
   static void runInitialPasses(auto&&...) { }
+  static constexpr bool readbackGated() noexcept { return false; }
+  static bool takeReadbackQueued() noexcept { return true; }
   static void release(auto&&...) { }
   static void inputAboutToFinish(auto&&...) { }
 };

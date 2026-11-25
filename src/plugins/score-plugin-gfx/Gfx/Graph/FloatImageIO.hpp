@@ -45,6 +45,7 @@ FloatImage readPFM(const QString& path, QString* error = nullptr);
 //! Little-endian PFM; channels must be 1 or 3.
 SCORE_PLUGIN_GFX_EXPORT
 QByteArray encodePFM(const FloatImage& img);
+//! Replaces `path` atomically: readers see the old file or the new one.
 SCORE_PLUGIN_GFX_EXPORT
 bool writePFM(const QString& path, const FloatImage& img, QString* error = nullptr);
 

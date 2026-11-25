@@ -589,11 +589,67 @@ score_add_test(test_threedim_camera_off_axis
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_off_axis)
 
+# Calibration files: one reader and writer of name.json and its listed maps.
+score_add_test(test_threedim_calibration_files
+  SOURCES CalibrationFiles.cpp "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_files)
+
+# Save / Load Float Texture: PFM files and the json sidecar.
+score_add_test(test_threedim_float_texture_io
+  SOURCES FloatTextureIO.cpp
+    "${THREEDIM_DIR}/FloatTextureIO.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_float_texture_io)
+
 # Multi-projector blend and black-level maps on simulated walls and a CAVE.
 score_add_test(test_threedim_projector_blend
   SOURCES ProjectorBlend.cpp
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_projector_blend)
+
+# Projector Blend Maps as a process: loads calibrations, writes alpha and beta.
+score_add_test(test_threedim_projector_blend_process
+  SOURCES ProjectorBlendProcess.cpp
+    "${THREEDIM_DIR}/ProjectorBlend.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_projector_blend_process)
+
+# Register Calibrations: the transform between two camera frames.
+score_add_test(test_threedim_calibration_registration
+  SOURCES CalibrationRegistration.cpp
+    "${THREEDIM_DIR}/CalibrationRegistration.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_registration)
+
+# Manual Projector Calibration: DLT + LM and EPnP from hand-picked pairs.
+score_add_test(test_threedim_manual_projector_calibration
+  SOURCES ManualProjectorCalibration.cpp
+    "${THREEDIM_DIR}/ManualProjectorCalibration.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_manual_projector_calibration)
+
+# Projector to Viewer Frustum: cached calibration, OpenGL matrices a Camera
+# reads; Viewer From Pose's 1 euro filter on every tick.
+score_add_test(test_threedim_viewer_frustum
+  SOURCES ViewerFrustum.cpp
+    "${THREEDIM_DIR}/ViewerFrustum.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_viewer_frustum)
+
+# LED walls and LED discovery by binary blinking.
+score_add_test(test_threedim_led_mapping
+  SOURCES LedMapping.cpp
+    "${THREEDIM_DIR}/LedWall.cpp"
+    "${THREEDIM_DIR}/LedDiscovery.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_led_mapping)
 
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric
