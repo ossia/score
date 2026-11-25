@@ -45,7 +45,7 @@ public:
     return controls && controls->push(p, v);
   }
 
-  void start_execution() override
+  void startStream() override
   {
     if(!camera->start())
     {
@@ -575,4 +575,14 @@ void JSONWriter::write(Gfx::CameraSettings& n)
   score::parseJsonField(obj, "PixelFormat", n.pixelformat);
   score::parseJsonField(obj, "ColorRange", n.colorRange);
   score::parseJsonField(obj, "Custom", n.custom);
+}
+
+namespace Gfx
+{
+QSize cameraDeviceSize(const QVariant& v)
+{
+  if(v.canConvert<CameraSettings>())
+    return v.value<CameraSettings>().size;
+  return {};
+}
 }

@@ -15,6 +15,7 @@
 #include <Threedim/FloatTextureIO.hpp>
 #include <Threedim/ProjectorBlend.hpp>
 #include <Threedim/CalibrationRegistration.hpp>
+#include <Threedim/CalibrationWizard.hpp>
 #include <Threedim/LedDiscovery.hpp>
 #include <Threedim/LedWall.hpp>
 #include <Threedim/StructuredLightCalibration.hpp>
@@ -508,6 +509,12 @@ score_plugin_threedim::make_commands()
 
   return cmds;
 }
+score::GUIApplicationPlugin*
+score_plugin_threedim::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+{
+  return new Threedim::CalibrationApplicationPlugin{app};
+}
+
 std::vector<score::PluginKey> score_plugin_threedim::required() const
 {
   return {score_plugin_engine::static_key()};

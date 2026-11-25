@@ -2420,6 +2420,12 @@ score_add_test(test_gfx_texture_port_converters_at_load
 # nested MPCDI filesets, bad 1D .cube and response.json tables.
 score_add_gfx_test(calibration_file_hardening CalibrationFileHardening.cpp)
 
+# A camera stream held open by a tool with the score stopped, counted, and
+# left to the execution once released.
+score_add_test(test_gfx_stream_requests
+  SOURCES StreamRequests.cpp
+  PLUGINS score_plugin_gfx)
+
 # A CPU texture input declaring request_readback is read back, and its frame
 # waits for the GPU, only on request: filters and analysis nodes.
 if(TARGET score_plugin_avnd)
@@ -2458,3 +2464,32 @@ if(TARGET score_plugin_avnd)
     SOURCES CroustiGpuPathControls.cpp
     PLUGINS score_plugin_avnd)
 endif()
+
+# The projector calibration tool end to end: CalibrationRun on a multi-window
+# node's windows and a fake camera filming them, no process, no playing.
+score_add_gfx_test(calibration_run_end_to_end CalibrationRunEndToEnd.cpp)
+set(_calib_threedim "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim/Threedim")
+target_sources(test_gfx_calibration_run_end_to_end PRIVATE
+  "${_calib_threedim}/CalibrationRun.cpp"
+  "${_calib_threedim}/CalibrationPostProcess.cpp"
+  "${_calib_threedim}/PatternCapture.cpp"
+  "${_calib_threedim}/StructuredLightPhotometric.cpp"
+  "${_calib_threedim}/StructuredLightCore.cpp"
+  "${_calib_threedim}/TinyObj.cpp"
+  "${_calib_threedim}/EquirectWarp.cpp"
+  "${_calib_threedim}/PlaneCompletion.cpp"
+  "${_calib_threedim}/RoomGeometry.cpp"
+  "${_calib_threedim}/LensConversion.cpp"
+  "${_calib_threedim}/PoseRefinement.cpp"
+  "${_calib_threedim}/CalibrationPlan.cpp"
+  "${_calib_threedim}/StructuredLightSession.cpp"
+  "${_calib_threedim}/StructuredLightCalibration.cpp"
+  "${_calib_threedim}/StructuredLight.cpp"
+  "${_calib_threedim}/CalibrationFiles.cpp"
+  "${_calib_threedim}/ProjectorBlend.cpp"
+  "${_calib_threedim}/FloatTextureIO.cpp")
+target_link_libraries(test_gfx_calibration_run_end_to_end PRIVATE miniply threedim_test_mikktspace)
+target_include_directories(test_gfx_calibration_run_end_to_end SYSTEM PRIVATE
+  "${SCORE_ROOT_SOURCE_DIR}/3rdparty/mikktspace"
+  "${SCORE_ROOT_SOURCE_DIR}/src/plugins/score-plugin-threedim"
+  "${SCORE_ROOT_BINARY_DIR}/src/plugins/score-plugin-threedim")

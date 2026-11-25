@@ -470,6 +470,7 @@ bool StructuredLightCore::saveFile(const QString& path, const Result& r, QString
     c.camera = CalibrationCamera{r.cameraIntrinsics, r.camWidth, r.camHeight, r.lens};
   c.planes = r.planes;
   c.projectorIndex = r.projectorIndex;
+  c.screen = r.screen;
   c.json["mode"] = c.viewerMode ? "viewer" : "depth";
   c.json["rms"] = r.rms;
   c.json["coverage"] = r.coverage;
@@ -567,6 +568,7 @@ StructuredLightCore::Result StructuredLightCore::loadFile(const QString& path)
     if(const auto m = index.match(c.base); m.hasMatch())
       r.projectorIndex = m.captured(1).toInt();
   }
+  r.screen = c.screen;
   std::string note;
   loadPhotometricFiles(c.base, r, note);
   std::size_t covered = 0;

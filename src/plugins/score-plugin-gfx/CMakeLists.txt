@@ -163,6 +163,7 @@ set(HDRS
     Gfx/Widgets/RhiPreviewWidget.hpp
     Gfx/Widgets/TexturePreview.hpp
     Gfx/TextureCapture.hpp
+    Gfx/StreamRequests.hpp
     Gfx/Widgets/OutletPreviewLayer.hpp
 
     Gfx/GeometryFilter/Executor.hpp

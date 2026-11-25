@@ -222,12 +222,18 @@ ProjectorBlendMaps::Result ProjectorBlendMaps::run(const Job& job)
 {
   std::vector<CalibrationFile> cals;
   std::string failed;
+  int screens = 0;
   for(const auto& path : job.paths)
   {
     auto c = loadCalibration(QString::fromStdString(path));
     if(!c.ok())
     {
       failed += (failed.empty() ? "" : ", ") + c.error.toStdString();
+      continue;
+    }
+    if(c.screen)
+    {
+      screens++;
       continue;
     }
     cals.push_back(std::move(c));
@@ -245,6 +251,8 @@ ProjectorBlendMaps::Result ProjectorBlendMaps::run(const Job& job)
     bases.push_back(c.base);
   auto r = compute(std::move(cals), job.settings);
   write(r, bases, job.settings);
+  if(screens > 0)
+    r.status += "; " + std::to_string(screens) + " screen(s) left out: nothing to blend";
   return r;
 }
 

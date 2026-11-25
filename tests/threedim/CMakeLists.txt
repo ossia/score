@@ -633,6 +633,14 @@ score_add_test(test_threedim_manual_projector_calibration
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_manual_projector_calibration)
 
+# The calibration wizard's plan: canvas layout, names, output stage bypass.
+score_add_test(test_threedim_calibration_plan
+  SOURCES CalibrationPlan.cpp
+    "${THREEDIM_DIR}/CalibrationPlan.cpp"
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_calibration_plan)
+
 # Projector to Viewer Frustum: cached calibration, OpenGL matrices a Camera
 # reads; Viewer From Pose's 1 euro filter on every tick.
 score_add_test(test_threedim_viewer_frustum
@@ -812,6 +820,53 @@ score_add_test(test_threedim_camera_lens
     "${THREEDIM_DIR}/CalibrationFiles.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_lens)
+
+# What follows a projector calibration capture: results and their display,
+# lens, alignment, planes, pose, points and warp maps, stale products, blend.
+score_add_test(test_threedim_calibration_post_process
+  SOURCES CalibrationPostProcess.cpp
+    "${THREEDIM_DIR}/CalibrationPostProcess.cpp"
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/EquirectWarp.cpp"
+    "${THREEDIM_DIR}/PlaneCompletion.cpp"
+    "${THREEDIM_DIR}/RoomGeometry.cpp"
+    "${THREEDIM_DIR}/TinyObj.cpp"
+    "${THREEDIM_DIR}/LensConversion.cpp"
+    "${THREEDIM_DIR}/PoseRefinement.cpp"
+    "${THREEDIM_DIR}/ProjectorBlend.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS threedim_test_mikktspace)
+threedim_test_includes(test_threedim_calibration_post_process)
+target_link_libraries(test_threedim_calibration_post_process PRIVATE miniply)
+
+# The calibration tool's run without a GPU: the simulated bench through a fake
+# camera and display; per-output patterns, exposure restored, abort while
+# computing, frozen and wrong-size cameras, a camera device created again.
+score_add_test(test_threedim_calibration_run
+  SOURCES CalibrationRun.cpp
+    "${THREEDIM_DIR}/CalibrationRun.cpp"
+    "${THREEDIM_DIR}/CalibrationPlan.cpp"
+    "${THREEDIM_DIR}/CalibrationPostProcess.cpp"
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+    "${THREEDIM_DIR}/EquirectWarp.cpp"
+    "${THREEDIM_DIR}/PlaneCompletion.cpp"
+    "${THREEDIM_DIR}/RoomGeometry.cpp"
+    "${THREEDIM_DIR}/TinyObj.cpp"
+    "${THREEDIM_DIR}/LensConversion.cpp"
+    "${THREEDIM_DIR}/PoseRefinement.cpp"
+    "${THREEDIM_DIR}/ProjectorBlend.cpp"
+  PLUGINS score_plugin_gfx
+  LIBS threedim_test_mikktspace)
+threedim_test_includes(test_threedim_calibration_run)
+target_link_libraries(test_threedim_calibration_run PRIVATE miniply)
 
 # Camera pose in the room found from the outputs' projector consistency.
 score_add_test(test_threedim_pose_refinement
