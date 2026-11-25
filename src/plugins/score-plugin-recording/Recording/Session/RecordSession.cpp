@@ -1218,10 +1218,12 @@ Process::ProcessModel* RecordSession::createTake(
     Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
     const Process::ProcessData& data)
 {
-  if(!m_options.nodePosition)
-    return macro.createProcessInNewSlot(box, data);
-  return macro.createProcessInNewSlot(
-      box, data, freeNodePosition(box, *m_options.nodePosition));
+  // A slot of its own, whatever the kind of process: an automation would
+  // otherwise go over the first one
+  auto* p = macro.createProcess(box, data, takeNodePosition(box, m_options.nodePosition));
+  if(p && !(p->flags() & Process::ProcessFlags::TimeIndependent))
+    macro.addLayerInNewSlot(box, *p);
+  return p;
 }
 
 void RecordSession::connectToInlet(
@@ -1423,7 +1425,9 @@ bool RecordSession::placePasses(
       Process::ProcessModel* proc{};
       if(loops && !first)
       {
-        proc = macro->createProcess(*s.box, d.creation, {});
+        // Under the passes before it
+        proc = macro->createProcess(
+            *s.box, d.creation, takeNodePosition(*s.box, m_options.nodePosition));
         if(proc)
           macro->addLayerToLastSlot(*s.box, *proc);
       }

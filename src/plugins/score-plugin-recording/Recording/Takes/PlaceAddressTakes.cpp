@@ -31,6 +31,21 @@
 
 namespace Recording
 {
+QPointF takeNodePosition(const Scenario::IntervalModel& box, std::optional<QPointF> asked)
+{
+  if(asked)
+    return freeNodePosition(box, *asked);
+  QPointF anchor{};
+  bool first = true;
+  for(const auto& p : box.processes)
+  {
+    const auto pos = p.position();
+    anchor = first ? pos : QPointF{std::min(anchor.x(), pos.x()), std::min(anchor.y(), pos.y())};
+    first = false;
+  }
+  return freeNodePosition(box, anchor);
+}
+
 QPointF freeNodePosition(const Scenario::IntervalModel& box, QPointF wanted)
 {
   constexpr double margin = 20.;
@@ -67,9 +82,7 @@ struct Placer
       Scenario::Command::Macro& macro, const Scenario::IntervalModel& box,
       const Process::ProcessData& data)
   {
-    if(!pos)
-      return macro.createProcessInNewSlot(box, data);
-    return macro.createProcessInNewSlot(box, data, freeNodePosition(box, *pos));
+    return macro.createProcessInNewSlot(box, data, takeNodePosition(box, pos));
   }
 };
 

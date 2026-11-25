@@ -1214,6 +1214,74 @@ TEST_CASE("What is being recorded is shown in its box while it records", "[recor
   });
 }
 
+TEST_CASE("A value take placed in its box plays the values at the times they came, in a slot of its own", "[recording][session][values][timing]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Automation::ProcessModel* source{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      source = static_cast<Automation::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}));
+      REQUIRE(source);
+      // 10 to 20 over the box: a value per second of the box
+      m.submit(new Automation::SetMin{*source, 10.});
+      m.submit(new Automation::SetMax{*source, 20.});
+      m.commit();
+    }
+    const auto slots = box->smallView().size();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::ThisBox;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*source->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(2000);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    REQUIRE(session.takes().size() == 1);
+    const auto& take = session.takes()[0];
+    auto* t = qobject_cast<Automation::ProcessModel*>(take.placed);
+    REQUIRE(t);
+    // A slot of its own, under the others
+    CHECK(box->smallView().size() == slots + 1);
+    CHECK(box->smallView().back().frontProcess == t->id());
+
+    // At a time of the box it was recorded at, what the source played then
+    const double dur = double(t->duration().impl);
+    REQUIRE(dur > 0.);
+    const auto played = [&](int64_t box_time) {
+      const double x = double(box_time + t->startOffset().impl) / dur;
+      for(auto* seg : t->curve().sortedSegments())
+        if(x >= seg->start().x() && x <= seg->end().x())
+          return t->min() + seg->valueAt(x) * (t->max() - t->min());
+      return -1000.;
+    };
+    const int64_t a = take.startDate, b = take.endDate;
+    INFO("take from " << a / 705600. << " to " << b / 705600. << " ms of a "
+                      << dur / 705600. << " ms process");
+    REQUIRE(b - a > 705600 * 1000);
+    for(double f : {0.25, 0.5, 0.75})
+    {
+      const int64_t at = a + int64_t((b - a) * f);
+      const double expected = 10. + 10. * double(at) / (10000. * 705600.);
+      INFO("at " << at / 705600. << " ms");
+      CHECK(std::abs(played(at) - expected) < 0.15);
+    }
+  });
+}
+
 TEST_CASE("Values recorded into an automation where touched: it plays until touched, and comes back after", "[recording][session][overdub][touch]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {

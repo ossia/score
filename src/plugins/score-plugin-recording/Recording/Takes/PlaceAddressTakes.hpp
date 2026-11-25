@@ -35,6 +35,12 @@ constexpr QSizeF takeNodeSize{320., 160.};
 SCORE_PLUGIN_RECORDING_EXPORT
 QPointF freeNodePosition(const Scenario::IntervalModel& box, QPointF wanted);
 
+//! Where a take's node goes when no place was asked: in a column from the
+//! top left of the box's nodes, under them, one take under the other
+SCORE_PLUGIN_RECORDING_EXPORT
+QPointF takeNodePosition(
+    const Scenario::IntervalModel& box, std::optional<QPointF> asked = {});
+
 //! What was recorded of an address, dated in the scenario it is placed in
 struct AddressTake
 {

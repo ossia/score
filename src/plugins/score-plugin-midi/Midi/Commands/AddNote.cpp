@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddNote.hpp"
 
+#include <algorithm>
+
 #include <Process/TimeValueSerialization.hpp>
 
 #include <Midi/MidiProcess.hpp>
@@ -87,6 +89,23 @@ ReplaceNotes::ReplaceNotes(
     , m_olddur{model.duration()}
     , m_newdur{d}
 {
+  // A few notes still show as a keyboard: an octave at least, round them
+  if(m_newmax - m_newmin < 11)
+  {
+    const int center = (m_newmin + m_newmax) / 2;
+    m_newmin = std::clamp(center - 5, 0, 127 - 11);
+    m_newmax = m_newmin + 11;
+    if(min < m_newmin)
+    {
+      m_newmin = min;
+      m_newmax = min + 11;
+    }
+    else if(max > m_newmax)
+    {
+      m_newmax = max;
+      m_newmin = max - 11;
+    }
+  }
   for(Note& note : model.notes)
   {
     m_old.push_back({note.id(), note.noteData()});
