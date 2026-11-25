@@ -1273,8 +1273,8 @@ PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& v
 
 namespace
 {
-//! A port's name: a click selects the port, and a drag starts a cable from it
-//! as from the port itself.
+//! A port's name: a click selects the port, a drag starts a cable from it as
+//! from the port itself, and a right click opens the port's menu.
 class PortLabel final : public score::SimpleTextItem
 {
 public:
@@ -1284,7 +1284,7 @@ public:
   {
     // The pointing hand stays the port's own: it says where a click lands a
     // cable end, which a label next to the port does not.
-    setAcceptedMouseButtons(Qt::LeftButton);
+    setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
   }
 
 private:
@@ -1303,6 +1303,9 @@ private:
     auto& ctx = score::IDocument::documentContext(m_port);
     ctx.selectionStack.pushNewSelection({const_cast<Process::Port*>(&m_port)});
     event->accept();
+    if(event->button() == Qt::RightButton)
+      if(auto* port = portItem())
+        port->contextMenuRequested(event->scenePos(), event->screenPos());
   }
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
