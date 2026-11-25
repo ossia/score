@@ -1044,6 +1044,10 @@ score_add_gfx_test(shared_device_extensions GfxSharedDeviceExtensions.cpp)
 # Node profiling across an output's rebuild, and turned off and on.
 score_add_gfx_test(profiler_rebuild GfxProfilerRebuild.cpp)
 
+# An output window keeps the display awake while it is shown, and the
+# freedesktop inhibition survives replies that arrive after a release.
+score_add_gfx_test(idle_inhibitor GfxIdleInhibitor.cpp)
+
 # Randomised sequences of the window disruptions a user can inflict -- hide,
 # re-show, resize, render-size override, full screen -- across all three output
 # modes and both clocks. The paths that set m_running / m_hasSwapChain /
