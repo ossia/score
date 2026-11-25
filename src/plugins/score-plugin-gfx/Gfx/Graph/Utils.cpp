@@ -1684,9 +1684,10 @@ Pipeline buildPipelineWithState(
   // of those draws 6x on top of that. D3D11 has no ViewInstancing and is
   // unaffected either way.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  if(multiViewCount > 1 && renderer.state.caps.multiview
+  if(multiViewCount > 1
      && !viewIndexNeedsPassIndexFallback(
-         renderer.state.api, renderer.state.version, multiViewCount))
+         renderer.state.api, renderer.state.version, multiViewCount,
+         renderer.state.caps.multiview))
     ps->setMultiViewCount(multiViewCount);
 #else
   (void)multiViewCount;

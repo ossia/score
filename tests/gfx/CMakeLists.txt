@@ -1038,6 +1038,9 @@ score_add_test(test_gfx_camera_controls
   SOURCES GfxCameraControls.cpp
   PLUGINS score_plugin_gfx)
 
+# The Vulkan device score creates enables the extensions QRhi relies on.
+score_add_gfx_test(shared_device_extensions GfxSharedDeviceExtensions.cpp)
+
 # Randomised sequences of the window disruptions a user can inflict -- hide,
 # re-show, resize, render-size override, full screen -- across all three output
 # modes and both clocks. The paths that set m_running / m_hasSwapChain /
@@ -2330,6 +2333,14 @@ score_add_test(test_gfx_isf_vertex_wrapping
 score_link_plugins_for_static(test_gfx_isf_vertex_wrapping)
 target_compile_definitions(test_gfx_isf_vertex_wrapping PRIVATE
   GFX_TEST_CORPUS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/corpus")
+
+# The shader cache keys a baker on the renderer's multiview support only for
+# shaders with several views. No device.
+score_add_test(test_gfx_shader_cache_multiview
+  SOURCES GfxShaderCacheMultiview.cpp
+  PLUGINS score_plugin_gfx score_lib_process
+  LIBS test_gfx_engine_glue)
+score_link_plugins_for_static(test_gfx_shader_cache_multiview)
 
 # ISF-mode CULL_MODE none/back/front and gl_FrontFacing follow OpenGL, with
 # and without a vertex shader of the shader's own.
