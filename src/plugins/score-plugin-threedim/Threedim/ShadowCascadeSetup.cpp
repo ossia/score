@@ -1,5 +1,7 @@
 #include "ShadowCascadeSetup.hpp"
 
+#include <Gfx/Graph/CameraMath.hpp>
+
 #include <QDebug>
 #include <QMatrix4x4>
 #include <QQuaternion>
@@ -197,9 +199,8 @@ bool findActiveCamera(
           {
             const auto& cam = **cc;
             outView = world.inverted();
-            outProj = QMatrix4x4{};
-            outProj.perspective(
-                cam.yfov * 180.f / float(M_PI), aspect, cam.znear, cam.zfar);
+            score::gfx::cameraProjection(outProj, cam, aspect);
+            score::gfx::flipProjectionDepth(outProj);
             return true;
           }
         }

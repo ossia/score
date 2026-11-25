@@ -42,13 +42,16 @@ void Camera::init(score::gfx::RenderList& r, QRhiResourceUpdateBatch& res)
 void Camera::update(
     score::gfx::RenderList& r, QRhiResourceUpdateBatch& res, score::gfx::Edge*)
 {
+  if(!m_state)
+    rebuild();
+  const QVector3D eye = m_position;
+  const QQuaternion q = m_orientation;
   if(raw_transform_slot.valid())
   {
     score::gfx::RawLocalTransform xform{};
-    xform.translation[0] = inputs.eye.value.x;
-    xform.translation[1] = inputs.eye.value.y;
-    xform.translation[2] = inputs.eye.value.z;
-    const QQuaternion q = orientation();
+    xform.translation[0] = eye.x();
+    xform.translation[1] = eye.y();
+    xform.translation[2] = eye.z();
     xform.rotation[0] = q.x();
     xform.rotation[1] = q.y();
     xform.rotation[2] = q.z();
@@ -63,20 +66,20 @@ void Camera::update(
     return;
 
   score::gfx::RawCameraData raw{};
-  raw.eye[0] = inputs.eye.value.x;
-  raw.eye[1] = inputs.eye.value.y;
-  raw.eye[2] = inputs.eye.value.z;
-  raw.target[0] = inputs.target.value.x;
-  raw.target[1] = inputs.target.value.y;
-  raw.target[2] = inputs.target.value.z;
-  const QVector3D up = orientation().rotatedVector(QVector3D(0.f, 1.f, 0.f));
+  raw.eye[0] = eye.x();
+  raw.eye[1] = eye.y();
+  raw.eye[2] = eye.z();
+  raw.target[0] = m_target.x();
+  raw.target[1] = m_target.y();
+  raw.target[2] = m_target.z();
+  const QVector3D up = q.rotatedVector(QVector3D(0.f, 1.f, 0.f));
   raw.up[0] = up.x();
   raw.up[1] = up.y();
   raw.up[2] = up.z();
-  raw.yfov = inputs.fov.value * float(M_PI) / 180.f;
-  raw.znear = inputs.near_plane.value;
-  raw.zfar = inputs.far_plane.value;
-  raw.projection = 0u;  // perspective
+  raw.yfov = m_yfov;
+  raw.znear = m_znear;
+  raw.zfar = m_zfar;
+  raw.projection = 0u;
   r.registry().updateSlot(res, raw_camera_slot, &raw, sizeof(raw));
 }
 

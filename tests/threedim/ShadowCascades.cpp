@@ -486,3 +486,49 @@ TEST_CASE("ShadowCascadeSetup: without a camera the cascades cover the shadow di
     }
   }
 }
+
+TEST_CASE("ShadowCascadeSetup: an off-axis or orthographic camera is fitted as it projects",
+          "[threedim][shadow]")
+{
+  const auto covers = [](std::shared_ptr<ossia::camera_component> cam, QVector3D p) {
+    auto kids = std::make_shared<std::vector<ossia::scene_payload>>();
+    kids->push_back(trs(0.f, 0.f, 0.f));
+    kids->push_back(ossia::camera_component_ptr(std::move(cam)));
+    auto node = std::make_shared<ossia::scene_node>();
+    node->id.value = 5;
+    node->children = std::move(kids);
+    Threedim::ShadowCascadeSetup n;
+    n.inputs.scene_in.scene.state = make_state({node});
+    n.inputs.cascade_count.value = 1;
+    n.inputs.camera_near.value = 1.f;
+    n.inputs.camera_far.value = 20.f;
+    n.inputs.shadow_distance.value = 20.f;
+    n.inputs.light_direction.value = {0.f, -1.f, 0.f};
+    const QMatrix4x4 m = mat_of(run(n), 0);
+    const QVector4D c = m * QVector4D(p, 1.f);
+    return std::abs(c.x() / c.w()) <= 1.f && std::abs(c.y() / c.w()) <= 1.f;
+  };
+
+  auto offAxis = std::make_shared<ossia::camera_component>();
+  offAxis->projection = ossia::camera_projection::perspective;
+  offAxis->znear = 1.f;
+  offAxis->zfar = 20.f;
+  offAxis->frustum_set = true;
+  offAxis->frustum[0] = 2.f;
+  offAxis->frustum[1] = 3.f;
+  offAxis->frustum[2] = -0.5f;
+  offAxis->frustum[3] = 0.5f;
+  CHECK(covers(offAxis, {25.f, 0.f, -10.f}));
+  CHECK_FALSE(covers(offAxis, {-25.f, 0.f, -10.f}));
+  CHECK_FALSE(covers(offAxis, {0.f, 0.f, -10.f}));
+
+  auto ortho = std::make_shared<ossia::camera_component>();
+  ortho->projection = ossia::camera_projection::orthographic;
+  ortho->xmag = 2.f;
+  ortho->ymag = 2.f;
+  ortho->znear = 1.f;
+  ortho->zfar = 20.f;
+  CHECK(covers(ortho, {0.f, 0.f, -10.f}));
+  CHECK(covers(ortho, {1.5f, 0.f, -19.f}));
+  CHECK_FALSE(covers(ortho, {6.f, 0.f, -10.f}));
+}

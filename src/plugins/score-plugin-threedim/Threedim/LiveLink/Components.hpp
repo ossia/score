@@ -48,6 +48,10 @@ inline void apply_camera(ossia::camera_component& cc, const camera_record& r)
   }
   cc.znear = r.znear;
   cc.zfar = r.zfar > 0.f ? r.zfar : 1000.f;
+  cc.shift[0] = 0.f;
+  cc.shift[1] = 0.f;
+  cc.frustum_set = false;
+  cc.projection_matrix_set = false;
 }
 
 }
