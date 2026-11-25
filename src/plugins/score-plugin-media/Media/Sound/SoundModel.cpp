@@ -5,6 +5,7 @@
 #include <Media/AudioDecoder.hpp>
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Media/Sound/Drop/SoundDrop.hpp>
 #include <Media/Tempo.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -87,6 +88,17 @@ std::optional<double> estimateTempo(const AudioFile& file)
 
 namespace Sound
 {
+std::unique_ptr<Process::AudioFileChooser> makeFileInlet(QObject* parent)
+{
+  QStringList exts;
+  for(const auto& e : DropHandler{}.fileExtensions())
+    exts.push_back("*." + e);
+  exts.sort();
+  return std::make_unique<Process::AudioFileChooser>(
+      QString{}, QObject::tr("Sound files (%1)").arg(exts.join(' ')), QObject::tr("File"),
+      Id<Process::Port>(1), parent);
+}
+
 ProcessModel::ProcessModel(
     const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
     QObject* parent)
@@ -94,7 +106,7 @@ ProcessModel::ProcessModel(
           ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{std::make_unique<Process::AudioOutlet>(
           "Audio Out", Id<Process::Port>(0), this)}
-    , fileInlet{std::make_unique<Process::ValueInlet>("File", Id<Process::Port>(1), this)}
+    , fileInlet{makeFileInlet(this)}
     , m_file{std::make_shared<AudioFile>()}
     , m_mode{default_stretch_modes.unknown}
 {
@@ -391,7 +403,8 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 
   proc.loadFile(proc.m_userFilePath, proc.m_stream);
   proc.outlet = load_audio_outlet(*this, &proc);
-  proc.fileInlet = load_value_inlet(*this, &proc);
+  proc.fileInlet.reset(
+      static_cast<Process::AudioFileChooser*>(load_control_inlet(*this, &proc).release()));
 
   checkDelimiter();
 }
@@ -428,11 +441,13 @@ void JSONWriter::write(Media::Sound::ProcessModel& proc)
   if(auto in = obj.tryGet("FileInlet"))
   {
     JSONWriter w{*in};
-    proc.fileInlet = Process::load_value_inlet(w, &proc);
+    auto ctl = Process::load_control_inlet(w, &proc);
+    if(auto* chooser = qobject_cast<Process::AudioFileChooser*>(ctl.get()))
+    {
+      ctl.release();
+      proc.fileInlet.reset(chooser);
+    }
   }
-  else
-  {
-    proc.fileInlet
-        = std::make_unique<Process::ValueInlet>("File", Id<Process::Port>(1), &proc);
-  }
+  if(!proc.fileInlet)
+    proc.fileInlet = Media::Sound::makeFileInlet(&proc);
 }

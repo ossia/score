@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/MediaRange.hpp>
 #include <Process/Process.hpp>
 
@@ -20,6 +21,9 @@ namespace Media
 {
 namespace Sound
 {
+//! The control a file to play while playing is given in (#1522)
+std::unique_ptr<Process::AudioFileChooser> makeFileInlet(QObject* parent);
+
 class ProcessModel;
 
 class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
@@ -90,7 +94,7 @@ public:
   std::unique_ptr<Process::AudioOutlet> outlet;
   //! A path received while playing plays that file instead, until playback
   //! stops; the document keeps its file (a live looper's takes, #1522)
-  std::unique_ptr<Process::ValueInlet> fileInlet;
+  std::unique_ptr<Process::AudioFileChooser> fileInlet;
 
 public:
   void fileChanged() W_SIGNAL(fileChanged);

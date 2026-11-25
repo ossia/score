@@ -560,6 +560,8 @@ TEST_CASE("A path received by a Sound's File inlet plays that file, the document
     REQUIRE(sound);
     REQUIRE(sound->fileInlet);
     REQUIRE(sound->inlets().size() == 1);
+    // A file control: a chooser in the inspector and the node, files dropped on it
+    CHECK(qobject_cast<Process::AudioFileChooser*>(sound->inlets()[0]));
     sound->fileInlet->setAddress(State::AddressAccessor{path});
 
     // What it plays, recorded

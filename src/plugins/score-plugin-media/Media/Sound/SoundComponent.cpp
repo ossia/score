@@ -434,6 +434,17 @@ SoundComponent::SoundComponent(
     file->on_finishedDecoding.connect<&SoundComponent::Recomputer::recompute>(
         m_recomputer);
   }
+
+  // A file chosen in the control, or set before playback: played instead
+  if(auto* in = element.fileInlet.get())
+  {
+    con(*in, &Process::ControlInlet::valueChanged, this, [this](const ossia::value& v) {
+      if(auto* p = v.target<std::string>())
+        playFile(QString::fromStdString(*p));
+    });
+    if(auto* p = in->value().target<std::string>(); p && !p->empty())
+      playFile(QString::fromStdString(*p));
+  }
 }
 void SoundComponent::on_fileChanged()
 {
