@@ -372,3 +372,87 @@ TEST_CASE("initFrameBuffer allocates once and then reuses", "[video][framequeue]
 
   av_frame_free(&f);
 }
+
+TEST_CASE("enqueue_latest keeps the newest frames and recycles the oldest",
+          "[video][framequeue]")
+{
+  FrameQueue q;
+  std::vector<AVFrame*> pushed;
+  for(int i = 0; i < 6; i++)
+  {
+    pushed.push_back(freshFrame(i));
+    q.enqueue_latest(pushed.back(), 4);
+    CHECK(q.size() <= 4);
+  }
+  CHECK(q.size() == 4);
+
+  for(int i = 2; i < 6; i++)
+  {
+    AVFrame* f = q.dequeue_one();
+    CHECK(f == pushed[i]);
+    q.release(f);
+  }
+  CHECK(q.dequeue_one() == nullptr);
+
+  std::set<AVFrame*> recovered;
+  std::vector<AVFramePointer> keep;
+  for(int i = 0; i < 6; i++)
+  {
+    keep.push_back(q.newFrame());
+    recovered.insert(keep.back().get());
+  }
+  CHECK(recovered == std::set<AVFrame*>(pushed.begin(), pushed.end()));
+
+  for(auto& f : keep)
+    q.enqueue(f.release());
+  q.drain();
+}
+
+TEST_CASE("taken counts the frames the consumer gets", "[video][framequeue]")
+{
+  FrameQueue q;
+  CHECK(q.taken() == 0);
+  CHECK(q.dequeue() == nullptr);
+  CHECK(q.dequeue_one() == nullptr);
+  CHECK(q.taken() == 0);
+
+  AVFrame* a = freshFrame(0);
+  AVFrame* b = freshFrame(1);
+  AVFrame* c = freshFrame(2);
+  q.enqueue_latest(a, 1);
+  q.enqueue_latest(b, 1);
+  CHECK(q.taken() == 0);
+
+  q.enqueue(c);
+  CHECK(q.dequeue() == c);
+  CHECK(q.taken() == 1);
+  q.release(c);
+
+  AVFrame* d = freshFrame(3);
+  q.enqueue(d);
+  CHECK(q.dequeue_one() == d);
+  CHECK(q.taken() == 2);
+  q.release(d);
+  q.drain();
+}
+
+TEST_CASE("a consumer is idle once the queue stays full and untaken", "[video][framequeue]")
+{
+  IdleConsumer watch;
+  CHECK_FALSE(watch.idle(0, 2, 4, 3));
+  CHECK_FALSE(watch.idle(0, 4, 4, 3));
+  CHECK_FALSE(watch.idle(0, 4, 4, 3));
+  CHECK_FALSE(watch.idle(0, 4, 4, 3));
+  CHECK(watch.idle(0, 4, 4, 3));
+  CHECK(watch.idle(0, 4, 4, 3));
+
+  CHECK_FALSE(watch.idle(1, 4, 4, 3));
+
+  for(int i = 0; i < 1000; i++)
+    CHECK_FALSE(watch.idle(uint64_t(i + 2), 4, 4, 3));
+
+  for(int i = 0; i < 3; i++)
+    CHECK_FALSE(watch.idle(1001, 4, 4, 3));
+  CHECK(watch.idle(1001, 4, 4, 3));
+  CHECK_FALSE(watch.idle(1001, 3, 4, 3));
+}

@@ -11,6 +11,7 @@
 // No GPU and no video file: the function is pure.
 
 #include <Gfx/Graph/VideoNodeRenderer.hpp>
+#include <Gfx/Graph/decoders/ColorSpace.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
 
 #include <cstdio>
@@ -220,6 +221,57 @@ int main()
     check(
         videoFieldMode(I::Fields, D::Weave, false) == 2.f,
         "weave falls back to bob when the partner field is missing");
+  }
+
+  std::printf("\ncolour range of camera MJPEG:\n");
+  {
+    using namespace score::gfx;
+    constexpr auto U = AVCOL_RANGE_UNSPECIFIED;
+    constexpr auto J = AVCOL_RANGE_JPEG;
+    constexpr auto M = AVCOL_RANGE_MPEG;
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUVJ422P, U, U) == J,
+        "a YUVJ frame from a source that declares no range is full range");
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUV422P, U, J) == J,
+        "a frame that says full range is full range when the source says nothing");
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUVJ422P, M, J) == M,
+        "what the source declares wins");
+    check(
+        effectiveColorRange(AV_PIX_FMT_YUV420P, U, U) == U,
+        "a plain YUV format with no range anywhere stays unspecified");
+
+    Video::ImageFormat camera;
+    camera.width = 1280;
+    camera.height = 720;
+    camera.pixel_format = AV_PIX_FMT_YUVJ422P;
+    const auto fmt = AV_PIX_FMT_YUVJ422P;
+    const auto sdr = Video::OutputFormat::SDR;
+    const auto tm = Video::Tonemap::Auto;
+    const auto first = requestedVideoFormat(camera, fmt, U, sdr, tm);
+    check(
+        videoDecoderNeedsRebuild(false, {}, first, fmt, 1280, 720),
+        "the first camera frame builds the decoder");
+    const auto built = builtVideoFormat({}, first, fmt, 1280, 720);
+    check(built.color_range == J, "the decoder is built for full range");
+    check(
+        colorMatrix(built) == QString(SCORE_GFX_CONVERT_BT709_FULL_TO_RGB),
+        "its conversion is the full-range one: JPEG black stays black");
+    check(
+        !videoDecoderNeedsRebuild(
+            true, built, requestedVideoFormat(camera, fmt, U, sdr, tm), fmt, 1280, 720),
+        "the next camera frame does not rebuild the decoder");
+
+    Video::ImageFormat stream = camera;
+    stream.pixel_format = AV_PIX_FMT_YUV422P;
+    const auto yuv = AV_PIX_FMT_YUV422P;
+    const auto limited = builtVideoFormat(
+        {}, requestedVideoFormat(stream, yuv, M, sdr, tm), yuv, 1280, 720);
+    check(
+        videoDecoderNeedsRebuild(
+            true, limited, requestedVideoFormat(stream, yuv, J, sdr, tm), yuv, 1280, 720),
+        "a frame whose own range changes rebuilds the decoder");
   }
 
   std::printf(

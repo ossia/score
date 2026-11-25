@@ -126,8 +126,6 @@ bool CameraInput::start() noexcept
         0);
   }
 
-  // FIXME color_range 0,1,2
-
   int ret{};
   {
     LibavTimeout timeout{m_interrupt, open_timeout};
@@ -225,10 +223,15 @@ void CameraInput::buffer_thread() noexcept
 {
   while(m_running.load(std::memory_order_acquire))
   {
-    if(m_frames.size() < 4)
     {
       LibavTimeout timeout{m_interrupt, read_timeout};
-      if(auto f = read_frame_impl())
+      const int idleReads = std::max(10, int(fps));
+      if(m_intraOnly
+         && m_idle.idle(m_frames.taken(), m_frames.size(), frames_to_queue, idleReads))
+      {
+        skip_packet();
+      }
+      else if(auto f = read_frame_impl())
       {
         if(f->format != (int)pixel_format || f->width != width
            || f->height != height)
@@ -236,7 +239,7 @@ void CameraInput::buffer_thread() noexcept
           notifyFormatChange(
               f->width, f->height, static_cast<AVPixelFormat>(f->format));
         }
-        m_frames.enqueue(f);
+        m_frames.enqueue_latest(f, frames_to_queue);
       }
     }
 
@@ -272,6 +275,24 @@ void CameraInput::close_file() noexcept
   }
 
   m_rescale.close();
+}
+
+void CameraInput::skip_packet() noexcept
+{
+  AVPacket* packet = av_packet_alloc();
+  if(!packet)
+    return;
+  for(;;)
+  {
+    const int res = av_read_frame(m_formatContext, packet);
+    av_packet_unref(packet);
+    if(res != AVERROR(EAGAIN))
+      break;
+    if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
+      break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  av_packet_free(&packet);
 }
 
 AVFrame* CameraInput::read_frame_impl() noexcept
@@ -329,6 +350,8 @@ bool CameraInput::open_stream() noexcept
       if((m_codec = avcodec_find_decoder(codecPar->codec_id)))
       {
         m_avstream = stream;
+        const auto* desc = avcodec_descriptor_get(codecPar->codec_id);
+        m_intraOnly = desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY);
         pixel_format = static_cast<AVPixelFormat>(codecPar->format);
         width = codecPar->width;
         height = codecPar->height;

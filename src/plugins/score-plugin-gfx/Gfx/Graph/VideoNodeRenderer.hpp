@@ -2,11 +2,55 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+#include <Video/GpuFormats.hpp>
 #include <Video/VideoInterface.hpp>
 
 namespace score::gfx
 {
 class GPUVideoDecoder;
+
+//! The colour range frames of @p fmt are decoded with: what the source
+//! declares, else the frame's own range, else full range for the YUVJ formats.
+inline AVColorRange effectiveColorRange(
+    AVPixelFormat fmt, AVColorRange declared, AVColorRange frame) noexcept
+{
+  if(declared != AVCOL_RANGE_UNSPECIFIED)
+    return declared;
+  if(frame != AVCOL_RANGE_UNSPECIFIED)
+    return frame;
+  return Video::formatIsJpegRange(fmt) ? AVCOL_RANGE_JPEG : declared;
+}
+
+//! What a frame of @p fmt asks the GPU decoder for: the input's format @p src
+//! with the node's output settings and the resolved colour range.
+inline Video::ImageFormat requestedVideoFormat(
+    Video::ImageFormat src, AVPixelFormat fmt, AVColorRange frameRange,
+    Video::OutputFormat output, Video::Tonemap tonemap) noexcept
+{
+  src.color_range = effectiveColorRange(fmt, src.color_range, frameRange);
+  src.output_format = output;
+  src.tonemap = tonemap;
+  return src;
+}
+
+//! The format a GPU decoder is built with, from @p built, for frames of @p fmt
+//! sized @p w x @p h requesting @p src.
+inline Video::ImageFormat builtVideoFormat(
+    Video::ImageFormat built, const Video::ImageFormat& src, AVPixelFormat fmt, int w,
+    int h) noexcept
+{
+  built.pixel_format = fmt;
+  built.width = w;
+  built.height = (src.interlacing == Video::Interlacing::Fields) ? h * 2 : h;
+  built.output_format = src.output_format;
+  built.tonemap = src.tonemap;
+  built.color_space = src.color_space;
+  built.color_range = src.color_range;
+  built.color_trc = src.color_trc;
+  built.color_primaries = src.color_primaries;
+  built.interlacing = src.interlacing;
+  return built;
+}
 
 /**
  * @brief Whether the GPU decoder has to be rebuilt for this frame.
@@ -101,7 +145,8 @@ public:
 
   void createGpuDecoder();
   void setupGpuDecoder(RenderList& r);
-  void checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h);
+  void checkFormat(
+      RenderList& r, AVPixelFormat fmt, int w, int h, AVColorRange frameRange);
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;

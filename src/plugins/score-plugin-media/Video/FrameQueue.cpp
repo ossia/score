@@ -130,6 +130,14 @@ void FrameQueue::enqueue(AVFrame* f)
   available.enqueue(f);
 }
 
+void FrameQueue::enqueue_latest(AVFrame* f, std::size_t max) noexcept
+{
+  AVFrame* old{};
+  while(available.size_approx() >= max && available.try_dequeue(old))
+    release(old);
+  enqueue(f);
+}
+
 AVFrame* FrameQueue::dequeue() noexcept
 {
   AVFrame* f{};
@@ -142,13 +150,16 @@ AVFrame* FrameQueue::dequeue() noexcept
     prev_f = f;
   }
 
-  return f;
+  if(prev_f)
+    m_taken.fetch_add(1, std::memory_order_relaxed);
+  return prev_f;
 }
 
 AVFrame* FrameQueue::dequeue_one() noexcept
 {
   AVFrame* f{};
-  available.try_dequeue(f);
+  if(available.try_dequeue(f))
+    m_taken.fetch_add(1, std::memory_order_relaxed);
   return f;
 }
 
@@ -206,6 +217,7 @@ AVFrame* FrameQueue::dequeueDiscarding(const Dequeue& dequeue) noexcept
       continue;
     }
     m_discardDone.store(d.sequence, std::memory_order_relaxed);
+    m_taken.fetch_add(1, std::memory_order_relaxed);
     return f;
   }
   return nullptr;

@@ -47,12 +47,14 @@ private:
   void buffer_thread() noexcept;
   void close_file() noexcept;
   AVFrame* read_frame_impl() noexcept;
+  void skip_packet() noexcept;
   bool open_stream() noexcept;
   void close_stream() noexcept;
   bool alloc_format_context() noexcept;
   ReadFrame read_one_frame(AVFramePointer frame, AVPacket& packet);
 
   static const constexpr int frames_to_buffer = 1;
+  static const constexpr std::size_t frames_to_queue = 4;
 
   //! Opening a device that never answers must not wedge the caller
   static const constexpr auto open_timeout = std::chrono::milliseconds(2000);
@@ -70,6 +72,8 @@ private:
   std::string m_inputDevice;
 
   std::atomic_bool m_running{};
+  IdleConsumer m_idle;
+  bool m_intraOnly{};
 };
 
 }
