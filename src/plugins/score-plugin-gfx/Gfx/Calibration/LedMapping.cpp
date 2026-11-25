@@ -1,4 +1,5 @@
 #include <Gfx/Calibration/LedMapping.hpp>
+#include <Gfx/Calibration/PairCode.hpp>
 #include <Eigen/Dense>
 
 namespace score::gfx::led
@@ -132,11 +133,11 @@ std::vector<Found> decode(
     bool ok = true;
     for(int b = 0; b < code.bits && ok; b++)
     {
-      const double a = frames[2 + 2 * b][i], ainv = frames[3 + 2 * b][i];
-      const double k = std::abs(a - ainv) / span;
-      ok = k >= opt.minContrast;
-      minC = std::min(minC, k);
-      c = (c << 1) | (a > ainv ? 1u : 0u);
+      const auto bit = paircode::read(
+          frames[2 + 2 * b][i], frames[3 + 2 * b][i], span, opt.minContrast);
+      ok = bit.clear;
+      minC = std::min(minC, double(bit.contrast));
+      c = (c << 1) | (bit.one ? 1u : 0u);
     }
     if(!ok || c == 0 || int(c) > code.count)
       continue;

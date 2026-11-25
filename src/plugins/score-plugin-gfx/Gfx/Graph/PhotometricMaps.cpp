@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QFile>
+#include <QSaveFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -132,7 +133,7 @@ ResponseTable loadResponseTable(const QString& path, QString* error)
   return t;
 }
 
-bool writeProjectorResponse(const QString& base, const ProjectorResponseFile& r)
+std::vector<EncodedFile> encodeProjectorResponse(const ProjectorResponseFile& r)
 {
   static const char* names[4]{"red", "green", "blue", "grey"};
   QJsonObject o;
@@ -219,16 +220,9 @@ bool writeProjectorResponse(const QString& base, const ProjectorResponseFile& r)
   o["inverseSize"] = N;
   o["inverse"] = inv;
 
-  QFile f{base + QStringLiteral(".response.json")};
-  const QByteArray json = QJsonDocument(o).toJson();
-  if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate) || f.write(json) != json.size()
-     || !f.flush())
-    return false;
-  f.close();
-
-  QFile cube{base + QStringLiteral(".response.cube")};
-  if(!cube.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-    return false;
+  std::vector<EncodedFile> out;
+  out.push_back({QStringLiteral(".response.json"), QJsonDocument(o).toJson()});
+  QByteArray cube;
   QTextStream ts{&cube};
   ts << "TITLE \"projector inverse response\"\n";
   ts << "LUT_1D_SIZE " << N << "\n";
@@ -237,14 +231,24 @@ bool writeProjectorResponse(const QString& base, const ProjectorResponseFile& r)
   for(int i = 0; i < N; i++)
     ts << table[i][0] << ' ' << table[i][1] << ' ' << table[i][2] << '\n';
   ts.flush();
-  return ts.status() == QTextStream::Ok && cube.flush();
+  out.push_back({QStringLiteral(".response.cube"), std::move(cube)});
+  return out;
 }
 
-bool writeCompensation(
-    const QString& base, const CompensationMaps& maps, const CompensationInfo& info)
+bool writeProjectorResponse(const QString& base, const ProjectorResponseFile& r)
 {
+  for(const auto& f : encodeProjectorResponse(r))
+    if(!writeFileAtomic(base + f.suffix, f.bytes))
+      return false;
+  return true;
+}
+
+CompensationFiles encodeCompensation(
+    const QString& name, const CompensationMaps& maps, const CompensationInfo& info)
+{
+  CompensationFiles out;
   if(!maps.valid())
-    return false;
+    return out;
   const std::size_t n = std::size_t(maps.width) * maps.height;
   QJsonArray rows;
   for(int k = 0; k < 3; k++)
@@ -257,10 +261,9 @@ bool writeCompensation(
     for(std::size_t i = 0; i < n; i++)
       for(int c = 0; c < 3; c++)
         img.data[i * 3 + c] = maps.rows[k].data[i * 4 + c];
-    const QString file = base + QStringLiteral(".comp%1.pfm").arg(k);
-    if(!writePFM(file, img))
-      return false;
-    rows.append(QFileInfo(file).fileName());
+    const QString suffix = QStringLiteral(".comp%1.pfm").arg(k);
+    rows.append(QString(name + suffix));
+    out.maps.push_back({suffix, std::move(img)});
   }
   FloatImage off;
   off.width = maps.width;
@@ -270,9 +273,7 @@ bool writeCompensation(
   for(std::size_t i = 0; i < n; i++)
     for(int k = 0; k < 3; k++)
       off.data[i * 3 + k] = maps.rows[k].data[i * 4 + 3];
-  const QString offFile = base + QStringLiteral(".compoffset.pfm");
-  if(!writePFM(offFile, off))
-    return false;
+  out.maps.push_back({QStringLiteral(".compoffset.pfm"), std::move(off)});
 
   QJsonObject o;
   o["type"] = "radiometricCompensation";
@@ -282,7 +283,7 @@ bool writeCompensation(
   o["width"] = maps.width;
   o["height"] = maps.height;
   o["rows"] = rows;
-  o["offset"] = QFileInfo(offFile).fileName();
+  o["offset"] = QString(name + QStringLiteral(".compoffset.pfm"));
   o["target"] = QJsonArray{info.target[0], info.target[1], info.target[2]};
   o["scale"] = info.scale;
   o["strength"] = info.strength;
@@ -291,10 +292,20 @@ bool writeCompensation(
   o["black"] = info.black;
   if(info.mixing)
     o["mixing"] = true;
-  QFile f{base + QStringLiteral(".comp.json")};
-  const QByteArray json = QJsonDocument(o).toJson();
-  return f.open(QIODevice::WriteOnly | QIODevice::Truncate) && f.write(json) == json.size()
-         && f.flush();
+  out.json = {QStringLiteral(".comp.json"), QJsonDocument(o).toJson()};
+  return out;
+}
+
+bool writeCompensation(
+    const QString& base, const CompensationMaps& maps, const CompensationInfo& info)
+{
+  const auto files = encodeCompensation(QFileInfo{base}.fileName(), maps, info);
+  if(files.maps.empty())
+    return false;
+  for(const auto& [suffix, img] : files.maps)
+    if(!writePFM(base + suffix, img))
+      return false;
+  return writeFileAtomic(base + files.json.suffix, files.json.bytes);
 }
 
 CompensationMaps loadCompensation(const QString& path, QString* error)

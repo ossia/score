@@ -143,6 +143,12 @@ bool writeCalibration(const CalibrationWrite& w, QString* error)
     for(const auto& f : writtenFiles(w.base, m))
       files.push_back(fileName(f));
   }
+  for(const auto& f : w.files)
+  {
+    if(!score::gfx::writeFileAtomic(w.base + f.suffix, f.bytes, error))
+      return false;
+    files.push_back(fileName(w.base + f.suffix));
+  }
   for(const auto& v : o.value("files").toArray())
   {
     const QString name = v.toString();
@@ -253,19 +259,34 @@ CalibrationFile loadCalibration(const QString& path)
       c.pose[i] = float(p[i].toDouble());
     c.hasPose = true;
   }
+  if(const auto cam = c.json.value("camera").toObject(); !cam.isEmpty())
+  {
+    CalibrationCamera cc;
+    const auto ck = cam.value("intrinsics").toArray();
+    for(int i = 0; i < 4 && i < ck.size(); i++)
+      cc.intrinsics[i] = float(ck[i].toDouble());
+    cc.width = cam.value("width").toInt();
+    cc.height = cam.value("height").toInt();
+    cc.lens.model = CameraLens::fromName(cam.value("lens").toString().toStdString());
+    const auto lk = cam.value("k").toArray();
+    for(int i = 0; i < 5 && i < lk.size(); i++)
+      cc.lens.k[i] = lk[i].toDouble();
+    c.camera = cc;
+  }
+  for(const auto& pl : c.json.value("planes").toArray())
+    if(const auto a = pl.toArray(); a.size() == 4)
+      c.planes.push_back(
+          {float(a[0].toDouble()), float(a[1].toDouble()), float(a[2].toDouble()),
+           float(a[3].toDouble())});
+  c.projectorIndex = c.json.value("projectorIndex").toInt(-1);
   c.lum = readRGB(calibrationMapFile(c.base, QStringLiteral(".lum.pfm")), c.width, c.height);
   c.black = readRGB(
       calibrationMapFile(c.base, QStringLiteral(".black.pfm")), c.width, c.height);
   return c;
 }
 
-bool saveCalibration(const CalibrationFile& c, QString* error)
+CalibrationWrite calibrationWrite(const CalibrationFile& c)
 {
-  if(!c.ok())
-  {
-    fail(error, QStringLiteral("no XYZ map to save"));
-    return false;
-  }
   CalibrationWrite w;
   w.base = c.base;
   w.maps.push_back({QStringLiteral(".xyz.pfm"), image(c.xyz, c.width, c.height, 4)});
@@ -286,8 +307,42 @@ bool saveCalibration(const CalibrationFile& c, QString* error)
       pose.append(v);
     w.fields["worldFromProjector"] = pose;
   }
+  if(c.camera)
+  {
+    const auto& cam = *c.camera;
+    QJsonObject o;
+    o["intrinsics"] = QJsonArray{
+        cam.intrinsics[0], cam.intrinsics[1], cam.intrinsics[2], cam.intrinsics[3]};
+    o["width"] = cam.width;
+    o["height"] = cam.height;
+    o["lens"] = QString::fromLatin1(CameraLens::name(cam.lens.model));
+    QJsonArray lk;
+    for(double v : cam.lens.k)
+      lk.append(v);
+    o["k"] = lk;
+    w.fields["camera"] = o;
+  }
+  if(!c.planes.empty())
+  {
+    QJsonArray planes;
+    for(const auto& pl : c.planes)
+      planes.append(QJsonArray{pl[0], pl[1], pl[2], pl[3]});
+    w.fields["planes"] = planes;
+  }
+  if(c.projectorIndex >= 0)
+    w.fields["projectorIndex"] = c.projectorIndex;
   w.keepListed = {QStringLiteral(".lum.pfm"), QStringLiteral(".black.pfm")};
-  return writeCalibration(w, error);
+  return w;
+}
+
+bool saveCalibration(const CalibrationFile& c, QString* error)
+{
+  if(!c.ok())
+  {
+    fail(error, QStringLiteral("no XYZ map to save"));
+    return false;
+  }
+  return writeCalibration(calibrationWrite(c), error);
 }
 
 QString calibrationSetRenamed(const QString& base, const QString& tag)

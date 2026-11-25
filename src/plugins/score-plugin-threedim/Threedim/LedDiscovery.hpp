@@ -1,6 +1,7 @@
 #pragma once
 #include <Gfx/Calibration/ProjectorModel.hpp>
 #include <Threedim/CalibrationJobs.hpp>
+#include <Threedim/PatternCapture.hpp>
 
 #include <halp/controls.hpp>
 #include <halp/file_port.hpp>
@@ -55,6 +56,8 @@ public:
     halp::spinbox_i32<"LED count", halp::irange{1, 1 << 20, 100}> count;
     halp::hslider_f32<"Level", halp::range{0., 1., 1.}> level;
     halp::spinbox_i32<"Settle (ms)", halp::irange{0, 10000, 300}> settle;
+    //! A frame that does not come within this fails the discovery.
+    halp::spinbox_i32<"Timeout (ms)", halp::irange{100, 60000, 5000}> timeout;
     halp::spinbox_i32<"Frames to average", halp::irange{1, 32, 2}> frames;
     halp::hslider_f32<"Min signal", halp::range{0., 1., 0.05}> min_signal;
     halp::hslider_f32<"Min contrast", halp::range{0., 1., 0.25}> min_contrast;
@@ -126,12 +129,8 @@ public:
     CalibrationJobs<Written> writes;
     int frame{-1};
     bool decoding{};
-    double shownAt{};
-    double lastAt{-1e9};
-    bool settled{};
-    int taken{};
+    PatternCapture capture;
     int camW{}, camH{};
-    std::vector<float> sum;
     std::vector<std::vector<float>> captures;
     std::vector<float> positions;
     int positionFrames{};
@@ -186,6 +185,7 @@ private:
   void show(int frame);
   void stop(const std::string& status);
   void finish();
+  void showFrame(int frame, double now);
 
   uint64_t m_shownSeen{}, m_resultSeen{}, m_statusSeen{}, m_decodedSeen{}, m_writtenSeen{};
 };

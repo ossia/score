@@ -76,6 +76,27 @@ struct ByteProducer
   }
 };
 
+struct SinkSizedByteProducer
+{
+  halp_meta(name, "Sink-sized byte producer")
+  halp_meta(c_name, "test_source_size_sink_sized_byte_producer")
+  halp_meta(category, "Test")
+  halp_meta(uuid, "e6b30d92-15c8-4a7f-b2e4-9d1c3a58f706")
+  struct
+  {
+  } inputs;
+  struct
+  {
+    halp::texture_output<"Out"> image;
+  } outputs;
+  void operator()()
+  {
+    outputs.image.create(32, 32);
+    std::memset(outputs.image.texture.bytes, 200, 32 * 32 * 4);
+    outputs.image.upload();
+  }
+};
+
 struct SourceSizeInput : halp::texture_input<"In", halp::rgba32f_texture>
 {
   static constexpr bool source_size() { return true; }
@@ -115,6 +136,50 @@ struct SourceSizeConsumer
   }
 };
 
+struct DynamicInput : halp::texture_input<"In", halp::custom_variable_texture>
+{
+  bool resampled{};
+};
+
+struct DynamicConsumer
+{
+  halp_meta(name, "Dynamic format consumer")
+  halp_meta(c_name, "test_dynamic_format_consumer")
+  halp_meta(category, "Test")
+  halp_meta(uuid, "4c2e8a17-93b5-4f06-a1d8-57e0b6c3f294")
+  struct
+  {
+    DynamicInput image;
+  } inputs;
+  struct
+  {
+    halp::texture_output<"Out"> image;
+  } outputs;
+  int width{}, height{};
+  bool resampled{};
+  bool rgba32f{};
+  std::vector<float> texels;
+  void operator()()
+  {
+    const auto& t = inputs.image.texture;
+    if(t.bytes)
+    {
+      width = t.width;
+      height = t.height;
+      resampled = inputs.image.resampled;
+      rgba32f = t.format == halp::custom_variable_texture::RGBA32F;
+      if(rgba32f)
+      {
+        const auto* f = reinterpret_cast<const float*>(t.bytes);
+        texels.assign(f, f + std::size_t(t.width) * t.height * 4);
+      }
+    }
+    outputs.image.create(4, 4);
+    std::memset(outputs.image.texture.bytes, 255, 4 * 4 * 4);
+    outputs.image.upload();
+  }
+};
+
 struct Result
 {
   bool skipped{};
@@ -128,7 +193,7 @@ struct IsfProducer
 {
 };
 
-template <typename Producer>
+template <typename Producer, typename Consumer = SourceSizeConsumer>
 Result run(score::gfx::GraphicsApi api)
 {
   Result res;
@@ -151,7 +216,7 @@ Result run(score::gfx::GraphicsApi api)
           new oscr::GfxNode<T>{m, {}, Gfx::exec_controls{}, id, doc->context()}});
     };
     GfxPipeline p;
-    const int cons = add.template operator()<SourceSizeConsumer>(p);
+    const int cons = add.template operator()<Consumer>(p);
     if constexpr(std::is_same_v<Producer, IsfProducer>)
     {
       const int prod = p.addIsf(QStringLiteral(GFX_TEST_CORPUS_DIR "/isf-solid-green.fs"));
@@ -179,7 +244,7 @@ Result run(score::gfx::GraphicsApi api)
     for(auto& [rl, r] : p.node(cons)->renderedNodes)
       if(r)
       {
-        auto& s = *static_cast<oscr::GfxRenderer<SourceSizeConsumer>*>(r)->state;
+        auto& s = *static_cast<oscr::GfxRenderer<Consumer>*>(r)->state;
         res.width = s.width;
         res.height = s.height;
         res.resampled = s.resampled;
@@ -242,4 +307,31 @@ TEST_CASE(
   SRC_REQUIRE_LIVE(r);
   CHECK_FALSE(r.resampled);
   CHECK(r.width > 0);
+}
+
+TEST_CASE(
+    "a dynamic-format input reads its producer as it is",
+    "[gfx][avnd][readback]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const auto direct = run<FloatProducer, DynamicConsumer>(api);
+  SRC_REQUIRE_LIVE(direct);
+  CHECK_FALSE(direct.resampled);
+  CHECK(direct.width == PW);
+  CHECK(direct.height == PH);
+  REQUIRE(direct.texels.size() == std::size_t(PW * PH * 4));
+  CHECK(direct.texels[(1 * PW + 2) * 4] == 1002.f);
+}
+
+TEST_CASE(
+    "a source_size input of another format at its own size is not resampled",
+    "[gfx][avnd][readback]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const auto r = run<SinkSizedByteProducer>(api);
+  SRC_REQUIRE_LIVE(r);
+  CHECK(r.width == 32);
+  CHECK_FALSE(r.resampled);
 }

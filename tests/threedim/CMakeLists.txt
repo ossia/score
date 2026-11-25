@@ -647,9 +647,89 @@ score_add_test(test_threedim_led_mapping
   SOURCES LedMapping.cpp
     "${THREEDIM_DIR}/LedWall.cpp"
     "${THREEDIM_DIR}/LedDiscovery.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
     "${THREEDIM_DIR}/CalibrationFiles.cpp"
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_led_mapping)
+
+# Gray code + phase shift decoding: frame order, missing frames, stripe edges,
+# clipped pixels.
+score_add_test(test_threedim_structured_light_decoder
+  SOURCES StructuredLightDecoder.cpp "${THREEDIM_DIR}/StructuredLight.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_decoder)
+
+# The capture of one shown pattern: settle, average, timeout, frozen camera.
+score_add_test(test_threedim_pattern_capture
+  SOURCES PatternCapture.cpp "${THREEDIM_DIR}/PatternCapture.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_pattern_capture)
+
+# StructuredLightSession on a simulated bench: several projectors, camera
+# latency, dropped, frozen and missing frames, gamma, clipping, files.
+score_add_test(test_threedim_structured_light_session
+  SOURCES StructuredLightSession.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_session)
+
+# Structured light photometric phases on a simulated bench: camera response,
+# projector response, compensation, colour mixing, a rejected camera response.
+score_add_test(test_threedim_structured_light_photometric
+  SOURCES StructuredLightPhotometric.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_photometric)
+
+# Structured Light Calibration as a process: depth and viewer cameras, surface
+# models, intrinsics modes, the driving renderer, abort and the idle pattern.
+score_add_test(test_threedim_structured_light
+  SOURCES StructuredLightCalibration.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light)
+
+# Phase shift against Gray code on a resolution-limited bench, through the process.
+score_add_test(test_threedim_structured_light_phase
+  SOURCES StructuredLightPhase.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_phase)
+
+# Two projectors in one run on their own outlets, with the photometric maps.
+score_add_test(test_threedim_structured_light_multi
+  SOURCES StructuredLightMulti.cpp
+    "${THREEDIM_DIR}/StructuredLight.cpp"
+    "${THREEDIM_DIR}/StructuredLightCore.cpp"
+    "${THREEDIM_DIR}/StructuredLightPhotometric.cpp"
+    "${THREEDIM_DIR}/StructuredLightSession.cpp"
+    "${THREEDIM_DIR}/StructuredLightCalibration.cpp"
+    "${THREEDIM_DIR}/PatternCapture.cpp"
+    "${THREEDIM_DIR}/CalibrationFiles.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_structured_light_multi)
 
 # Camera response, projector response and radiometric compensation math.
 score_add_test(test_threedim_photometric

@@ -251,6 +251,8 @@ struct GfxRenderer<Node_T> final
 
     // Run the processor
     parent.drainWorker(renderer.dateFromStepClock);
+    if constexpr(requires { state->drives_node = true; })
+      state->drives_node = GpuControlOuts::drivesControlOuts(renderer, parent);
     if_possible(state->runInitialPasses(renderer, commands, res, edge));
     if_possible((*state)());
     parent.clearControlIn(*state);

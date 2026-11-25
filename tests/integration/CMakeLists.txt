@@ -2449,3 +2449,14 @@ if(TARGET score_plugin_avnd)
     PLUGINS score_plugin_avnd score_plugin_dataflow score_plugin_engine
             score_plugin_scenario score_lib_process)
 endif()
+
+# Structured Light Calibration and Projector Blend Maps have the ports scripts
+# and documents address by name.
+if(TARGET score AND NOT EMSCRIPTEN)
+  score_add_test(test_integration_structured_light_process
+    SOURCES StructuredLightProcessTest.cpp)
+  target_compile_definitions(test_integration_structured_light_process PRIVATE
+    "SCORE_APP_BINARY=\"$<TARGET_FILE:score>\"")
+  set_tests_properties(test_integration_structured_light_process PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE)
+endif()

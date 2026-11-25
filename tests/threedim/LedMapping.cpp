@@ -432,3 +432,23 @@ TEST_CASE("LED discovery runs once for every renderer of its node", "[led]")
   REQUIRE(f.open(QIODevice::ReadOnly));
   CHECK(f.readAll().count('\n') == 11);
 }
+
+TEST_CASE("LED discovery fails when the camera delivers no frame", "[led]")
+{
+  Threedim::LedDiscovery d{};
+  inPlace(d);
+  d.inputs.count.value = 4;
+  d.inputs.settle.value = 50;
+  d.inputs.timeout.value = 500;
+  d.inputs.start.value = halp::impulse_type{};
+  d.tick(0.);
+  d.inputs.start.value.reset();
+  CHECK_FALSE(d.inputs.camera.request_readback);
+  d.tick(60.);
+  CHECK(d.inputs.camera.request_readback);
+  for(double t = 60.; t < 2000. && d.running(); t += 30.)
+    d.tick(t);
+  CHECK_FALSE(d.running());
+  CHECK(d.outputs.status.value.starts_with("Failed: no camera frame"));
+  CHECK_FALSE(d.inputs.camera.request_readback);
+}

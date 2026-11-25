@@ -255,6 +255,7 @@ set(HDRS
     Gfx/Calibration/Registration.hpp
     Gfx/Calibration/OffAxis.hpp
     Gfx/Calibration/LedMapping.hpp
+    Gfx/Calibration/PairCode.hpp
     Gfx/Graph/WarpImport.hpp
     Gfx/Graph/PhotometricMaps.hpp
     Gfx/Graph/SceneFilterNode.hpp

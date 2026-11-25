@@ -46,8 +46,11 @@ struct NodeStateFilter
     halp::texture_output<"Out"> image;
   } outputs;
   std::shared_ptr<SharedCounter> node_state;
+  bool drives_node{};
+  bool drove{};
   void operator()()
   {
+    drove = drives_node;
     if(node_state)
       node_state->runs++;
     outputs.image.create(4, 4);
@@ -148,6 +151,11 @@ TEST_CASE("the renderers of a node share its node_state", "[gfx][avnd][node_stat
     REQUIRE(first.size() == 1);
     REQUIRE(*first.begin() != nullptr);
     CHECK((*first.begin())->runs >= 6);
+    int drivers = 0;
+    for(auto& [rl, r] : p.node(flt)->renderedNodes)
+      if(r)
+        drivers += static_cast<oscr::GfxRenderer<NodeStateFilter>*>(r)->state->drove;
+    CHECK(drivers == 1);
 
     p.graph().createAllRenderLists(api);
     p.render(1);
