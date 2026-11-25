@@ -200,7 +200,8 @@ threedim_test_includes(test_threedim_transform3d)
 # light choice, the light slot it records and the no-camera fallback volume.
 score_add_test(test_threedim_shadow_cascades
   SOURCES ShadowCascades.cpp "${THREEDIM_DIR}/ShadowCascadeSetup.cpp"
-  LIBS ${QT_PREFIX}::Gui)
+  LIBS ${QT_PREFIX}::Gui
+  PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_shadow_cascades)
 
 # EnvironmentLoader's fog mode and density controls reach scene_environment.
@@ -582,6 +583,12 @@ score_add_test(test_threedim_camera_roll_pole
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_camera_roll_pole)
 
+# Off-axis camera: lens shift, OpenCV intrinsics, raw pose and projection.
+score_add_test(test_threedim_camera_off_axis
+  SOURCES CameraOffAxis.cpp "${THREEDIM_DIR}/Camera.cpp"
+  PLUGINS score_plugin_gfx)
+threedim_test_includes(test_threedim_camera_off_axis)
+
 # Multi-projector blend and black-level maps on simulated walls and a CAVE.
 score_add_test(test_threedim_projector_blend
   SOURCES ProjectorBlend.cpp
@@ -593,6 +600,8 @@ score_add_test(test_threedim_photometric
   SOURCES Photometric.cpp
   PLUGINS score_plugin_gfx)
 threedim_test_includes(test_threedim_photometric)
+
+
 
 # FBX: a non-bone node between two bones is part of the joint chain, so the
 # bind pose skins vertices in place.

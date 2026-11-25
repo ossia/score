@@ -4,9 +4,12 @@
 
 #include <ossia/dataflow/geometry_port.hpp>
 
+#include <Gfx/Graph/CameraMath.hpp>
+
 #include <QQuaternion>
 #include <QVector3D>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <memory>
@@ -154,6 +157,57 @@ public:
     return gotXform && gotCam;
   }
 
+  //! Off-axis frusta are blended as their tangents when one weighted camera
+  //! has a frustum and every other is perspective: a FOV camera without an
+  //! aspect of its own takes the weighted aspect of the frustum cameras, so a
+  //! crossfade from a Screen camera to a FOV camera rendering to the same
+  //! aspect does not jump. Raw projection matrices are blended only when every
+  //! weighted camera has one; otherwise the dominant camera's applies.
+  static void blendProjection(
+      const ossia::camera_component (&cams)[4], const float (&w)[4],
+      ossia::camera_component& out) noexcept
+  {
+    bool anyFrustum = false, allMatrices = true;
+    float aspectSum = 0.f, aspectWeight = 0.f;
+    float mat[16]{};
+    for(int i = 0; i < 4; ++i)
+    {
+      if(w[i] <= 0.f)
+        continue;
+      allMatrices &= cams[i].projection_matrix_set;
+      for(int k = 0; k < 16; k++)
+        mat[k] += cams[i].projection_matrix[k] * w[i];
+      if(cams[i].frustum_set && cams[i].frustum[3] > cams[i].frustum[2])
+      {
+        anyFrustum = true;
+        aspectSum += w[i] * (cams[i].frustum[1] - cams[i].frustum[0])
+                     / (cams[i].frustum[3] - cams[i].frustum[2]);
+        aspectWeight += w[i];
+      }
+    }
+    if(allMatrices)
+    {
+      std::copy_n(mat, 16, out.projection_matrix);
+      out.projection_matrix_set = true;
+    }
+    if(!anyFrustum || out.projection != ossia::camera_projection::perspective)
+      return;
+    const float aspect = aspectSum / aspectWeight;
+    float sum[4]{};
+    for(int i = 0; i < 4; ++i)
+    {
+      if(w[i] <= 0.f)
+        continue;
+      float t[4];
+      if(!score::gfx::cameraFrustumTangents(cams[i], cams[i].aspect_ratio_set ? 0.f : aspect, t))
+        return;
+      for(int k = 0; k < 4; k++)
+        sum[k] += t[k] * w[i];
+    }
+    std::copy_n(sum, 4, out.frustum);
+    out.frustum_set = true;
+  }
+
   void rebuild()
   {
     const int mode = inputs.mode.value;
@@ -271,12 +325,19 @@ public:
         }
       }
       outCam.projection = cams[dominant].projection;
+      std::copy_n(cams[dominant].frustum, 4, outCam.frustum);
+      outCam.frustum_set = cams[dominant].frustum_set;
+      std::copy_n(cams[dominant].projection_matrix, 16, outCam.projection_matrix);
+      outCam.projection_matrix_set = cams[dominant].projection_matrix_set;
     }
+    blendProjection(cams, effWeights, outCam);
     for(int i = 0; i < 4; ++i)
     {
       if(effWeights[i] <= 0.f) continue;
       const float wi = effWeights[i];
       outCam.yfov         += cams[i].yfov         * wi;
+      outCam.shift[0]     += cams[i].shift[0]     * wi;
+      outCam.shift[1]     += cams[i].shift[1]     * wi;
       outCam.aspect_ratio += cams[i].aspect_ratio * wi;
       outCam.xmag         += cams[i].xmag         * wi;
       outCam.ymag         += cams[i].ymag         * wi;
