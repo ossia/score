@@ -1,13 +1,13 @@
 name: Coverage
 
 on:
-  pull_request:
+  workflow_call:
   push:
     branches:
       - master
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: coverage-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

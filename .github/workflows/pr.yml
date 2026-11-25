@@ -1,0 +1,74 @@
+name: PR CI
+on: pull_request
+
+concurrency:
+  group: pr-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  nix:
+    uses: ./.github/workflows/nix-builds.yaml
+
+  approve-full-ci:
+    name: Approve full PR suite
+    needs: nix
+    environment: full-ci
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - run: echo "Full CI approved for $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+  appimage:
+    needs: approve-full-ci
+    uses: ./.github/workflows/appimage.yml
+
+  bsd:
+    needs: approve-full-ci
+    uses: ./.github/workflows/bsd.yml
+
+  coverage:
+    needs: approve-full-ci
+    uses: ./.github/workflows/coverage.yml
+
+  debian:
+    needs: approve-full-ci
+    uses: ./.github/workflows/debian-builds.yaml
+
+  flatpak:
+    needs: approve-full-ci
+    uses: ./.github/workflows/flatpak.yml
+
+  linux-distros:
+    needs: approve-full-ci
+    uses: ./.github/workflows/builds.yaml
+
+  macos:
+    needs: approve-full-ci
+    uses: ./.github/workflows/mac-builds.yaml
+    secrets:
+      MAC_CERT_B64: ${{ secrets.MAC_CERT_B64 }}
+      MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+      MAC_ALTOOL_PASSWORD: ${{ secrets.MAC_ALTOOL_PASSWORD }}
+
+  tarball:
+    needs: approve-full-ci
+    uses: ./.github/workflows/tarball.yml
+    secrets:
+      GPG_SIGN_PUBKEY: ${{ secrets.GPG_SIGN_PUBKEY }}
+      GPG_SIGN_PRIVKEY: ${{ secrets.GPG_SIGN_PRIVKEY }}
+
+  templates:
+    needs: approve-full-ci
+    uses: ./.github/workflows/templates.yaml
+
+  ubuntu:
+    needs: approve-full-ci
+    uses: ./.github/workflows/ubuntu-builds.yaml
+
+  wasm:
+    needs: approve-full-ci
+    uses: ./.github/workflows/wasm.yaml
+
+  windows:
+    needs: approve-full-ci
+    uses: ./.github/workflows/win-builds.yaml

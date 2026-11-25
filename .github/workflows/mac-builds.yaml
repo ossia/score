@@ -1,6 +1,13 @@
 name: macOS build
 on:
-  pull_request:
+  workflow_call:
+    secrets:
+      MAC_CERT_B64:
+        required: false
+      MAC_CERT_PASSWORD:
+        required: false
+      MAC_ALTOOL_PASSWORD:
+        required: false
   push:
     branches:
       - master
@@ -8,7 +15,7 @@ on:
       - v*
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: mac-builds-${{ github.ref }}
   cancel-in-progress: true
 
 env:
