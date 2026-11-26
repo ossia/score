@@ -1088,14 +1088,15 @@ void RecordSession::drain()
         }
         if(!s->wav.isOpen())
           return;
-        const float* ptrs[8]{};
-        for(int c = 0; c < b.channels && c < 8; c++)
-          ptrs[c] = b.data.data() + std::size_t(c) * s->audio->blockFrames;
+        const float* ptrs[AudioTake::maxChannels]{};
+        const int channels = std::min(b.channels, AudioTake::maxChannels);
+        for(int c = 0; c < channels; c++)
+          ptrs[c] = b.channel(c);
         s->wav.write(ptrs, b.frames);
         // Peaks for the live view
         for(int64_t f = 0; f < b.frames; f++)
         {
-          for(int c = 0; c < b.channels && c < 8; c++)
+          for(int c = 0; c < channels; c++)
             s->peak = std::max(s->peak, std::abs(ptrs[c][f]));
           if(++s->peakFill == peakFrames)
           {
@@ -1352,6 +1353,12 @@ void RecordSession::warnAboutTiming()
     if(speed)
       m_warnings.push_back(
           tr("%1: recorded while playing at another speed than 1").arg(s->prefix));
+    if(const int more = s->audio ? s->audio->lostChannels.load() : 0; more > 0)
+      m_warnings.push_back(
+          tr("%1: its first %2 channels were recorded, %3 more were not")
+              .arg(s->prefix)
+              .arg(AudioTake::maxChannels)
+              .arg(more));
     // Never lost silently
     const int64_t lost = s->audio  ? s->audio->droppedFrames.load()
                          : s->midi ? s->midi->droppedEvents.load()

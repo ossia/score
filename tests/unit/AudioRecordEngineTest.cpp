@@ -52,6 +52,10 @@ struct Rig
   int64_t sample = 0;   // since the start, in the input
   int64_t boxDate = 0;  // where the box is, in flicks
   std::vector<std::vector<float>> recorded;
+  //! Channels the source gives
+  int channels = 2;
+  //! Frames the last channel has in a buffer; -1: all of them
+  int lastChannelFrames = -1;
 
   explicit Rig(int blocks = 64)
   {
@@ -68,11 +72,13 @@ struct Rig
   void tick(bool plays)
   {
     auto& in = *node->root_inputs()[0]->target<ossia::audio_port>();
-    in.set_channels(2);
-    for(int c = 0; c < 2; c++)
+    in.set_channels(channels);
+    for(int c = 0; c < channels; c++)
     {
-      in.channel(c).resize(buffer);
-      for(int k = 0; k < buffer; k++)
+      const int frames
+          = (c == channels - 1 && lastChannelFrames >= 0) ? lastChannelFrames : buffer;
+      in.channel(c).resize(frames);
+      for(int k = 0; k < frames; k++)
         in.channel(c)[k] = value(sample + k, c);
     }
 
@@ -103,9 +109,11 @@ struct Rig
   void drain()
   {
     take->drain([&](AudioTake::Block& b) {
-      for(int c = 0; c < 2; c++)
+      if(int(recorded.size()) < b.channels)
+        recorded.resize(b.channels);
+      for(int c = 0; c < b.channels; c++)
       {
-        const float* p = b.data.data() + std::size_t(c) * take->blockFrames;
+        const float* p = b.channel(c);
         recorded[c].insert(recorded[c].end(), p, p + b.frames);
       }
     });
@@ -220,6 +228,84 @@ TEST_CASE("A recorder whose blocks are all in use counts what it loses", "[recor
     r.tick(true);
   CHECK(r.take->frames == 2 * 512);
   CHECK(r.take->frames + r.take->droppedFrames == 10 * buffer);
+}
+
+TEST_CASE("A source of more channels than a block was sized for is recorded whole, in smaller blocks", "[recording][audio][channels]")
+{
+  Rig r;
+  r.channels = 16;
+  r.take->startRequested = true;
+  for(int i = 0; i < 40; i++)
+  {
+    r.tick(true);
+    r.drain();
+  }
+  r.take->stopRequested = true;
+  r.tick(true);
+  r.drain();
+  CHECK(r.take->activeChannels == 16);
+  CHECK(r.take->lostChannels == 0);
+  CHECK(r.take->droppedFrames == 0);
+  REQUIRE(r.recorded.size() == 16);
+  const std::size_t frames = r.recorded[0].size();
+  REQUIRE(frames >= std::size_t(40 * buffer));
+  for(int c = 0; c < 16; c++)
+  {
+    REQUIRE(r.recorded[c].size() == frames);
+    int64_t wrong = 0;
+    for(std::size_t k = 0; k < frames; k++)
+      wrong += std::abs(r.recorded[c][k] - value(int64_t(k), c)) > 1e-4;
+    INFO("channel " << c);
+    CHECK(wrong == 0);
+  }
+}
+
+TEST_CASE("Channels beyond the most a take keeps are counted, the others recorded", "[recording][audio][channels]")
+{
+  Rig r;
+  r.channels = AudioTake::maxChannels + 6;
+  r.take->startRequested = true;
+  for(int i = 0; i < 4; i++)
+  {
+    r.tick(true);
+    r.drain();
+  }
+  r.take->stopRequested = true;
+  r.tick(true);
+  r.drain();
+  CHECK(r.take->activeChannels == AudioTake::maxChannels);
+  CHECK(r.take->lostChannels == 6);
+  REQUIRE(int(r.recorded.size()) == AudioTake::maxChannels);
+  CHECK(r.recorded[0].size() >= std::size_t(4 * buffer));
+  CHECK(std::abs(r.recorded[AudioTake::maxChannels - 1][10] - value(10, AudioTake::maxChannels - 1)) < 1e-4);
+}
+
+TEST_CASE("A channel shorter than the buffer is recorded with silence after it", "[recording][audio][channels]")
+{
+  Rig r;
+  r.lastChannelFrames = buffer / 2;
+  r.take->startRequested = true;
+  for(int i = 0; i < 4; i++)
+  {
+    r.tick(true);
+    r.drain();
+  }
+  r.take->stopRequested = true;
+  r.tick(true);
+  r.drain();
+  REQUIRE(r.recorded.size() == 2);
+  REQUIRE(r.recorded[1].size() >= std::size_t(4 * buffer));
+  int64_t wrong = 0;
+  for(int k = 0; k < 4 * buffer; k++)
+  {
+    const float expected = (k % buffer) < buffer / 2 ? value(k, 1) : 0.f;
+    wrong += std::abs(r.recorded[1][k] - expected) > 1e-4;
+  }
+  CHECK(wrong == 0);
+  // The whole channel beside it is untouched
+  for(int k = 0; k < 4 * buffer; k++)
+    wrong += std::abs(r.recorded[0][k] - value(k, 0)) > 1e-4;
+  CHECK(wrong == 0);
 }
 
 // A sound is set to loop and given its loop length by two commands, which a

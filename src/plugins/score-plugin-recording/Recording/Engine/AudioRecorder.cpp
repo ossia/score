@@ -26,6 +26,7 @@ AudioTake::AudioTake(int channels, int blockFrames, int blockCount)
     auto b = std::make_unique<Block>();
     b->data.resize(std::size_t(this->channels) * std::size_t(this->blockFrames));
     b->channels = this->channels;
+    b->capacity = this->blockFrames;
     freeBlocks.try_enqueue(b.get());
     m_pool.push_back(std::move(b));
   }
@@ -51,9 +52,14 @@ void audio_record_node::record(
   int channels = take.activeChannels.load(std::memory_order_relaxed);
   if(channels == 0)
   {
-    channels = std::clamp(in_channels, 1, take.channels);
+    // As many as fit in a block with a frame at least
+    const int limit = std::min(AudioTake::maxChannels, take.channels * take.blockFrames);
+    channels = std::clamp(in_channels, 1, limit);
     take.activeChannels.store(channels, std::memory_order_relaxed);
+    take.lostChannels.store(std::max(0, in_channels - limit), std::memory_order_relaxed);
   }
+  // The samples of a block, shared between the channels
+  const int64_t capacity = int64_t(take.channels) * take.blockFrames / channels;
   while(count > 0)
   {
     if(!m_current)
@@ -66,33 +72,33 @@ void audio_record_node::record(
       }
       m_current->frames = 0;
       m_current->channels = channels;
+      m_current->capacity = capacity;
     }
 
     auto& b = *m_current;
-    const int64_t n = std::min<int64_t>(count, take.blockFrames - b.frames);
+    const int64_t n = std::min<int64_t>(count, b.capacity - b.frames);
     for(int c = 0; c < channels; c++)
     {
-      float* dst = b.data.data() + std::size_t(c) * take.blockFrames + b.frames;
-      if(c < in_channels)
+      float* dst = b.data.data() + std::size_t(c) * std::size_t(b.capacity) + b.frames;
+      // What the source has of [from; from + n), silence around it
+      const int64_t size = c < in_channels ? int64_t(in.channel(c).size()) : 0;
+      const int64_t lo = std::clamp<int64_t>(-from, 0, n);
+      const int64_t hi = std::clamp<int64_t>(size - from, lo, n);
+      std::fill_n(dst, lo, 0.f);
+      if(hi > lo)
       {
-        const auto& src = in.channel(c);
-        for(int64_t k = 0; k < n; k++)
-        {
-          const int64_t i = from + k;
-          dst[k] = (i >= 0 && i < int64_t(src.size())) ? float(src[i]) : 0.f;
-        }
+        const double* src = in.channel(c).data() + from + lo;
+        for(int64_t k = 0; k < hi - lo; k++)
+          dst[lo + k] = float(src[k]);
       }
-      else
-      {
-        std::fill_n(dst, n, 0.f);
-      }
+      std::fill_n(dst + hi, n - hi, 0.f);
     }
     b.frames += n;
     from += n;
     count -= n;
     take.frames.fetch_add(n, std::memory_order_relaxed);
 
-    if(b.frames == take.blockFrames)
+    if(b.frames == b.capacity)
     {
       take.filledBlocks.try_enqueue(m_current);
       m_current = nullptr;

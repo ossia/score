@@ -40,11 +40,24 @@ struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
     //! One channel after the other, `capacity` frames each
     std::vector<float> data;
     int64_t frames{};
+    //! Frames of a channel the block holds: its samples shared between the
+    //! channels recorded
+    int64_t capacity{};
     int channels{};
+
+    const float* channel(int c) const noexcept
+    {
+      return data.data() + std::size_t(c) * std::size_t(capacity);
+    }
   };
 
-  //! `channels` is the most a take keeps; it keeps as many as its source
-  //! gives when the take starts (activeChannels).
+  //! The most channels a take keeps
+  static constexpr int maxChannels = 64;
+
+  //! `blockCount` blocks of `blockFrames` frames for `channels` channels. A
+  //! take keeps as many channels as its source gives when it starts
+  //! (activeChannels), up to maxChannels: with more than `channels`, the
+  //! blocks hold fewer frames each.
   AudioTake(int channels, int blockFrames, int blockCount);
   ~AudioTake();
   AudioTake(const AudioTake&) = delete;
@@ -79,6 +92,8 @@ struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
   std::atomic<int64_t> frames{0};
   //! The channels recorded: the source's when the take started
   std::atomic<int> activeChannels{0};
+  //! Channels of the source beyond maxChannels, which are not recorded
+  std::atomic<int> lostChannels{0};
   //! Frames that could not be recorded: no free block. Never silent.
   std::atomic<int64_t> droppedFrames{0};
   //! The tempo when the take started
