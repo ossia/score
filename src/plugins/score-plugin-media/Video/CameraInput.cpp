@@ -7,6 +7,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 #include <Video/GpuFormats.hpp>
+#include <Video/NewestPacket.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -223,15 +224,17 @@ void CameraInput::buffer_thread() noexcept
 {
   while(m_running.load(std::memory_order_acquire))
   {
+    Read read;
     {
       LibavTimeout timeout{m_interrupt, read_timeout};
-      const int idleReads = std::max(10, int(fps));
-      if(m_intraOnly
-         && m_idle.idle(m_frames.taken(), m_frames.size(), frames_to_queue, idleReads))
-      {
-        skip_packet();
-      }
-      else if(auto f = read_frame_impl())
+      const int idleReads = std::max(20, int(2. * fps));
+      const bool idle = m_intraOnly && m_idle.idle(m_frames.polls(), idleReads);
+      if(idle && !m_wasIdle)
+        m_frames.discard_queued();
+      m_wasIdle = idle;
+
+      read = read_frame_impl(!idle);
+      if(auto f = read.frame)
       {
         if(f->format != (int)pixel_format || f->width != width
            || f->height != height)
@@ -243,9 +246,11 @@ void CameraInput::buffer_thread() noexcept
       }
     }
 
-    // Wait either a fraction of the expected framerate or 4 ms
-    int wait_ms = std::clamp((this->fps > 0.) ? (1000. / fps) / 4. : 4, 1., 100.);
-    std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
+    if(!read.consumed)
+    {
+      int wait_ms = std::clamp((this->fps > 0.) ? (1000. / fps) / 4. : 4, 1., 100.);
+      std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
+    }
   }
 }
 
@@ -277,48 +282,54 @@ void CameraInput::close_file() noexcept
   m_rescale.close();
 }
 
-void CameraInput::skip_packet() noexcept
+bool CameraInput::read_newest_packet() noexcept
 {
-  AVPacket* packet = av_packet_alloc();
-  if(!packet)
-    return;
+  return readNewestPacket(
+      [this](AVPacket* pkt) { return av_read_frame(m_formatContext, pkt); },
+      [this] {
+        if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
+          return false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        return true;
+      },
+      *m_newest, *m_scratch, m_avstream->index, max_backlog, blocked_read);
+}
+
+CameraInput::Read CameraInput::read_frame_impl(bool decode) noexcept
+{
+  if(!m_avstream)
+    return {};
+
+  if(m_intraOnly && m_newest && m_scratch)
+  {
+    if(!read_newest_packet())
+      return {};
+
+    Read ret{nullptr, true};
+    if(decode)
+      ret.frame = enqueue_frame(m_newest).frame;
+    av_packet_unref(m_newest);
+    return ret;
+  }
+
+  ReadFrame res;
+  AVPacket packet;
+  memset(&packet, 0, sizeof(AVPacket));
+
+  // AVFMT_FLAG_NONBLOCK: a device with no signal (v4l2 DQBUF on a capture
+  // card with nothing plugged in) answers EAGAIN forever, and libav never
+  // polls the interrupt callback on that path. Without checking m_running
+  // here, close_file() joins this thread forever.
   for(;;)
   {
-    const int res = av_read_frame(m_formatContext, packet);
-    av_packet_unref(packet);
-    if(res != AVERROR(EAGAIN))
+    res = read_one_frame_avcodec(packet);
+    if(res.error != AVERROR(EAGAIN))
       break;
     if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
       break;
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
-  av_packet_free(&packet);
-}
-
-AVFrame* CameraInput::read_frame_impl() noexcept
-{
-  ReadFrame res;
-
-  if(m_avstream)
-  {
-    AVPacket packet;
-    memset(&packet, 0, sizeof(AVPacket));
-
-    // AVFMT_FLAG_NONBLOCK: a device with no signal (v4l2 DQBUF on a capture
-    // card with nothing plugged in) answers EAGAIN forever, and libav never
-    // polls the interrupt callback on that path. Without checking m_running
-    // here, close_file() joins this thread forever.
-    for(;;)
-    {
-      res = read_one_frame_avcodec(packet);
-      if(res.error != AVERROR(EAGAIN))
-        break;
-      if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
-        break;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-  }
-  return res.frame;
+  return {res.frame, res.frame != nullptr};
 }
 
 bool CameraInput::open_stream() noexcept
@@ -352,6 +363,12 @@ bool CameraInput::open_stream() noexcept
         m_avstream = stream;
         const auto* desc = avcodec_descriptor_get(codecPar->codec_id);
         m_intraOnly = desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY);
+        if(!m_newest)
+          m_newest = av_packet_alloc();
+        if(!m_scratch)
+          m_scratch = av_packet_alloc();
+        m_idle = {};
+        m_wasIdle = false;
         pixel_format = static_cast<AVPixelFormat>(codecPar->format);
         width = codecPar->width;
         height = codecPar->height;
@@ -384,6 +401,8 @@ void CameraInput::close_stream() noexcept
   }
 
   m_rescale.close();
+  av_packet_free(&m_newest);
+  av_packet_free(&m_scratch);
 
   m_codecContext = nullptr;
   m_codec = nullptr;

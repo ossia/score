@@ -171,12 +171,12 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
 }
 
 void VideoNodeRenderer::checkFormat(
-    RenderList& r, AVPixelFormat fmt, int w, int h, AVColorRange frameRange)
+    RenderList& r, AVPixelFormat fmt, int w, int h, const FrameColor& frameColor)
 {
   // TODO won't work if VK is threaded and there are multiple windows
   const auto& n = this->node();
   const auto src
-      = requestedVideoFormat(decoder(), fmt, frameRange, n.m_outputFormat, n.m_tonemap);
+      = requestedVideoFormat(decoder(), fmt, frameColor, n.m_outputFormat, n.m_tonemap);
 
   if(videoDecoderNeedsRebuild(bool(m_gpu), m_frameFormat, src, fmt, w, h))
   {
@@ -440,7 +440,7 @@ void VideoNodeRenderer::displayFrame(
 
   checkFormat(
       renderer, static_cast<AVPixelFormat>(frame.format), frame.width, frame.height,
-      frame.color_range);
+      FrameColor::of(frame));
 
   if(m_gpu)
   {

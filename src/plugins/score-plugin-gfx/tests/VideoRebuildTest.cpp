@@ -242,6 +242,22 @@ int main()
         effectiveColorRange(AV_PIX_FMT_YUV420P, U, U) == U,
         "a plain YUV format with no range anywhere stays unspecified");
 
+    constexpr auto SU = AVCOL_SPC_UNSPECIFIED;
+    check(
+        effectiveColorSpace(AV_PIX_FMT_YUVJ422P, SU, SU) == AVCOL_SPC_BT470BG,
+        "a YUVJ frame with no matrix anywhere is BT.601, as JFIF says");
+    check(
+        effectiveColorSpace(AV_PIX_FMT_YUV422P, SU, AVCOL_SPC_BT470BG)
+            == AVCOL_SPC_BT470BG,
+        "a frame's own matrix is used when the source declares none");
+    check(
+        effectiveColorSpace(AV_PIX_FMT_YUVJ422P, AVCOL_SPC_BT709, AVCOL_SPC_BT470BG)
+            == AVCOL_SPC_BT709,
+        "the matrix the source declares wins");
+    check(
+        effectiveColorSpace(AV_PIX_FMT_YUV420P, SU, SU) == SU,
+        "a plain YUV format with no matrix anywhere stays unspecified");
+
     Video::ImageFormat camera;
     camera.width = 1280;
     camera.height = 720;
@@ -249,29 +265,67 @@ int main()
     const auto fmt = AV_PIX_FMT_YUVJ422P;
     const auto sdr = Video::OutputFormat::SDR;
     const auto tm = Video::Tonemap::Auto;
-    const auto first = requestedVideoFormat(camera, fmt, U, sdr, tm);
+    const FrameColor untagged{};
+    const auto first = requestedVideoFormat(camera, fmt, untagged, sdr, tm);
     check(
         videoDecoderNeedsRebuild(false, {}, first, fmt, 1280, 720),
         "the first camera frame builds the decoder");
     const auto built = builtVideoFormat({}, first, fmt, 1280, 720);
     check(built.color_range == J, "the decoder is built for full range");
     check(
-        colorMatrix(built) == QString(SCORE_GFX_CONVERT_BT709_FULL_TO_RGB),
-        "its conversion is the full-range one: JPEG black stays black");
+        colorMatrix(built) == QString(SCORE_GFX_CONVERT_BT601_FULL_TO_RGB),
+        "an HD MJPEG frame is converted with full-range BT.601, not BT.709");
     check(
         !videoDecoderNeedsRebuild(
-            true, built, requestedVideoFormat(camera, fmt, U, sdr, tm), fmt, 1280, 720),
+            true, built, requestedVideoFormat(camera, fmt, untagged, sdr, tm), fmt, 1280,
+            720),
         "the next camera frame does not rebuild the decoder");
 
     Video::ImageFormat stream = camera;
     stream.pixel_format = AV_PIX_FMT_YUV422P;
     const auto yuv = AV_PIX_FMT_YUV422P;
+    FrameColor lim;
+    lim.range = M;
+    FrameColor full;
+    full.range = J;
     const auto limited = builtVideoFormat(
-        {}, requestedVideoFormat(stream, yuv, M, sdr, tm), yuv, 1280, 720);
+        {}, requestedVideoFormat(stream, yuv, lim, sdr, tm), yuv, 1280, 720);
+    check(
+        colorMatrix(limited) == QString(SCORE_GFX_CONVERT_BT709_LIMITED_TO_RGB),
+        "an HD frame that carries no matrix keeps the size-based BT.709");
     check(
         videoDecoderNeedsRebuild(
-            true, limited, requestedVideoFormat(stream, yuv, J, sdr, tm), yuv, 1280, 720),
+            true, limited, requestedVideoFormat(stream, yuv, full, sdr, tm), yuv, 1280,
+            720),
         "a frame whose own range changes rebuilds the decoder");
+
+    FrameColor tagged;
+    tagged.range = J;
+    tagged.space = AVCOL_SPC_BT470BG;
+    const auto decoded = builtVideoFormat(
+        {}, requestedVideoFormat(stream, yuv, tagged, sdr, tm), yuv, 1280, 720);
+    check(
+        colorMatrix(decoded) == QString(SCORE_GFX_CONVERT_BT601_FULL_TO_RGB),
+        "a frame tagged full-range BT.601 by its decoder is converted as such");
+
+    const FrameColor hdr{
+        M, AVCOL_SPC_BT2020_NCL, AVCOL_TRC_SMPTE2084, AVCOL_PRI_BT2020};
+    const auto pq = requestedVideoFormat(stream, yuv, hdr, sdr, tm);
+    check(
+        pq.color_trc == AVCOL_TRC_SMPTE2084 && pq.color_primaries == AVCOL_PRI_BT2020
+            && pq.color_space == AVCOL_SPC_BT2020_NCL,
+        "an input that only tags its frames (AJA staging) keeps its HDR description");
+
+    Video::ImageFormat sdi = stream;
+    sdi.color_range = M;
+    sdi.color_space = AVCOL_SPC_BT709;
+    sdi.color_trc = AVCOL_TRC_BT709;
+    sdi.color_primaries = AVCOL_PRI_BT709;
+    const auto kept = requestedVideoFormat(sdi, yuv, hdr, sdr, tm);
+    check(
+        kept.color_trc == AVCOL_TRC_BT709 && kept.color_primaries == AVCOL_PRI_BT709
+            && kept.color_space == AVCOL_SPC_BT709 && kept.color_range == M,
+        "an input that declares its colour is not overridden by its frames");
   }
 
   std::printf(

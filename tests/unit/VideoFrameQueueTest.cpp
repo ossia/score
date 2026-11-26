@@ -18,10 +18,13 @@
 // pixel data, only at the date and the seek generation.
 
 #include <Video/FrameQueue.hpp>
+#include <Video/NewestPacket.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <deque>
 #include <set>
+#include <thread>
 #include <vector>
 
 extern "C" {
@@ -408,51 +411,181 @@ TEST_CASE("enqueue_latest keeps the newest frames and recycles the oldest",
   q.drain();
 }
 
-TEST_CASE("taken counts the frames the consumer gets", "[video][framequeue]")
+TEST_CASE("polls counts what the consumer asks for", "[video][framequeue]")
 {
   FrameQueue q;
-  CHECK(q.taken() == 0);
+  CHECK(q.polls() == 0);
   CHECK(q.dequeue() == nullptr);
   CHECK(q.dequeue_one() == nullptr);
-  CHECK(q.taken() == 0);
+  CHECK(q.polls() == 2);
 
   AVFrame* a = freshFrame(0);
-  AVFrame* b = freshFrame(1);
-  AVFrame* c = freshFrame(2);
   q.enqueue_latest(a, 1);
-  q.enqueue_latest(b, 1);
-  CHECK(q.taken() == 0);
-
-  q.enqueue(c);
-  CHECK(q.dequeue() == c);
-  CHECK(q.taken() == 1);
-  q.release(c);
-
-  AVFrame* d = freshFrame(3);
-  q.enqueue(d);
-  CHECK(q.dequeue_one() == d);
-  CHECK(q.taken() == 2);
-  q.release(d);
+  CHECK(q.polls() == 2);
+  CHECK(q.dequeue() == a);
+  CHECK(q.polls() == 3);
+  q.release(a);
   q.drain();
 }
 
-TEST_CASE("a consumer is idle once the queue stays full and untaken", "[video][framequeue]")
+TEST_CASE("discard_queued recycles what was queued", "[video][framequeue]")
+{
+  FrameQueue q;
+  AVFrame* a = freshFrame(0);
+  AVFrame* b = freshFrame(1);
+  q.enqueue(a);
+  q.enqueue(b);
+  q.discard_queued();
+  CHECK(q.size() == 0);
+  CHECK(q.dequeue() == nullptr);
+
+  std::set<AVFrame*> recovered;
+  std::vector<AVFramePointer> keep;
+  for(int i = 0; i < 2; i++)
+  {
+    keep.push_back(q.newFrame());
+    recovered.insert(keep.back().get());
+  }
+  CHECK(recovered == std::set<AVFrame*>{a, b});
+  for(auto& f : keep)
+    q.enqueue(f.release());
+  q.drain();
+}
+
+TEST_CASE("a consumer is idle once it stops asking", "[video][framequeue]")
 {
   IdleConsumer watch;
-  CHECK_FALSE(watch.idle(0, 2, 4, 3));
-  CHECK_FALSE(watch.idle(0, 4, 4, 3));
-  CHECK_FALSE(watch.idle(0, 4, 4, 3));
-  CHECK_FALSE(watch.idle(0, 4, 4, 3));
-  CHECK(watch.idle(0, 4, 4, 3));
-  CHECK(watch.idle(0, 4, 4, 3));
+  for(int i = 0; i < 3; i++)
+    CHECK_FALSE(watch.idle(0, 3));
+  CHECK(watch.idle(0, 3));
+  CHECK(watch.idle(0, 3));
 
-  CHECK_FALSE(watch.idle(1, 4, 4, 3));
+  CHECK_FALSE(watch.idle(1, 3));
 
   for(int i = 0; i < 1000; i++)
-    CHECK_FALSE(watch.idle(uint64_t(i + 2), 4, 4, 3));
+    CHECK_FALSE(watch.idle(uint64_t(i + 2), 3));
 
   for(int i = 0; i < 3; i++)
-    CHECK_FALSE(watch.idle(1001, 4, 4, 3));
-  CHECK(watch.idle(1001, 4, 4, 3));
-  CHECK_FALSE(watch.idle(1001, 3, 4, 3));
+    CHECK_FALSE(watch.idle(1001, 3));
+  CHECK(watch.idle(1001, 3));
+}
+
+namespace
+{
+struct FakeDevice
+{
+  struct Packet
+  {
+    int stream{};
+    int64_t pts{};
+  };
+  std::deque<Packet> buffered;
+  bool blocking{};
+  int reads{};
+
+  int operator()(AVPacket* pkt)
+  {
+    reads++;
+    if(buffered.empty())
+    {
+      if(!blocking)
+        return AVERROR(EAGAIN);
+      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+      pkt->stream_index = 0;
+      pkt->pts = 1000;
+      return 0;
+    }
+    pkt->stream_index = buffered.front().stream;
+    pkt->pts = buffered.front().pts;
+    buffered.pop_front();
+    return 0;
+  }
+};
+
+struct Packets
+{
+  AVPacket* newest = av_packet_alloc();
+  AVPacket* scratch = av_packet_alloc();
+  ~Packets()
+  {
+    av_packet_free(&newest);
+    av_packet_free(&scratch);
+  }
+};
+constexpr auto blocked = std::chrono::milliseconds(5);
+}
+
+TEST_CASE("a late reader gets the newest packet the device buffered", "[video][camera]")
+{
+  FakeDevice dev;
+  for(int i = 0; i < 10; i++)
+    dev.buffered.push_back({0, i});
+  Packets p;
+  int waits = 0;
+  auto wait = [&] { return ++waits < 100; };
+
+  REQUIRE(readNewestPacket(dev, wait, *p.newest, *p.scratch, 0, 64, blocked));
+  CHECK(p.newest->pts == 9);
+  CHECK(dev.buffered.empty());
+  CHECK(waits == 0);
+}
+
+TEST_CASE("packets of other streams are not the newest", "[video][camera]")
+{
+  FakeDevice dev;
+  dev.buffered = {{0, 1}, {1, 2}, {0, 3}, {1, 4}};
+  Packets p;
+  auto wait = [] { return false; };
+
+  REQUIRE(readNewestPacket(dev, wait, *p.newest, *p.scratch, 0, 64, blocked));
+  CHECK(p.newest->pts == 3);
+  CHECK(p.newest->stream_index == 0);
+}
+
+TEST_CASE("an empty device is waited for, then given up on", "[video][camera]")
+{
+  FakeDevice dev;
+  Packets p;
+  int waits = 0;
+  auto wait = [&] {
+    if(++waits == 3)
+      dev.buffered.push_back({0, 7});
+    return waits < 10;
+  };
+  REQUIRE(readNewestPacket(dev, wait, *p.newest, *p.scratch, 0, 64, blocked));
+  CHECK(p.newest->pts == 7);
+  CHECK(waits == 3);
+
+  FakeDevice silent;
+  int tries = 0;
+  auto giveUp = [&] { return ++tries < 5; };
+  CHECK_FALSE(readNewestPacket(silent, giveUp, *p.newest, *p.scratch, 0, 64, blocked));
+  CHECK(tries == 5);
+}
+
+TEST_CASE("a device that blocks is read once past its backlog", "[video][camera]")
+{
+  FakeDevice dev;
+  dev.blocking = true;
+  for(int i = 0; i < 5; i++)
+    dev.buffered.push_back({0, i});
+  Packets p;
+  auto wait = [] { return false; };
+
+  REQUIRE(readNewestPacket(dev, wait, *p.newest, *p.scratch, 0, 64, blocked));
+  CHECK(p.newest->pts == 1000);
+  CHECK(dev.reads == 6);
+}
+
+TEST_CASE("a device that never runs dry is left after a bounded backlog", "[video][camera]")
+{
+  FakeDevice dev;
+  for(int i = 0; i < 200; i++)
+    dev.buffered.push_back({0, i});
+  Packets p;
+  auto wait = [] { return false; };
+
+  REQUIRE(readNewestPacket(dev, wait, *p.newest, *p.scratch, 0, 64, blocked));
+  CHECK(p.newest->pts == 63);
+  CHECK(dev.reads == 64);
 }
