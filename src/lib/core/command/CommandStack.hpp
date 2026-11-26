@@ -49,6 +49,17 @@ public:
    */
   void disableActions();
 
+  /**
+   * @brief Nothing is undone or redone until unlockHistory()
+   *
+   * Unlike disableActions(), which only greys the user actions out, this
+   * holds for every way to undo: canUndo() and canRedo() are false and the
+   * stack does not move. Commands can still be pushed. Calls nest.
+   */
+  void lockHistory();
+  void unlockHistory();
+  bool historyLocked() const noexcept { return m_historyLocked > 0; }
+
   bool canUndo() const;
 
   bool canRedo() const;
@@ -225,6 +236,7 @@ private:
 
   int m_savedIndex{};
   int m_pendingEdits{};
+  int m_historyLocked{};
   bool m_replaying{};
 
   DocumentValidator m_checker;

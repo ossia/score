@@ -40,14 +40,27 @@ void CommandStack::disableActions()
   canRedoChanged(false);
 }
 
+void CommandStack::lockHistory()
+{
+  m_historyLocked++;
+  disableActions();
+}
+
+void CommandStack::unlockHistory()
+{
+  SCORE_ASSERT(m_historyLocked > 0);
+  if(--m_historyLocked == 0)
+    enableActions();
+}
+
 bool CommandStack::canUndo() const
 {
-  return !m_undoable.empty();
+  return !historyLocked() && !m_undoable.empty();
 }
 
 bool CommandStack::canRedo() const
 {
-  return !m_redoable.empty();
+  return !historyLocked() && !m_redoable.empty();
 }
 
 QString CommandStack::undoText() const
@@ -162,7 +175,7 @@ struct Replaying
 void CommandStack::undoQuiet()
 {
   aboutToChange();
-  if(m_undoable.empty())
+  if(historyLocked() || m_undoable.empty())
     return;
   updateStack([&]() {
     auto cmd = m_undoable.pop();
@@ -182,7 +195,7 @@ void CommandStack::redoQuiet()
 {
   aboutToChange();
   // An edit committed on aboutToChange replaces the redo history
-  if(m_redoable.empty())
+  if(historyLocked() || m_redoable.empty())
     return;
   updateStack([&]() {
     auto cmd = m_redoable.pop();

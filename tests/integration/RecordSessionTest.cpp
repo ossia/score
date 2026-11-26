@@ -62,6 +62,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <dr_wav.h>
+#include <Process/Commands/Properties.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Process.hpp>
@@ -172,13 +173,32 @@ TEST_CASE("A recording session records a port while its box plays", "[recording]
     QObject::connect(
         &doc->commandStack(), &score::CommandStack::canUndoChanged,
         [&](bool b) { undo_enabled = b; });
+    auto& stack = doc->commandStack();
+    REQUIRE(stack.canUndo());
+    const int index = stack.currentIndex();
     REQUIRE(session.start());
     CHECK(!undo_enabled);
-    spin(800);
+    // Not from a script or another window either: the stack does not move
+    CHECK(!stack.canUndo());
+    stack.undoQuiet();
+    CHECK(stack.currentIndex() == index);
+    CHECK(box->processes.size() == processes_before);
+    spin(400);
+    // An edit made meanwhile is kept, and does not turn undo back on
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      m.setProperty<Process::ProcessModel::p_position>(*sound, QPointF{40., 60.});
+      m.commit();
+    }
+    CHECK(stack.currentIndex() == index + 1);
+    CHECK(!undo_enabled);
+    CHECK(!stack.canUndo());
+    spin(400);
     session.stop();
     REQUIRE(spin_until([&] { return finished; }));
     CHECK(undo_enabled);
-    CHECK(doc->commandStack().canUndo());
+    CHECK(stack.canUndo());
+    CHECK(!stack.historyLocked());
 
     engine.execution().request_stop();
     spin(200);

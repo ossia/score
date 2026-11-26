@@ -281,9 +281,8 @@ RecordSession::~RecordSession()
     m_writing = false;
     if(m_writer.joinable())
       m_writer.join();
-    if(!m_options.capture)
-      m_ctx.document.commandStack().enableActions();
   }
+  unlockUndo();
   if(m_options.capture && m_discard)
     removeFiles();
   QObject::disconnect(m_started);
@@ -460,18 +459,18 @@ int64_t RecordSession::freeBytes() const
 
 void RecordSession::lockUndo()
 {
-  // Undo and redo stay off: a command pushed meanwhile (live editing) would
-  // turn them back on
-  auto& stack = m_ctx.document.commandStack();
-  stack.disableActions();
-  m_undoGuard = connect(&stack, &score::CommandStack::canUndoChanged, this, [this](bool b) {
-    if(b && m_running)
-      m_ctx.document.commandStack().disableActions();
-  }, Qt::QueuedConnection);
-  m_redoGuard = connect(&stack, &score::CommandStack::canRedoChanged, this, [this](bool b) {
-    if(b && m_running)
-      m_ctx.document.commandStack().disableActions();
-  }, Qt::QueuedConnection);
+  // Undoing what is recorded into would lose the take: nothing is undone or
+  // redone, from the menus, a script or another document's window, until
+  // the takes are placed. Commands are still pushed (live editing).
+  if(std::exchange(m_undoLocked, true))
+    return;
+  m_ctx.document.commandStack().lockHistory();
+}
+
+void RecordSession::unlockUndo()
+{
+  if(std::exchange(m_undoLocked, false))
+    m_ctx.document.commandStack().unlockHistory();
 }
 
 void RecordSession::capture()
@@ -1205,8 +1204,6 @@ void RecordSession::finish()
   m_poll.stop();
   QObject::disconnect(m_started);
   QObject::disconnect(m_finished);
-  QObject::disconnect(m_undoGuard);
-  QObject::disconnect(m_redoGuard);
   stopListening();
 
   removeCountIn();
@@ -1267,8 +1264,7 @@ void RecordSession::finish()
         if(s->audio && !s->file.isEmpty())
           QFile::remove(s->file);
   }
-  if(!m_options.capture)
-    m_ctx.document.commandStack().enableActions();
+  unlockUndo();
   finished();
 }
 

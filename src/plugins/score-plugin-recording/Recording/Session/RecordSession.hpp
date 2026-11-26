@@ -161,6 +161,7 @@ private:
   static constexpr int peakFrames = 256;
   void place();
   void lockUndo();
+  void unlockUndo();
   void removeFiles();
   bool m_discard{};
   bool m_linkedAny{};
@@ -212,7 +213,8 @@ private:
   std::mutex m_drainLock;
   //! Where the writer thread puts its files
   QString m_folder;
-  QMetaObject::Connection m_started, m_finished, m_undoGuard, m_redoGuard;
+  QMetaObject::Connection m_started, m_finished;
+  bool m_undoLocked{};
   bool m_running{false};
   bool m_recordersCreated{false};
 
