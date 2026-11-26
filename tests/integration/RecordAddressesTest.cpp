@@ -1162,11 +1162,22 @@ TEST_CASE("A Record menu entry starts as it says, whatever the settings' timing"
 
     // What the Record button does: from the first note, on a bar, for 4 bars,
     // only the file
-    auto& settings = ctx.settings<Recording::Settings::Model>();
-    const auto start = settings.getStart();
-    const auto start_on = settings.getStartOn();
-    const auto bars = settings.getLengthBars();
-    const auto target = settings.getTarget();
+    // The settings are kept between runs: put back whatever happens
+    struct Restore
+    {
+      Recording::Settings::Model& settings;
+      QString start{settings.getStart()}, startOn{settings.getStartOn()},
+          target{settings.getTarget()};
+      double bars{settings.getLengthBars()};
+      ~Restore()
+      {
+        settings.setStart(start);
+        settings.setStartOn(startOn);
+        settings.setLengthBars(bars);
+        settings.setTarget(target);
+      }
+    } restore{ctx.settings<Recording::Settings::Model>()};
+    auto& settings = restore.settings;
     settings.setStart(Recording::Settings::Starts{}.firstEvent);
     settings.setStartOn(Recording::Settings::Grids{}.bar);
     settings.setLengthBars(4.);
@@ -1222,11 +1233,111 @@ TEST_CASE("A Record menu entry starts as it says, whatever the settings' timing"
       engine.execution().request_stop();
       spin(300);
     }
+  });
+}
 
-    settings.setStart(start);
-    settings.setStartOn(start_on);
-    settings.setLengthBars(bars);
-    settings.setTarget(target);
+TEST_CASE("Addresses recorded at a point of a scenario inside a box start playback where that point is in the document", "[recording][addresses][nested]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Addresses dev{ctx, *doc};
+    const auto x = dev.add("nx", 0.f);
+    spin(100);
+
+    // A box from 4 s to 14 s, a scenario in it
+    Scenario::ProcessModel* inner{};
+    Scenario::IntervalModel* second{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& first = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(4000), 0.1});
+      second = &m.createIntervalAfter(
+          scenar, first.endState(), {TimeVal::fromMsecs(14000), 0.1});
+      inner = static_cast<Scenario::ProcessModel*>(m.createProcessInNewSlot(
+          *second, Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), {}));
+      m.commit();
+    }
+    REQUIRE(inner);
+    REQUIRE(std::abs(second->date().msec() - 4000.) < 1.);
+
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    // 1 s into the inner scenario: 5 s into the document
+    auto* session = rec.recordAddresses(
+        *inner, {TimeVal::fromMsecs(1000), 0.4}, {x},
+        Recording::AddressPlacement::Automations, Recording::RecordOptions{});
+    REQUIRE(session);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(300);
+    const double at = engine.execution().execution_time().msec();
+    CHECK(at >= 5000.);
+    CHECK(at < 6500.);
+    rec.endSessionOf(*doc);
+    engine.execution().request_stop();
+    spin(300);
+  });
+}
+
+TEST_CASE("A recording that has to start playback is refused in a document that is not the one shown", "[recording][session][documents]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), {});
+      m.commit();
+    }
+    REQUIRE(sound);
+    // Another document is shown
+    auto* other = score::test::new_document(ctx);
+    REQUIRE(other);
+    REQUIRE(ctx.currentDocument() == &other->context());
+
+    Recording::RecordSession session{doc->context(), {}};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    CHECK(!session.start());
+    CHECK(!session.error().isEmpty());
+    CHECK(!session.running());
+    auto& exec = other->context().plugin<Execution::DocumentPlugin>();
+    spin(300);
+    CHECK(!exec.isPlaying());
+    CHECK(!doc->commandStack().historyLocked());
+  });
+}
+
+TEST_CASE("A port selected with its process is recorded once", "[recording][session][selection]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), {});
+      m.commit();
+    }
+    REQUIRE(sound);
+    Selection sel;
+    sel.append(sound);
+    sel.append(sound->outlets()[0]);
+    score::SelectionDispatcher{doc->context().selectionStack}.select(sel);
+    auto& plug = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    const auto ports = plug.portsToRecord(doc->context());
+    REQUIRE(ports.size() == 1);
+    CHECK(ports[0] == sound->outlets()[0]);
   });
 }
 

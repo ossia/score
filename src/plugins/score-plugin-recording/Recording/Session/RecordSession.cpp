@@ -492,6 +492,16 @@ void RecordSession::removeFiles()
   }
 }
 
+TimeVal RecordSession::playDate() const
+{
+  // The point is in the scenario's time: where that is in the document
+  TimeVal date = m_point.date;
+  for(const auto* box = Scenario::closestParentInterval(m_scenario.data()); box;
+      box = Scenario::closestParentInterval(box->parent()))
+    date += box->date();
+  return date;
+}
+
 bool RecordSession::start()
 {
   if(m_running || m_sources.empty())
@@ -508,6 +518,15 @@ bool RecordSession::start()
   auto* exec = executionOf(m_ctx);
   if(!exec)
     return false;
+  // Playback is the shown document's: another one's is not started from here
+  // (contexts are copied around: the documents are compared)
+  const auto* shown = m_ctx.app.currentDocument();
+  if(!exec->isPlaying() && m_options.start != RecordOptions::Start::OnPlay
+     && (!shown || &shown->document != &m_ctx.document))
+  {
+    m_error = tr("This document is not the one shown: play it to record in it");
+    return false;
+  }
   // Addresses are recorded on the clock of the box their scenario plays in
   if(hasAddresses())
   {
@@ -593,7 +612,7 @@ bool RecordSession::start()
       {
         m_firstReceived = true;
         if(auto* engine = m_ctx.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>())
-          engine->execution().on_record(m_point.date);
+          engine->execution().on_record(playDate());
       }
       else
       {
@@ -606,7 +625,7 @@ bool RecordSession::start()
       {
         // Into a new box of a scenario: from where it was asked
         if(hasAddresses() && m_scenario && !m_intoBox)
-          engine->execution().on_record(m_point.date);
+          engine->execution().on_record(playDate());
         else
           engine->execution().request_play_global(true);
       }
@@ -1051,7 +1070,7 @@ void RecordSession::firstValue(const State::Address& addr, const ossia::value& v
   m_firstReceived = true;
   if(m_playOnFirst)
     if(auto* engine = m_ctx.app.findGuiApplicationPlugin<Engine::ApplicationPlugin>())
-      engine->execution().on_record(m_point.date);
+      engine->execution().on_record(playDate());
 }
 
 void RecordSession::drain()

@@ -161,6 +161,8 @@ private:
   //! Frames of audio a peak of the live view covers
   static constexpr int peakFrames = 256;
   void place();
+  //! Where playback starts for a recording into a new box of a scenario
+  TimeVal playDate() const;
   void lockUndo();
   void unlockUndo();
   void removeFiles();

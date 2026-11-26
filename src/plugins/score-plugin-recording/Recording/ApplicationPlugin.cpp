@@ -561,15 +561,20 @@ ApplicationPlugin::portsToRecord(const score::DocumentContext& ctx, bool* armed)
   std::vector<const Process::Port*> ports;
   for(const auto& obj : ctx.selectionStack.currentSelection())
   {
+    // A port selected along with its process is recorded once
+    const auto add = [&](const Process::Port* port) {
+      if(!ossia::contains(ports, port))
+        ports.push_back(port);
+    };
     if(auto* port = qobject_cast<const Process::Port*>(obj.data()))
     {
-      ports.push_back(port);
+      add(port);
     }
     else if(auto* proc = qobject_cast<const Process::ProcessModel*>(obj.data()))
     {
       for(auto* out : proc->outlets())
         if(out->type() == Process::PortType::Audio || out->type() == Process::PortType::Midi)
-          ports.push_back(out);
+          add(out);
     }
   }
   if(armed)
