@@ -737,20 +737,17 @@ void RecordSession::updateLiveTakes()
 void RecordSession::touch()
 {
   // The automation is silent from a value received until the release after
-  // the last one
-  int64_t received = 0;
+  // the last one, counted in the time of the box as the curve is cut once
+  // placed, whatever the speed it plays at
+  bool held = false;
   for(auto& s : m_sources)
-    if(s->values)
-      received += s->values->events.load(std::memory_order_relaxed);
-  const bool now_touched = received != m_touchEvents;
-  if(now_touched)
   {
-    m_touchEvents = received;
-    m_lastTouch.start();
+    if(!s->values || s->values->events.load(std::memory_order_relaxed) == 0)
+      continue;
+    const int64_t now = s->values->endDate.load(std::memory_order_relaxed);
+    const int64_t last = s->values->lastEventDate.load(std::memory_order_relaxed);
+    held |= now - last < m_options.touchRelease;
   }
-  const bool held = m_lastTouch.isValid()
-                    && m_lastTouch.nsecsElapsed()
-                           < m_options.touchRelease * 1000 / 705600 * 1000;
   if(held == m_touching)
     return;
   m_touching = held;

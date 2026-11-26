@@ -193,7 +193,10 @@ void value_record_node::run(
       if(at < from || at >= until)
         continue;
       if(take.queue.try_enqueue(ValueTake::Event{date_at(at), v.value}))
+      {
+        take.lastEventDate.store(date_at(at), std::memory_order_relaxed);
         take.events.fetch_add(1, std::memory_order_relaxed);
+      }
       else
         take.droppedEvents.fetch_add(1, std::memory_order_relaxed);
     }

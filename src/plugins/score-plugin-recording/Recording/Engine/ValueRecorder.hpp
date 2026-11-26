@@ -61,6 +61,8 @@ struct SCORE_PLUGIN_RECORDING_EXPORT ValueTake
   std::atomic<int> meterNumerator{4};
   std::atomic<int> meterDenominator{4};
   std::atomic<int64_t> events{0};
+  //! The date in the box of the last value recorded
+  std::atomic<int64_t> lastEventDate{0};
   std::atomic<int64_t> droppedEvents{0};
 
   ossia::spsc_queue<Event> queue;

@@ -103,6 +103,21 @@ struct Rig
 };
 }
 
+TEST_CASE("A value take says when in the box its last value came", "[recording][values][touch]")
+{
+  Rig r;
+  r.take->startRequested = true;
+  r.tick({{10, 0.5f}});
+  CHECK(r.take->lastEventDate == 10 * flicks_per_sample);
+  r.tick();
+  r.tick({{200, 0.25f}});
+  CHECK(r.take->lastEventDate == 2 * tick_flicks + 200 * flicks_per_sample);
+  // Time goes by in the box without a value: the gap a touch release reads
+  r.tick();
+  r.tick();
+  CHECK(r.take->endDate - r.take->lastEventDate == 3 * tick_flicks - 200 * flicks_per_sample);
+}
+
 TEST_CASE("In a tick cut in two, each value is recorded once, where it arrived", "[recording][values]")
 {
   // A box that loops, or whose tempo changes, gives two tokens in one tick

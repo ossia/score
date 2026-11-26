@@ -240,8 +240,6 @@ private:
   //! Touch: values came less than the release ago
   void touch();
   bool m_touching{};
-  int64_t m_touchEvents{};
-  QElapsedTimer m_lastTouch;
 
   // The count-in, while the takes wait
   std::shared_ptr<ossia::graph_node> m_countIn;
