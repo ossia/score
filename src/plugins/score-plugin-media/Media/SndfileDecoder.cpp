@@ -107,9 +107,10 @@ std::optional<AudioInfo> SndfileDecoder::do_probe(const QString& path)
   ret.fileRate = info.samplerate;
 
   sf_seek(sf.get(), info.frames, SF_SEEK_END);
-  SF_LOOP_INFO loop;
-  sf_command(sf.get(), SFC_GET_LOOP_INFO, &loop, sizeof(loop));
-  if(loop.bpm > 0.001)
+  // Left as it is when the file has no loop information
+  SF_LOOP_INFO loop{};
+  if(sf_command(sf.get(), SFC_GET_LOOP_INFO, &loop, sizeof(loop)) == SF_TRUE
+     && loop.bpm > 0.001)
   {
     ret.tempo = loop.bpm;
   }
