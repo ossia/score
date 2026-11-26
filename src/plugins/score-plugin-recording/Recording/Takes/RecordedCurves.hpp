@@ -13,6 +13,10 @@ namespace Automation
 {
 class ProcessModel;
 }
+namespace Curve::Settings
+{
+class Model;
+}
 namespace Recording
 {
 //! An automation's curve: its segments from 0 to 1, between min and max
@@ -31,6 +35,10 @@ struct CurveOptions
   //! Fewer points, as the Pen tool does, with the Recording settings' ratio
   bool simplify{true};
   double simplificationRatio{10.};
+
+  //! As the settings say curves are recorded
+  SCORE_PLUGIN_RECORDING_EXPORT
+  static CurveOptions from(const Curve::Settings::Model& settings);
 };
 
 /**

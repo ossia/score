@@ -1,3 +1,5 @@
+#include <ossia/detail/flicks.hpp>
+#include <Process/TakeMidiFile.hpp>
 #include "RecordedNotes.hpp"
 
 #include <libremidi/cmidi2.hpp>
@@ -99,7 +101,7 @@ void quantizeNotes(std::vector<RecordedNote>& notes, double quarters)
 {
   if(!(quarters > 0.))
     return;
-  const double grid = quarters * 352800000.;
+  const double grid = quarters * ossia::quarter_duration<double>;
   for(auto& n : notes)
     n.start = int64_t(std::llround(std::round(double(n.start) / grid) * grid));
   std::stable_sort(notes.begin(), notes.end(), [](auto& a, auto& b) { return a.start < b.start; });
@@ -109,8 +111,8 @@ std::string smfOf(
     const std::vector<RecordedNote>& notes, int64_t start, int64_t length, double tempo,
     int meterNumerator, int meterDenominator)
 {
-  constexpr int ticks_per_quarter = 480;
-  constexpr double flicks_per_minute = 705600000. * 60.;
+  constexpr int ticks_per_quarter = Process::takeTicksPerQuarter;
+  constexpr double flicks_per_minute = ossia::flicks_per_second<double> * 60.;
   const double bpm = tempo > 0. ? tempo : 120.;
   const double flicks_per_quarter = flicks_per_minute / bpm;
   auto to_tick = [&](int64_t flicks) {
@@ -118,22 +120,8 @@ std::string smfOf(
   };
   const int64_t end = std::max<int64_t>(1, to_tick(length));
 
-  struct event
-  {
-    int64_t tick;
-    int order; //!< note-offs, then the rest, at a given tick
-    libremidi::message m;
-  };
-  std::vector<event> events;
+  std::vector<Process::TakeMidiEvent> events;
   events.reserve(notes.size() * 2 + 3);
-
-  const int us_per_quarter
-      = int(std::clamp<int64_t>(std::llround(60'000'000. / bpm), 1, 0xFFFFFF));
-  events.push_back({0, 1, libremidi::meta_events::tempo(us_per_quarter)});
-  events.push_back(
-      {0, 1, libremidi::meta_events::time_signature(
-                 std::clamp(meterNumerator, 1, 255), std::clamp(meterDenominator, 1, 128),
-                 24, 8)});
 
   for(const auto& n : notes)
   {
@@ -145,24 +133,7 @@ std::string smfOf(
         {on, 2, libremidi::channel_events::note_on(ch, n.pitch, std::max<int>(1, n.velocity))});
     events.push_back({off, 0, libremidi::channel_events::note_off(ch, n.pitch, 0)});
   }
-  // A marker on the take's end: the end of the track is the end of the take
-  // even when the last note ends earlier.
-  events.push_back({end, 3, libremidi::message{0xFF, 0x06, 3, 'e', 'n', 'd'}});
-
-  std::stable_sort(events.begin(), events.end(), [](const event& a, const event& b) {
-    return a.tick != b.tick ? a.tick < b.tick : a.order < b.order;
-  });
-
-  libremidi::writer w;
-  w.ticksPerQuarterNote = ticks_per_quarter;
-  int64_t prev = 0;
-  for(const auto& e : events)
-  {
-    w.add_event(int(e.tick - prev), 0, e.m);
-    prev = e.tick;
-  }
-  std::ostringstream out;
-  w.write(out);
-  return std::move(out).str();
+  return Process::takeMidiFile(
+      std::move(events), end, bpm, meterNumerator, meterDenominator);
 }
 }

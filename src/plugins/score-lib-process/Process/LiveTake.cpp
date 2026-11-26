@@ -1,3 +1,4 @@
+#include <ossia/detail/flicks.hpp>
 #include "LiveTake.hpp"
 
 #include <QFontMetrics>
@@ -23,7 +24,7 @@ namespace Process
 {
 namespace
 {
-constexpr int64_t flicksPerSecond = 705600000;
+constexpr int64_t flicksPerSecond = ossia::flicks_per_second<int64_t>;
 }
 
 LiveTake::LiveTake(QObject* itv, Kind k, QString n)

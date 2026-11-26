@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/detail/flicks.hpp>
 #include <Recording/Takes/WavStreamWriter.hpp>
 
 #include <QPointer>
@@ -131,6 +132,6 @@ struct RecordOptions
   //! much earlier, plus the latency the driver reports when engineLatency
   int inputLatencyMs{0};
   bool engineLatency{false};
-  int64_t touchRelease{352800000};
+  int64_t touchRelease{ossia::quarter_duration<int64_t>};
 };
 }

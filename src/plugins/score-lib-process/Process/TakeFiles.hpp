@@ -19,6 +19,14 @@ namespace Process
  */
 SCORE_LIB_PROCESS_EXPORT QString takesFolder(const score::DocumentContext& ctx);
 
+//! Value takes ("score-value-take" files, written by the loopers and the
+//! recordings, read by the automation): the most numbers of a value an
+//! automation plays, one curve each
+inline constexpr int valueTakeMaxComponents = 32;
+
+//! The Takes folder of a project kept in `projectFolder`
+SCORE_LIB_PROCESS_EXPORT QString takesFolderIn(const QString& projectFolder);
+
 /**
  * Picks the first take number no file of `folder` has for `prefix`
  * ("<prefix>-take<N>.<ext>", or "<prefix>-take<N>-<anything>") and creates

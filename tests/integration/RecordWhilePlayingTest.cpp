@@ -4,6 +4,7 @@
 
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
+#include <score_test/Recording.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/ExecutionController.hpp>
@@ -17,13 +18,7 @@
 
 namespace
 {
-void spin(int ms)
-{
-  QElapsedTimer t;
-  t.start();
-  while(t.elapsed() < ms)
-    QApplication::processEvents();
-}
+using score::test::spin;
 }
 
 TEST_CASE(

@@ -47,6 +47,7 @@
 #include <score_test/Document.hpp>
 #include <score_test/Process.hpp>
 #include <score_test/Project.hpp>
+#include <score_test/Recording.hpp>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -55,25 +56,10 @@ extern "C" {
 
 namespace
 {
+using score::test::spin;
+using score::test::spin_until;
 // A real event loop: the render loop posts events without end, which
 // processEvents() alone may spend all its time on, starving the timers
-void spin(int ms)
-{
-  QEventLoop loop;
-  QTimer::singleShot(ms, &loop, &QEventLoop::quit);
-  loop.exec();
-}
-
-template <typename F>
-bool spin_until(F f, int ms = 10000)
-{
-  QElapsedTimer t;
-  t.start();
-  while(!f() && t.elapsed() < ms)
-    spin(10);
-  return f();
-}
-
 //! Seconds of video in a file, and its frame size
 struct VideoInfo
 {

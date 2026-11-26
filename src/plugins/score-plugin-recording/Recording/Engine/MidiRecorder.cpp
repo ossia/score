@@ -11,8 +11,6 @@ namespace Recording
 {
 namespace
 {
-//! Dates further apart than this between two ticks are a jump (flicks: 2 ms)
-constexpr int64_t seek_tolerance = 1411200;
 }
 MidiTake::MidiTake(std::size_t capacity)
     : queue(std::max<std::size_t>(16, capacity))

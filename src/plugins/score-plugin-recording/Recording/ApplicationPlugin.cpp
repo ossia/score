@@ -88,9 +88,6 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       addRecordEntries(menu, *this, lctx.context, target);
     });
   }
-  connect(
-      &scenario_plugin.execution(), &ScenarioExecution::stopRecording, this,
-      &ApplicationPlugin::stopSession);
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
@@ -219,10 +216,7 @@ RecordSession* ApplicationPlugin::recordAddresses(
   for(const auto& addr : addresses)
     session->addAddress(addr);
 
-  CurveOptions c;
-  c.stepped = curves.getCurveMode() == Curve::Settings::Mode::Parameter;
-  c.simplify = curves.getSimplify();
-  c.simplificationRatio = curves.getSimplificationRatio();
+  const auto c = CurveOptions::from(curves);
   session->placeInNewBox(scenario, pt, placement, c, curves.getPlayWhileRecording());
   return adopt(std::move(session), ctx);
 }
@@ -253,10 +247,7 @@ RecordSession* ApplicationPlugin::recordAddressesInto(
   for(const auto& addr : addresses)
     session->addAddress(addr);
 
-  CurveOptions c;
-  c.stepped = curves.getCurveMode() == Curve::Settings::Mode::Parameter;
-  c.simplify = curves.getSimplify();
-  c.simplificationRatio = curves.getSimplificationRatio();
+  const auto c = CurveOptions::from(curves);
   session->placeInBox(box, placement, c);
   return adopt(std::move(session), ctx);
 }

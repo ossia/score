@@ -1,8 +1,13 @@
 #pragma once
 #include <ossia/dataflow/token_request.hpp>
+#include <ossia/detail/flicks.hpp>
 
 namespace Recording
 {
+//! Dates of the box further apart than this between two ticks are a jump
+//! (2 ms): a take ends where it was
+inline constexpr int64_t seek_tolerance = 2 * ossia::flicks_per_millisecond<int64_t>;
+
 /**
  * When a take waiting for a line of the grid starts. Counted in, the lines
  * closer than `bars` bars to where it began waiting go by: the count-in

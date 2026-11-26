@@ -35,6 +35,7 @@
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Project.hpp>
+#include <score_test/Recording.hpp>
 
 #include <map>
 #include <memory>
@@ -42,23 +43,8 @@
 
 namespace
 {
-void spin(int ms)
-{
-  QElapsedTimer t;
-  t.start();
-  while(t.elapsed() < ms)
-    QApplication::processEvents(QEventLoop::AllEvents, 5);
-}
-template <typename F>
-bool spin_until(F f, int ms = 10000)
-{
-  QElapsedTimer t;
-  t.start();
-  while(!f() && t.elapsed() < ms)
-    QApplication::processEvents(QEventLoop::AllEvents, 5);
-  return f();
-}
-
+using score::test::spin;
+using score::test::spin_until;
 /**
  * What an inlet receives, note by note, with the wall-clock time it was seen
  * at (read every few milliseconds: precise to a tick or two).

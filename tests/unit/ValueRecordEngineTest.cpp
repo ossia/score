@@ -214,4 +214,16 @@ TEST_CASE("A value take is the loopers' value take format", "[recording][values]
   const auto so = QJsonDocument::fromJson(valueTakeJson(s, 0, 100, rate, 120., 4, 4)).object();
   CHECK(so["components"].toInt() == 0);
   CHECK(so["events"].toArray()[1].toArray()[1].toString() == "string");
+
+  // As many numbers as the loopers' takes and the automation reading them
+  // take: 32, and no more
+  const auto list = [](int n) {
+    std::vector<ossia::value> v;
+    for(int i = 0; i < n; i++)
+      v.push_back(float(i));
+    return std::vector<ValueTake::Event>{{0, ossia::value{v}}};
+  };
+  CHECK(numericComponents(list(24)) == 24);
+  CHECK(numericComponents(list(32)) == 32);
+  CHECK(numericComponents(list(33)) == 0);
 }

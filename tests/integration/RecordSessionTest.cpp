@@ -68,6 +68,7 @@
 #include <score_test/Document.hpp>
 #include <score_test/Process.hpp>
 #include <score_test/Project.hpp>
+#include <score_test/Recording.hpp>
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node_functions.hpp>
@@ -79,54 +80,15 @@
 
 namespace
 {
-constexpr double flicks_per_second = 705600000.;
-
-void spin(int ms)
-{
-  QElapsedTimer t;
-  t.start();
-  while(t.elapsed() < ms)
-    QApplication::processEvents(QEventLoop::AllEvents, 5);
-}
-
-template <typename F>
-bool spin_until(F f, int ms = 10000)
-{
-  QElapsedTimer t;
-  t.start();
-  while(!f() && t.elapsed() < ms)
-    QApplication::processEvents(QEventLoop::AllEvents, 5);
-  return f();
-}
-
-//! 32-bit float mono, sample[i] = (i + 1) / 1e6: 0 is never a sample
+using score::test::spin;
+using score::test::spin_until;
 void write_ramp(const QString& path, int rate, int frames)
 {
-  drwav_data_format fmt{};
-  fmt.container = drwav_container_riff;
-  fmt.format = DR_WAVE_FORMAT_IEEE_FLOAT;
-  fmt.channels = 1;
-  fmt.sampleRate = drwav_uint32(rate);
-  fmt.bitsPerSample = 32;
-  drwav wav;
-  REQUIRE(drwav_init_file_write(&wav, path.toStdString().c_str(), &fmt, nullptr));
-  std::vector<float> data(frames);
-  for(int i = 0; i < frames; i++)
-    data[i] = float((i + 1) * 1e-6);
-  REQUIRE(drwav_write_pcm_frames(&wav, frames, data.data()) == drwav_uint64(frames));
-  drwav_uninit(&wav);
+  score::test::write_ramp_wav(path, rate, frames);
 }
+using score::test::read_wav;
+constexpr double flicks_per_second = 705600000.;
 
-std::vector<float> read_wav(const QString& path, int& channels)
-{
-  drwav wav;
-  REQUIRE(drwav_init_file(&wav, path.toStdString().c_str(), nullptr));
-  channels = wav.channels;
-  std::vector<float> v(std::size_t(wav.totalPCMFrameCount) * wav.channels);
-  drwav_read_pcm_frames_f32(&wav, wav.totalPCMFrameCount, v.data());
-  drwav_uninit(&wav);
-  return v;
-}
 }
 
 TEST_CASE("A recording session records a port while its box plays", "[recording][session]")
@@ -1182,8 +1144,9 @@ TEST_CASE("An inlet's take plays into it, placed where asked", "[recording][sess
     CHECK(take->position() == QPointF{123., 856.});
     // Another node is never put on top of it
     const auto next = Recording::freeNodePosition(*box, QPointF{123., 856.});
+    CHECK(next.y() > take->position().y());
     CHECK(!QRectF(next, Recording::takeNodeSize)
-                .intersects(QRectF(take->position(), Recording::takeNodeSize)));
+                .intersects(QRectF(take->position(), Scenario::nodeFootprint(*take))));
     // Into the inlet it was recorded from
     REQUIRE(dm.cables.size() == cables_before + 1);
     bool into_gain = false;

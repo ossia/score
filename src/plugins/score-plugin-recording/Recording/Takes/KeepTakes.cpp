@@ -33,7 +33,7 @@ int keepTakesWithProject(score::Document& doc, const QString& newFileName)
   if(files.isEmpty())
     return 0;
 
-  const QString to = QFileInfo{newFileName}.absolutePath() + QStringLiteral("/Takes");
+  const QString to = Process::takesFolderIn(QFileInfo{newFileName}.absolutePath());
   if(!QDir{}.mkpath(to))
     return 0;
 

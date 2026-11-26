@@ -11,8 +11,6 @@ namespace Recording
 {
 namespace
 {
-//! Dates further apart than this between two ticks are a jump (flicks: 2 ms)
-constexpr int64_t seek_tolerance = 1411200;
 }
 AudioTake::AudioTake(int channels, int blockFrames, int blockCount)
     : channels{std::max(1, channels)}

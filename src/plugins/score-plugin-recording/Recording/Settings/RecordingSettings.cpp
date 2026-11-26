@@ -1,3 +1,4 @@
+#include <ossia/detail/flicks.hpp>
 #include "RecordingSettings.hpp"
 
 #if SCORE_RECORDING_TEXTURES
@@ -127,7 +128,7 @@ RecordOptions Model::options() const
     o.midiQuantize = 0.;
   o.inputLatencyMs = std::clamp(m_InputLatency, 0, 500);
   o.engineLatency = m_EngineLatency;
-  o.touchRelease = int64_t(std::max(0, m_TouchRelease)) * 705600;
+  o.touchRelease = int64_t(std::max(0, m_TouchRelease)) * ossia::flicks_per_millisecond<int64_t>;
   o.video.encoder = m_VideoEncoder;
   return o;
 }

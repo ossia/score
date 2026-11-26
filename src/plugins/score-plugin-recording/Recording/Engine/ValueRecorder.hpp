@@ -1,5 +1,6 @@
 #pragma once
 #include <Recording/Engine/StartGate.hpp>
+#include <Recording/Engine/Take.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/token_request.hpp>
@@ -18,16 +19,8 @@ namespace Recording
  * What a value recorder and its session share, as MidiTake: the values are
  * pushed with their date in the box into a queue the session drains.
  */
-struct SCORE_PLUGIN_RECORDING_EXPORT ValueTake
+struct SCORE_PLUGIN_RECORDING_EXPORT ValueTake : TakeState
 {
-  enum State : int
-  {
-    Idle,
-    Waiting,
-    Recording,
-    Done
-  };
-
   struct Event
   {
     //! Date in the box, in flicks
@@ -39,27 +32,9 @@ struct SCORE_PLUGIN_RECORDING_EXPORT ValueTake
   ~ValueTake();
 
   // GUI thread -> audio thread
-  std::atomic<double> startRate{0.};
-  //! Counted in: the bars that go by before the line it starts on
-  std::atomic<double> leadBars{0.};
-  std::atomic<int64_t> length{0};
-  std::atomic<double> lengthBars{0.};
-  std::atomic<bool> startRequested{false};
-  std::atomic<bool> stopRequested{false};
   std::atomic<bool> startOnFirstEvent{false};
 
   // Audio thread -> GUI thread
-  std::atomic<int> state{Idle};
-  std::atomic<int64_t> startDate{0};
-  std::atomic<double> startPosition{0.};
-  std::atomic<int64_t> endDate{0};
-  std::atomic<double> tempo{0.};
-  //! The tempo changed while it recorded: a Sound take has one tempo
-  std::atomic<bool> tempoChanged{false};
-  //! It recorded at a speed other than 1
-  std::atomic<bool> offSpeed{false};
-  std::atomic<int> meterNumerator{4};
-  std::atomic<int> meterDenominator{4};
   std::atomic<int64_t> events{0};
   //! The date in the box of the last value recorded
   std::atomic<int64_t> lastEventDate{0};

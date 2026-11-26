@@ -15,11 +15,16 @@
 
 namespace Process
 {
+QString takesFolderIn(const QString& projectFolder)
+{
+  return projectFolder + QStringLiteral("/Takes");
+}
+
 QString takesFolder(const score::DocumentContext& ctx)
 {
   const QString file = ctx.document.metadata().fileName();
   if(QFileInfo fi{file}; fi.isAbsolute() && fi.exists())
-    return fi.absolutePath() + "/Takes";
+    return takesFolderIn(fi.absolutePath());
 
   return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
          + "/recordings/" + QString::number(ctx.document.id().val());

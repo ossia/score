@@ -1,5 +1,6 @@
 #pragma once
 #include <Recording/Engine/StartGate.hpp>
+#include <Recording/Engine/Take.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/token_request.hpp>
@@ -22,19 +23,8 @@ namespace Recording
  * thread. The session asks for a start or a stop, and reads where the take
  * is, through atomics.
  */
-struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
+struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake : TakeState
 {
-  enum State : int
-  {
-    //! Not asked to record yet
-    Idle,
-    //! Asked to: waiting for its box to play and for the start date
-    Waiting,
-    Recording,
-    //! Stopped; what was recorded is in the blocks given to the writer
-    Done
-  };
-
   struct Block
   {
     //! One channel after the other, `capacity` frames each
@@ -67,28 +57,8 @@ struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
   const int blockFrames;
 
   // GUI thread -> audio thread
-  //! Grid the start lands on, as a token_request quantification rate: 0 starts
-  //! at once, 1 on the next bar, 4 on the next quarter note.
-  std::atomic<double> startRate{0.};
-  //! Counted in: the bars that go by before the line it starts on
-  std::atomic<double> leadBars{0.};
-  //! Model duration after which the take stops on its own; 0: until asked.
-  std::atomic<int64_t> length{0};
-  //! Bars after which the take stops on its own, counted in the musical time
-  //! of the box from where it starts (exact through tempo changes); 0: none.
-  //! Takes precedence over `length`.
-  std::atomic<double> lengthBars{0.};
-  std::atomic<bool> startRequested{false};
-  std::atomic<bool> stopRequested{false};
 
   // Audio thread -> GUI thread
-  std::atomic<int> state{Idle};
-  //! The date in the box of the first recorded frame
-  std::atomic<int64_t> startDate{0};
-  //! Its musical position, in quarters
-  std::atomic<double> startPosition{0.};
-  //! The date in the box after the last recorded frame
-  std::atomic<int64_t> endDate{0};
   std::atomic<int64_t> frames{0};
   //! The channels recorded: the source's when the take started
   std::atomic<int> activeChannels{0};
@@ -96,15 +66,6 @@ struct SCORE_PLUGIN_RECORDING_EXPORT AudioTake
   std::atomic<int> lostChannels{0};
   //! Frames that could not be recorded: no free block. Never silent.
   std::atomic<int64_t> droppedFrames{0};
-  //! The tempo when the take started
-  std::atomic<double> tempo{0.};
-  //! The tempo changed while it recorded: a Sound take has one tempo
-  std::atomic<bool> tempoChanged{false};
-  //! It recorded at a speed other than 1
-  std::atomic<bool> offSpeed{false};
-  //! The meter when the take started
-  std::atomic<int> meterNumerator{4};
-  std::atomic<int> meterDenominator{4};
 
   // Audio thread
   ossia::spsc_queue<Block*> freeBlocks;

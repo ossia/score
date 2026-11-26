@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/TakeFiles.hpp>
 #include <Fx/Looper/TakeWriter.hpp>
 #include <Fx/Looper/ValueLoop.hpp>
 
@@ -86,7 +87,7 @@ struct value_export
 
   //! Most numbers of a value an automation plays, each in a curve of its
   //! own.
-  static constexpr int max_components = 32;
+  static constexpr int max_components = Process::valueTakeMaxComponents;
 
   static bool is_number(const ossia::value& v) noexcept
   {

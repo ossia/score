@@ -15,6 +15,25 @@
 namespace score::test
 {
 
+//! Runs the event loop for `ms`, the engine playing meanwhile
+inline void spin(int ms)
+{
+  run_events_for(ms);
+}
+
+//! Runs the event loop until `f` holds, `ms` at most; whether it held. Unlike
+//! wait_until(), what was asked to be deleted later stays until the test's
+//! own event loop turns.
+template <typename F>
+bool spin_until(F f, int ms = 10000)
+{
+  QElapsedTimer t;
+  t.start();
+  while(!f() && t.elapsed() < ms)
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+  return f();
+}
+
 //! 32-bit float mono, sample[i] = (i + 1) / 1e6: 0 is never a sample
 inline void write_ramp_wav(const QString& path, int rate, int frames)
 {

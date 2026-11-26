@@ -48,28 +48,8 @@ QPointF takeNodePosition(const Scenario::IntervalModel& box, std::optional<QPoin
 
 QPointF freeNodePosition(const Scenario::IntervalModel& box, QPointF wanted)
 {
-  constexpr double margin = 20.;
-  QRectF r{wanted, takeNodeSize};
-  for(int i = 0; i < 200; i++)
-  {
-    const Process::ProcessModel* hit{};
-    for(const auto& p : box.processes)
-    {
-      // A node is drawn larger than its size: title, ports
-      const QSizeF sz{
-          std::max(p.size().width(), takeNodeSize.width()),
-          std::max(p.size().height() + 60., takeNodeSize.height())};
-      const QRectF other{p.position(), sz};
-      if(other.adjusted(-margin, -margin, margin, margin).intersects(r))
-      {
-        hit = &p;
-        r.moveTop(std::max(r.top(), other.bottom() + margin));
-      }
-    }
-    if(!hit)
-      break;
-  }
-  return r.topLeft();
+  // As any process created in the node view: below what is in the way
+  return Scenario::freeProcessPositionBelow(box, wanted, takeNodeSize);
 }
 namespace
 {

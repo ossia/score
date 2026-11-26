@@ -10,6 +10,7 @@
 #include <Midi/MidiProcess.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
 #include <Recording/Takes/RecordedCurves.hpp>
 
@@ -114,6 +115,100 @@ double valueAt(const RecordedCurve& c, double x)
     }
   return -1000.;
 }
+}
+
+TEST_CASE("Values recorded into an automation leave the segments they do not reach as they were", "[recording][overdub][segments]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext&) {
+    // 10 s: a bent segment to 0.3, a straight one to 0.6, a bent one to 1
+    Automation::ProcessModel a{TimeVal{10 * sec}, Id<Process::ProcessModel>{1}, nullptr};
+    const auto power = Metadata<ConcreteKey_k, Curve::PowerSegment>::get();
+    std::vector<Curve::SegmentData> segs(3);
+    const double xs[]{0., 0.3, 0.6, 1.};
+    const double ys[]{0., 0.8, 0.2, 1.};
+    const double gammas[]{3., 1., 0.4};
+    for(int i = 0; i < 3; i++)
+    {
+      segs[i].id = Id<Curve::SegmentModel>{i};
+      segs[i].start = {xs[i], ys[i]};
+      segs[i].end = {xs[i + 1], ys[i + 1]};
+      segs[i].type = power;
+      segs[i].specificSegmentData = QVariant::fromValue(Curve::PowerSegmentData{gammas[i]});
+      if(i > 0)
+        segs[i].previous = Id<Curve::SegmentModel>{i - 1};
+      if(i < 2)
+        segs[i].following = Id<Curve::SegmentModel>{i + 1};
+    }
+    a.curve().fromCurveData(segs);
+    REQUIRE(a.curve().sortedSegments().size() == 3);
+
+    // Values between 4 s and 5 s: inside the middle segment
+    std::vector<ValueTake::Event> ev{
+        {4 * sec, ossia::value{0.5f}}, {4 * sec + sec / 2, ossia::value{0.9f}}};
+    CurveOptions opt;
+    opt.stepped = true;
+    auto c = spliceCurve(a, ev, 0, 4 * sec, 5 * sec, opt);
+    REQUIRE(c);
+    REQUIRE(c->segments.size() > 3);
+    CHECK(c->min == Approx(0.));
+    CHECK(c->max == Approx(1.));
+
+    // The first and the last: the bent segments they were, end to end
+    const auto& first = c->segments.front();
+    const auto& last = c->segments.back();
+    CHECK(first.type == power);
+    CHECK(first.start.x() == Approx(0.));
+    CHECK(first.end.x() == Approx(0.3));
+    CHECK(first.start.y() == Approx(0.));
+    CHECK(first.end.y() == Approx(0.8));
+    CHECK(first.specificSegmentData.value<Curve::PowerSegmentData>().gamma == Approx(3.));
+    CHECK(last.type == power);
+    CHECK(last.start.x() == Approx(0.6));
+    CHECK(last.end.x() == Approx(1.));
+    CHECK(last.specificSegmentData.value<Curve::PowerSegmentData>().gamma == Approx(0.4));
+
+    // One after the other, without a hole, each knowing its neighbours
+    for(std::size_t i = 0; i < c->segments.size(); i++)
+    {
+      const auto& seg = c->segments[i];
+      CHECK(seg.id == Id<Curve::SegmentModel>{int(i)});
+      if(i > 0)
+      {
+        CHECK(seg.start.x() == Approx(c->segments[i - 1].end.x()));
+        REQUIRE(seg.previous);
+        CHECK(*seg.previous == c->segments[i - 1].id);
+      }
+      else
+        CHECK(!seg.previous);
+      if(i + 1 < c->segments.size())
+      {
+        REQUIRE(seg.following);
+        CHECK(*seg.following == c->segments[i + 1].id);
+      }
+      else
+        CHECK(!seg.following);
+    }
+
+    // The values where recorded; the middle segment as it was around them
+    CHECK(valueAt(*c, 0.42) == Approx(0.5));
+    CHECK(valueAt(*c, 0.47) == Approx(0.9));
+    CHECK(valueAt(*c, 0.35) == Approx(0.8 + (0.35 - 0.3) / 0.3 * (0.2 - 0.8)).margin(0.01));
+    CHECK(valueAt(*c, 0.55) == Approx(0.8 + (0.55 - 0.3) / 0.3 * (0.2 - 0.8)).margin(0.01));
+
+    // It loads as a curve
+    Automation::ProcessModel b{TimeVal{10 * sec}, Id<Process::ProcessModel>{2}, nullptr};
+    b.curve().fromCurveData(c->segments);
+    CHECK(b.curve().sortedSegments().size() == c->segments.size());
+
+    // A range that grows keeps the kept segments' values
+    std::vector<ValueTake::Event> high{{4 * sec, ossia::value{3.f}}};
+    auto g = spliceCurve(a, high, 0, 4 * sec, 5 * sec, opt);
+    REQUIRE(g);
+    CHECK(g->max == Approx(3.));
+    CHECK(g->segments.front().type == power);
+    // 0.8 of the old range [0; 1], in [0; 3]
+    CHECK(g->segments.front().end.y() == Approx(0.8 / 3.));
+  });
 }
 
 TEST_CASE("Values recorded into an automation replace its curve where recorded", "[recording][overdub]")

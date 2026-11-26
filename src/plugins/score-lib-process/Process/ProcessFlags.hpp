@@ -49,9 +49,6 @@ enum ProcessFlags : int64_t
   //! The process is snapshottable
   Snapshottable = SCORE_FLAG(10),
 
-  //! The process is recordable
-  Recordable = SCORE_FLAG(11),
-
   //! The process has an editable widget which must unfocus & unselect other items
   ItemRequiresUniqueFocus = SCORE_FLAG(12),
 

@@ -34,7 +34,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioActions.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioApplicationPlugin.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioRecordInitData.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioValidity.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandAPI.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ClearSelection.hpp"

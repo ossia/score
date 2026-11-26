@@ -63,15 +63,5 @@ public:
   void scrub(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scrub, arg_1)
   void endScrub(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, endScrub, arg_1)
-
-  //! Request an automation recording from a given point.
-  void startRecording(ProcessModel* arg_1, Point arg_2)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startRecording, arg_1, arg_2)
-
-  //! Request a message recording from a given point.
-  void startRecordingMessages(ProcessModel* arg_1, Point arg_2)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startRecordingMessages, arg_1, arg_2)
-
-  void stopRecording() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stopRecording)
 };
 }

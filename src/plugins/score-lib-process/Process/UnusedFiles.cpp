@@ -1,3 +1,4 @@
+#include <Process/TakeFiles.hpp>
 #include <Process/MissingFiles.hpp>
 #include <Process/ProjectConsolidation.hpp>
 #include <Process/UnusedFiles.hpp>
@@ -133,7 +134,7 @@ analyzeUnusedFiles(const score::DocumentContext& ctx, const UnusedFilesOptions& 
   // placed or replaced them still refer to them by path, and the notes and
   // curves of MIDI and value takes were copied out of them, so nothing in the
   // document points at them although undo and redo need them
-  const QString takes = target.folder + QStringLiteral("/Takes");
+  const QString takes = Process::takesFolderIn(target.folder);
 
   const QStringList roots = opts.onlyCollectedFolders
                                 ? collectedFolders(target.folder)

@@ -34,9 +34,16 @@ bool writeWavSegment(
   std::vector<float> interleaved(std::size_t(count) * channels, 0.f);
   if(from < total)
   {
-    drwav_seek_to_pcm_frame(&wav, drwav_uint64(std::max<int64_t>(0, from)));
+    // A segment that cannot be read whole is not written: silence in its
+    // place would pass for what was played
     const int64_t n = std::min(count, total - from);
-    drwav_read_pcm_frames_f32(&wav, drwav_uint64(n), interleaved.data());
+    if(!drwav_seek_to_pcm_frame(&wav, drwav_uint64(std::max<int64_t>(0, from)))
+       || int64_t(drwav_read_pcm_frames_f32(&wav, drwav_uint64(n), interleaved.data()))
+              != n)
+    {
+      drwav_uninit(&wav);
+      return false;
+    }
   }
   const int rate = int(wav.sampleRate);
   drwav_uninit(&wav);
@@ -57,7 +64,8 @@ bool writeWavSegment(
   std::vector<const float*> ptrs;
   for(auto& ch : planar)
     ptrs.push_back(ch.data());
-  w.write(ptrs.data(), count);
+  if(!w.write(ptrs.data(), count))
+    return false;
   w.setAcid(acid);
   return w.close();
 }

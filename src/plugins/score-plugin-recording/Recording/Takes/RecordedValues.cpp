@@ -1,5 +1,7 @@
 #include "RecordedValues.hpp"
+#include <Process/TakeFiles.hpp>
 
+#include <ossia/detail/flicks.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QJsonArray>
@@ -15,7 +17,7 @@ namespace Recording
 {
 namespace
 {
-constexpr int max_components = 16;
+constexpr int max_components = Process::valueTakeMaxComponents;
 
 QJsonArray typed(const ossia::value& v);
 
@@ -149,7 +151,7 @@ QByteArray valueTakeJson(
     const std::vector<ValueTake::Event>& events, int64_t start, int64_t end, int rate,
     double tempo, int meterNumerator, int meterDenominator)
 {
-  constexpr double flicks_per_second = 705600000.;
+  constexpr double flicks_per_second = ossia::flicks_per_second<double>;
   const auto frame_of = [&](int64_t date) {
     return std::max<int64_t>(
         0, std::llround(double(date - start) / flicks_per_second * rate));

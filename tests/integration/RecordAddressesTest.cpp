@@ -102,29 +102,14 @@
 #include <score_test/Document.hpp>
 #include <score_test/Process.hpp>
 #include <score_test/Project.hpp>
+#include <score_test/Recording.hpp>
 
 #include "../unit/FakeDeviceProtocol.hpp"
 
 namespace
 {
-void spin(int ms)
-{
-  QElapsedTimer t;
-  t.start();
-  while(t.elapsed() < ms)
-    QApplication::processEvents(QEventLoop::AllEvents, 5);
-}
-
-template <typename F>
-bool spin_until(F f, int ms = 10000)
-{
-  QElapsedTimer t;
-  t.start();
-  while(!f() && t.elapsed() < ms)
-    QApplication::processEvents(QEventLoop::AllEvents, 5);
-  return f();
-}
-
+using score::test::spin;
+using score::test::spin_until;
 //! A device of the explorer whose addresses the test sets
 struct Addresses
 {
@@ -730,6 +715,8 @@ TEST_CASE("A Sound whose file changes kind while playing keeps the cable into it
     }));
     spin(300);
     CHECK(edge_reaches_inlet());
+    // A file that says nothing of its tempo has none
+    CHECK(!sound->file()->knownTempo());
 
     engine.execution().request_stop();
     spin(200);

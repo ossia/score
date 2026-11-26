@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/TakeFiles.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <Curve/Segment/CurveSegmentData.hpp>
@@ -18,7 +19,7 @@ namespace Automation
  */
 struct SCORE_PLUGIN_AUTOMATION_TEST_EXPORT ValueTake
 {
-  static constexpr int max_components = 32;
+  static constexpr int max_components = Process::valueTakeMaxComponents;
   //! Numbers of each value: 1 for numbers, n for vectors of n, the most a
   //! list has for lists. A value that has fewer leaves the others where they
   //! were; before a number first comes, its first value holds.

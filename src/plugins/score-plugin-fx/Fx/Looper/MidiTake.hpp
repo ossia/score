@@ -2,7 +2,7 @@
 #include <Fx/Looper/MidiLoop.hpp>
 #include <Fx/Looper/TakeWriter.hpp>
 
-#include <libremidi/writer.hpp>
+#include <Process/TakeMidiFile.hpp>
 
 #include <algorithm>
 #include <array>
@@ -34,7 +34,7 @@ struct midi_export
   //! job is over. The job may outlive the looper that made it.
   std::atomic_bool in_use{};
 
-  static constexpr int ticks_per_quarter = 480;
+  static constexpr int ticks_per_quarter = Process::takeTicksPerQuarter;
 
   //! The loop as a Standard MIDI File, at the tempo and in the meter it was
   //! played in. Ticks count quarters, so the tempo only says how fast they
@@ -49,25 +49,8 @@ struct midi_export
     };
     const int64_t end = std::max<int64_t>(1, to_tick(length));
 
-    struct event
-    {
-      int64_t tick;
-      int order; //!< note-offs, then the rest, at a given tick
-      libremidi::message m;
-    };
-    std::vector<event> events;
+    std::vector<Process::TakeMidiEvent> events;
     events.reserve(std::size_t(note_count) * 4 + std::size_t(control_count) + 4);
-
-    // A tempo event holds microseconds per quarter on 24 bits.
-    const int us_per_quarter
-        = int(std::clamp<int64_t>(std::llround(60'000'000. / bpm), 1, 0xFFFFFF));
-    events.push_back({0, 1, libremidi::meta_events::tempo(us_per_quarter)});
-    // 24 MIDI clocks per metronome click and 8 thirty-seconds per quarter are
-    // what every sequencer writes.
-    events.push_back(
-        {0, 1, libremidi::meta_events::time_signature(
-                   std::clamp(meter_numerator, 1, 255),
-                   std::clamp(meter_denominator, 1, 128), 24, 8)});
 
     for(int i = 0; i < note_count; i++)
     {
@@ -108,26 +91,8 @@ struct midi_export
         events.push_back({t, 1, libremidi::message{c.status, c.data1, c.data2}});
     }
 
-    // A marker on the loop's end: the end of the track is the end of the
-    // loop even when the last note ends earlier.
-    events.push_back({end, 3, libremidi::message{0xFF, 0x06, 3, 'e', 'n', 'd'}});
-
-    std::stable_sort(events.begin(), events.end(), [](const event& a, const event& b) {
-      return a.tick != b.tick ? a.tick < b.tick : a.order < b.order;
-    });
-
-    libremidi::writer w;
-    w.ticksPerQuarterNote = ticks_per_quarter;
-    int64_t prev = 0;
-    for(const auto& e : events)
-    {
-      w.add_event(int(e.tick - prev), 0, e.m);
-      prev = e.tick;
-    }
-
-    std::ostringstream out;
-    w.write(out);
-    return std::move(out).str();
+    return Process::takeMidiFile(
+        std::move(events), end, bpm, meter_numerator, meter_denominator);
   }
 };
 

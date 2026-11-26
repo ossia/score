@@ -1,3 +1,6 @@
+#include <Curve/Settings/CurveSettingsModel.hpp>
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/flicks.hpp>
 #include "RecordedCurves.hpp"
 
 #include <Curve/CurveModel.hpp>
@@ -14,13 +17,22 @@
 
 namespace Recording
 {
+CurveOptions CurveOptions::from(const Curve::Settings::Model& settings)
+{
+  CurveOptions c;
+  c.stepped = settings.getCurveMode() == Curve::Settings::Mode::Parameter;
+  c.simplify = settings.getSimplify();
+  c.simplificationRatio = settings.getSimplificationRatio();
+  return c;
+}
+
 std::optional<RecordedCurve> curveOf(
     const std::vector<ValueTake::Event>& events, int component, int64_t start,
     int64_t end, CurveOptions options)
 {
   if(end <= start || component < 0)
     return std::nullopt;
-  constexpr double flicks_per_msec = 705600.;
+  constexpr double flicks_per_msec = ossia::flicks_per_millisecond<double>;
   const double length = double(end - start) / flicks_per_msec;
 
   // The points in milliseconds from the start
@@ -146,6 +158,8 @@ std::optional<RecordedCurve> spliceCurve(
   }
 
   std::vector<std::pair<double, double>> pts;
+  // Where the values replace the curve
+  std::vector<std::pair<double, double>> replaced;
   std::size_t next_existing = 0;
   bool any = false;
   double prev_x1 = -1.;
@@ -173,6 +187,7 @@ std::optional<RecordedCurve> spliceCurve(
     if(x0 < prev_x1)
       x0 = prev_x1;
     any = true;
+    replaced.emplace_back(x0, x1);
 
     // The curve up to the span
     for(; next_existing < existing.size() && existing[next_existing].first < x0;
@@ -205,6 +220,27 @@ std::optional<RecordedCurve> spliceCurve(
   if(pts.back().first < 1.)
     pts.emplace_back(1., pts.back().second);
 
+  // The segments no span reaches stay what they are, whatever their kind: the
+  // points drawn through them are left out, their ends kept
+  std::vector<const Curve::SegmentModel*> kept;
+  for(auto* seg : segs)
+  {
+    const double sx = seg->start().x(), ex = seg->end().x();
+    const bool reached = ossia::any_of(
+        replaced, [&](const auto& r) { return r.first < ex && r.second > sx; });
+    if(!reached && ex > sx)
+      kept.push_back(seg);
+  }
+  const auto kept_over = [&](double a, double b) {
+    return ossia::any_of(
+        kept, [&](auto* seg) { return seg->start().x() >= a && seg->end().x() <= b; });
+  };
+  std::erase_if(pts, [&](const auto& pt) {
+    return ossia::any_of(kept, [&](auto* seg) {
+      return pt.first > seg->start().x() && pt.first < seg->end().x();
+    });
+  });
+
   RecordedCurve c;
   c.min = std::min(lo, hi);
   c.max = std::max(lo, hi);
@@ -214,23 +250,43 @@ std::optional<RecordedCurve> spliceCurve(
     c.max = std::max(c.max, v);
   }
   const double span = c.max > c.min ? c.max - c.min : 1.;
+  const auto y_of = [&](double v) { return (v - c.min) / span; };
   for(std::size_t i = 0; i + 1 < pts.size(); i++)
   {
     // Vertical jumps are kept; points at the same place are one
     if(pts[i + 1].first == pts[i].first && pts[i + 1].second == pts[i].second)
       continue;
+    // A kept segment goes there
+    if(pts[i + 1].first > pts[i].first && kept_over(pts[i].first, pts[i + 1].first))
+      continue;
     Curve::SegmentData d;
-    d.id = Id<Curve::SegmentModel>{int(c.segments.size())};
-    d.start = {pts[i].first, (pts[i].second - c.min) / span};
-    d.end = {pts[i + 1].first, (pts[i + 1].second - c.min) / span};
-    if(!c.segments.empty())
-    {
-      d.previous = c.segments.back().id;
-      c.segments.back().following = d.id;
-    }
+    d.start = {pts[i].first, y_of(pts[i].second)};
+    d.end = {pts[i + 1].first, y_of(pts[i + 1].second)};
     d.type = Metadata<ConcreteKey_k, Curve::LinearSegment>::get();
     d.specificSegmentData = QVariant::fromValue(Curve::LinearSegmentData{});
     c.segments.push_back(std::move(d));
+  }
+  for(auto* seg : kept)
+  {
+    // In the range the curve has now: its shape is between its ends
+    Curve::SegmentData d = seg->toSegmentData();
+    d.start.setY(y_of(value(d.start.y())));
+    d.end.setY(y_of(value(d.end.y())));
+    c.segments.push_back(std::move(d));
+  }
+  // One after the other
+  std::stable_sort(c.segments.begin(), c.segments.end(), [](const auto& a, const auto& b) {
+    return a.start.x() != b.start.x() ? a.start.x() < b.start.x() : a.end.x() < b.end.x();
+  });
+  for(std::size_t i = 0; i < c.segments.size(); i++)
+  {
+    c.segments[i].id = Id<Curve::SegmentModel>{int(i)};
+    c.segments[i].previous = i > 0 ? OptionalId<Curve::SegmentModel>{Id<Curve::SegmentModel>{int(i - 1)}}
+                                   : OptionalId<Curve::SegmentModel>{};
+    c.segments[i].following
+        = i + 1 < c.segments.size()
+              ? OptionalId<Curve::SegmentModel>{Id<Curve::SegmentModel>{int(i + 1)}}
+              : OptionalId<Curve::SegmentModel>{};
   }
   if(c.segments.empty())
     return std::nullopt;

@@ -24,6 +24,7 @@
 
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <ossia/detail/flicks.hpp>
 #include <ossia/network/base/node_functions.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -110,7 +111,7 @@ struct RecordSession::Source
       return 0;
     const double tempo = audio->tempo.load();
     const double ratio = tempo > 0. ? tempo / 120. : 1.;
-    return int64_t(std::llround(double(latencyFrames) / rate * 705600000. * ratio));
+    return int64_t(std::llround(double(latencyFrames) / rate * ossia::flicks_per_second<double> * ratio));
   }
   bool lost{};
   // Or an address
@@ -190,6 +191,17 @@ QString newTakeFile(const QString& folder, const QString& prefix, const QString&
   return Process::takeFile(folder, prefix, n, ext);
 }
 
+//! A name as the start of a take's file name: letters, digits, "_.-" only,
+//! which the take numbering and every file system take
+QString takePrefix(QString name)
+{
+  static const QRegularExpression unsafe{QStringLiteral("[^A-Za-z0-9_.-]+")};
+  name.replace(unsafe, QStringLiteral("_"));
+  while(name.startsWith('_'))
+    name.remove(0, 1);
+  return name.isEmpty() ? QStringLiteral("Recording") : name;
+}
+
 //! "<process>-<port>", fit for a file name
 QString prefixFor(const Process::Port& port)
 {
@@ -199,11 +211,7 @@ QString prefixFor(const Process::Port& port)
   const QString port_name = port.visualName().isEmpty() ? port.name() : port.visualName();
   if(!port_name.isEmpty())
     name += (name.isEmpty() ? QString{} : QStringLiteral("-")) + port_name;
-  if(name.isEmpty())
-    name = QStringLiteral("Recording");
-  static const QRegularExpression unsafe{QStringLiteral("[^A-Za-z0-9_.-]+")};
-  name.replace(unsafe, QStringLiteral("_"));
-  return name;
+  return takePrefix(std::move(name));
 }
 
 Execution::DocumentPlugin* executionOf(const score::DocumentContext& ctx)
@@ -235,12 +243,7 @@ parameterOf(const score::DocumentContext& ctx, const State::Address& addr)
 
 QString prefixFor(const State::Address& addr)
 {
-  QString name = addr.toString();
-  static const QRegularExpression unsafe{QStringLiteral("[^A-Za-z0-9_.-]+")};
-  name.replace(unsafe, QStringLiteral("_"));
-  while(name.startsWith('_'))
-    name.remove(0, 1);
-  return name.isEmpty() ? QStringLiteral("Recording") : name;
+  return takePrefix(addr.toString());
 }
 }
 
@@ -251,11 +254,7 @@ RecordSession::RecordSession(const score::DocumentContext& ctx, RecordOptions op
   m_poll.setInterval(20);
   connect(&m_poll, &QTimer::timeout, this, &RecordSession::poll);
   if(auto* c = ctx.app.findSettings<Curve::Settings::Model>())
-  {
-    m_curves.stepped = c->getCurveMode() == Curve::Settings::Mode::Parameter;
-    m_curves.simplify = c->getSimplify();
-    m_curves.simplificationRatio = c->getSimplificationRatio();
-  }
+    m_curves = CurveOptions::from(*c);
 }
 
 RecordSession::~RecordSession()
@@ -676,7 +675,7 @@ void RecordSession::showLiveTakes()
     if(!s->port && m_scenario && !m_intoBox)
       live->scenarioY = m_point.y;
     live->peakPeriod = std::max<int64_t>(
-        1, int64_t(double(peakFrames) / std::max(1, s->rate) * 705600000.));
+        1, int64_t(double(peakFrames) / std::max(1, s->rate) * ossia::flicks_per_second<double>));
     Process::LiveTakes::instance().add(live.get());
     s->live = std::move(live);
   }
@@ -1390,7 +1389,7 @@ bool RecordSession::placePasses(
     Source& s, Take& t, std::optional<Scenario::Command::Macro>& macro, double bars,
     bool oneLoop)
 {
-  constexpr int64_t flicks_per_quarter = 352800000;
+  constexpr int64_t flicks_per_quarter = ossia::quarter_duration<int64_t>;
   const int num = s.audio ? s.audio->meterNumerator.load()
                   : s.midi ? s.midi->meterNumerator.load()
                            : s.values->meterNumerator.load();
@@ -1436,7 +1435,7 @@ bool RecordSession::placePasses(
   const double tempo = s.audio ? s.audio->tempo.load()
                        : s.midi ? s.midi->tempo.load()
                                 : s.values->tempo.load();
-  constexpr double flicks_per_second = 705600000.;
+  constexpr double flicks_per_second = ossia::flicks_per_second<double>;
   const auto frame_of = [&](int64_t flicks) {
     // Frames run in real time, dates in the box's: they part at another tempo
     const double ratio = tempo > 0. ? 120. / tempo : 1.;
