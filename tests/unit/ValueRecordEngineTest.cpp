@@ -55,25 +55,42 @@ struct Rig
 
   void tick(std::vector<std::pair<int, ossia::value>> vals = {})
   {
+    tickInParts(std::move(vals), 1);
+  }
+
+  //! The tick as two tokens one after the other, each half of the buffer
+  void tickInTwo(std::vector<std::pair<int, ossia::value>> vals)
+  {
+    tickInParts(std::move(vals), 2);
+  }
+
+  void tickInParts(std::vector<std::pair<int, ossia::value>> vals, int parts)
+  {
     auto& in = *node.root_inputs()[0]->target<ossia::value_port>();
     in.get_data().clear();
     for(auto& [at, v] : vals)
       in.get_data().emplace_back(v, at);
 
     clock->requested_tokens.clear();
-    ossia::token_request tk;
-    tk.prev_date = ossia::time_value{boxDate};
-    tk.date = ossia::time_value{boxDate + tick_flicks};
-    tk.speed = 1.;
-    tk.tempo = 120.;
-    tk.signature = ossia::time_signature{4, 4};
-    tk.start_sample = 0;
-    tk.length_sample = buffer;
-    tk.musical_start_position = boxDate / Q;
-    tk.musical_end_position = (boxDate + tick_flicks) / Q;
-    tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
-    tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
-    clock->requested_tokens.push_back(tk);
+    for(int p = 0; p < parts; p++)
+    {
+      const int64_t from = boxDate + tick_flicks * p / parts;
+      const int64_t to = boxDate + tick_flicks * (p + 1) / parts;
+      ossia::token_request tk;
+      tk.prev_date = ossia::time_value{from};
+      tk.date = ossia::time_value{to};
+      tk.offset = ossia::time_value{from - boxDate};
+      tk.speed = 1.;
+      tk.tempo = 120.;
+      tk.signature = ossia::time_signature{4, 4};
+      tk.start_sample = buffer * p / parts;
+      tk.length_sample = buffer / parts;
+      tk.musical_start_position = from / Q;
+      tk.musical_end_position = to / Q;
+      tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
+      tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
+      clock->requested_tokens.push_back(tk);
+    }
 
     ossia::graph_node& base = node;
     base.run(ossia::token_request{}, ossia::exec_state_facade{&st});
@@ -84,6 +101,40 @@ struct Rig
       events.push_back(ev);
   }
 };
+}
+
+TEST_CASE("In a tick cut in two, each value is recorded once, where it arrived", "[recording][values]")
+{
+  // A box that loops, or whose tempo changes, gives two tokens in one tick
+  Rig r;
+  r.take->startRequested = true;
+  r.tick();
+  const int64_t tick_start = r.boxDate;
+  r.tickInTwo({{10, 1.f}, {239, 2.f}, {240, 3.f}, {470, 4.f}});
+  r.take->stopRequested = true;
+  r.tick();
+  REQUIRE(r.events.size() == 4);
+  for(int i = 0; i < 4; i++)
+    CHECK(*r.events[i].value.target<float>() == float(i + 1));
+  CHECK(r.events[0].date == tick_start + 10 * flicks_per_sample);
+  CHECK(r.events[1].date == tick_start + 239 * flicks_per_sample);
+  CHECK(r.events[2].date == tick_start + 240 * flicks_per_sample);
+  CHECK(r.events[3].date == tick_start + 470 * flicks_per_sample);
+}
+
+TEST_CASE("From the first value, a take starts in the part of the tick the value is in", "[recording][values]")
+{
+  Rig r;
+  r.take->startOnFirstEvent = true;
+  r.take->startRequested = true;
+  r.tick();
+  const int64_t tick_start = r.boxDate;
+  r.tickInTwo({{300, 1.f}});
+  r.take->stopRequested = true;
+  r.tick();
+  REQUIRE(r.events.size() == 1);
+  CHECK(r.events[0].date == tick_start + 300 * flicks_per_sample);
+  CHECK(r.take->startDate == tick_start + 300 * flicks_per_sample);
 }
 
 TEST_CASE("A value is dated in the box where it arrived", "[recording][values]")

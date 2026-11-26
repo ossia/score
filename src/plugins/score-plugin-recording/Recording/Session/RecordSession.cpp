@@ -1660,6 +1660,10 @@ void RecordSession::place()
       const double bars = fixed_loop ? m_options.lengthBars : m_options.passBars;
       if(placePasses(*s, t, macro, bars, fixed_loop))
         placed_any = true;
+      // Capture keeps the loops cut from what played, not all of it (the
+      // sound's file is removed once closed, in finish())
+      if(m_options.capture && !s->audio)
+        QFile::remove(t.file);
       m_takes.push_back(std::move(t));
       continue;
     }
@@ -1824,6 +1828,21 @@ void RecordSession::place()
       r.values = true;
       r.startDate = t.startDate;
       r.endDate = t.endDate;
+      // Only the file: the values, as a port's value take
+      if(m_options.target == RecordOptions::Target::FileOnly)
+      {
+        r.file = newTakeFile(
+            Process::takesFolder(m_ctx), s->prefix, QStringLiteral("values"));
+        const auto json = valueTakeJson(
+            t.events, t.startDate, t.endDate, s->rate, s->values->tempo.load(),
+            s->values->meterNumerator.load(), s->values->meterDenominator.load());
+        QFile f{r.file};
+        if(!f.open(QIODevice::WriteOnly) || f.write(json) != json.size())
+        {
+          m_warnings.push_back(tr("%1 could not be written").arg(r.file));
+          continue;
+        }
+      }
       m_takes.push_back(r);
       takes.push_back(std::move(t));
     }

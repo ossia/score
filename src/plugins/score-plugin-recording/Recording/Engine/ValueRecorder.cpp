@@ -98,9 +98,18 @@ void value_record_node::run(
              + double(in_span) / span_len
                    * (tk.musical_end_position - tk.musical_start_position);
     };
-    // Where a value is in the span; one without a timestamp, at its start
-    const auto at_of = [&](const ossia::timed_value& v) {
-      return std::clamp<int64_t>(int64_t(v.timestamp) - span_start, 0, span_len - 1);
+    // Where a value is in the span, or outside of [0; span_len) when it is
+    // in another token's. One dated before the tick's first span is at its
+    // start, one after its last at its end.
+    const bool first_span = &tk == &m_clock->requested_tokens.front();
+    const bool last_span = &tk == &m_clock->requested_tokens.back();
+    const auto at_of = [&](const ossia::timed_value& v) -> int64_t {
+      const int64_t at = int64_t(v.timestamp) - span_start;
+      if(at < 0)
+        return first_span ? 0 : -1;
+      if(at >= span_len)
+        return last_span ? span_len - 1 : span_len;
+      return at;
     };
 
     int64_t from = 0;
@@ -108,11 +117,13 @@ void value_record_node::run(
     {
       if(take.startOnFirstEvent.load(std::memory_order_relaxed))
       {
-        if(values.empty())
-          continue;
         int64_t first = span_len;
         for(const auto& v : values)
-          first = std::min(first, at_of(v));
+          if(const int64_t at = at_of(v); at >= 0)
+            first = std::min(first, at);
+        // None in this span
+        if(first >= span_len)
+          continue;
         from = first;
         take.startDate.store(date_at(from), std::memory_order_relaxed);
         take.startPosition.store(position_at(from), std::memory_order_relaxed);

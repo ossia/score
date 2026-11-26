@@ -25,14 +25,26 @@ void addTimingEntries(
     std::function<void(RecordOptions)> record, RecordMenuSources sources)
 {
   auto* pplug = &plug;
+  // Each entry says when it starts and stops: the settings' timing is what
+  // the Record button does, and is not mixed into them
+  const auto options = [pplug] {
+    auto opt = pplug->defaultOptions();
+    opt.start = RecordOptions::Start::Now;
+    opt.startRate = 0.;
+    opt.countIn = false;
+    opt.length = 0;
+    opt.lengthBars = 0.;
+    opt.passes = RecordOptions::Passes::One;
+    return opt;
+  };
   {
     auto act = sub.addAction(QObject::tr("Record now"));
-    QObject::connect(act, &QAction::triggered, &plug, [=] { record(pplug->defaultOptions()); });
+    QObject::connect(act, &QAction::triggered, &plug, [=] { record(options()); });
   }
   {
     auto act = sub.addAction(QObject::tr("Record from the next bar"));
     QObject::connect(act, &QAction::triggered, &plug, [=] {
-      auto opt = pplug->defaultOptions();
+      auto opt = options();
       opt.startRate = 1.;
       record(opt);
     });
@@ -41,7 +53,7 @@ void addTimingEntries(
     auto act = sub.addAction(QObject::tr("Record from the next bar, counting in"));
     act->setToolTip(QObject::tr("The beats are clicked on the main output until it starts"));
     QObject::connect(act, &QAction::triggered, &plug, [=] {
-      auto opt = pplug->defaultOptions();
+      auto opt = options();
       opt.startRate = 1.;
       opt.countIn = true;
       record(opt);
@@ -53,7 +65,7 @@ void addTimingEntries(
     auto bars = sub.addMenu(QObject::tr("Record bars from the next bar"));
     bars->setToolTipsVisible(true);
     const auto record_bars = [=](int n) {
-      auto opt = pplug->defaultOptions();
+      auto opt = options();
       opt.startRate = 1.;
       opt.lengthBars = n;
       record(opt);
@@ -93,7 +105,7 @@ void addTimingEntries(
     }
   }
   // Over and over, a bar at a time: the passes are kept as the user chooses
-  if(sources.bars)
+  if(sources.bars && sources.passes)
   {
     auto passes = sub.addMenu(QObject::tr("Record passes of one bar"));
     using P = RecordOptions::Passes;
@@ -105,9 +117,8 @@ void addTimingEntries(
     {
       auto act = passes->addAction(text);
       QObject::connect(act, &QAction::triggered, &plug, [=, kind = kind] {
-        auto opt = pplug->defaultOptions();
+        auto opt = options();
         opt.startRate = 1.;
-        opt.lengthBars = 0.;
         opt.passes = kind;
         opt.passBars = 1.;
         record(opt);
@@ -120,7 +131,7 @@ void addTimingEntries(
         sources.notes ? QObject::tr("Record from the first note")
                       : QObject::tr("Record from the first value"));
     QObject::connect(act, &QAction::triggered, &plug, [=] {
-      auto opt = pplug->defaultOptions();
+      auto opt = options();
       opt.start = RecordOptions::Start::FirstEvent;
       record(opt);
     });
@@ -128,7 +139,7 @@ void addTimingEntries(
   {
     auto act = sub.addAction(QObject::tr("Record when playback starts"));
     QObject::connect(act, &QAction::triggered, &plug, [=] {
-      auto opt = pplug->defaultOptions();
+      auto opt = options();
       opt.start = RecordOptions::Start::OnPlay;
       record(opt);
     });
@@ -138,7 +149,7 @@ void addTimingEntries(
     auto act = sub.addAction(QObject::tr("Record only the file"));
     act->setToolTip(QObject::tr("The take is written to Takes but not placed"));
     QObject::connect(act, &QAction::triggered, &plug, [=] {
-      auto opt = pplug->defaultOptions();
+      auto opt = options();
       opt.target = RecordOptions::Target::FileOnly;
       record(opt);
     });
@@ -158,11 +169,13 @@ void addAddressTiming(
   const auto as = [=](AddressPlacement placement) {
     return [=](RecordOptions opt) { rec(placement, opt); };
   };
-  // Values are recorded into curves or states: no file of their own
+  // Values are recorded into curves or states: no file of their own, and
+  // one curve, not passes of it
   const RecordMenuSources sources{
       .events = kinds.values || kinds.midi,
       .notes = kinds.midi && !kinds.values,
       .bars = true,
+      .passes = !kinds.values,
       .files = !kinds.values};
   addTimingEntries(sub, root, plug, as(AddressPlacement::Automations), sources);
   if(kinds.values)

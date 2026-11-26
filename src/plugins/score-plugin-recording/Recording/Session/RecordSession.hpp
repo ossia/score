@@ -123,6 +123,7 @@ public:
   //! otherwise (playback stops), nothing is placed and its files are removed.
   void capture();
   bool running() const noexcept { return m_running; }
+  const RecordOptions& options() const noexcept { return m_options; }
   //! Running, and no take records yet: playback, the grid or a first event is
   //! awaited
   bool waiting() const noexcept;

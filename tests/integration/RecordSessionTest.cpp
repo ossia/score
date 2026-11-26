@@ -63,6 +63,7 @@
 
 #include <dr_wav.h>
 #include <Process/Commands/Properties.hpp>
+#include <Process/TakeFiles.hpp>
 #include <score_test/App.hpp>
 #include <score_test/Document.hpp>
 #include <score_test/Process.hpp>
@@ -1644,5 +1645,56 @@ TEST_CASE("Capture places the last whole bars the armed processes played, as loo
     CHECK(box->processes.size() == processes_before);
     arm.setArmed(*sound, false);
     CHECK(arm.armedIn(*doc).empty());
+  });
+}
+
+TEST_CASE("Capture of an armed piano roll leaves only the loop it placed in Takes", "[recording][capture][files]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& root = score::test::base_interval(*doc);
+    Midi::ProcessModel* source{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      source = static_cast<Midi::ProcessModel*>(m.createProcessInNewSlot(
+          root, Metadata<ConcreteKey_k, Midi::ProcessModel>::get(), {}));
+      REQUIRE(source);
+      std::vector<Midi::NoteData> notes;
+      const int quarters = int(source->duration().impl / 352800000);
+      for(int i = 0; i < quarters; i++)
+        notes.emplace_back(double(i) / quarters, 0.25 / quarters, 60 + (i % 4), 100);
+      m.submit(new Midi::ReplaceNotes{*source, notes, 0, 127, source->duration()});
+      m.commit();
+    }
+    const QDir takes{Process::takesFolder(doc->context())};
+    const auto files = [&] { return takes.entryList({"*.mid"}, QDir::Files); };
+    const auto before = files();
+    const auto processes_before = root.processes.size();
+
+    auto& plug = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    Process::RecordArm::instance().setArmed(*source, true);
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying() && plug.captureSession(); }, 5000));
+    // Over two bars at 120
+    spin(5500);
+    REQUIRE(exec.isPlaying());
+    plug.capture();
+    REQUIRE(spin_until([&] { return root.processes.size() == processes_before + 1; }, 3000));
+    engine.execution().request_stop();
+    spin(500);
+
+    // What it wrote: the loop, not the whole of what played
+    QStringList written;
+    for(const auto& f : files())
+      if(!before.contains(f))
+        written.push_back(f);
+    INFO(written.join(" ").toStdString());
+    REQUIRE(!written.empty());
+    for(const auto& f : written)
+      CHECK(f.contains("-pass"));
+    Process::RecordArm::instance().setArmed(*source, false);
   });
 }

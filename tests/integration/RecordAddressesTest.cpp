@@ -61,6 +61,7 @@
 #include <Execution/ExecutionController.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordMenus.hpp>
+#include <Recording/Settings/RecordingSettings.hpp>
 #include <Process/Dataflow/PortContextMenu.hpp>
 #include <Explorer/Explorer/ExplorerMenuFactory.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -1095,6 +1096,9 @@ TEST_CASE("Every background's Record menu has the same entries", "[recording][me
     CHECK(a1.contains("Record/The selected addresses/Record bars from the next bar/1 bar"));
     CHECK(a1.contains("Record/The selected addresses/Record from the first value"));
     CHECK(a1.contains("Record/The selected addresses/Values as messages/Record bars from the next bar/2 bars"));
+    // Values make one curve, not passes of it; sounds and notes do
+    CHECK(!a1.contains("Record/The selected addresses/Record passes of one bar"));
+    CHECK(a1.contains("Record/The selected processes/Record passes of one bar"));
     // Values have no file of their own; sounds do
     CHECK(!a1.contains("Record/The selected addresses/Record only the file"));
     CHECK(a1.contains("Record/The selected processes/Record only the file"));
@@ -1117,6 +1121,169 @@ TEST_CASE("Every background's Record menu has the same entries", "[recording][me
     CHECK(n.contains("Record/Select or arm processes to record them (off)"));
     CHECK(n.contains("Record/The selected addresses/Record now"));
     explorer.setView(nullptr);
+  });
+}
+
+namespace
+{
+QAction* actionAt(const QMenu& m, QString path)
+{
+  for(auto* a : m.actions())
+  {
+    if(a->isSeparator() || qobject_cast<QWidgetAction*>(a))
+      continue;
+    if(a->text() == path)
+      return a;
+    if(auto* sub = a->menu(); sub && path.startsWith(a->text() + "/"))
+      return actionAt(*sub, path.mid(a->text().size() + 1));
+  }
+  return nullptr;
+}
+}
+
+TEST_CASE("A Record menu entry starts as it says, whatever the settings' timing", "[recording][menus][options]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), {});
+      m.commit();
+    }
+    REQUIRE(sound);
+    auto& plug = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+
+    // What the Record button does: from the first note, on a bar, for 4 bars,
+    // only the file
+    auto& settings = ctx.settings<Recording::Settings::Model>();
+    const auto start = settings.getStart();
+    const auto start_on = settings.getStartOn();
+    const auto bars = settings.getLengthBars();
+    const auto target = settings.getTarget();
+    settings.setStart(Recording::Settings::Starts{}.firstEvent);
+    settings.setStartOn(Recording::Settings::Grids{}.bar);
+    settings.setLengthBars(4.);
+    settings.setTarget(Recording::Settings::Targets{}.file);
+
+    Process::DataflowManager dfm;
+    FocusDispatcher fd;
+    Process::Context pctx{doc->context(), dfm, fd};
+    using O = Recording::RecordOptions;
+    struct Expected
+    {
+      QString entry;
+      O::Start start;
+      double startRate;
+      bool countIn;
+      double lengthBars;
+      O::Passes passes;
+    };
+    const Expected expected[]{
+        {"Record/Record now", O::Start::Now, 0., false, 0., O::Passes::One},
+        {"Record/Record from the next bar", O::Start::Now, 1., false, 0., O::Passes::One},
+        {"Record/Record from the next bar, counting in", O::Start::Now, 1., true, 0.,
+         O::Passes::One},
+        {"Record/Record bars from the next bar/2 bars", O::Start::Now, 1., false, 2.,
+         O::Passes::One},
+        {"Record/Record passes of one bar/Keeping only the last one", O::Start::Now, 1.,
+         false, 0., O::Passes::LastOnly},
+        {"Record/Record when playback starts", O::Start::OnPlay, 0., false, 0.,
+         O::Passes::One},
+    };
+    for(const auto& e : expected)
+    {
+      INFO(e.entry.toStdString());
+      QMenu menu;
+      for(auto& f : ctx.interfaces<Process::PortContextMenuFactoryList>())
+        f.setupMenu(menu, *sound->outlets()[0], pctx);
+      auto* act = actionAt(menu, e.entry);
+      REQUIRE(act);
+      act->trigger();
+      auto* session = plug.session();
+      REQUIRE(session);
+      const auto& o = session->options();
+      CHECK(o.start == e.start);
+      CHECK(o.startRate == e.startRate);
+      CHECK(o.countIn == e.countIn);
+      CHECK(o.lengthBars == e.lengthBars);
+      CHECK(o.passes == e.passes);
+      CHECK(o.length == 0);
+      // What is not about when: still the settings'
+      CHECK(o.target == O::Target::FileOnly);
+      plug.endSessionOf(*doc);
+      REQUIRE(!plug.session());
+      engine.execution().request_stop();
+      spin(300);
+    }
+
+    settings.setStart(start);
+    settings.setStartOn(start_on);
+    settings.setLengthBars(bars);
+    settings.setTarget(target);
+  });
+}
+
+TEST_CASE("Only the file, the values of an address are written to a file and not placed", "[recording][addresses][fileonly]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Addresses dev{ctx, *doc};
+    const auto x = dev.add("fx", 0.f);
+    spin(100);
+    auto& rec = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+
+    const auto boxes_before = scenar.intervals.size();
+    const int index = doc->commandStack().currentIndex();
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::FileOnly;
+    auto* session = rec.recordAddresses(
+        scenar, {TimeVal::fromMsecs(1000), 0.4}, {x},
+        Recording::AddressPlacement::Automations, opt);
+    REQUIRE(session);
+    QString file;
+    bool values = false;
+    bool finished = false;
+    QObject::connect(session, &Recording::RecordSession::finished, [&] {
+      finished = true;
+      if(session->takes().size() == 1)
+      {
+        file = session->takes()[0].file;
+        values = session->takes()[0].values;
+      }
+    });
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    for(int i = 0; i < 10; i++)
+    {
+      dev.push(x, float(i) / 10.f);
+      spin(100);
+    }
+    rec.stopSession();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(300);
+
+    // Nothing in the document, the values in a file
+    CHECK(scenar.intervals.size() == boxes_before);
+    CHECK(doc->commandStack().currentIndex() == index);
+    CHECK(values);
+    INFO(file.toStdString());
+    REQUIRE(file.endsWith(".values"));
+    QFile f{file};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const auto json = readJson(f.readAll());
+    REQUIRE(json.IsObject());
+    CHECK(f.size() > 100);
   });
 }
 

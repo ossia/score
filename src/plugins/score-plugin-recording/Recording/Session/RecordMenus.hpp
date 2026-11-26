@@ -32,8 +32,11 @@ struct RecordMenuSources
   bool events{true};
   //! MIDI: "first note" rather than "first value"
   bool notes{false};
-  //! Bars and passes: loops of a number of bars (not for video)
+  //! Bars: a take of a number of bars (not for video)
   bool bars{true};
+  //! Passes of a bar kept as alternatives (with bars; not for the values of
+  //! addresses, which make one curve)
+  bool passes{true};
   //! "Record only the file": they are recorded into files
   bool files{true};
 };
