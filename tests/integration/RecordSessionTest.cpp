@@ -59,9 +59,14 @@
 #include <catch2/catch_approx.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 
+#include <libremidi/reader.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <dr_wav.h>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Curve/CurveModel.hpp>
 #include <Process/Commands/Properties.hpp>
 #include <Process/TakeFiles.hpp>
 #include <score_test/App.hpp>
@@ -1422,7 +1427,7 @@ TEST_CASE("Values recorded into an automation where touched: it plays until touc
   });
 }
 
-TEST_CASE("A take recorded at another speed than 1 is said to be", "[recording][session][speed]")
+TEST_CASE("A take during which the speed changed is said to be", "[recording][session][speed]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     QTemporaryDir dir;
@@ -1462,7 +1467,7 @@ TEST_CASE("A take recorded at another speed than 1 is said to be", "[recording][
     engine.execution().request_stop();
     spin(200);
     REQUIRE(session.warnings().size() == 1);
-    CHECK(session.warnings()[0].contains("speed"));
+    CHECK(session.warnings()[0].contains("speed changed"));
     // Said, and kept: the take is there, with what both speeds played
     REQUIRE(session.takes().size() == 1);
     CHECK(session.takes()[0].placed);
@@ -1718,5 +1723,270 @@ TEST_CASE("Capture of an armed piano roll leaves only the loop it placed in Take
     for(const auto& f : written)
       CHECK(f.contains("-pass"));
     Process::RecordArm::instance().setArmed(*source, false);
+  });
+}
+
+TEST_CASE("Of a take in passes, only the last can be kept: a loop of what was played last", "[recording][session][passes][lastonly]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 30);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    const auto processes_before = box->processes.size();
+    const int index = doc->commandStack().currentIndex();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.passes = Recording::RecordOptions::Passes::LastOnly;
+    opt.passBars = 1.;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    // Over two bars at 120
+    spin(4700);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    const auto& take = session.takes().at(0);
+    const int64_t bar = 2 * 705600000;
+    const auto passes = (take.endDate - take.startDate) / bar;
+    REQUIRE(passes >= 2);
+    // One process, whatever the number of passes, in one step
+    REQUIRE(box->processes.size() == processes_before + 1);
+    CHECK(doc->commandStack().currentIndex() == index + 1);
+    Media::Sound::ProcessModel* placed{};
+    for(auto& p : box->processes)
+      if(&p != sound)
+        placed = qobject_cast<Media::Sound::ProcessModel*>(&p);
+    REQUIRE(placed);
+    CHECK(placed->loops());
+    CHECK(!placed->muted());
+    CHECK(placed->loopDuration() == TimeVal{bar});
+
+    // A bar of sound: what the source played during the last whole pass
+    int channels{};
+    const auto rec = read_wav(placed->file()->absoluteFileName(), channels);
+    REQUIRE(channels >= 1);
+    const int64_t loop = 2 * rate;
+    REQUIRE(int64_t(rec.size() / channels) == loop);
+    const int64_t last_start
+        = std::llround((take.startDate + (passes - 1) * bar) / flicks_per_second * rate);
+    // The loop is turned to the box: frame i of it is heard at i in each bar
+    const int64_t r = last_start % loop;
+    for(int64_t i : {int64_t(10), loop / 2, loop - 10})
+    {
+      const int64_t heard = std::llround(rec[i * channels] * 1e6) - 1;
+      INFO("frame " << i);
+      CHECK(std::abs(heard - (last_start + ((i - r + loop) % loop))) <= 2);
+    }
+
+    doc->commandStack().undo();
+    CHECK(box->processes.size() == processes_before);
+  });
+}
+
+TEST_CASE("Only the file: a port's take is written and nothing is placed", "[recording][session][fileonly]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 20);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Scenario::IntervalModel* box{};
+    Process::ProcessModel* sound{};
+    Midi::ProcessModel* roll{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      box = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(10000), 0.1});
+      sound = m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      roll = static_cast<Midi::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Midi::ProcessModel>::get(), {}));
+      REQUIRE(roll);
+      // A note every half second of the 10 s
+      std::vector<Midi::NoteData> notes;
+      for(int i = 0; i < 20; i++)
+        notes.emplace_back(i / 20., 0.5 / 20., 60 + (i % 5), 100);
+      m.submit(new Midi::ReplaceNotes{*roll, notes, 0, 127, roll->duration()});
+      m.commit();
+    }
+    const auto processes_before = box->processes.size();
+    const int index = doc->commandStack().currentIndex();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::FileOnly;
+    // A setting about placed takes: nothing to mute here
+    opt.muteSource = true;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    REQUIRE(session.addSource(*roll->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    REQUIRE(session.start());
+    spin(2200);
+    session.stop();
+    REQUIRE(spin_until([&] { return finished; }));
+    engine.execution().request_stop();
+    spin(200);
+
+    // The document is as it was
+    CHECK(box->processes.size() == processes_before);
+    CHECK(doc->commandStack().currentIndex() == index);
+    CHECK(!sound->muted());
+    CHECK(!roll->muted());
+
+    // Both files written: the sound, and the notes
+    REQUIRE(session.takes().size() == 2);
+    QString wav, mid;
+    for(const auto& t : session.takes())
+    {
+      CHECK(!t.placed);
+      (t.midi ? mid : wav) = t.file;
+    }
+    REQUIRE(wav.endsWith(".wav"));
+    REQUIRE(mid.endsWith(".mid"));
+    int channels{};
+    const auto rec = read_wav(wav, channels);
+    REQUIRE(channels >= 1);
+    CHECK(rec.size() / channels > std::size_t(rate));
+    libremidi::reader r;
+    QFile f{mid};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const QByteArray bytes = f.readAll();
+    std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+    REQUIRE(r.parse(raw) != libremidi::reader::invalid);
+    REQUIRE(r.tracks.size() == 1);
+    int ons = 0;
+    for(const auto& ev : r.tracks[0])
+      ons += ev.m.get_message_type() == libremidi::message_type::NOTE_ON && ev.m.bytes[2] > 0;
+    // About four notes in two seconds
+    CHECK(ons >= 3);
+    CHECK(ons <= 6);
+  });
+}
+
+TEST_CASE("At another tempo than 120, a take of one bar is a bar of that tempo", "[recording][session][bars][tempo]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 40);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& root = score::test::base_interval(*doc);
+    Process::ProcessModel* sound{};
+    Scenario::TempoProcess* tempo{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      sound = m.createProcessInNewSlot(
+          root, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      tempo = static_cast<Scenario::TempoProcess*>(m.createProcessInNewSlot(
+          root, Metadata<ConcreteKey_k, Scenario::TempoProcess>::get(), {}));
+      m.commit();
+    }
+    REQUIRE(sound);
+    REQUIRE(tempo);
+    REQUIRE(root.tempoCurve() == tempo);
+    // 90 all along
+    {
+      const double y = (90. - Scenario::TempoProcess::min)
+                       / (Scenario::TempoProcess::max - Scenario::TempoProcess::min);
+      Curve::SegmentData seg;
+      seg.id = Id<Curve::SegmentModel>{1};
+      seg.start = {0., y};
+      seg.end = {1., y};
+      seg.type = Metadata<ConcreteKey_k, Curve::LinearSegment>::get();
+      seg.specificSegmentData = QVariant::fromValue(Curve::LinearSegmentData{});
+      tempo->curve().fromCurveData({seg});
+    }
+    const auto processes_before = root.processes.size();
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(700);
+
+    Recording::RecordOptions opt;
+    opt.startRate = 1.;
+    opt.lengthBars = 1.;
+    Recording::RecordSession session{doc->context(), opt};
+    REQUIRE(session.addSource(*sound->outlets()[0]));
+    bool finished = false;
+    QObject::connect(&session, &Recording::RecordSession::finished, [&] { finished = true; });
+    QElapsedTimer clock;
+    clock.start();
+    REQUIRE(session.start());
+    // A bar at 90 lasts 8/3 s: the next bar line, then the bar
+    REQUIRE(spin_until([&] { return finished; }, 9000));
+    const qint64 lasted = clock.elapsed();
+    engine.execution().request_stop();
+    spin(300);
+    CHECK(lasted > 2500);
+    INFO(session.warnings().join(" | ").toStdString());
+    CHECK(session.warnings().isEmpty());
+
+    REQUIRE(session.takes().size() == 1);
+    const auto& take = session.takes()[0];
+    // In the box's time a bar is four quarters, whatever the tempo
+    const int64_t bar = 4 * 352800000;
+    const int64_t off = take.startDate % bar;
+    CHECK(std::min(off, bar - off) <= 705600000 / rate);
+    CHECK(take.startDate >= bar - 705600000 / rate);
+    CHECK(std::abs((take.endDate - take.startDate) - bar) <= 2 * 705600000 / rate);
+
+    REQUIRE(root.processes.size() == processes_before + 1);
+    Media::Sound::ProcessModel* placed{};
+    for(auto& p : root.processes)
+      if(&p != sound && &p != tempo)
+        placed = qobject_cast<Media::Sound::ProcessModel*>(&p);
+    REQUIRE(placed);
+    CHECK(placed->loops());
+    CHECK(placed->loopDuration() == TimeVal{bar});
+    // Played at the tempo it was recorded in
+    CHECK(placed->nativeTempo() == Catch::Approx(90.).margin(0.01));
+    // In real time the bar lasted 8/3 s: that many frames
+    int channels{};
+    const auto rec = read_wav(placed->file()->absoluteFileName(), channels);
+    REQUIRE(channels >= 1);
+    CHECK(std::abs(int64_t(rec.size() / channels) - int64_t(rate) * 8 / 3) <= 4);
+    // The source's frames, one after the other all along
+    int64_t gaps = 0;
+    const std::size_t frames = rec.size() / channels;
+    for(std::size_t i = 1; i < frames; i++)
+      gaps += std::llround(rec[i * channels] * 1e6)
+              != std::llround(rec[(i - 1) * channels] * 1e6) + 1;
+    // The loop is turned to the bar: one seam at most
+    CHECK(gaps <= 1);
   });
 }

@@ -15,10 +15,12 @@
 #include <ossia/dataflow/midi_port.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
 
+#include <libremidi/reader.hpp>
 #include <libremidi/ump_events.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <array>
 #include <cmath>
 #include <vector>
 
@@ -228,4 +230,96 @@ TEST_CASE("A take ends when its box stops playing", "[recording][midi][box-stop]
   base.run(ossia::token_request{}, ossia::exec_state_facade{&r.st});
   CHECK(r.take->state == MidiTake::Done);
   CHECK(r.take->endDate == end);
+}
+
+TEST_CASE("Quantized notes start on the grid, as long as they were", "[recording][midi][quantize]")
+{
+  constexpr int64_t q = 352800000; // a quarter note
+  std::vector<RecordedNote> notes{
+      {q / 10, 1000, 60, 100, 0},        // a little after 0
+      {q - q / 10, 2000, 61, 100, 0},    // a little before the first quarter
+      {q + q / 2 + 1, 3000, 62, 100, 0}, // just past the half: up
+      {q + q / 2 - 1, 4000, 63, 100, 0}, // just before it: down
+  };
+  auto quarter = notes;
+  quantizeNotes(quarter, 1.);
+  REQUIRE(quarter.size() == 4);
+  // Sorted by where they start now; lengths, pitches, velocities kept
+  CHECK(quarter[0] == RecordedNote{0, 1000, 60, 100, 0});
+  CHECK(quarter[1] == RecordedNote{q, 2000, 61, 100, 0});
+  CHECK(quarter[2] == RecordedNote{q, 4000, 63, 100, 0});
+  CHECK(quarter[3] == RecordedNote{2 * q, 3000, 62, 100, 0});
+
+  // Sixteenths
+  auto sixteenth = notes;
+  quantizeNotes(sixteenth, 0.25);
+  for(const auto& n : sixteenth)
+    CHECK(n.start % (q / 4) == 0);
+  CHECK(sixteenth[0].start == 0);
+
+  // No quantization: as played
+  auto none = notes;
+  quantizeNotes(none, 0.);
+  CHECK(none == notes);
+}
+
+TEST_CASE("A MIDI take's file counts quarters at the tempo it was played in", "[recording][midi][file]")
+{
+  // At 90, a quarter lasts 2/3 s. A take from 10 s, two bars long, with a
+  // note on its second quarter lasting a quarter, and one held past its end.
+  constexpr int64_t sec = 705600000;
+  const int64_t quarter = sec * 2 / 3;
+  const int64_t start = 10 * sec;
+  const int64_t length = 8 * quarter;
+  std::vector<RecordedNote> notes{
+      {start + quarter, quarter, 60, 90, 0},
+      {start + 7 * quarter, 4 * quarter, 64, 70, 3},
+  };
+  const auto bytes = smfOf(notes, start, length, 90., 3, 4);
+  libremidi::reader r;
+  std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+  REQUIRE(r.parse(raw) != libremidi::reader::invalid);
+  REQUIRE(r.tracks.size() == 1);
+  CHECK(r.ticksPerBeat == 480.);
+  // The file ends where the take does, whatever its last note
+  CHECK(r.get_end_time() == 8. * 480.);
+
+  int tick = 0;
+  bool tempo = false, meter = false;
+  std::vector<std::array<int, 4>> ons, offs; // tick, pitch, velocity, channel
+  for(const auto& ev : r.tracks[0])
+  {
+    tick += ev.tick;
+    if(ev.m.is_meta_event()
+       && ev.m.get_meta_event_type() == libremidi::meta_event_type::TEMPO_CHANGE)
+    {
+      tempo = true;
+      CHECK(tick == 0);
+      REQUIRE(ev.m.size() == 6);
+      CHECK(((ev.m.bytes[3] << 16) | (ev.m.bytes[4] << 8) | ev.m.bytes[5]) == 666667);
+    }
+    else if(ev.m.is_meta_event()
+            && ev.m.get_meta_event_type() == libremidi::meta_event_type::TIME_SIGNATURE)
+    {
+      meter = true;
+      REQUIRE(ev.m.size() == 7);
+      CHECK(ev.m.bytes[3] == 3);
+      CHECK(ev.m.bytes[4] == 2);
+    }
+    else if(ev.m.get_message_type() == libremidi::message_type::NOTE_ON && ev.m.bytes[2] > 0)
+      ons.push_back({tick, ev.m.bytes[1], ev.m.bytes[2], ev.m.get_channel()});
+    else if(ev.m.get_message_type() == libremidi::message_type::NOTE_OFF
+            || ev.m.get_message_type() == libremidi::message_type::NOTE_ON)
+      offs.push_back({tick, ev.m.bytes[1], 0, ev.m.get_channel()});
+  }
+  CHECK(tempo);
+  CHECK(meter);
+  REQUIRE(ons.size() == 2);
+  REQUIRE(offs.size() == 2);
+  CHECK(ons[0] == std::array<int, 4>{480, 60, 90, 1});
+  CHECK(offs[0] == std::array<int, 4>{960, 60, 0, 1});
+  // Channels count from 1 in a file
+  CHECK(ons[1] == std::array<int, 4>{7 * 480, 64, 70, 4});
+  // Cut at the end of the take
+  CHECK(offs[1] == std::array<int, 4>{8 * 480, 64, 0, 4});
 }

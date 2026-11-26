@@ -66,15 +66,32 @@ TEST_CASE("The count-in clicks the beats while the takes wait, then stops", "[re
     return energy;
   };
 
-  // The first beat at 0, the second at half a second (tick 50)
+  // The first beat at 0, the second at half a second (tick 50), and nothing
+  // from when a click has rung out to the next beat
   CHECK(tick() > 0.);
+  CHECK(node.beats == 1);
+  double between = 0.;
   for(int i = 1; i < 50; i++)
-    tick();
+  {
+    const double e = tick();
+    if(i >= 25)
+      between += e;
+  }
+  CHECK(between == 0.);
+  CHECK(node.beats == 1);
   CHECK(tick() > 0.);
+  CHECK(node.beats == 2);
 
   // Recording: silent, beats or not
   waiting = false;
+  double recording = 0.;
   for(int i = 51; i < 100; i++)
-    tick();
-  CHECK(tick() == 0.);
+    if(const double e = tick(); i >= 75)
+      recording += e;
+  // The beat at one second is not clicked, nor counted
+  recording += tick();
+  for(int i = 0; i < 10; i++)
+    recording += tick();
+  CHECK(recording == 0.);
+  CHECK(node.beats == 2);
 }

@@ -56,6 +56,12 @@ struct Rig
   int channels = 2;
   //! Frames the last channel has in a buffer; -1: all of them
   int lastChannelFrames = -1;
+  //! The tempo of the box, and the speed it plays at
+  double tempo = 120.;
+  double speed = 1.;
+
+  //! Where a date of the box is in its music, in quarters
+  double quarters(int64_t date) const { return date / Q * tempo / 120.; }
 
   explicit Rig(int blocks = 64)
   {
@@ -88,13 +94,13 @@ struct Rig
       ossia::token_request tk;
       tk.prev_date = ossia::time_value{boxDate};
       tk.date = ossia::time_value{boxDate + tick_flicks};
-      tk.speed = 1.;
-      tk.tempo = 120.;
+      tk.speed = speed;
+      tk.tempo = tempo * speed;
       tk.signature = ossia::time_signature{4, 4};
       tk.start_sample = 0;
       tk.length_sample = buffer;
-      tk.musical_start_position = boxDate / Q;
-      tk.musical_end_position = (boxDate + tick_flicks) / Q;
+      tk.musical_start_position = quarters(boxDate);
+      tk.musical_end_position = quarters(boxDate + tick_flicks);
       tk.musical_start_last_bar = std::floor(tk.musical_start_position / 4.) * 4.;
       tk.musical_end_last_bar = std::floor(tk.musical_end_position / 4.) * 4.;
       clock->requested_tokens.push_back(tk);
@@ -228,6 +234,142 @@ TEST_CASE("A recorder whose blocks are all in use counts what it loses", "[recor
     r.tick(true);
   CHECK(r.take->frames == 2 * 512);
   CHECK(r.take->frames + r.take->droppedFrames == 10 * buffer);
+}
+
+TEST_CASE("A seek of the box ends the take where it was", "[recording][audio][seek]")
+{
+  Rig r;
+  r.take->startRequested = true;
+  for(int i = 0; i < 10; i++)
+    r.tick(true);
+  // The box is put elsewhere: what follows is not the take's
+  r.boxDate += 50 * tick_flicks;
+  r.tick(true);
+  r.tick(true);
+  r.drain();
+  CHECK(r.take->state == AudioTake::Done);
+  CHECK(r.take->endDate == 10 * tick_flicks);
+  CHECK(r.take->frames == 10 * buffer);
+  REQUIRE(r.recorded[0].size() == std::size_t(10 * buffer));
+  CHECK(r.sampleOf(10 * buffer - 1) == 10 * buffer - 1);
+}
+
+TEST_CASE("A take ends when its box stops playing, and not for one tick without it", "[recording][audio][idle]")
+{
+  Rig r;
+  r.take->startRequested = true;
+  for(int i = 0; i < 6; i++)
+    r.tick(true);
+  // One tick without the box (it is between two of its tokens): still recording
+  r.tick(false);
+  CHECK(r.take->state == AudioTake::Recording);
+  r.tick(true);
+  CHECK(r.take->state == AudioTake::Recording);
+  // The box over
+  r.tick(false);
+  r.tick(false);
+  r.drain();
+  CHECK(r.take->state == AudioTake::Done);
+  CHECK(r.take->endDate == 7 * tick_flicks);
+  CHECK(r.recorded[0].size() == std::size_t(7 * buffer));
+}
+
+TEST_CASE("Bars are the box's: at 90, a take of one bar from the next bar", "[recording][audio][tempo]")
+{
+  Rig r;
+  r.tempo = 90.;
+  r.take->startRate = 1.;
+  r.take->lengthBars = 1.;
+  // A bar at 90 is 4 quarters of 2/3 s: 8/3 s. From 0.5 s in, the next bar
+  // line is at 8/3 s, the take ends at 16/3 s.
+  for(int i = 0; i < 50; i++)
+    r.tick(true);
+  r.take->startRequested = true;
+  for(int i = 0; i < 600 && r.take->state != AudioTake::Done; i++)
+  {
+    r.tick(true);
+    r.drain();
+  }
+  REQUIRE(r.take->state == AudioTake::Done);
+  const int64_t bar = flicks_per_second * 8 / 3;
+  // Within a sample
+  CHECK(std::abs(r.take->startDate - bar) <= flicks_per_second / rate);
+  CHECK(std::abs(r.take->endDate - 2 * bar) <= flicks_per_second / rate);
+  CHECK(r.take->startPosition == Catch::Approx(4.).margin(1e-3));
+  CHECK(r.take->tempo == Catch::Approx(90.));
+  CHECK(!r.take->tempoChanged);
+  // 8/3 s of frames
+  CHECK(std::abs(int64_t(r.recorded[0].size()) - int64_t(rate) * 8 / 3) <= 2);
+  // From the frame the bar line is on
+  CHECK(std::abs(r.sampleOf(0) - int64_t(rate) * 8 / 3) <= 1);
+}
+
+TEST_CASE("Counted in, a take lets the nearest bar line go by", "[recording][audio][countin]")
+{
+  // Asked a quarter before a bar line: counted in for one bar, it starts on
+  // the line after; not counted in, on that line.
+  for(double lead : {0., 1.})
+  {
+    Rig r;
+    r.take->startRate = 1.;
+    r.take->leadBars = lead;
+    // 1.5 s in: 3 quarters, a quarter before the bar line at 2 s
+    for(int i = 0; i < 150; i++)
+      r.tick(true);
+    r.take->startRequested = true;
+    for(int i = 0; i < 500 && r.take->state != AudioTake::Recording; i++)
+      r.tick(true);
+    REQUIRE(r.take->state == AudioTake::Recording);
+    INFO("lead " << lead);
+    CHECK(r.take->startDate == (lead > 0. ? 4 : 2) * flicks_per_second);
+  }
+}
+
+TEST_CASE("A take says when the tempo or the speed changed, not that they are not 120 and 1", "[recording][audio][tempo]")
+{
+  {
+    // 90 all along: nothing to say
+    Rig r;
+    r.tempo = 90.;
+    r.take->startRequested = true;
+    for(int i = 0; i < 10; i++)
+      r.tick(true);
+    CHECK(!r.take->tempoChanged);
+    CHECK(r.take->tempo == Catch::Approx(90.));
+  }
+  {
+    // A box played at half speed all along: 60, and nothing to say either
+    Rig r;
+    r.speed = 0.5;
+    r.take->startRequested = true;
+    for(int i = 0; i < 10; i++)
+      r.tick(true);
+    CHECK(!r.take->tempoChanged);
+    CHECK(r.take->tempo == Catch::Approx(60.));
+  }
+  {
+    Rig r;
+    r.take->startRequested = true;
+    for(int i = 0; i < 5; i++)
+      r.tick(true);
+    CHECK(!r.take->tempoChanged);
+    r.tempo = 100.;
+    for(int i = 0; i < 5; i++)
+      r.tick(true);
+    CHECK(r.take->tempoChanged);
+    // The one it started at
+    CHECK(r.take->tempo == Catch::Approx(120.));
+  }
+  {
+    Rig r;
+    r.take->startRequested = true;
+    for(int i = 0; i < 5; i++)
+      r.tick(true);
+    r.speed = 2.;
+    for(int i = 0; i < 5; i++)
+      r.tick(true);
+    CHECK(r.take->tempoChanged);
+  }
 }
 
 TEST_CASE("A source of more channels than a block was sized for is recorded whole, in smaller blocks", "[recording][audio][channels]")

@@ -47,10 +47,9 @@ struct TakeState
   std::atomic<int64_t> endDate{0};
   //! The tempo when the take started
   std::atomic<double> tempo{0.};
-  //! The tempo changed while it recorded: a take has one tempo
+  //! The tempo, or the speed of the box, changed while it recorded: a take
+  //! has one tempo
   std::atomic<bool> tempoChanged{false};
-  //! It recorded at a speed other than 1
-  std::atomic<bool> offSpeed{false};
   //! The meter when the take started
   std::atomic<int> meterNumerator{4};
   std::atomic<int> meterDenominator{4};

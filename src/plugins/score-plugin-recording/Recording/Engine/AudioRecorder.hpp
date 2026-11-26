@@ -125,8 +125,6 @@ private:
   //! Where the take ends musically, in quarters; < 0: not by bars
   double m_endPosition{-1.};
   StartGate m_gate;
-  //! The speed when the take started: the tempo ticks give follows it
-  double m_startSpeed{1.};
   //! Ticks its box did not play, while it recorded
   int m_idleTicks{};
 };

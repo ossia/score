@@ -1337,18 +1337,11 @@ void RecordSession::warnAboutTiming()
                          : s->midi ? s->midi->tempoChanged.load()
                          : s->values ? s->values->tempoChanged.load()
                                      : false;
-    const bool speed = s->audio ? s->audio->offSpeed.load()
-                       : s->midi ? s->midi->offSpeed.load()
-                       : s->values ? s->values->offSpeed.load()
-                                   : false;
     if(changed && s->audio)
       m_warnings.push_back(
-          tr("%1: the tempo changed while it recorded; the take plays at the tempo it "
-             "started at")
+          tr("%1: the tempo or the speed changed while it recorded; the take plays at "
+             "the tempo it started at")
               .arg(s->prefix));
-    if(speed)
-      m_warnings.push_back(
-          tr("%1: recorded while playing at another speed than 1").arg(s->prefix));
     if(const int more = s->audio ? s->audio->lostChannels.load() : 0; more > 0)
       m_warnings.push_back(
           tr("%1: its first %2 channels were recorded, %3 more were not")

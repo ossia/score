@@ -143,7 +143,6 @@ void value_record_node::run(
         take.startPosition.store(tk.musical_start_position, std::memory_order_relaxed);
       }
       take.tempo.store(tk.tempo, std::memory_order_relaxed);
-      m_startSpeed = tk.speed;
       take.meterNumerator.store(tk.signature.upper, std::memory_order_relaxed);
       take.meterDenominator.store(tk.signature.lower, std::memory_order_relaxed);
       m_endPosition = -1.;
@@ -205,15 +204,10 @@ void value_record_node::run(
       take.state.store(ValueTake::Done, std::memory_order_release);
       return;
     }
-    // The tempo of the box, whatever the speed it plays at
-    if(tk.speed > 1e-9 && m_startSpeed > 1e-9
-       && std::abs(
-              tk.tempo / tk.speed
-              - take.tempo.load(std::memory_order_relaxed) / m_startSpeed)
-              > 1e-6)
+    // The tempo is how fast the box goes through its music, its speed
+    // included: a take has the one it started at
+    if(std::abs(tk.tempo - take.tempo.load(std::memory_order_relaxed)) > 1e-6)
       take.tempoChanged.store(true, std::memory_order_relaxed);
-    if(std::abs(tk.speed - 1.) > 1e-6)
-      take.offSpeed.store(true, std::memory_order_relaxed);
     take.endDate.store(tk.date.impl, std::memory_order_relaxed);
   }
 }
