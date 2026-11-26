@@ -25,8 +25,11 @@ inline score::Document* new_document(const score::GUIApplicationContext& ctx)
   auto doc
       = ctx.docManager.newDocument(ctx, Id<score::DocumentModel>{}, *delegates.begin());
 
-  QApplication::processEvents();
-  QApplication::processEvents();
+  // Showing the document asks the transport to stop, through queued
+  // connections that queue others: all of it is delivered before the test
+  // plays anything.
+  for(int i = 0; i < 8; i++)
+    QApplication::processEvents();
   return doc;
 }
 
