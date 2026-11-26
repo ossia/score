@@ -482,12 +482,38 @@ TEST_CASE("Values recorded into an automation replace its curve, and it is silen
     CHECK(target->max() >= 10.);
     CHECK(target->max() <= 20.);
     REQUIRE(session.takes().size() == 1);
-    CHECK(session.takes()[0].placed == target);
+    const auto& take = session.takes()[0];
+    CHECK(take.placed == target);
+
+    // What the target plays at a place of its curve
+    const auto played = [&](double x) {
+      for(auto* seg : target->curve().sortedSegments())
+        if(x >= seg->start().x() && x <= seg->end().x())
+          return target->min() + seg->valueAt(x) * (target->max() - target->min());
+      return -1000.;
+    };
+    // Where it was recorded: what the source played then, 10 to 20 over the box
+    const double duration = double(target->duration().impl);
+    const double x0 = take.startDate / duration, x1 = take.endDate / duration;
+    REQUIRE(x1 - x0 > 0.05);
+    for(double x : {x0 + (x1 - x0) * 0.25, (x0 + x1) / 2., x0 + (x1 - x0) * 0.75})
+    {
+      INFO("at " << x);
+      CHECK(std::abs(played(x) - (10. + 10. * x)) < 0.6);
+    }
+    // After it: the ramp from 0 to 1 it was
+    for(double x : {x1 + 0.1, 0.5, 0.9})
+    {
+      INFO("at " << x);
+      CHECK(std::abs(played(x) - x) < 0.05);
+    }
 
     doc->commandStack().undo();
     CHECK(target->max() == 1.);
+    CHECK(std::abs(played((x0 + x1) / 2.) - (x0 + x1) / 2.) < 0.01);
     doc->commandStack().redo();
     CHECK(target->max() >= 10.);
+    CHECK(std::abs(played((x0 + x1) / 2.) - (10. + 10. * (x0 + x1) / 2.)) < 0.6);
   });
 }
 
@@ -1437,6 +1463,13 @@ TEST_CASE("A take recorded at another speed than 1 is said to be", "[recording][
     spin(200);
     REQUIRE(session.warnings().size() == 1);
     CHECK(session.warnings()[0].contains("speed"));
+    // Said, and kept: the take is there, with what both speeds played
+    REQUIRE(session.takes().size() == 1);
+    CHECK(session.takes()[0].placed);
+    int channels{};
+    const auto rec = read_wav(session.takes()[0].file, channels);
+    REQUIRE(channels >= 1);
+    CHECK(rec.size() / channels > std::size_t(rate / 2));
   });
 }
 
@@ -1488,6 +1521,32 @@ TEST_CASE("A source deleted while it records ends its take, which is kept", "[re
     REQUIRE(session.takes().size() == 1);
     CHECK(!session.takes()[0].file.isEmpty());
     CHECK(QFileInfo{session.takes()[0].file}.size() > 1000);
+    // What the source played until it went, without a gap, and no more
+    {
+      const auto& take = session.takes()[0];
+      int channels{};
+      const auto rec = read_wav(take.file, channels);
+      REQUIRE(channels >= 1);
+      const std::size_t frames = rec.size() / channels;
+      CHECK(frames > std::size_t(rate / 2));
+      CHECK(frames < std::size_t(rate * 2));
+      // Past the fade-in of a sound that starts: the ramp without a gap, up
+      // to where its node goes; never louder after that, and not for long
+      std::size_t cut = frames;
+      for(std::size_t i = 1024; i < frames && cut == frames; i++)
+        if(std::llround(rec[i * channels] * 1e6)
+           != std::llround(rec[(i - 1) * channels] * 1e6) + 1)
+          cut = i;
+      CHECK(cut > std::size_t(rate / 2));
+      CHECK(frames - cut < std::size_t(rate / 2));
+      int64_t louder = 0;
+      for(std::size_t i = cut; i < frames; i++)
+        louder += rec[i * channels] > rec[(cut - 1) * channels] + 1e-6f;
+      CHECK(louder == 0);
+      const double seconds = double(take.endDate - take.startDate) / flicks_per_second;
+      CHECK(seconds > 0.5);
+      CHECK(seconds < 2.);
+    }
     // Placed in its box, which is still there, and said
     CHECK(session.takes()[0].placed);
     REQUIRE(session.warnings().size() == 1);
