@@ -336,7 +336,7 @@ deps:
 
   - name: dr_libs
     upstream: mackron/dr_libs
-    upstream_version: "wav-0.14.5"
+    upstream_version: "wav-0.14.6"
 
   - name: r8brain-free-src
     upstream: avaneev/r8brain-free-src

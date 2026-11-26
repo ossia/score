@@ -5,8 +5,8 @@ no-make-install: true
 
 sources:
   - type: archive
-    url: https://github.com/mackron/dr_libs/archive/dfe8377631000664666519fdb83da193fd8037f4.zip
-    sha256: 1d7d0f3ffa117601ab848d7b191e68332b9b3610a049c81fc3e109dffa78bf69
+    url: https://github.com/mackron/dr_libs/archive/dfbebc36e7a17a0f9511798c1bd77d96f0e74413.zip
+    sha256: 010eee8a070038870e9b18cc0b7ed07b1845ad6b6a3faf92cdefd7a6ff9c3570
 
 build-commands: []
 post-install:
