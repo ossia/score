@@ -30,14 +30,6 @@ struct ExecutionCommandQueue;
 struct GCCommandQueue;
 
 /**
- * An outlet writes to its address when nothing is connected to it; the edge
- * of a tap counts as connected, so the tap writes in its stead. Every node
- * linked by a TapLink calls this from run(), whatever else it does.
- */
-SCORE_LIB_PROCESS_EXPORT void
-writeInPlaceOfOutlets(ossia::inlet& tap, ossia::exec_state_facade e) noexcept;
-
-/**
  * A node that watches a port of a running process, linked into the execution
  * graph: it gets the same edges as the port (an outlet's, or every cable of
  * an inlet, and the inlet's address), and is ticked by the TapTicker. Used by

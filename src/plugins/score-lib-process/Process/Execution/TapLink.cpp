@@ -17,14 +17,6 @@
 
 namespace Execution
 {
-void writeInPlaceOfOutlets(ossia::inlet& tap, ossia::exec_state_facade e) noexcept
-{
-  for(ossia::graph_edge* edge : tap.sources)
-    if(edge->out && edge->out_node && edge->out_node->executed()
-       && edge->out->targets.size() == 1)
-      edge->out->write(*e.impl);
-}
-
 TapLink::TapLink(
     const Process::Port& port, const Execution::Context& ctx,
     std::shared_ptr<ossia::graph_node> node)
@@ -44,9 +36,12 @@ TapLink::TapLink(
     auto it = setup.outlets.find(outlet);
     if(it == setup.outlets.end() || !it->second.first || !it->second.second)
       return;
-    m_edges.push_back(ctx.execGraph->allocate_edge(
+    auto edge = ctx.execGraph->allocate_edge(
         ossia::immediate_glutton_connection{}, it->second.second,
-        ossia::inlet_ptr{tap_inlet}, it->second.first, node));
+        ossia::inlet_ptr{tap_inlet}, it->second.first, node);
+    // The outlet goes on writing to its address, however many taps watch it
+    edge->observer = true;
+    m_edges.push_back(std::move(edge));
   };
 
   if(auto* outlet = qobject_cast<const Process::Outlet*>(&port))

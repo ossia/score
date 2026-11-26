@@ -37,7 +37,6 @@ value_record_node::~value_record_node() = default;
 void value_record_node::run(
     const ossia::token_request&, ossia::exec_state_facade e) noexcept
 {
-  Execution::writeInPlaceOfOutlets(*m_inlets.front(), e);
   auto& take = *m_take;
   int st = take.state.load(std::memory_order_acquire);
 

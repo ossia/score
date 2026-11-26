@@ -139,7 +139,6 @@ public:
       }
     }
 
-    writeInPlaceOfOutlets(inlet, e);
   }
 
 private:

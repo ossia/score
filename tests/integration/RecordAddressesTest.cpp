@@ -67,6 +67,8 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerView.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Execution/PortTap.hpp>
+#include <Process/Commands/EditPort.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/DocumentPlugin.hpp>
@@ -1338,6 +1340,70 @@ TEST_CASE("A port selected with its process is recorded once", "[recording][sess
     const auto ports = plug.portsToRecord(doc->context());
     REQUIRE(ports.size() == 1);
     CHECK(ports[0] == sound->outlets()[0]);
+  });
+}
+
+TEST_CASE("An outlet goes on writing to its address while watched, by one tap or by two", "[recording][taps][address]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Addresses dev{ctx, *doc};
+    const auto x = dev.add("tx", 0.f);
+    spin(100);
+
+    // An automation ramping to the address, for 20 s
+    Automation::ProcessModel* autom{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      autom = static_cast<Automation::ProcessModel*>(m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}));
+      REQUIRE(autom);
+      m.setProperty<Process::Port::p_address>(*autom->outlet, State::AddressAccessor{x});
+      m.commit();
+    }
+    auto* odev = dev.plug.list().findDevice(dev.name);
+    REQUIRE(odev);
+    auto* node = ossia::net::find_node(odev->getDevice()->get_root_node(), "/tx");
+    REQUIRE(node);
+    const auto value = [&] { return ossia::convert<float>(node->get_parameter()->value()); };
+    // The address gets new values over 400 ms
+    const auto moves = [&] {
+      const float before = value();
+      spin(400);
+      return value() != before;
+    };
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(300);
+    REQUIRE(moves());
+
+    {
+      Execution::PortTap one{*autom->outlet, exec.context()};
+      REQUIRE(one.monitor());
+      spin(200);
+      CHECK(moves());
+      {
+        // As a port hovered while it is recorded
+        Execution::PortTap two{*autom->outlet, exec.context()};
+        REQUIRE(two.monitor());
+        spin(200);
+        CHECK(moves());
+      }
+      spin(200);
+      CHECK(moves());
+    }
+    spin(200);
+    CHECK(moves());
+
+    engine.execution().request_stop();
+    spin(300);
   });
 }
 

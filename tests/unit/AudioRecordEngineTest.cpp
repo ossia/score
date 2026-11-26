@@ -18,6 +18,9 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/forward_node.hpp>
 
+#include <ossia/dataflow/nodes/sound_utils.hpp>
+
+#include <span>
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -217,4 +220,29 @@ TEST_CASE("A recorder whose blocks are all in use counts what it loses", "[recor
     r.tick(true);
   CHECK(r.take->frames == 2 * 512);
   CHECK(r.take->frames + r.take->droppedFrames == 10 * buffer);
+}
+
+// A sound is set to loop and given its loop length by two commands, which a
+// tick can fall between: looping without a length yet reads the plain sound.
+TEST_CASE("A sound looping without a loop length yet is read as the plain sound", "[sound][regression]")
+{
+  constexpr int64_t len = 64;
+  std::vector<float> left(len);
+  for(int64_t i = 0; i < len; i++)
+    left[i] = 1.f + i;
+  ossia::audio_span<float> data;
+  data.push_back(std::span<const float>(left.data(), len));
+
+  constexpr int64_t n = 16;
+  for(int64_t start : {int64_t(0), int64_t(8), len - 4})
+  {
+    std::vector<float> out_l(n, -1.f);
+    float* out[1] = {out_l.data()};
+    ossia::read_audio_from_buffer<float>(data, start, n, 0, 0, true, out);
+    for(int64_t k = 0; k < n; k++)
+    {
+      const int64_t pos = start + k;
+      CHECK(out_l[k] == (pos < len ? left[pos] : 0.f));
+    }
+  }
 }
