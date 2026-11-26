@@ -116,6 +116,9 @@ public:
   const QString& error() const noexcept { return m_error; }
   //! Ends the recording: what was recorded is placed
   void stop();
+  //! Ends it before returning, its takes placed: for when its document goes
+  //! away. Waits for the audio engine's next tick.
+  void stopNow();
   //! RecordOptions::capture: ends it, placing the last bars played. Ended
   //! otherwise (playback stops), nothing is placed and its files are removed.
   void capture();
@@ -207,6 +210,8 @@ private:
   std::thread m_writer;
   std::atomic_bool m_writing{false};
   std::mutex m_drainLock;
+  //! Where the writer thread puts its files
+  QString m_folder;
   QMetaObject::Connection m_started, m_finished, m_undoGuard, m_redoGuard;
   bool m_running{false};
   bool m_recordersCreated{false};

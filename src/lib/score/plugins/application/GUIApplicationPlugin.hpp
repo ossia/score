@@ -150,6 +150,14 @@ public:
   virtual void on_initDocument(score::Document& doc);
 
   /**
+   * @brief on_documentCloseRequested
+   * Called when the document is asked to close, before it is checked for
+   * unsaved changes: what is still to be written into the document is
+   * written here, for the user to be asked about it.
+   */
+  virtual void on_documentCloseRequested(score::Document& doc);
+
+  /**
    * @brief on_closeDocument
    * Will be called before closing the document.
    */

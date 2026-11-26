@@ -609,9 +609,28 @@ void ApplicationPlugin::recordSelection(
   }
 }
 
+void ApplicationPlugin::endSessionOf(score::Document& doc)
+{
+  if(!m_session || m_sessionDocument != &doc)
+    return;
+  m_session->stopNow();
+  report(m_sessionDocument, m_session->warnings());
+  m_session.reset();
+  m_sessionDocument = nullptr;
+  showRecording(false);
+}
+
 void ApplicationPlugin::on_documentSaveAs(score::Document& doc, const QString& newFileName)
 {
+  // The takes being written are finished and placed: they move with the rest
+  endSessionOf(doc);
   keepTakesWithProject(doc, newFileName);
+}
+
+void ApplicationPlugin::on_documentCloseRequested(score::Document& doc)
+{
+  // The takes are placed before the user is asked whether to save
+  endSessionOf(doc);
 }
 
 void ApplicationPlugin::on_closeDocument(score::Document& doc)
@@ -619,13 +638,7 @@ void ApplicationPlugin::on_closeDocument(score::Document& doc)
   ossia::remove_erase_if(m_published, [&](const Published& p) { return p.document == &doc; });
   if(m_capture && m_captureDocument == &doc)
     stopCapture();
-  // The session refers to the document: it ends, its takes placed, first
-  if(m_session && m_sessionDocument == &doc)
-  {
-    m_session->stop();
-    m_session.reset();
-    m_sessionDocument = nullptr;
-    showRecording(false);
-  }
+  // Closed without being asked to: the session refers to the document
+  endSessionOf(doc);
 }
 }

@@ -74,12 +74,15 @@ public:
       RecordOptions options);
   //! Ends the session: its takes are placed
   void stopSession();
+  //! Ends the session recording in `doc` now, its takes placed
+  void endSessionOf(score::Document& doc);
   //! A session records in this document
   bool recording(const score::DocumentContext& ctx) const noexcept;
   RecordSession* session() const noexcept { return m_session.get(); }
   //! The options of a recording started without choosing them
   RecordOptions defaultOptions() const;
 
+  void on_documentCloseRequested(score::Document& doc) override;
   void on_closeDocument(score::Document& doc) override;
   void on_documentSaveAs(score::Document& doc, const QString& newFileName) override;
   score::GUIElements makeGUIElements() override;

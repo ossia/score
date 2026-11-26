@@ -79,6 +79,7 @@
 #include <QDir>
 #include <QFile>
 #include <QStorageInfo>
+#include <QThread>
 #include <QFileInfo>
 #include <QMimeData>
 #include <QRegularExpression>
@@ -181,6 +182,14 @@ struct RecordSession::Source
 
 namespace
 {
+//! The next numbered file of `prefix` in the takes folder
+QString newTakeFile(const QString& folder, const QString& prefix, const QString& ext)
+{
+  const int n = Process::reserveTakeNumber(
+      folder, prefix, [&](int k) { return Process::takeFile(folder, prefix, k, ext); });
+  return Process::takeFile(folder, prefix, n, ext);
+}
+
 //! "<process>-<port>", fit for a file name
 QString prefixFor(const Process::Port& port)
 {
@@ -258,6 +267,15 @@ RecordSession::~RecordSession()
   stopListening();
   if(m_running)
   {
+    // What it changed in the engine is put back, as stop() does
+    removeCountIn();
+    if(m_latched)
+    {
+      if(auto* exec = executionOf(m_ctx); exec && exec->isPlaying())
+        exec->context().executionQueue.enqueue(
+            [p = m_latched, b = m_options.into && m_options.into->muted()] { p->mute(b); });
+      m_latched.reset();
+    }
     for(auto& s : m_sources)
       s->requestStop();
     m_writing = false;
@@ -596,6 +614,8 @@ bool RecordSession::start()
     }
   }
 
+  // Read here for the writer thread, which does not read the document
+  m_folder = Process::takesFolder(m_ctx);
   m_writing = true;
   m_writer = std::thread{[this] { writerLoop(); }};
   m_poll.start();
@@ -794,11 +814,7 @@ void RecordSession::createRecorders(bool atStart)
 #if SCORE_RECORDING_TEXTURES
       // The clock alone; the frames come through the graphics context
       s->link = std::make_unique<Execution::TapLink>(ectx, s->node);
-      const QString folder = Process::takesFolder(m_ctx);
-      const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
-        return Process::takeFile(folder, s->prefix, k, m_options.video.extension());
-      });
-      s->file = Process::takeFile(folder, s->prefix, n, m_options.video.extension());
+      s->file = newTakeFile(Process::takesFolder(m_ctx), s->prefix, m_options.video.extension());
       if(s->port)
       {
         s->video = std::make_unique<TextureRecorder>(
@@ -1049,11 +1065,7 @@ void RecordSession::drain()
       s->audio->drain([&](AudioTake::Block& b) {
         if(!s->wav.isOpen() && !s->wav.failed())
         {
-          const QString folder = Process::takesFolder(m_ctx);
-          const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
-            return Process::takeFile(folder, s->prefix, k, QStringLiteral("wav"));
-          });
-          s->file = Process::takeFile(folder, s->prefix, n, QStringLiteral("wav"));
+          s->file = newTakeFile(m_folder, s->prefix, QStringLiteral("wav"));
           s->wav.open(s->file.toStdString(), b.channels, s->rate, m_options.audioFormat);
         }
         if(!s->wav.isOpen())
@@ -1112,6 +1124,29 @@ void RecordSession::stop()
   if(!m_recordersCreated || !exec || !exec->isPlaying())
     finish();
   // Else the recorders end on their next tick, which poll() sees
+}
+
+void RecordSession::stopNow()
+{
+  if(!m_running)
+    return;
+  for(auto& s : m_sources)
+    s->requestStop();
+  // The recorders end on the audio engine's next tick: waited for, briefly,
+  // without running the event loop
+  if(auto* exec = executionOf(m_ctx); m_recordersCreated && exec && exec->isPlaying())
+  {
+    const auto over = [&] {
+      return ossia::all_of(m_sources, [](const auto& s) {
+        return !s->link || s->state() == AudioTake::Done;
+      });
+    };
+    QElapsedTimer waited;
+    waited.start();
+    while(!over() && waited.elapsed() < 500)
+      QThread::msleep(1);
+  }
+  finish();
 }
 
 void RecordSession::poll()
@@ -1539,11 +1574,7 @@ void RecordSession::place()
         continue;
       t.startDate = s->values->startDate;
       t.endDate = s->values->endDate;
-      const QString folder = Process::takesFolder(m_ctx);
-      const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
-        return Process::takeFile(folder, s->prefix, k, QStringLiteral("values"));
-      });
-      t.file = Process::takeFile(folder, s->prefix, n, QStringLiteral("values"));
+      t.file = newTakeFile(Process::takesFolder(m_ctx), s->prefix, QStringLiteral("values"));
       const auto json = valueTakeJson(
           s->valueEvents, t.startDate, t.endDate, s->rate, s->values->tempo.load(),
           s->values->meterNumerator.load(), s->values->meterDenominator.load());
@@ -1594,11 +1625,7 @@ void RecordSession::place()
       quantizeNotes(notes, m_options.midiQuantize);
       if(notes.empty())
         continue;
-      const QString folder = Process::takesFolder(m_ctx);
-      const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
-        return Process::takeFile(folder, s->prefix, k, QStringLiteral("mid"));
-      });
-      t.file = Process::takeFile(folder, s->prefix, n, QStringLiteral("mid"));
+      t.file = newTakeFile(Process::takesFolder(m_ctx), s->prefix, QStringLiteral("mid"));
       const auto smf
           = smfOf(notes, t.startDate, t.endDate - t.startDate, s->midi->tempo.load());
       QFile f{t.file};
@@ -1729,11 +1756,7 @@ void RecordSession::place()
         FileTake f;
         f.startDate = s->midi->startDate;
         f.endDate = s->midi->endDate;
-        const QString folder = Process::takesFolder(m_ctx);
-        const int n = Process::reserveTakeNumber(folder, s->prefix, [&](int k) {
-          return Process::takeFile(folder, s->prefix, k, QStringLiteral("mid"));
-        });
-        f.file = Process::takeFile(folder, s->prefix, n, QStringLiteral("mid"));
+        f.file = newTakeFile(Process::takesFolder(m_ctx), s->prefix, QStringLiteral("mid"));
         const auto smf
             = smfOf(notes, f.startDate, f.endDate - f.startDate, s->midi->tempo.load());
         QFile out{f.file};

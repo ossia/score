@@ -57,6 +57,8 @@
 #include <QTemporaryDir>
 
 #include <catch2/catch_approx.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <dr_wav.h>
@@ -819,6 +821,56 @@ TEST_CASE("A recording counted in clicks a whole bar, then starts on a bar line"
       CHECK(session.takes()[0].startDate >= bar - 705600000 / 48000);
       CHECK(session.warnings().isEmpty());
     }
+  });
+}
+
+TEST_CASE("A session destroyed while it counts in leaves nothing of it in the engine", "[recording][session][countin][destroyed]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString ramp = dir.filePath("ramp.wav");
+    write_ramp(ramp, rate, rate * 40);
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(20000), 0.1});
+      sound = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), ramp);
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(2100);
+    const auto nodes = [&] { return exec.context().execGraph->get_nodes().size(); };
+    const auto before = nodes();
+
+    Recording::RecordOptions opt;
+    opt.startRate = 1.;
+    opt.countIn = true;
+    auto session = std::make_unique<Recording::RecordSession>(doc->context(), opt);
+    REQUIRE(session->addSource(*sound->outlets()[0]));
+    REQUIRE(session->start());
+    // Counting in: its click and its recorder are in the graph
+    REQUIRE(spin_until([&] { return session->countInBeats() >= 1; }, 5000));
+    REQUIRE(session->waiting());
+    CHECK(nodes() > before);
+
+    session.reset();
+    spin(500);
+    CHECK(nodes() == before);
+    CHECK(exec.isPlaying());
+    CHECK(doc->commandStack().canUndo());
+
+    engine.execution().request_stop();
+    spin(300);
   });
 }
 

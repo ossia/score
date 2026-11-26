@@ -236,6 +236,9 @@ void DocumentManager::setCurrentDocument(
 bool DocumentManager::closeDocument(
     const score::GUIApplicationContext& ctx, Document& doc)
 {
+  for(auto plug : ctx.guiApplicationPlugins())
+    plug->on_documentCloseRequested(doc);
+
   // Warn the user if he might loose data. Only when there is a user: with
   // applicationSettings.gui false (headless, --script, offscreen QPA) nothing
   // can answer a modal, and QMessageBox::exec() aborts instead of returning.
