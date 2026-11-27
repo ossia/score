@@ -8,6 +8,11 @@
 #include <QString>
 #include <QWidget>
 
+#include <functional>
+#include <vector>
+
+class QMenu;
+
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
@@ -45,14 +50,22 @@ public:
   void setMusical(bool);
   bool musical() const noexcept { return m_musical; }
 
+  //! What plug-ins put in the menu of the display (the metronome's settings):
+  //! each is called with the menu when it opens
+  static std::vector<std::function<void(QMenu&)>>& menuEntries();
+
   QSize sizeHint() const override { return m_size; }
   QSize minimumSizeHint() const override { return m_size; }
 
 protected:
   void paintEvent(QPaintEvent* event) override;
+  void contextMenuEvent(QContextMenuEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
   void resizeEvent(QResizeEvent* event) override;
 
 private:
+  //! The menu of menuEntries(), above the display; false when it is empty
+  bool showMenu();
   void applySkin();
   int contentHeight() const;
   void layout();

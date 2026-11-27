@@ -6,6 +6,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -220,6 +221,39 @@ Scenario::IntervalModel* placeAddressTakes(
     return nullptr;
   auto& box = macro.createBox(scenario, TimeVal{start}, TimeVal{end}, y);
   placeInto(macro, box, takes, placement, curves, files, start, end - start, 0, {});
+  return &box;
+}
+
+Scenario::IntervalModel* placeAddressTakesAfter(
+    Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario,
+    const Scenario::StateModel& state, const std::vector<AddressTake>& takes,
+    AddressPlacement placement, CurveOptions curves, const std::vector<FileTake>& files)
+{
+  const auto [start, end] = spanOf(takes, files);
+  auto ev = scenario.events.find(state.eventId());
+  if(end <= start || ev == scenario.events.end())
+    return nullptr;
+  const int64_t from = ev->date().impl;
+  if(end <= from)
+    return nullptr;
+
+  // From the state, or from a new one of its event under its states
+  const Scenario::StateModel* first = &state;
+  if(state.nextInterval())
+  {
+    double y = state.heightPercentage();
+    for(const auto& id : ev->states())
+      if(auto it = scenario.states.find(id); it != scenario.states.end())
+        y = std::max(y, it->heightPercentage());
+    first = &macro.createState(scenario, ev->id(), std::min(0.95, y + 0.1));
+  }
+  auto& box = macro.createIntervalAfter(
+      scenario, first->id(), {TimeVal{end}, first->heightPercentage()});
+  // Dated in the scenario: what starts after the state starts that far in
+  const int64_t origin = std::max(start, from);
+  placeInto(
+      macro, box, takes, placement, curves, files, origin, end - origin, from - origin,
+      {});
   return &box;
 }
 

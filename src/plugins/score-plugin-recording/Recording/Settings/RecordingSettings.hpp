@@ -56,6 +56,17 @@ struct Quantizes
   QString thirtysecond{"Thirty-second notes"};
   operator QStringList() const { return {none, quarter, eighth, sixteenth, thirtysecond}; }
 };
+//! The sounds of the metronome, in the order of Media::Metro::sound_kind
+struct ClickSounds
+{
+  QString classic{"Classic"};
+  QString click{"Click"};
+  QString woodblock{"Woodblock"};
+  QString beep{"Beep"};
+  QString cowbell{"Cowbell"};
+  operator QStringList() const { return {classic, click, woodblock, beep, cowbell}; }
+};
+
 struct Targets
 {
   QString box{"A new process in the box"};
@@ -86,6 +97,10 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   int m_CaptureBars{4};
   int m_InputLatency{0};
   bool m_EngineLatency{false};
+  QString m_ClickSound;
+  int m_ClickVolume{100};
+  bool m_ClickAccent{true};
+  int m_CountInBars{1};
 
 public:
   Model(
@@ -108,6 +123,10 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, CaptureBars)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, InputLatency)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, EngineLatency)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, QString, ClickSound)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, ClickVolume)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, ClickAccent)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, CountInBars)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, AudioFormat)
@@ -123,6 +142,10 @@ SCORE_SETTINGS_PARAMETER(Model, TouchRelease)
 SCORE_SETTINGS_PARAMETER(Model, CaptureBars)
 SCORE_SETTINGS_PARAMETER(Model, InputLatency)
 SCORE_SETTINGS_PARAMETER(Model, EngineLatency)
+SCORE_SETTINGS_PARAMETER(Model, ClickSound)
+SCORE_SETTINGS_PARAMETER(Model, ClickVolume)
+SCORE_SETTINGS_PARAMETER(Model, ClickAccent)
+SCORE_SETTINGS_PARAMETER(Model, CountInBars)
 
 class View : public score::GlobalSettingsView
 {
@@ -155,6 +178,10 @@ private:
   SETTINGS_UI_SPINBOX_HPP(CaptureBars)
   SETTINGS_UI_SPINBOX_HPP(InputLatency)
   SETTINGS_UI_TOGGLE_HPP(EngineLatency)
+  SETTINGS_UI_COMBOBOX_HPP(ClickSound)
+  SETTINGS_UI_SPINBOX_HPP(ClickVolume)
+  SETTINGS_UI_TOGGLE_HPP(ClickAccent)
+  SETTINGS_UI_SPINBOX_HPP(CountInBars)
 
   // The curve plug-in's
   SETTINGS_UI_SPINBOX_HPP(SimplificationRatio)

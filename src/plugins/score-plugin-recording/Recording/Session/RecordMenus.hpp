@@ -1,4 +1,5 @@
 #pragma once
+#include <score/selection/Selection.hpp>
 #include <Recording/Session/RecordOptions.hpp>
 #include <score_plugin_recording_export.h>
 
@@ -14,10 +15,12 @@
 class QMenu;
 namespace score
 {
+struct ApplicationContext;
 struct DocumentContext;
 }
 namespace Scenario
 {
+class StateModel;
 class IntervalModel;
 class ProcessModel;
 }
@@ -46,6 +49,8 @@ struct RecordMenuSources
 struct RecordMenuTarget
 {
   Scenario::IntervalModel* box{};
+  //! A new box after this state of `scenario`
+  const Scenario::StateModel* after{};
   Scenario::ProcessModel* scenario{};
   Scenario::Point point{};
   //! In the node view of `box`: where the take's node goes
@@ -70,6 +75,23 @@ void addTimingEntries(
  * (or armed) processes, the addresses selected in the explorer, each with the
  * timing entries, and Capture. Stop recording instead while one runs.
  */
+/**
+ * What a menu opened on the selected element of `scenario` records into: a box
+ * selected, that box; a state, after it; an event or a time sync, after its
+ * first state. Nothing changes when the selection is not one of them.
+ */
+SCORE_PLUGIN_RECORDING_EXPORT
+void targetOfSelection(
+    Scenario::ProcessModel& scenario, const Selection& selection, RecordMenuTarget& target);
+
+/**
+ * How the count-in clicks, in a "Count-in" submenu of `menu`: its length in
+ * bars, its sound, its volume and the accent of the first beat. They change
+ * the Recording settings, and with them every recording counted in.
+ */
+SCORE_PLUGIN_RECORDING_EXPORT
+void addCountInEntries(QMenu& menu, const score::ApplicationContext& ctx);
+
 SCORE_PLUGIN_RECORDING_EXPORT
 void addRecordEntries(
     QMenu& menu, ApplicationPlugin& plug, const score::DocumentContext& ctx,

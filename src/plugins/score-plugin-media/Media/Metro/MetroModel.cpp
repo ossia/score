@@ -357,22 +357,27 @@ void Model::on_decoded()
   soundsChanged();
 }
 
+sound_set_ptr Model::classicSounds(int rate)
+{
+  auto set = std::make_shared<sound_set>();
+  auto& classic = ClassicTicks::instance();
+  classic.refresh();
+  // The first channel on both outputs, as these ticks always played.
+  set->accent = toSound(classic.tick, rate, true);
+  set->beat = toSound(classic.tock, rate, true);
+  // Both or nothing: one of the two with a synthesized other is no pair.
+  if(set->accent.empty() || set->beat.empty())
+    return {};
+  return set;
+}
+
 sound_set_ptr Model::sounds(sound_kind kind, int rate) const
 {
   auto set = std::make_shared<sound_set>();
   switch(kind)
   {
-    case Classic: {
-      auto& classic = ClassicTicks::instance();
-      classic.refresh();
-      // The first channel on both outputs, as these ticks always played.
-      set->accent = toSound(classic.tick, rate, true);
-      set->beat = toSound(classic.tock, rate, true);
-      // Both or nothing: one of the two with a synthesized other is no pair.
-      if(set->accent.empty() || set->beat.empty())
-        return {};
-      break;
-    }
+    case Classic:
+      return classicSounds(rate);
     case Files:
       return fileSounds(m_accentFile, m_beatFile, rate);
     default:

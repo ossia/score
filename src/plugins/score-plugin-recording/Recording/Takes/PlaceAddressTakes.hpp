@@ -17,6 +17,7 @@
 
 namespace Scenario
 {
+class StateModel;
 class IntervalModel;
 class ProcessModel;
 namespace Command
@@ -80,6 +81,19 @@ Scenario::IntervalModel* placeAddressTakes(
     Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario, double y,
     const std::vector<AddressTake>& takes, AddressPlacement placement,
     CurveOptions curves, const std::vector<FileTake>& files = {});
+
+/**
+ * Places takes of addresses in a new box after `state`, from its date to the
+ * end of the last take: the box follows the state when nothing does yet, else
+ * starts from a new state of its event. The takes are dated in the
+ * scenario's time.
+ */
+SCORE_PLUGIN_RECORDING_EXPORT
+Scenario::IntervalModel* placeAddressTakesAfter(
+    Scenario::Command::Macro& macro, const Scenario::ProcessModel& scenario,
+    const Scenario::StateModel& state, const std::vector<AddressTake>& takes,
+    AddressPlacement placement, CurveOptions curves,
+    const std::vector<FileTake>& files = {});
 
 /**
  * The same in a box that is there, whose time the takes are dated in: their

@@ -15,6 +15,11 @@ namespace Process
 {
 class ProcessModel;
 }
+namespace Scenario
+{
+class IntervalModel;
+class StateModel;
+}
 namespace Recording
 {
 //! How a video take is encoded
@@ -86,6 +91,18 @@ struct RecordOptions
   //! The metronome clicks the box's beats on the main output while the takes
   //! wait for their start (with a start on the next bar: a count-in)
   bool countIn{false};
+  //! How the count-in clicks
+  struct Click
+  {
+    //! Media::Metro::sound_kind
+    int sound{0};
+    //! 0 - 1
+    float volume{1.f};
+    //! The first beat of a bar louder
+    bool accent{true};
+    //! Whole bars clicked at least before the take starts
+    int bars{1};
+  } click;
   //! When a take is placed, the process it was recorded from is muted in the
   //! same step, so that the take is not heard twice
   bool muteSource{false};
@@ -112,6 +129,12 @@ struct RecordOptions
   //! Target::Into: the piano roll a MIDI take, or the automation a value take
   //! is recorded into
   QPointer<const Process::ProcessModel> into;
+
+  //! Target::ThisBox: the takes of ports go into this box instead of the one
+  //! their process plays in, at the same time in the document
+  QPointer<const Scenario::IntervalModel> takesInto;
+  //! Target::ThisBox: they go into a new box after this state instead
+  QPointer<const Scenario::StateModel> takesAfter;
   //! Target::Into: the notes it had over the span recorded are removed first;
   //! else the take's notes are added to them
   bool replace{false};

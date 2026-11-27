@@ -44,6 +44,7 @@ class ProcessModel;
 }
 namespace Scenario
 {
+class StateModel;
 class IntervalModel;
 class ProcessModel;
 namespace Command
@@ -107,6 +108,11 @@ public:
   //! clock: they start where they were recorded in it
   void placeInBox(
       Scenario::IntervalModel& box, AddressPlacement placement, CurveOptions curves);
+  //! Addresses recorded into a new box after `state` of a scenario (see
+  //! placeAddressTakesAfter); playback starts from the state
+  void placeAfter(
+      const Scenario::StateModel& state, AddressPlacement placement, CurveOptions curves,
+      bool playOnFirst);
   //! The box the takes of addresses were placed in
   Scenario::IntervalModel* placedBox() const noexcept;
 
@@ -224,6 +230,12 @@ private:
   // Takes of addresses
   QPointer<const Scenario::ProcessModel> m_scenario;
   QPointer<Scenario::IntervalModel> m_intoBox;
+  //! A new box after this state
+  QPointer<const Scenario::StateModel> m_afterState;
+  //! The box made after RecordOptions::takesAfter for the takes of ports
+  const Scenario::IntervalModel* m_takesBox{};
+  //! Where the takes of ports go when not in their own box; null for there
+  const Scenario::IntervalModel* takesBox(Scenario::Command::Macro& macro);
   Scenario::Point m_point{};
   AddressPlacement m_placement{AddressPlacement::Automations};
   CurveOptions m_curves{};

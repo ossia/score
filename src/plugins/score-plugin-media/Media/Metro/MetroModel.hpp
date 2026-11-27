@@ -81,6 +81,10 @@ public:
    */
   sound_set_ptr sounds(sound_kind kind, int rate) const;
 
+  //! The Classic kind's ticks, those of the user library, at the given rate;
+  //! null when the library does not have them
+  static sound_set_ptr classicSounds(int rate);
+
   //! What sounds() returns changed: a file was chosen or is now decoded.
   //! Starts decoding a sound file, at the rate of the engine and outside of
   //! the calling thread. `path` is looked up as the paths of the document

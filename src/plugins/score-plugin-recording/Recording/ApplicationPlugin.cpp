@@ -5,6 +5,7 @@
 #include <Process/Layer/LayerContextMenu.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Recording/Session/RecordMenus.hpp>
+#include <Scenario/Application/Menus/TransportDisplay.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 #include <QMenu>
@@ -85,11 +86,19 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
       target.scenario = &scenar;
       target.point = Scenario::ConvertToScenarioPoint(
           scenept, pres->zoomRatio(), pres->view().height());
+      // Opened on an element of the scenario (it is selected): into that box,
+      // or after that state
+      targetOfSelection(scenar, lctx.context.selectionStack.currentSelection(), target);
       addRecordEntries(menu, *this, lctx.context, target);
     });
   }
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+
+  // The count-in's click, from the beat display of the transport
+  if(ctx.applicationSettings.gui)
+    Scenario::TransportDisplay::menuEntries().push_back(
+        [this](QMenu& menu) { addCountInEntries(menu, context); });
 
   // Arming: the toggles of the processes' headers, and what Capture keeps
   auto& arm = Process::RecordArm::instance();
@@ -181,7 +190,7 @@ RecordSession* ApplicationPlugin::startSession(
 RecordSession* ApplicationPlugin::recordAddresses(
     Scenario::ProcessModel& scenario, Scenario::Point pt,
     const std::vector<State::Address>& addresses, AddressPlacement placement,
-    std::optional<RecordOptions> chosen)
+    std::optional<RecordOptions> chosen, const Scenario::StateModel* after)
 {
   if(m_session)
   {
@@ -217,7 +226,10 @@ RecordSession* ApplicationPlugin::recordAddresses(
     session->addAddress(addr);
 
   const auto c = CurveOptions::from(curves);
-  session->placeInNewBox(scenario, pt, placement, c, curves.getPlayWhileRecording());
+  if(after)
+    session->placeAfter(*after, placement, c, curves.getPlayWhileRecording());
+  else
+    session->placeInNewBox(scenario, pt, placement, c, curves.getPlayWhileRecording());
   return adopt(std::move(session), ctx);
 }
 

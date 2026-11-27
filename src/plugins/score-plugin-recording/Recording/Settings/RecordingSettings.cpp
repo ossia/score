@@ -70,12 +70,21 @@ SETTINGS_PARAMETER_IMPL(CaptureBars){
     QStringLiteral("score_plugin_recording/CaptureBars"), 4};
 SETTINGS_PARAMETER_IMPL(TouchRelease){
     QStringLiteral("score_plugin_recording/TouchRelease"), 500};
+SETTINGS_PARAMETER_IMPL(ClickSound){
+    QStringLiteral("score_plugin_recording/ClickSound"), ClickSounds{}.classic};
+SETTINGS_PARAMETER_IMPL(ClickVolume){
+    QStringLiteral("score_plugin_recording/ClickVolume"), 100};
+SETTINGS_PARAMETER_IMPL(ClickAccent){
+    QStringLiteral("score_plugin_recording/ClickAccent"), true};
+SETTINGS_PARAMETER_IMPL(CountInBars){
+    QStringLiteral("score_plugin_recording/CountInBars"), 1};
 
 static auto list()
 {
   return std::tie(
       AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
-      MidiQuantize, VideoEncoder, TouchRelease, CaptureBars, InputLatency, EngineLatency);
+      MidiQuantize, VideoEncoder, TouchRelease, CaptureBars, InputLatency, EngineLatency,
+      ClickSound, ClickVolume, ClickAccent, CountInBars);
 }
 }
 
@@ -130,6 +139,11 @@ RecordOptions Model::options() const
   o.engineLatency = m_EngineLatency;
   o.touchRelease = int64_t(std::max(0, m_TouchRelease)) * ossia::flicks_per_millisecond<int64_t>;
   o.video.encoder = m_VideoEncoder;
+  const QStringList sounds = ClickSounds{};
+  o.click.sound = std::max(0, int(sounds.indexOf(m_ClickSound)));
+  o.click.volume = float(std::clamp(m_ClickVolume, 0, 100)) / 100.f;
+  o.click.accent = m_ClickAccent;
+  o.click.bars = std::clamp(m_CountInBars, 1, 16);
   return o;
 }
 
@@ -146,6 +160,10 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, TouchRelease)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, CaptureBars)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, InputLatency)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, EngineLatency)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ClickSound)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, ClickVolume)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ClickAccent)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, CountInBars)
 
 View::View()
 {
@@ -178,20 +196,18 @@ View::View()
       m_CaptureBars,
       tr("Capture places the last whole bars the armed processes played, up to this "
          "many, as loops."));
-  SETTINGS_UI_TOGGLE_SETUP("Loop takes of a number of bars", LoopFixedLength);
-  score::setHelp(
-      m_LoopFixedLength,
-      tr("A take of a number of bars is placed as a loop that long from the start of "
-         "its box, turned so that each moment of the box plays what was played there."));
-  SETTINGS_UI_COMBOBOX_SETUP("Takes go to", Target, Targets{});
-  score::setHelp(
-      m_Target, tr("Where a take is placed when the recording ends; it is always "
-                   "written to the Takes folder of the document."));
 
-  SETTINGS_UI_TOGGLE_SETUP("Mute what was recorded", MuteSource);
+  tab(tr("Count-in"));
+  SETTINGS_UI_SPINBOX_SETUP("Bars", CountInBars);
+  m_CountInBars->setRange(1, 16);
   score::setHelp(
-      m_MuteSource, tr("When a take is placed, the process it was recorded from is muted "
-                       "in the same step, so that it is not heard twice."));
+      m_CountInBars, tr("The whole bars clicked, at least, before a recording counted in "
+                        "starts on a bar line."));
+  SETTINGS_UI_COMBOBOX_SETUP("Sound", ClickSound, ClickSounds{});
+  SETTINGS_UI_SPINBOX_SETUP("Volume", ClickVolume);
+  m_ClickVolume->setRange(0, 100);
+  m_ClickVolume->setSuffix(tr(" %"));
+  SETTINGS_UI_TOGGLE_SETUP("Accent the first beat", ClickAccent);
 
   tab(tr("Audio"));
   SETTINGS_UI_COMBOBOX_SETUP("Sample format", AudioFormat, AudioFormats{});
@@ -407,6 +423,10 @@ SETTINGS_UI_SPINBOX_IMPL(TouchRelease)
 SETTINGS_UI_SPINBOX_IMPL(CaptureBars)
 SETTINGS_UI_SPINBOX_IMPL(InputLatency)
 SETTINGS_UI_TOGGLE_IMPL(EngineLatency)
+SETTINGS_UI_COMBOBOX_IMPL(ClickSound)
+SETTINGS_UI_SPINBOX_IMPL(ClickVolume)
+SETTINGS_UI_TOGGLE_IMPL(ClickAccent)
+SETTINGS_UI_SPINBOX_IMPL(CountInBars)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -428,6 +448,10 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(CaptureBars);
   SETTINGS_PRESENTER(InputLatency);
   SETTINGS_PRESENTER(EngineLatency);
+  SETTINGS_PRESENTER(ClickSound);
+  SETTINGS_PRESENTER(ClickVolume);
+  SETTINGS_PRESENTER(ClickAccent);
+  SETTINGS_PRESENTER(CountInBars);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();

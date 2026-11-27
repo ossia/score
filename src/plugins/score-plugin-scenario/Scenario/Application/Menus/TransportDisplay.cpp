@@ -6,7 +6,10 @@
 
 #include <ossia/detail/flicks.hpp>
 
+#include <QContextMenuEvent>
 #include <QFontMetrics>
+#include <QMenu>
+#include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
 
@@ -59,6 +62,44 @@ TransportDisplay::TransportDisplay(QWidget* parent)
 }
 
 TransportDisplay::~TransportDisplay() = default;
+
+std::vector<std::function<void(QMenu&)>>& TransportDisplay::menuEntries()
+{
+  static std::vector<std::function<void(QMenu&)>> entries;
+  return entries;
+}
+
+bool TransportDisplay::showMenu()
+{
+  if(menuEntries().empty())
+    return false;
+  QMenu menu{this};
+  menu.setToolTipsVisible(true);
+  for(auto& f : menuEntries())
+    f(menu);
+  if(menu.isEmpty())
+    return false;
+  // Above the display, which sits at the bottom of the window
+  const QSize size = menu.sizeHint();
+  menu.exec(mapToGlobal(QPoint{0, -size.height()}));
+  return true;
+}
+
+void TransportDisplay::contextMenuEvent(QContextMenuEvent* event)
+{
+  if(showMenu())
+    event->accept();
+  else
+    QWidget::contextMenuEvent(event);
+}
+
+void TransportDisplay::mousePressEvent(QMouseEvent* event)
+{
+  if(event->button() == Qt::LeftButton && showMenu())
+    event->accept();
+  else
+    QWidget::mousePressEvent(event);
+}
 
 void TransportDisplay::setMusical(bool b)
 {

@@ -1,3 +1,11 @@
+#include <score/application/ApplicationContext.hpp>
+#include <QSlider>
+#include <QLabel>
+#include <QActionGroup>
+#include <Recording/Settings/RecordingSettings.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include "RecordMenus.hpp"
 
 #include <Recording/ApplicationPlugin.hpp>
@@ -214,6 +222,105 @@ void addAddressEntries(
   });
 }
 
+void addCountInEntries(QMenu& menu, const score::ApplicationContext& ctx)
+{
+  auto* set = ctx.findSettings<Settings::Model>();
+  if(!set)
+    return;
+  auto sub = menu.addMenu(QObject::tr("Count-in"));
+  sub->setToolTipsVisible(true);
+  sub->setToolTip(QObject::tr(
+      "How a recording counted in clicks on the main output before it starts"));
+
+  // Its length
+  {
+    auto group = new QActionGroup{sub};
+    for(int n : {1, 2, 4})
+    {
+      auto act = sub->addAction(
+          n == 1 ? QObject::tr("1 bar") : QObject::tr("%1 bars").arg(n));
+      act->setCheckable(true);
+      act->setChecked(set->getCountInBars() == n);
+      group->addAction(act);
+      QObject::connect(act, &QAction::triggered, set, [set, n] { set->setCountInBars(n); });
+    }
+  }
+  sub->addSeparator();
+
+  // Its sound
+  {
+    auto sounds = sub->addMenu(QObject::tr("Sound"));
+    auto group = new QActionGroup{sounds};
+    const QStringList names = Settings::ClickSounds{};
+    for(const QString& name : names)
+    {
+      auto act = sounds->addAction(QObject::tr(name.toUtf8().constData()));
+      act->setCheckable(true);
+      act->setChecked(set->getClickSound() == name);
+      group->addAction(act);
+      QObject::connect(act, &QAction::triggered, set, [set, name] { set->setClickSound(name); });
+    }
+  }
+
+  // Its volume
+  {
+    auto w = new QWidget{sub};
+    auto lay = new QHBoxLayout{w};
+    lay->setContentsMargins(6, 2, 6, 2);
+    lay->addWidget(new QLabel{QObject::tr("Volume"), w});
+    auto slider = new QSlider{Qt::Horizontal, w};
+    slider->setRange(0, 100);
+    slider->setValue(set->getClickVolume());
+    slider->setMinimumWidth(100);
+    lay->addWidget(slider);
+    QObject::connect(slider, &QSlider::valueChanged, set, [set](int v) { set->setClickVolume(v); });
+    auto wa = new QWidgetAction{sub};
+    wa->setDefaultWidget(w);
+    sub->addAction(wa);
+  }
+
+  {
+    auto act = sub->addAction(QObject::tr("Accent the first beat"));
+    act->setCheckable(true);
+    act->setChecked(set->getClickAccent());
+    QObject::connect(act, &QAction::toggled, set, [set](bool b) { set->setClickAccent(b); });
+  }
+}
+
+void targetOfSelection(
+    Scenario::ProcessModel& scenario, const Selection& selection, RecordMenuTarget& target)
+{
+  if(selection.size() != 1)
+    return;
+  QObject* obj = selection.begin()->data();
+  if(!obj || obj->parent() != &scenario)
+    return;
+  const auto firstState = [&](const Scenario::EventModel& ev) -> const Scenario::StateModel* {
+    if(ev.states().empty())
+      return nullptr;
+    auto it = scenario.states.find(ev.states().front());
+    return it != scenario.states.end() ? &*it : nullptr;
+  };
+  if(auto* itv = qobject_cast<Scenario::IntervalModel*>(obj))
+  {
+    target.box = itv;
+  }
+  else if(auto* st = qobject_cast<Scenario::StateModel*>(obj))
+  {
+    target.after = st;
+  }
+  else if(auto* ev = qobject_cast<Scenario::EventModel*>(obj))
+  {
+    target.after = firstState(*ev);
+  }
+  else if(auto* ts = qobject_cast<Scenario::TimeSyncModel*>(obj))
+  {
+    if(!ts->events().empty())
+      if(auto it = scenario.events.find(ts->events().front()); it != scenario.events.end())
+        target.after = firstState(*it);
+  }
+}
+
 void addRecordEntries(
     QMenu& menu, ApplicationPlugin& plug, const score::DocumentContext& ctx,
     RecordMenuTarget target)
@@ -255,9 +362,19 @@ void addRecordEntries(
         midi = midi || p->type() == Process::PortType::Midi;
       const auto pos = target.nodePosition;
       const auto* pctx = &ctx;
+      const QPointer<const Scenario::IntervalModel> into = target.box;
+      const QPointer<const Scenario::StateModel> after = target.after;
+      if(target.box)
+        procs->setToolTip(QObject::tr("Recorded into this box"));
+      else if(target.after)
+        procs->setToolTip(QObject::tr("Recorded into a new box after this state"));
       addTimingEntries(
           *procs, menu, plug,
-          [=](RecordOptions opt) { pplug->recordSelection(*pctx, pos, opt); },
+          [=](RecordOptions opt) {
+        opt.takesInto = into;
+        opt.takesAfter = after;
+        pplug->recordSelection(*pctx, pos, opt);
+      },
           {.events = midi, .notes = true, .bars = true, .files = true});
     }
   }
@@ -275,9 +392,12 @@ void addRecordEntries(
       auto addr = sub->addMenu(QObject::tr("The selected addresses"));
       addr->setToolTipsVisible(true);
       addr->setToolTip(
-          target.box ? QObject::tr("Recorded into this box")
-                     : QObject::tr("Recorded into a new box where the menu was opened"));
+          target.box     ? QObject::tr("Recorded into this box")
+          : target.after ? QObject::tr("Recorded into a new box after this state")
+                         : QObject::tr("Recorded into a new box where the menu was opened"));
       const QPointer<Scenario::IntervalModel> box = target.box;
+      const QPointer<const Scenario::StateModel> after = target.after;
+      const bool hasAfter = target.after != nullptr;
       const QPointer<Scenario::ProcessModel> scenario = target.scenario;
       const auto pt = target.point;
       const auto pos = target.nodePosition;
@@ -286,8 +406,8 @@ void addRecordEntries(
           [=](AddressPlacement placement, RecordOptions opt) {
         if(box)
           pplug->recordAddressesInto(*box, addresses, placement, pos, opt);
-        else if(scenario)
-          pplug->recordAddresses(*scenario, pt, addresses, placement, opt);
+        else if(scenario && (!hasAfter || after))
+          pplug->recordAddresses(*scenario, pt, addresses, placement, opt, after.data());
       });
     }
   }

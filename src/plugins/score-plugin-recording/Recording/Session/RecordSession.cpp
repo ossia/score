@@ -1,5 +1,6 @@
 #include "RecordSession.hpp"
 #include <Recording/Takes/PlaceAddressTakes.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 #include <Process/Commands/Properties.hpp>
 #include <Process/Dataflow/Cable.hpp>
@@ -28,6 +29,7 @@
 #include <ossia/network/base/node_functions.hpp>
 
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -39,6 +41,7 @@
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Commands/PlaceTakes.hpp>
 #include <Recording/Engine/CountIn.hpp>
+#include <Media/Metro/MetroModel.hpp>
 #include <Recording/Takes/RecordedNotes.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
 #if SCORE_RECORDING_TEXTURES
@@ -83,6 +86,8 @@
 #include <QThread>
 #include <QFileInfo>
 #include <QMimeData>
+
+#include <limits>
 #include <QRegularExpression>
 #include <QUrl>
 
@@ -101,6 +106,8 @@ struct RecordSession::Source
   bool fromPort{};
   //! An address placed as a port's take is (in passes or loops)
   bool placedAsPort{};
+  //! Added to the dates of the live take: shown in the box the take goes to
+  int64_t liveShift{};
   //! A sound card input: it arrives late, by the latency compensated
   bool hardwareInput{};
   int64_t latencyFrames{};
@@ -244,6 +251,19 @@ parameterOf(const score::DocumentContext& ctx, const State::Address& addr)
 QString prefixFor(const State::Address& addr)
 {
   return takePrefix(addr.toString());
+}
+}
+
+namespace
+{
+//! Where a box starts in the document: its date and those of the boxes it is in
+int64_t dateInDocument(const Scenario::IntervalModel& box)
+{
+  int64_t date = box.date().impl;
+  for(const auto* p = Scenario::closestParentInterval(box.parent()); p;
+      p = Scenario::closestParentInterval(p->parent()))
+    date += p->date().impl;
+  return date;
 }
 }
 
@@ -408,6 +428,21 @@ void RecordSession::placeInNewBox(
   m_playOnFirst = playOnFirst;
 }
 
+void RecordSession::placeAfter(
+    const Scenario::StateModel& state, AddressPlacement placement, CurveOptions curves,
+    bool playOnFirst)
+{
+  auto* scenario = qobject_cast<const Scenario::ProcessModel*>(state.parent());
+  if(!scenario)
+    return;
+  auto ev = scenario->events.find(state.eventId());
+  placeInNewBox(
+      *scenario,
+      {ev != scenario->events.end() ? ev->date() : TimeVal{}, state.heightPercentage()},
+      placement, curves, playOnFirst);
+  m_afterState = &state;
+}
+
 Scenario::IntervalModel* RecordSession::placedBox() const noexcept
 {
   if(m_intoBox)
@@ -551,7 +586,7 @@ bool RecordSession::start()
   // Counted in: a whole bar of clicks at least, then the next bar line
   const double startRate
       = m_options.countIn && m_options.startRate <= 0. ? 1. : m_options.startRate;
-  const double lead = m_options.countIn ? 1. : 0.;
+  const double lead = m_options.countIn ? double(std::max(1, m_options.click.bars)) : 0.;
   for(auto& s : m_sources)
   {
     if(s->audio)
@@ -657,15 +692,23 @@ void RecordSession::showLiveTakes()
                       : s->audio                            ? K::Audio
                       : s->midi                             ? K::Midi
                                                             : K::Values;
-    QObject* itv = s->box.data();
+    // Shown where the take goes: the box the menu was opened on, else its own
+    Scenario::IntervalModel* box = s->box.data();
+    s->liveShift = 0;
+    if(m_options.target == RecordOptions::Target::ThisBox && m_options.takesInto)
+    {
+      box = const_cast<Scenario::IntervalModel*>(m_options.takesInto.data());
+      s->liveShift = dateInDocument(*s->box) - dateInDocument(*box);
+    }
+    QObject* itv = box;
     auto live = std::make_unique<K>(itv, kind, s->prefix);
     {
       auto it = std::find_if(next.begin(), next.end(), [&](auto& n) {
-        return n.first == s->box.data();
+        return n.first == box;
       });
       if(it == next.end())
         it = next.insert(
-            next.end(), {s->box.data(), takeNodePosition(*s->box, m_options.nodePosition)});
+            next.end(), {box, takeNodePosition(*box, m_options.nodePosition)});
       live->nodePosition = it->second;
       it->second.ry() += takeNodeSize.height() + 20.;
     }
@@ -698,8 +741,8 @@ void RecordSession::updateLiveTakes()
       live->changed();
       continue;
     }
-    live->start = s->startDate();
-    live->end = std::max(live->start, s->endDate());
+    live->start = s->startDate() + s->liveShift;
+    live->end = std::max(live->start, s->endDate() + s->liveShift);
     if(lock.owns_lock())
     {
       if(s->audio && s->peaks.size() > s->peaksShown)
@@ -712,8 +755,10 @@ void RecordSession::updateLiveTakes()
       {
         s->eventsShown = s->events.size();
         live->notes.clear();
-        for(const auto& n : notesOf(s->events, live->end))
-          live->notes.push_back({n.start, n.start + n.duration, n.pitch, n.velocity});
+        for(const auto& n : notesOf(s->events, live->end - s->liveShift))
+          live->notes.push_back(
+              {n.start + s->liveShift, n.start + n.duration + s->liveShift, n.pitch,
+               n.velocity});
       }
       if(s->values && s->type != Process::PortType::Texture)
       {
@@ -721,7 +766,7 @@ void RecordSession::updateLiveTakes()
         {
           const auto& ev = s->valueEvents[s->valuesShown];
           if(auto n = numbersOf(ev.value); n && !n->empty())
-            live->values.push_back({ev.date, n->front()});
+            live->values.push_back({ev.date + s->liveShift, n->front()});
         }
       }
     }
@@ -941,6 +986,13 @@ void RecordSession::createRecorders(bool atStart)
         return false;
       };
       auto node = std::make_shared<count_in_node>(rate, clock, std::move(waiting));
+      node->metro.sound = std::clamp(m_options.click.sound, 0, int(Media::Metro::Files) - 1);
+      node->metro.volume = std::clamp(m_options.click.volume, 0.f, 1.f);
+      node->metro.accent = m_options.click.accent;
+      // The library's ticks, as the Metronome process plays them
+      if(node->metro.sound == Media::Metro::Classic)
+        if(auto set = Media::Metro::Model::classicSounds(rate))
+          node->metro.swap_sounds(Media::Metro::Classic, set);
       m_countIn = node;
       ectx.executionQueue.enqueue([g = ectx.execGraph, ws = std::weak_ptr{ectx.execState},
                                    node, param] {
@@ -1541,8 +1593,61 @@ bool RecordSession::placePasses(
   return placed;
 }
 
+const Scenario::IntervalModel* RecordSession::takesBox(Scenario::Command::Macro& macro)
+{
+  if(m_options.takesInto)
+    return m_options.takesInto;
+  if(m_takesBox)
+    return m_takesBox;
+  auto* state = m_options.takesAfter.data();
+  if(!state)
+    return nullptr;
+  auto* scenario = qobject_cast<const Scenario::ProcessModel*>(state->parent());
+  if(!scenario)
+    return nullptr;
+  auto ev = scenario->events.find(state->eventId());
+  if(ev == scenario->events.end())
+    return nullptr;
+
+  // Up to the end of the last take, in the scenario's time
+  const auto* parent = Scenario::closestParentInterval(scenario);
+  const int64_t origin = parent ? dateInDocument(*parent) : 0;
+  int64_t end = std::numeric_limits<int64_t>::lowest();
+  for(auto& s : m_sources)
+  {
+    if(!s->box)
+      continue;
+    const int64_t e = s->audio    ? int64_t(s->audio->endDate)
+                      : s->midi   ? int64_t(s->midi->endDate)
+                      : s->values ? int64_t(s->values->endDate)
+                                  : std::numeric_limits<int64_t>::lowest();
+    if(e != std::numeric_limits<int64_t>::lowest())
+      end = std::max(end, dateInDocument(*s->box) + e - origin);
+  }
+  if(end <= ev->date().impl)
+    return nullptr;
+
+  // From the state, or from a new one of its event under its states
+  const Scenario::StateModel* first = state;
+  if(state->nextInterval())
+  {
+    double y = state->heightPercentage();
+    for(const auto& id : ev->states())
+      if(auto it = scenario->states.find(id); it != scenario->states.end())
+        y = std::max(y, it->heightPercentage());
+    first = &macro.createState(*scenario, ev->id(), std::min(0.95, y + 0.1));
+  }
+  m_takesBox = &macro.createIntervalAfter(
+      *scenario, first->id(), {TimeVal{end}, first->heightPercentage()});
+  m_placedBox = m_takesBox->id();
+  if(!m_scenario)
+    m_scenario = scenario;
+  return m_takesBox;
+}
+
 void RecordSession::place()
 {
+  m_takesBox = nullptr;
   m_takes.clear();
   const auto& handlers = m_ctx.app.interfaces<Process::ProcessDropHandlerList>();
   std::optional<Scenario::Command::Macro> macro;
@@ -1694,14 +1799,31 @@ void RecordSession::place()
       {
         if(!macro)
           macro.emplace(new PlaceTakes, m_ctx);
+        // The box the menu was opened on, or a new one after its state: the
+        // take is dated there as it was where it played
+        const Scenario::IntervalModel* dest = s->box;
+        if(m_options.target == RecordOptions::Target::ThisBox)
+          if(auto* other = takesBox(*macro))
+            dest = other;
+        const int64_t shift = dateInDocument(*s->box) - dateInDocument(*dest);
+        t.startDate += shift;
+        t.endDate += shift;
+        t.box = const_cast<Scenario::IntervalModel*>(dest);
         score::Dispatcher_T disp{*macro};
         for(auto& d : drops)
         {
-          auto* p = createTake(*macro, *s->box, d.creation);
+          // A sound alone in its box sizes it to its file: the box the take
+          // goes in keeps its length
+          const TimeVal length = dest->duration.defaultDuration();
+          auto* p = createTake(*macro, *dest, d.creation);
           if(!p)
             continue;
           if(d.setup)
             d.setup(*p, disp);
+          if(dest->duration.defaultDuration() != length)
+            if(auto* resize = m_ctx.app.interfaces<Scenario::IntervalResizerList>().make(
+                   *dest, length))
+              macro->submit(resize);
           if(s->port)
             connectToInlet(*macro, *p, *s->port);
           if(s->audio)
@@ -1878,8 +2000,14 @@ void RecordSession::place()
                m_options.nodePosition))
           placed_any = true;
       }
-      else if(auto* box = placeAddressTakes(
-                  *macro, *m_scenario, m_point.y, takes, m_placement, m_curves, files))
+      else if(auto* box
+              = m_afterState
+                    ? placeAddressTakesAfter(
+                          *macro, *m_scenario, *m_afterState, takes, m_placement,
+                          m_curves, files)
+                    : placeAddressTakes(
+                          *macro, *m_scenario, m_point.y, takes, m_placement, m_curves,
+                          files))
       {
         m_placedBox = box->id();
         placed_any = true;

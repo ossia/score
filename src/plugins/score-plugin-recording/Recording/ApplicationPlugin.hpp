@@ -33,6 +33,7 @@ class Document;
 }
 namespace Scenario
 {
+class StateModel;
 class IntervalModel;
 class ProcessModel;
 struct Point;
@@ -60,7 +61,8 @@ public:
   RecordSession* recordAddresses(
       Scenario::ProcessModel& scenario, Scenario::Point pt,
       const std::vector<State::Address>& addresses, AddressPlacement placement,
-      std::optional<RecordOptions> options = {});
+      std::optional<RecordOptions> options = {},
+      const Scenario::StateModel* after = nullptr);
   //! What the Record button records in a document: the ports selected, the
   //! audio and MIDI outputs of the processes selected, else of those armed.
   //! `armed` says it is the latter.
