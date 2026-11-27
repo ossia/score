@@ -35,12 +35,16 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <Automation/AutomationModel.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Midi/MidiProcess.hpp>
+#include <libremidi/reader.hpp>
+#include <Patternist/PatternModel.hpp>
 #include <Midi/MidiNote.hpp>
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
@@ -1391,6 +1395,184 @@ TEST_CASE("An outlet goes on writing to its address while watched, by one tap or
 
     engine.execution().request_stop();
     spin(300);
+  });
+}
+
+TEST_CASE("A box started by a trigger quantized to the bar starts on the bar line, to the sample", "[execution][trigger][quantized]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    REQUIRE(dir.isValid());
+    const int rate = ctx.settings<Audio::Settings::Model>().getRate();
+    const QString tone = dir.filePath("dc.wav");
+    write_dc(tone, rate, rate * 20, 0.5f);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& root = score::test::base_interval(*doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    auto& devs = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* audio = devs.list().audioDevice();
+    REQUIRE(audio);
+    const State::Address out{audio->name(), {"out", "main"}};
+
+    // A box that waits for its trigger, quantized to the bar; then a sound
+    Scenario::IntervalModel* waiting{};
+    Scenario::IntervalModel* box{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      waiting = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(500), 0.1});
+      box = &m.createIntervalAfter(
+          scenar, waiting->endState(), {TimeVal::fromMsecs(12000), 0.1});
+      REQUIRE(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), tone));
+      m.commit();
+    }
+    waiting->duration.setRigid(false);
+    waiting->duration.setMinNull(true);
+    waiting->duration.setMaxInfinite(true);
+    auto& sync = Scenario::endTimeSync(*waiting, scenar);
+    sync.setActive(true);
+    sync.setMusicalSync(1.);
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+
+    // What reaches the main output, dated on the document
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::FileOnly;
+    Recording::RecordSession heard{doc->context(), opt};
+    REQUIRE(heard.addAddress(out));
+    heard.placeInBox(root, Recording::AddressPlacement::Automations, {});
+    bool done = false;
+    QObject::connect(&heard, &Recording::RecordSession::finished, [&] { done = true; });
+    REQUIRE(heard.start());
+
+    // Triggered in the middle of a bar: 120 in 4/4, a bar lasts 2 s
+    REQUIRE(spin_until([&] {
+      const double ms = engine.execution().execution_time().msec();
+      return ms > 2700. && ms < 3300.;
+    }, 6000));
+    sync.triggeredByGui();
+    spin(2600);
+    heard.stop();
+    REQUIRE(spin_until([&] { return done; }));
+    engine.execution().request_stop();
+    spin(300);
+
+    REQUIRE(heard.takes().size() == 1);
+    const auto& take = heard.takes()[0];
+    unsigned int ch{}, sr{};
+    drwav_uint64 frames{};
+    float* data = drwav_open_file_and_read_pcm_frames_f32(
+        take.file.toUtf8().constData(), &ch, &sr, &frames, nullptr);
+    REQUIRE(data);
+    REQUIRE(ch >= 1);
+    // The first frame of the sound
+    drwav_uint64 first = frames;
+    for(drwav_uint64 i = 0; i < frames && first == frames; i++)
+      if(data[i * ch] != 0.f)
+        first = i;
+    drwav_free(data, nullptr);
+    REQUIRE(first < frames);
+    const double started = take.startDate / 705600000. + double(first) / sr;
+    INFO("the sound starts at " << started << " s, frame " << first << " of the take from "
+                                << take.startDate / 705600000. << " s");
+    // On the bar line at 4 s: within two frames (the sound fades in from 0)
+    CHECK(std::abs(started - 4.) <= 2. / sr);
+  });
+}
+
+TEST_CASE("A pattern in a box started by a trigger quantized to the bar plays its first step", "[execution][trigger][quantized][pattern]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+
+    Scenario::IntervalModel* waiting{};
+    Scenario::IntervalModel* box{};
+    Patternist::ProcessModel* pattern{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      waiting = &m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(500), 0.1});
+      box = &m.createIntervalAfter(
+          scenar, waiting->endState(), {TimeVal::fromMsecs(12000), 0.1});
+      pattern = static_cast<Patternist::ProcessModel*>(m.createProcessInNewSlot(
+          *box, Metadata<ConcreteKey_k, Patternist::ProcessModel>::get(), {}));
+      m.commit();
+    }
+    REQUIRE(pattern);
+    // The pattern it comes with: a kick (36) on its first step
+    REQUIRE(pattern->patterns().size() >= 1);
+    waiting->duration.setRigid(false);
+    waiting->duration.setMinNull(true);
+    waiting->duration.setMaxInfinite(true);
+    auto& sync = Scenario::endTimeSync(*waiting, scenar);
+    sync.setActive(true);
+    sync.setMusicalSync(1.);
+
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+
+    // Its notes, dated in the box, from when the box starts
+    Recording::RecordOptions opt;
+    opt.target = Recording::RecordOptions::Target::FileOnly;
+    Recording::RecordSession played{doc->context(), opt};
+    REQUIRE(played.addSource(*pattern->outlet));
+    bool done = false;
+    QObject::connect(&played, &Recording::RecordSession::finished, [&] { done = true; });
+    REQUIRE(played.start());
+
+    REQUIRE(spin_until([&] {
+      const double ms = engine.execution().execution_time().msec();
+      return ms > 2700. && ms < 3300.;
+    }, 6000));
+    sync.triggeredByGui();
+    // To the bar line at 4 s, then a bar of the pattern
+    spin(3200);
+    played.stop();
+    REQUIRE(spin_until([&] { return done; }));
+    engine.execution().request_stop();
+    spin(300);
+
+    REQUIRE(played.takes().size() == 1);
+    const auto& take = played.takes()[0];
+    CHECK(take.startDate == 0);
+    QFile f{take.file};
+    REQUIRE(f.open(QIODevice::ReadOnly));
+    const QByteArray bytes = f.readAll();
+    libremidi::reader r;
+    std::vector<uint8_t> raw(bytes.begin(), bytes.end());
+    REQUIRE(r.parse(raw) != libremidi::reader::invalid);
+    REQUIRE(r.tracks.size() == 1);
+    // Ticks of the kicks: 480 to the quarter, a step of the pattern is 120
+    std::vector<int> kicks;
+    int tick = 0;
+    for(const auto& ev : r.tracks[0])
+    {
+      tick += ev.tick;
+      if(ev.m.get_message_type() == libremidi::message_type::NOTE_ON && ev.m.bytes[2] > 0
+         && ev.m.bytes[1] == 36)
+        kicks.push_back(tick);
+    }
+    INFO("kicks at " << [&] {
+      std::string t;
+      for(int k : kicks)
+        t += std::to_string(k) + " ";
+      return t;
+    }());
+    REQUIRE(kicks.size() >= 3);
+    // Steps 0, 4, 6, 8 of the pattern
+    CHECK(kicks[0] <= 1);
+    CHECK(std::abs(kicks[1] - 480) <= 1);
+    CHECK(std::abs(kicks[2] - 720) <= 1);
   });
 }
 
