@@ -205,9 +205,10 @@ void add_take(
     p.setup = [shared, c, length, loop](Process::ProcessModel& m, score::Dispatcher& disp) {
       const ValueTake& take = *shared;
       auto& autom = static_cast<Automation::ProcessModel&>(m);
-      // A loop dropped in a box of another length keeps its own: the curve
-      // spans the loop from the start of the process.
-      const double span = loop && m.duration() > TimeVal::zero()
+      // Dropped in a box of another length, the take keeps its own: the
+      // curve spans it from the start of the process, its last value holding
+      // after it
+      const double span = m.duration() > TimeVal::zero()
                               ? double(length.impl) / double(m.duration().impl)
                               : 1.;
       disp.submit(new Automation::SetMin{autom, take.min[c]});
