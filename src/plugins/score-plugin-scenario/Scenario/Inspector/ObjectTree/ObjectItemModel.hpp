@@ -1,5 +1,6 @@
 #pragma once
 #include <score/document/DocumentContext.hpp>
+#include <score_plugin_scenario_export.h>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
@@ -24,7 +25,7 @@ namespace Scenario
 // TimeSync / event / state / state processes
 // or
 // Interval / processes
-class ObjectItemModel final
+class SCORE_PLUGIN_SCENARIO_EXPORT ObjectItemModel final
     : public QAbstractItemModel
     , public Nano::Observer
 {

@@ -28,6 +28,11 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <Effect/EffectFactory.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+#include <Effect/EffectLayer.hpp>
 #include <LocalTree/EventComponent.hpp>
 #include <LocalTree/IntervalComponent.hpp>
 #include <LocalTree/ProcessComponent.hpp>
@@ -724,6 +729,16 @@ QMimeData* ObjectItemModel::mimeData(const QModelIndexList& indexes) const
   m->setData(
       "score/object-item-model-index",
       score::marshall<DataStream>(Path<Process::ProcessModel>{*q}));
+  // What a process dragged anywhere else carries: dropped on an interval it
+  // moves there, on a scenario it moves to a new box
+  {
+    JSONReader r;
+    r.stream.StartObject();
+    Process::copyProcess(r, *q);
+    r.obj["Path"] = score::IDocument::path(*q);
+    r.stream.EndObject();
+    m->setData(score::mime::layerdata(), r.toByteArray());
+  }
   return m;
 }
 
@@ -733,10 +748,6 @@ bool ObjectItemModel::canDropMimeData(
 {
   if(!parent.isValid())
     return false;
-  if(r <= 0)
-    return false;
-
-  auto row = std::size_t(r);
   auto obj = score::unmarshall<Path<Process::ProcessModel>>(
       data->data("score/object-item-model-index"));
   auto other = obj.try_find(m_ctx);
@@ -744,11 +755,18 @@ bool ObjectItemModel::canDropMimeData(
     return false;
 
   auto p = (QObject*)parent.internalPointer();
+  // From another interval, onto this one or among its processes: moved here
+  if(auto itv = qobject_cast<Scenario::IntervalModel*>(p);
+     itv && other->parent() != itv)
+    return qobject_cast<Scenario::IntervalModel*>(other->parent()) != nullptr
+           && data->hasFormat(score::mime::layerdata());
+  if(r <= 0)
+    return false;
+
+  auto row = std::size_t(r);
   Process::ProcessModel* the_proc{};
   if(auto itv = qobject_cast<Scenario::IntervalModel*>(p))
   {
-    if(other->parent() != itv)
-      return false;
     if(row < itv->processes.size())
     {
       auto pb = itv->processes.map().m_order.begin();
@@ -809,10 +827,6 @@ bool ObjectItemModel::dropMimeData(
   using namespace Scenario::Command;
   if(!parent.isValid())
     return false;
-  if(r <= 0)
-    return false;
-
-  auto row = std::size_t(r);
   auto obj = score::unmarshall<Path<Process::ProcessModel>>(
       data->data("score/object-item-model-index"));
   auto other = obj.try_find(m_ctx);
@@ -820,6 +834,16 @@ bool ObjectItemModel::dropMimeData(
     return false;
 
   auto p = (QObject*)parent.internalPointer();
+  // From another interval: as dropped on this one in the scenario
+  if(auto itv = qobject_cast<Scenario::IntervalModel*>(p);
+     itv && other->parent() != itv)
+    return qobject_cast<Scenario::IntervalModel*>(other->parent())
+           && m_ctx.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
+               m_ctx, *itv, {}, *data);
+  if(r <= 0)
+    return false;
+
+  auto row = std::size_t(r);
 
   auto move_in_itv = [this, other](auto itv, std::size_t row) {
     if(other->parent() != itv)

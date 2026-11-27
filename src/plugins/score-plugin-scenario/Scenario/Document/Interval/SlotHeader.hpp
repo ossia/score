@@ -1,4 +1,5 @@
 #pragma once
+#include <QEvent>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
@@ -96,7 +97,7 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 };
 
-class SlotDragOverlay final
+class SCORE_PLUGIN_SCENARIO_EXPORT SlotDragOverlay final
     : public QObject
     , public QGraphicsItem
 {
@@ -116,7 +117,14 @@ public:
 
   void onDrag(QPointF pos);
 
+  //! An interval under the overlay, inside a slot (one of a scenario shown in
+  //! it): a drag there is for that interval, not for moving the slot
+  QGraphicsItem* intervalBelow(QPointF scenePos) const;
+
 private:
+  //! Passes `event` to `target` as a drag event of its own
+  static void forward(
+      QGraphicsItem& target, QGraphicsSceneDragDropEvent& event, QEvent::Type type);
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
@@ -125,5 +133,7 @@ private:
 
 private:
   QRectF m_drawnRect;
+  //! The interval the drag is forwarded to
+  QGraphicsItem* m_below{};
 };
 }

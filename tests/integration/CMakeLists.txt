@@ -1884,7 +1884,18 @@ score_add_test(test_integration_scenario_lock_modifier
 # A process pasted into a box keeps its content's dates: Ctrl+V does not
 # squeeze a piano roll into a shorter box.
 if(TARGET score_plugin_midi)
-  score_add_test(test_integration_process_paste_duration
+  # A process moved into a box of the scenario: by its slot header in the full
+# view of its own box, or from the object list.
+score_add_test(test_integration_process_move_drop
+  SOURCES ProcessMoveDropTest.cpp
+  APP
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)
+score_add_test(test_integration_process_move_drop_gui
+  SOURCES ProcessMoveDropGuiTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)
+
+score_add_test(test_integration_process_paste_duration
     SOURCES ProcessPasteDurationTest.cpp
     GUI
     PLUGINS score_plugin_scenario score_lib_process score_plugin_midi)

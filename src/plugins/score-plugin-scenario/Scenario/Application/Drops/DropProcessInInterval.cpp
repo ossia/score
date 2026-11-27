@@ -1,3 +1,4 @@
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Application/Drops/DropProcessInInterval.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
@@ -60,11 +61,18 @@ bool DropProcessInInterval::drop(
     auto dat = score::unmarshall<Path<Process::ProcessModel>>(
         mime.data("score/object-item-model-index"));
     auto proc = dat.try_find(ctx);
+    if(!proc)
+      return false;
+    // Into its own interval: shown in a slot of it. Into another one it moves,
+    // which the layer drop does with what the drag also carries.
     if(proc->parent() == &cst)
     {
       CommandDispatcher<>{ctx.commandStack}.submit(
           new Scenario::Command::AddLayerInNewSlot{cst, proc->id()});
+      return true;
     }
+    if(mime.hasFormat(score::mime::layerdata()))
+      return false;
     return true;
   }
 

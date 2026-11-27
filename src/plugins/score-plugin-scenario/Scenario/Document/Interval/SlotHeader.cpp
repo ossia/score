@@ -8,6 +8,7 @@
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
@@ -21,6 +22,8 @@
 
 #include <QApplication>
 #include <QDrag>
+#include <QGraphicsScene>
+#include <QGraphicsSceneDragDropEvent>
 #include <QGraphicsView>
 #include <QMimeData>
 #include <QPainter>
@@ -430,22 +433,80 @@ void SlotDragOverlay::onDrag(QPointF pos)
   }
 }
 
+QGraphicsItem* SlotDragOverlay::intervalBelow(QPointF scenePos) const
+{
+  auto* s = scene();
+  if(!s)
+    return nullptr;
+  for(QGraphicsItem* item : s->items(scenePos))
+  {
+    if(item == this || item == interval.view() || !item->acceptDrops())
+      continue;
+    // Only the intervals nested in a slot: the slots themselves are moved
+    if(!interval.view()->isAncestorOf(item))
+      continue;
+    if(dynamic_cast<IntervalView*>(item) || dynamic_cast<IntervalHeader*>(item))
+      return item;
+  }
+  return nullptr;
+}
+
+void SlotDragOverlay::forward(
+    QGraphicsItem& target, QGraphicsSceneDragDropEvent& event, QEvent::Type type)
+{
+  QGraphicsSceneDragDropEvent e{type};
+  e.setScenePos(event.scenePos());
+  e.setScreenPos(event.screenPos());
+  e.setPos(target.mapFromScene(event.scenePos()));
+  e.setButtons(event.buttons());
+  e.setModifiers(event.modifiers());
+  e.setPossibleActions(event.possibleActions());
+  e.setProposedAction(event.proposedAction());
+  e.setDropAction(event.dropAction());
+  e.setMimeData(event.mimeData());
+  e.setWidget(event.widget());
+  e.setSource(event.source());
+  if(auto* s = target.scene())
+    s->sendEvent(&target, &e);
+  event.setDropAction(e.dropAction());
+}
+
 void SlotDragOverlay::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   m_drawnRect = {};
 
-  onDrag(event->pos());
-  event->accept();
+  dragMoveEvent(event);
 }
 
 void SlotDragOverlay::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  onDrag(event->pos());
+  auto* below = intervalBelow(event->scenePos());
+  if(below != m_below)
+  {
+    if(m_below)
+      forward(*m_below, *event, QEvent::GraphicsSceneDragLeave);
+    m_below = below;
+    if(m_below)
+      forward(*m_below, *event, QEvent::GraphicsSceneDragEnter);
+  }
+  if(m_below)
+  {
+    forward(*m_below, *event, QEvent::GraphicsSceneDragMove);
+    m_drawnRect = {};
+    update();
+  }
+  else
+  {
+    onDrag(event->pos());
+  }
   event->accept();
 }
 
 void SlotDragOverlay::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
+  if(m_below)
+    forward(*m_below, *event, QEvent::GraphicsSceneDragLeave);
+  m_below = nullptr;
   m_drawnRect = {};
   update();
   event->accept();
@@ -454,6 +515,15 @@ void SlotDragOverlay::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   event->accept();
+  // Onto an interval of a scenario in a slot: dropped there
+  if(auto* below = intervalBelow(event->scenePos()))
+  {
+    m_below = nullptr;
+    m_drawnRect = {};
+    update();
+    forward(*below, *event, QEvent::GraphicsSceneDrop);
+    return;
+  }
   const auto pos = event->pos();
   const auto y = pos.y();
   const auto rect = interval.view()->boundingRect();
