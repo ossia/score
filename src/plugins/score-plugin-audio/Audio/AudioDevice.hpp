@@ -10,10 +10,13 @@
 
 #include <score_plugin_audio_export.h>
 
+#include <functional>
+
 #include <verdigris>
 
 namespace ossia
 {
+class audio_engine;
 class audio_protocol;
 }
 class QLineEdit;
@@ -76,14 +79,30 @@ public:
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
   ossia::audio_protocol* getProtocol() const { return m_protocol; }
 
+  //! The whole device was rebuilt: every audio_parameter pointer is new.
+  //! Sets the gain of a port, which the document keeps: it is restored when
+  //! the document is loaded and when the device reconnects.
+  void setGain(const State::Address& addr, double gain);
+
   void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
+  //! A mapped or virtual port was added, edited or removed.
+  void portsChanged() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, portsChanged)
 
 private:
   using Device::DeviceInterface::refresh;
-  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  //! Prepares a port; returns what must change between two audio ticks.
+  [[nodiscard]] std::function<void()>
+  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  //! Hands the ports to the audio callback, with `change`, between two ticks.
+  void publishPorts(const std::function<void()>& change = {});
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};
+  // What the tree was built for: a restarted engine is another one, even at
+  // the same address.
+  std::weak_ptr<ossia::audio_engine> m_builtFor;
+  int m_builtInputs{-1};
+  int m_builtOutputs{-1};
   std::shared_ptr<ossia::net::generic_device> m_dev;
 
   struct hash

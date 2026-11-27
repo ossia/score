@@ -1847,8 +1847,10 @@ TEST_CASE("Execution values reach the ui from the queue only", "[avnd][ui][execu
       get<1>(ins) = 0.5f;
       get<0>(outs) = 0.75f;
     }
-    node->control.ins_queue.enqueue(ins);
-    node->control.outs_queue.enqueue(outs);
+    node->control.ins_buffer.write_buffer() = ins;
+    node->control.ins_buffer.publish();
+    node->control.outs_buffer.write_buffer() = outs;
+    node->control.outs_buffer.publish();
 
     std::vector<float> a, b;
     QObject::connect(

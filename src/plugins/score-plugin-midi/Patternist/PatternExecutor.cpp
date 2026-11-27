@@ -3,6 +3,7 @@
 #include "PatternExecutor.hpp"
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Execution/TelemetryInterface.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
@@ -105,27 +106,29 @@ Executor::Executor(
     });
   });
   // The process can be deleted before this component goes away (removing it
-  // while playing): the timer must not reach a dead model in between.
-  con(ctx.doc.execTimer, &QTimer::timeout, this,
-      [element = QPointer{&element}, node] {
-    if(!element)
-      return;
-    const auto& shown = node->shown;
-    const int count = std::clamp(
-        shown.lane_count.load(std::memory_order_relaxed), 0, pattern_node::max_lanes);
-    std::vector<int64_t> steps(count);
-    for(int i = 0; i < count; i++)
-      steps[i] = shown.lanes[i].load(std::memory_order_relaxed);
-    // Only when something moved: every change repaints the layer.
-    if(steps != element->execSteps())
-    {
-      element->setExecSteps(std::move(steps));
-      element->execStepsChanged();
-    }
-    element->execPattern(
-        shown.pattern.load(std::memory_order_relaxed),
-        shown.pending.load(std::memory_order_relaxed));
-  });
+  // while playing): an update must not reach a dead model in between.
+  if(auto* telemetry = ctx.telemetry)
+    connect(
+        telemetry, &Execution::TelemetryInterface::updated, this,
+        [element = QPointer{&element}, node] {
+      if(!element)
+        return;
+      const auto& shown = node->shown;
+      const int count = std::clamp(
+          shown.lane_count.load(std::memory_order_relaxed), 0, pattern_node::max_lanes);
+      std::vector<int64_t> steps(count);
+      for(int i = 0; i < count; i++)
+        steps[i] = shown.lanes[i].load(std::memory_order_relaxed);
+      // Only when something moved: every change repaints the layer.
+      if(steps != element->execSteps())
+      {
+        element->setExecSteps(std::move(steps));
+        element->execStepsChanged();
+      }
+      element->execPattern(
+          shown.pattern.load(std::memory_order_relaxed),
+          shown.pending.load(std::memory_order_relaxed));
+    });
 }
 
 void Executor::stop()

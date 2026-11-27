@@ -14,7 +14,7 @@ struct update_control_in_value_in_ui
   using ExecNode = safe_node<Node>;
   using Model = ProcessModel<Node>;
 
-  typename ExecNode::control_input_values_type& arr;
+  const typename ExecNode::control_input_values_type& arr;
   QPointer<Model> element;
 
   template <std::size_t N>
@@ -41,7 +41,7 @@ struct update_control_out_value_in_ui
 {
   using ExecNode = safe_node<Node>;
   using Model = ProcessModel<Node>;
-  typename ExecNode::control_output_values_type& arr;
+  const typename ExecNode::control_output_values_type& arr;
   QPointer<Model> element;
 
   template <std::size_t N>
@@ -76,16 +76,11 @@ struct update_control_value_in_ui
     // TODO disconnect the connection ? it will be disconnected shortly
     // after...
 
-    typename ExecNode::control_input_values_type arr;
-    bool ok = false;
-    while(node.control.ins_queue.try_dequeue(arr))
+    if(node.control.ins_buffer.consume())
     {
-      ok = true;
-    }
-    if(ok)
-    {
-      // Values already came through the queue. Do not inspect live instances:
+      // Values already came through the triple buffer. Do not inspect live instances:
       // audio channel negotiation can resize their storage on another thread.
+      const auto& arr = node.control.ins_buffer.read_buffer();
       auto publish = update_control_in_value_in_ui<Node>{arr, element};
       [&]<std::size_t... N>(std::index_sequence<N...>) {
         (publish.template operator()<N>(), ...);
@@ -98,15 +93,10 @@ struct update_control_value_in_ui
     using namespace ossia::safe_nodes;
     // TODO disconnect the connection ? it will be disconnected shortly
     // after...
-    typename ExecNode::control_output_values_type arr;
-    bool ok = false;
-    while(node.control.outs_queue.try_dequeue(arr))
+    if(node.control.outs_buffer.consume())
     {
-      ok = true;
-    }
-    if(ok)
-    {
-      // The queued tuple contains the first channel's output controls.
+      // The buffered tuple contains the first channel's output controls.
+      const auto& arr = node.control.outs_buffer.read_buffer();
       auto publish = update_control_out_value_in_ui<Node>{arr, element};
       [&]<std::size_t... N>(std::index_sequence<N...>) {
         (publish.template operator()<N>(), ...);

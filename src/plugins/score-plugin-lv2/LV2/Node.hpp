@@ -9,6 +9,7 @@
 #include <ossia/detail/lockfree_queue.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/triple_buffer.hpp>
 
 #include <libremidi/detail/conversion.hpp>
 
@@ -193,6 +194,10 @@ struct lv2_node final : public ossia::graph_node
   //! channel, on the first MIDI input.
   bool m_notesOff{};
 
+  //! The control outputs of the latest tick, for the interface. Every slot is
+  //! sized at construction, so that publishing never allocates.
+  ossia::triple_buffer<ossia::float_vector> ui_controls;
+
   // Avoids RT-unfriendly realloc in append_voice for common channel counts
   static constexpr std::size_t kVoicePoolReserve = 256;
 
@@ -218,6 +223,13 @@ struct lv2_node final : public ossia::graph_node
     const auto atom_out_size = data.atom_out_ports.size();
     const auto control_in_size = data.control_in_ports.size();
     const auto control_out_size = data.control_out_ports.size();
+
+    for(std::size_t i = 0; i < 3; i++)
+    {
+      ui_controls.write_buffer().resize(control_out_size);
+      ui_controls.publish();
+      ui_controls.consume();
+    }
 
     if(audio_in_size > 0)
       m_inlets.push_back(new ossia::audio_inlet);
@@ -973,6 +985,11 @@ struct lv2_node final : public ossia::graph_node
           = m_outlets[control_start + i]->template cast<ossia::value_port>();
       out.write_value(v0.fOutControls[i] / fOutScale[i], offset);
     }
+
+    auto& ui = ui_controls.write_buffer();
+    for(std::size_t i = 0; i < ui.size() && i < v0.fOutControls.size(); i++)
+      ui[i] = v0.fOutControls[i] / fOutScale[i];
+    ui_controls.publish();
   }
 
   //! The frames of the run that tells a stop: the outputs go to scratch
