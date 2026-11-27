@@ -14,6 +14,7 @@
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
 #include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
 #include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <Scenario/Commands/Signature/SignatureCommands.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Commands/Properties.hpp>
 
@@ -1161,6 +1162,20 @@ void EditJsContext::setIntervalSpeed(QObject* object, double s)
     return;
 
   i->duration.setSpeed(s);
+}
+
+void EditJsContext::setIntervalQuantization(QObject* object, double bars)
+{
+  auto doc = ctx();
+  if(!doc)
+    return;
+
+  auto i = qobject_cast<Scenario::IntervalModel*>(object);
+  if(!i || !std::isfinite(bars))
+    return;
+
+  auto [m, _] = macro(*doc);
+  m->submit(new Scenario::Command::SetIntervalQuantizationRate{*i, bars});
 }
 
 void EditJsContext::setAutoTrigger(QObject* object, bool b)

@@ -33,6 +33,9 @@ Score.createAddress("sink:/never", "float");
 var root = Score.rootInterval();
 Score.setIntervalDuration(root, 30 * FL);
 var scen = Score.process(root, 0);
+// Starting and stopping intervals waits for nothing unless a test says so,
+// whatever a new document defaults to
+Score.setIntervalQuantization(root, 0);
 var A = Score.createIntervalAfter(Score.startState(scen), 2 * FL, 0.1);
 var B = Score.createIntervalAfter(Score.endState(A), 3 * FL, 0.3);
 var C = Score.createIntervalAfter(Score.endState(B), 3 * FL, 0.5);
@@ -97,7 +100,7 @@ after(3000, function() { console.log("B=" + b()); Score.stop(); Qt.exit(0); });
 
 TEST_CASE(
     "an interval stopped and played again after play from here starts over",
-    "[execution][transport]")
+    "[execution][transport][quantization]")
 {
   if(!app::binary_available())
     SKIP("no application binary");
@@ -113,6 +116,42 @@ after(1100, function() { console.log("B=" + b()); Score.stop(); Qt.exit(0); });
   REQUIRE(values.size() == 2);
   CHECK(values[0] > 0.5);
   CHECK(values[1] < 0.3);
+}
+
+TEST_CASE(
+    "an interval stopped while its parent is quantized to the bar stops on the next bar line",
+    "[execution][transport][quantization]")
+{
+  if(!app::binary_available())
+    SKIP("no application binary");
+
+  // At 120 a bar is 2 s. Play from 3.5 s: B is 1.5 s in, the next bar line
+  // of the root is at 4 s. Stopped at 3.6 s, B goes on until the line, then
+  // holds what it last wrote; played again after it, it starts over.
+  const auto values = run(QStringLiteral(R"JS(
+Score.setIntervalQuantization(root, 1);
+Score.playFromHere(3500);
+after(100, function() { Score.stop(B); });
+after(300, function() { console.log("B=" + b()); });
+after(800, function() { console.log("B=" + b()); });
+after(1100, function() { console.log("B=" + b()); });
+after(1200, function() { Score.play(B); });
+after(2000, function() { console.log("B=" + b()); });
+after(3000, function() { console.log("B=" + b()); Score.stop(); Qt.exit(0); });
+)JS"));
+  REQUIRE(values.size() == 5);
+  // Still going before the bar line: 1.7 s into B
+  CHECK(values[0] > 0.52);
+  CHECK(values[0] < 0.62);
+  // Stopped on it: 2 s into B, and no further
+  CHECK(values[1] > 0.6);
+  CHECK(values[1] < 0.72);
+  CHECK(values[2] == values[1]);
+  // Played again at 4.7 s: it waits for the line at 6 s (5.5 s: not yet),
+  // then starts over from it (6.5 s: half a second in)
+  CHECK(values[3] == values[1]);
+  CHECK(values[4] > 0.1);
+  CHECK(values[4] < 0.25);
 }
 
 TEST_CASE(

@@ -232,6 +232,10 @@ public:
   W_SLOT(setIntervalMaxInfinite)
   void setIntervalSpeed(QObject* object, double);
   W_SLOT(setIntervalSpeed)
+  //! What starting and stopping the interval waits for, in bars: 1 the next
+  //! bar line, 0.25 the next quarter note, 0 nothing; -1 its parent's
+  void setIntervalQuantization(QObject* object, double bars);
+  W_SLOT(setIntervalQuantization)
 
   void setAutoTrigger(QObject* timeSync, bool);
   W_SLOT(setAutoTrigger)
