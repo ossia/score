@@ -5,6 +5,7 @@
 #include <Process/Layer/LayerContextMenu.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Recording/Session/RecordMenus.hpp>
+#include <Recording/Engine/Metronome.hpp>
 #include <Scenario/Application/Menus/TransportDisplay.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
@@ -143,6 +144,12 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 }
 
 ApplicationPlugin::~ApplicationPlugin() = default;
+
+void ApplicationPlugin::initialize()
+{
+  // The settings are loaded by now
+  m_metronome = std::make_unique<Metronome>(*this);
+}
 
 RecordSession* ApplicationPlugin::adopt(
     std::unique_ptr<RecordSession> session, const score::DocumentContext& ctx)

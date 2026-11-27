@@ -38,6 +38,10 @@ public:
   ~ExecutionController();
 
   void playStarted() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, playStarted)
+  //! An execution of `root` from `date` is about to start: its tick is not
+  //! running yet
+  void aboutToPlay(const Scenario::IntervalModel& root, TimeVal date)
+      E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, aboutToPlay, root, date)
   void playStopped() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, playStopped)
 
   TransportInterface& transport() const noexcept;

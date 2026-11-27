@@ -40,6 +40,7 @@ struct Point;
 } // namespace Scenario
 namespace Recording
 {
+class Metronome;
 class RecordSession;
 class SCORE_PLUGIN_RECORDING_EXPORT ApplicationPlugin final
     : public QObject
@@ -48,6 +49,8 @@ class SCORE_PLUGIN_RECORDING_EXPORT ApplicationPlugin final
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
   ~ApplicationPlugin() override;
+  void initialize() override;
+  Metronome* metronome() const noexcept { return m_metronome.get(); }
 
   //! Starts a session on these addresses, recorded into `box` from now
   RecordSession* recordAddressesInto(
@@ -108,6 +111,7 @@ public:
 
 private:
   Engine::ApplicationPlugin* m_ossiaplug{};
+  std::unique_ptr<Metronome> m_metronome;
   QAction* m_stopAction{};
   QAction* m_recordAct{};
   QTimer m_blink;

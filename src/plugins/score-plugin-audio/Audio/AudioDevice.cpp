@@ -196,6 +196,20 @@ bool AudioDevice::reconnect()
           p->set_value(v.value);
     }
 
+    // The output of the metronome and the count-in: the first two outputs
+    // until it is routed elsewhere in the explorer
+    if(!ossia::net::find_node(m_dev->get_root_node(), "/out/cue"))
+    {
+      // Channels the sound card does not have are left out when it plays
+      ossia::audio_mapping mapping{0, 1};
+      ossia::extended_attributes attr;
+      attr["audio-kind"] = std::string("out");
+      attr["audio-channels"] = int(mapping.size());
+      attr["audio-mapping"] = std::move(mapping);
+      if(auto node = Device::createNodeFromPath({"out", "cue"}, *m_dev))
+        setupNode(*node, attr);
+    }
+
     for(const auto& [address, value] : values)
       if(auto node = ossia::net::find_node(m_dev->get_root_node(), address))
         if(auto p = node->get_parameter())

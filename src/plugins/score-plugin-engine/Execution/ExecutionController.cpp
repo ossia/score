@@ -654,6 +654,7 @@ void ExecutionController::play_interval(
       exec_plug->runAllCommands();
     }
 
+    aboutToPlay(cst, t);
     m_clock->play(t);
     m_paused = false;
   }

@@ -15,6 +15,10 @@ public:
   virtual ~ExecutionAction();
   virtual void startTick(const ossia::audio_tick_state& st);
   virtual void endTick(const ossia::audio_tick_state& st);
+  //! After startTick: the score does not advance during this tick (a
+  //! count-in before playback). Only asked when no external transport drives
+  //! the execution. Audio thread.
+  virtual bool holds() const noexcept;
 };
 
 class SCORE_LIB_PROCESS_EXPORT ExecutionActionList final

@@ -78,13 +78,17 @@ SETTINGS_PARAMETER_IMPL(ClickAccent){
     QStringLiteral("score_plugin_recording/ClickAccent"), true};
 SETTINGS_PARAMETER_IMPL(CountInBars){
     QStringLiteral("score_plugin_recording/CountInBars"), 1};
+SETTINGS_PARAMETER_IMPL(Metronome){
+    QStringLiteral("score_plugin_recording/Metronome"), false};
+SETTINGS_PARAMETER_IMPL(CountInOnPlay){
+    QStringLiteral("score_plugin_recording/CountInOnPlay"), false};
 
 static auto list()
 {
   return std::tie(
       AudioFormat, Start, StartOn, LengthBars, Target, MuteSource, LoopFixedLength,
       MidiQuantize, VideoEncoder, TouchRelease, CaptureBars, InputLatency, EngineLatency,
-      ClickSound, ClickVolume, ClickAccent, CountInBars);
+      ClickSound, ClickVolume, ClickAccent, CountInBars, Metronome, CountInOnPlay);
 }
 }
 
@@ -164,6 +168,8 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, ClickSound)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, ClickVolume)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ClickAccent)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, CountInBars)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Metronome)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, CountInOnPlay)
 
 View::View()
 {
@@ -197,12 +203,35 @@ View::View()
       tr("Capture places the last whole bars the armed processes played, up to this "
          "many, as loops."));
 
-  tab(tr("Count-in"));
-  SETTINGS_UI_SPINBOX_SETUP("Bars", CountInBars);
+  SETTINGS_UI_TOGGLE_SETUP("Loop takes of a number of bars", LoopFixedLength);
+  score::setHelp(
+      m_LoopFixedLength,
+      tr("A take of a number of bars is placed as a loop that long from the start of "
+         "its box, turned so that each moment of the box plays what was played there."));
+  SETTINGS_UI_COMBOBOX_SETUP("Takes go to", Target, Targets{});
+  score::setHelp(
+      m_Target, tr("Where a take is placed when the recording ends; it is always "
+                   "written to the Takes folder of the document."));
+
+  SETTINGS_UI_TOGGLE_SETUP("Mute what was recorded", MuteSource);
+  score::setHelp(
+      m_MuteSource, tr("When a take is placed, the process it was recorded from is muted "
+                       "in the same step, so that it is not heard twice."));
+
+  tab(tr("Metronome"));
+  SETTINGS_UI_TOGGLE_SETUP("Click while playing", Metronome);
+  score::setHelp(
+      m_Metronome, tr("The beats of the score are clicked on the cue output (audio:/out/cue) "
+                      "while it plays."));
+  SETTINGS_UI_TOGGLE_SETUP("Count in before playback", CountInOnPlay);
+  score::setHelp(
+      m_CountInOnPlay, tr("Play waits for the count-in's bars of clicks, at the tempo and "
+                          "time signature the score starts with."));
+  SETTINGS_UI_SPINBOX_SETUP("Count-in bars", CountInBars);
   m_CountInBars->setRange(1, 16);
   score::setHelp(
-      m_CountInBars, tr("The whole bars clicked, at least, before a recording counted in "
-                        "starts on a bar line."));
+      m_CountInBars, tr("The bars clicked before playback, and at least before a recording "
+                        "counted in starts on a bar line."));
   SETTINGS_UI_COMBOBOX_SETUP("Sound", ClickSound, ClickSounds{});
   SETTINGS_UI_SPINBOX_SETUP("Volume", ClickVolume);
   m_ClickVolume->setRange(0, 100);
@@ -427,6 +456,8 @@ SETTINGS_UI_COMBOBOX_IMPL(ClickSound)
 SETTINGS_UI_SPINBOX_IMPL(ClickVolume)
 SETTINGS_UI_TOGGLE_IMPL(ClickAccent)
 SETTINGS_UI_SPINBOX_IMPL(CountInBars)
+SETTINGS_UI_TOGGLE_IMPL(Metronome)
+SETTINGS_UI_TOGGLE_IMPL(CountInOnPlay)
 SETTINGS_UI_SPINBOX_IMPL(SimplificationRatio)
 SETTINGS_UI_TOGGLE_IMPL(Simplify)
 SETTINGS_UI_TOGGLE_IMPL(Ramp)
@@ -452,6 +483,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(ClickVolume);
   SETTINGS_PRESENTER(ClickAccent);
   SETTINGS_PRESENTER(CountInBars);
+  SETTINGS_PRESENTER(Metronome);
+  SETTINGS_PRESENTER(CountInOnPlay);
 
   // The curve plug-in's model: the same commands as its own page had
   auto& c = score::AppContext().settings<Curve::Settings::Model>();

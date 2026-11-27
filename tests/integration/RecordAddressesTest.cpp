@@ -67,6 +67,7 @@
 #include <Execution/ExecutionController.hpp>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Session/RecordMenus.hpp>
+#include <Recording/Engine/Metronome.hpp>
 #include <Recording/Settings/RecordingSettings.hpp>
 #include <Process/Dataflow/PortContextMenu.hpp>
 #include <Explorer/Explorer/ExplorerMenuFactory.hpp>
@@ -1730,6 +1731,18 @@ TEST_CASE("The count-in's menu sets how it clicks, and a recording counted in fo
     Recording::addCountInEntries(menu, ctx);
     const auto tree = menuTree(menu);
     INFO(tree.join("\n").toStdString());
+    {
+      const bool metro = settings.getMetronome();
+      const bool on_play = settings.getCountInOnPlay();
+      REQUIRE(actionAt(menu, "Metronome"));
+      actionAt(menu, "Metronome")->trigger();
+      CHECK(settings.getMetronome() == !metro);
+      REQUIRE(actionAt(menu, "Count in before playback"));
+      actionAt(menu, "Count in before playback")->trigger();
+      CHECK(settings.getCountInOnPlay() == !on_play);
+      settings.setMetronome(metro);
+      settings.setCountInOnPlay(on_play);
+    }
     REQUIRE(actionAt(menu, "Count-in/2 bars"));
     actionAt(menu, "Count-in/2 bars")->trigger();
     CHECK(settings.getCountInBars() == 2);
@@ -1918,6 +1931,257 @@ TEST_CASE("The takes of a process go into the box the menu was opened on, or int
   });
 }
 
+namespace
+{
+//! The starts of the sounds of a recorded file, in ms, in windows of 10 ms
+std::vector<double> onsetsOf(const QString& file)
+{
+  std::vector<double> onsets;
+  unsigned int ch{}, sr{};
+  drwav_uint64 frames{};
+  float* data = drwav_open_file_and_read_pcm_frames_f32(
+      file.toStdString().c_str(), &ch, &sr, &frames, nullptr);
+  if(!data || sr == 0)
+    return onsets;
+  const int win = int(sr) / 100;
+  bool loud = false;
+  for(drwav_uint64 i = 0; i + win <= frames; i += win)
+  {
+    float peak = 0.f;
+    for(int k = 0; k < win; k++)
+      for(unsigned c = 0; c < ch; c++)
+        peak = std::max(peak, std::abs(data[(i + k) * ch + c]));
+    if(peak > 0.05f && !loud)
+      onsets.push_back(double(i) / sr * 1000.);
+    loud = peak > 0.05f;
+  }
+  drwav_free(data, nullptr);
+  return onsets;
+}
+
+struct MetronomeSettings
+{
+  Recording::Settings::Model& s;
+  bool metronome{s.getMetronome()};
+  bool countIn{s.getCountInOnPlay()};
+  int bars{s.getCountInBars()};
+  ~MetronomeSettings()
+  {
+    s.setMetronome(metronome);
+    s.setCountInOnPlay(countIn);
+    s.setCountInBars(bars);
+  }
+};
+}
+
+TEST_CASE("The audio device has a cue output on its first two channels", "[recording][metronome][cue]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto* param = Recording::Metronome::cueOutput(doc->context());
+    REQUIRE(param);
+    CHECK(param->get_node().osc_address() == "/out/cue");
+    const auto channels = Recording::Metronome::cueChannels(doc->context());
+    REQUIRE(!channels.empty());
+    CHECK(channels[0] == 0);
+    if(channels.size() > 1)
+      CHECK(channels[1] == 1);
+  });
+}
+
+TEST_CASE("Counted in before playback, play waits for the bars of clicks, then the score starts", "[recording][metronome][countin][play]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    MetronomeSettings restore{ctx.settings<Recording::Settings::Model>()};
+    auto& settings = restore.s;
+    settings.setMetronome(false);
+    settings.setCountInOnPlay(true);
+    settings.setCountInBars(1);
+    auto* hold = Recording::CountInHold::instance();
+    REQUIRE(hold);
+
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    QElapsedTimer clock;
+    clock.start();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(900);
+    // 120 in 4/4: four beats, two seconds
+    CHECK(hold->counting());
+    CHECK(engine.execution().execution_time().msec() < 30.);
+    REQUIRE(spin_until([&] { return !hold->counting(); }, 5000));
+    const double counted = clock.elapsed();
+    INFO("counted in for " << counted << " ms");
+    CHECK(counted > 1900.);
+    CHECK(counted < 2600.);
+    CHECK(hold->clicked() == 4);
+    spin(1000);
+    const double played = engine.execution().execution_time().msec();
+    INFO("then played " << played << " ms");
+    CHECK(played > 800.);
+    CHECK(played < 1300.);
+    engine.execution().request_stop();
+    spin(300);
+
+    // Stopped while counting: the next play counts again from the start
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(500);
+    CHECK(hold->counting());
+    engine.execution().request_stop();
+    spin(300);
+    CHECK(!hold->counting());
+
+    // At 180 (speed x1.5 in the transport): the bar lasts 1.33 s
+    auto& root = score::test::base_interval(*doc);
+    root.duration.setSpeed(1.5);
+    CHECK(Recording::Metronome::playedTempo(root, TimeVal::zero()) == Catch::Approx(180.));
+    {
+      QElapsedTimer fast;
+      fast.start();
+      engine.execution().request_play_global(true);
+      REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+      spin(200);
+      CHECK(hold->counting());
+      REQUIRE(spin_until([&] { return !hold->counting(); }, 5000));
+      const double took = fast.elapsed();
+      INFO("counted in at 180 for " << took << " ms");
+      CHECK(took > 1250.);
+      CHECK(took < 1900.);
+      engine.execution().request_stop();
+      spin(300);
+    }
+    root.duration.setSpeed(1.);
+
+    // Off: the score starts at once
+    settings.setCountInOnPlay(false);
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(700);
+    CHECK(!hold->counting());
+    CHECK(engine.execution().execution_time().msec() > 400.);
+    engine.execution().request_stop();
+    spin(300);
+  });
+}
+
+TEST_CASE("The metronome clicks the beats while playing, on the cue output, and not when off", "[recording][metronome][heard]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    MetronomeSettings restore{ctx.settings<Recording::Settings::Model>()};
+    auto& settings = restore.s;
+    settings.setCountInOnPlay(false);
+    for(bool on : {true, false})
+    {
+      INFO("metronome " << on);
+      settings.setMetronome(on);
+      auto* doc = score::test::new_document(ctx);
+      REQUIRE(doc);
+      auto& devs = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+      auto* audio = devs.list().audioDevice();
+      REQUIRE(audio);
+      auto& root = score::test::base_interval(*doc);
+      auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+      auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+      engine.execution().request_play_global(true);
+      REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+      spin(600);
+
+      Recording::RecordOptions opt;
+      opt.target = Recording::RecordOptions::Target::FileOnly;
+      Recording::RecordSession heard{doc->context(), opt};
+      REQUIRE(heard.addAddress(State::Address{audio->name(), {"out", "cue"}}));
+      heard.placeInBox(root, Recording::AddressPlacement::Automations, {});
+      bool done = false;
+      QObject::connect(&heard, &Recording::RecordSession::finished, [&] { done = true; });
+      REQUIRE(heard.start());
+      spin(2200);
+      auto* metro = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>().metronome();
+      REQUIRE(metro);
+      const int beats = metro->beats();
+      INFO("beats " << beats);
+      if(on)
+        CHECK(beats >= 4);
+      heard.stop();
+      REQUIRE(spin_until([&] { return done; }));
+      engine.execution().request_stop();
+      spin(300);
+      REQUIRE(heard.takes().size() == 1);
+      const auto onsets = onsetsOf(heard.takes()[0].file);
+      for(auto o : onsets)
+        UNSCOPED_INFO("click at " << o << " ms");
+      if(on)
+      {
+        // A beat every 500 ms
+        CHECK(onsets.size() >= 3);
+        CHECK(onsets.size() <= 6);
+        for(std::size_t i = 1; i < onsets.size(); i++)
+          CHECK(std::abs(onsets[i] - onsets[i - 1] - 500.) < 30.);
+      }
+      else
+      {
+        CHECK(onsets.empty());
+      }
+    }
+  });
+}
+
+TEST_CASE("Record now from a port's menu while playing records at once", "[recording][menus][now]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    QTemporaryDir dir;
+    const QString file = dir.filePath("ramp.wav");
+    score::test::write_ramp_wav(file, 48000, 48000);
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    Process::ProcessModel* sound{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(8000), 0.1});
+      sound = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), {});
+      // A file, looping: as in a document
+      m.submit(new Media::ChangeAudioFile{
+          static_cast<Media::Sound::ProcessModel&>(*sound),
+          file,
+          doc->context()});
+      m.submit(new Process::SetLoop{*sound, true});
+      m.commit();
+    }
+    auto& engine = ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
+    auto& exec = doc->context().plugin<Execution::DocumentPlugin>();
+    auto& plug = ctx.guiApplicationPlugin<Recording::ApplicationPlugin>();
+    engine.execution().request_play_global(true);
+    REQUIRE(spin_until([&] { return exec.isPlaying(); }));
+    spin(800);
+
+    // What the port's menu does: the port selected, the entry's options
+    score::SelectionDispatcher{doc->context().selectionStack}.select(*sound->outlets()[0]);
+    auto opt = plug.defaultOptions();
+    opt.start = Recording::RecordOptions::Start::Now;
+    opt.startRate = 0.;
+    opt.countIn = false;
+    opt.length = 0;
+    opt.lengthBars = 0.;
+    opt.passes = Recording::RecordOptions::Passes::One;
+    plug.recordSelection(doc->context(), std::nullopt, opt);
+    REQUIRE(plug.session());
+    auto* session = plug.session();
+    CHECK(spin_until([&] { return session->running() && !session->waiting(); }, 1500));
+    INFO("waiting " << session->waiting());
+    plug.stopSession();
+    spin(500);
+    engine.execution().request_stop();
+    spin(300);
+  });
+}
+
 TEST_CASE("Only the file, the values of an address are written to a file and not placed", "[recording][addresses][fileonly]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
@@ -2031,7 +2295,7 @@ TEST_CASE("Addresses recorded from a scenario's menu for a bar, while playing, e
   });
 }
 
-TEST_CASE("The count-in clicks are heard on the main output, then stop", "[recording][countin][heard]")
+TEST_CASE("The count-in clicks are heard on the cue output, then stop", "[recording][countin][heard]")
 {
   score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
     // At full volume, then at none: the setting reaches what is heard
@@ -2044,9 +2308,9 @@ TEST_CASE("The count-in clicks are heard on the main output, then stop", "[recor
       auto& devs = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
       auto* audio = devs.list().audioDevice();
       REQUIRE(audio);
-      const State::Address out{audio->name(), {"out", "main"}};
+      const State::Address out{audio->name(), {"out", "cue"}};
 
-      // A sound, muted: the main output only gets the clicks
+      // A sound, muted: the cue output only gets the clicks
       Scenario::IntervalModel* box{};
       Process::ProcessModel* sound{};
       {
@@ -2085,7 +2349,7 @@ TEST_CASE("The count-in clicks are heard on the main output, then stop", "[recor
       QObject::connect(&counted, &Recording::RecordSession::finished, [&] { counted_done = true; });
       REQUIRE(counted.start());
 
-      // What reaches the main output, read after the count-in has written to
+      // What reaches the cue output, read after the count-in has written to
       // it: the graph runs the nodes in the order they came
       spin(50);
       Recording::RecordOptions heard_opt;

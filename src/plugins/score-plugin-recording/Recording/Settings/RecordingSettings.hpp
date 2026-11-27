@@ -101,6 +101,8 @@ class SCORE_PLUGIN_RECORDING_EXPORT Model : public score::SettingsDelegateModel
   int m_ClickVolume{100};
   bool m_ClickAccent{true};
   int m_CountInBars{1};
+  bool m_Metronome{false};
+  bool m_CountInOnPlay{false};
 
 public:
   Model(
@@ -127,6 +129,8 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, ClickVolume)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, ClickAccent)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, int, CountInBars)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, Metronome)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_RECORDING_EXPORT, bool, CountInOnPlay)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, AudioFormat)
@@ -146,6 +150,8 @@ SCORE_SETTINGS_PARAMETER(Model, ClickSound)
 SCORE_SETTINGS_PARAMETER(Model, ClickVolume)
 SCORE_SETTINGS_PARAMETER(Model, ClickAccent)
 SCORE_SETTINGS_PARAMETER(Model, CountInBars)
+SCORE_SETTINGS_PARAMETER(Model, Metronome)
+SCORE_SETTINGS_PARAMETER(Model, CountInOnPlay)
 
 class View : public score::GlobalSettingsView
 {
@@ -182,6 +188,8 @@ private:
   SETTINGS_UI_SPINBOX_HPP(ClickVolume)
   SETTINGS_UI_TOGGLE_HPP(ClickAccent)
   SETTINGS_UI_SPINBOX_HPP(CountInBars)
+  SETTINGS_UI_TOGGLE_HPP(Metronome)
+  SETTINGS_UI_TOGGLE_HPP(CountInOnPlay)
 
   // The curve plug-in's
   SETTINGS_UI_SPINBOX_HPP(SimplificationRatio)

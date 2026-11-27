@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Recording/Engine/Metronome.hpp>
 #include "score_plugin_recording.hpp"
 
 #include <Recording/ApplicationPlugin.hpp>
@@ -36,7 +37,8 @@ std::vector<score::InterfaceBase*> score_plugin_recording::factories(
       FW<Process::PortContextMenuFactory, Recording::RecordPortMenu>,
       FW<Process::NodalViewMenuFactory, Recording::RecordNodalMenu>,
       FW<Explorer::ExplorerMenuFactory, Recording::RecordExplorerMenu>,
-      FW<score::SettingsDelegateFactory, Recording::Settings::Factory>>(ctx, key);
+      FW<score::SettingsDelegateFactory, Recording::Settings::Factory>,
+      FW<Execution::ExecutionAction, Recording::CountInHold>>(ctx, key);
 }
 
 auto score_plugin_recording::required() const -> std::vector<score::PluginKey>

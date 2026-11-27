@@ -231,7 +231,13 @@ struct AudioTickHelper
     for(auto act : m_actions)
       act->startTick(t);
 
-    main_tick(t);
+    // Counting in: the score starts once the actions let it
+    bool held = false;
+    if(!t.position_in_frames)
+      for(auto act : m_actions)
+        held = held || act->holds();
+    if(!held)
+      main_tick(t);
 
     for(auto act : m_actions)
       act->endTick(t);

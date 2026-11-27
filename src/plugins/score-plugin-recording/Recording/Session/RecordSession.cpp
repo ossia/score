@@ -41,6 +41,7 @@
 #include <Execution/ExecutionController.hpp>
 #include <Recording/Commands/PlaceTakes.hpp>
 #include <Recording/Engine/CountIn.hpp>
+#include <Recording/Engine/Metronome.hpp>
 #include <Media/Metro/MetroModel.hpp>
 #include <Recording/Takes/RecordedNotes.hpp>
 #include <Recording/Takes/OverdubNotes.hpp>
@@ -958,17 +959,12 @@ void RecordSession::createRecorders(bool atStart)
       if(s->values)
         values.push_back(s->values);
     }
-    // The main output of the document's audio device
-    ossia::net::parameter_base* param{};
-    if(auto* devices = m_ctx.findPlugin<Explorer::DeviceDocumentPlugin>())
-      if(auto* audio = devices->list().audioDevice(); audio && audio->getDevice())
-        if(auto* out
-           = ossia::net::find_node(audio->getDevice()->get_root_node(), "/out/main"))
-          param = out->get_parameter();
+    // The cue output of the document's audio device, as the metronome's
+    ossia::net::parameter_base* param = Metronome::cueOutput(m_ctx);
     if(!clock || !param || !Execution::TapTicker::instance())
       m_warnings.push_back(
           tr("The count-in could not click: %1")
-              .arg(!param ? tr("the audio device has no main output")
+              .arg(!param ? tr("the audio device has no output")
                           : tr("what is recorded does not play")));
     if(clock && param && Execution::TapTicker::instance())
     {

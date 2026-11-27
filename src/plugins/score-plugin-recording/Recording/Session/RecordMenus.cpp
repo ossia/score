@@ -227,10 +227,25 @@ void addCountInEntries(QMenu& menu, const score::ApplicationContext& ctx)
   auto* set = ctx.findSettings<Settings::Model>();
   if(!set)
     return;
+  {
+    auto act = menu.addAction(QObject::tr("Metronome"));
+    act->setCheckable(true);
+    act->setChecked(set->getMetronome());
+    act->setToolTip(QObject::tr("Click the beats on the cue output while playing"));
+    QObject::connect(act, &QAction::toggled, set, [set](bool b) { set->setMetronome(b); });
+  }
+  {
+    auto act = menu.addAction(QObject::tr("Count in before playback"));
+    act->setCheckable(true);
+    act->setChecked(set->getCountInOnPlay());
+    act->setToolTip(QObject::tr("Play waits for the count-in's bars of clicks"));
+    QObject::connect(
+        act, &QAction::toggled, set, [set](bool b) { set->setCountInOnPlay(b); });
+  }
   auto sub = menu.addMenu(QObject::tr("Count-in"));
   sub->setToolTipsVisible(true);
   sub->setToolTip(QObject::tr(
-      "How a recording counted in clicks on the main output before it starts"));
+      "How the metronome and the count-in click on the cue output"));
 
   // Its length
   {
