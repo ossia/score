@@ -18,11 +18,15 @@
 // pixel data, only at the date and the seek generation.
 
 #include <Video/FrameQueue.hpp>
+#include <Video/CameraOpenOptions.hpp>
 #include <Video/NewestPacket.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <atomic>
+#include <chrono>
 #include <deque>
+#include <string>
 #include <set>
 #include <thread>
 #include <vector>
@@ -470,6 +474,77 @@ TEST_CASE("a consumer is idle once it stops asking", "[video][framequeue]")
   CHECK(watch.idle(1001, 3));
 }
 
+TEST_CASE(
+    "a live producer and a render thread share the queue", "[video][framequeue]")
+{
+  FrameQueue q;
+  constexpr int frames = 20000;
+  constexpr std::size_t queued = 4;
+
+  std::atomic_bool done{};
+  std::atomic_bool ordered{true};
+  std::atomic_int taken{};
+  std::thread render([&] {
+    int64_t last = -1;
+    auto take = [&] {
+      if(auto* f = q.dequeue())
+      {
+        if(f->pts <= last)
+          ordered = false;
+        last = f->pts;
+        taken++;
+        q.release(f);
+      }
+    };
+    while(!done.load(std::memory_order_acquire))
+    {
+      take();
+      std::this_thread::sleep_for(std::chrono::microseconds(50));
+    }
+    take();
+  });
+
+  for(int i = 0; i < frames; i++)
+  {
+    auto f = q.newFrame();
+    f->pts = i;
+    q.enqueue_latest(f.release(), queued);
+  }
+  done.store(true, std::memory_order_release);
+  render.join();
+
+  CHECK(ordered);
+  CHECK(taken > 0);
+  CHECK(taken < frames / 2);
+  CHECK(q.size() <= queued);
+  q.drain();
+}
+
+TEST_CASE("discard_queued while the render thread dequeues", "[video][framequeue]")
+{
+  FrameQueue q;
+  std::atomic_bool done{};
+  std::thread render([&] {
+    while(!done.load(std::memory_order_acquire))
+      if(auto* f = q.dequeue())
+        q.release(f);
+  });
+
+  for(int i = 0; i < 20000; i++)
+  {
+    auto f = q.newFrame();
+    f->pts = i;
+    q.enqueue_latest(f.release(), 4);
+    if(i % 7 == 0)
+      q.discard_queued();
+  }
+  done.store(true, std::memory_order_release);
+  render.join();
+
+  CHECK(q.size() <= 4);
+  q.drain();
+}
+
 namespace
 {
 struct FakeDevice
@@ -588,4 +663,86 @@ TEST_CASE("a device that never runs dry is left after a bounded backlog", "[vide
   REQUIRE(readNewestPacket(dev, wait, *p.newest, *p.scratch, 0, 64, blocked));
   CHECK(p.newest->pts == 63);
   CHECK(dev.reads == 64);
+}
+
+TEST_CASE("a slow device that answers EAGAIN is read to its newest packet", "[video][camera]")
+{
+  struct SlowDevice : FakeDevice
+  {
+    int operator()(AVPacket* pkt)
+    {
+      if(!buffered.empty())
+        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+      return FakeDevice::operator()(pkt);
+    }
+  };
+  auto wait = [] { return false; };
+
+  SECTION("with a deadline, the first slow read is taken for a fresh frame")
+  {
+    SlowDevice dev;
+    for(int i = 0; i < 5; i++)
+      dev.buffered.push_back({0, i});
+    Packets p;
+    REQUIRE(readNewestPacket(dev, wait, *p.newest, *p.scratch, 0, 64, blocked));
+    CHECK(p.newest->pts == 0);
+  }
+  SECTION("without one, it is read until EAGAIN")
+  {
+    SlowDevice dev;
+    for(int i = 0; i < 5; i++)
+      dev.buffered.push_back({0, i});
+    Packets p;
+    REQUIRE(readNewestPacket(
+        dev, wait, *p.newest, *p.scratch, 0, 64,
+        std::chrono::steady_clock::duration::max()));
+    CHECK(p.newest->pts == 4);
+    CHECK(dev.reads == 6);
+  }
+}
+
+TEST_CASE("only the inputs that answer EAGAIN are read without a deadline", "[video][camera]")
+{
+  CHECK_FALSE(inputMayBlock("v4l2"));
+  CHECK_FALSE(inputMayBlock("video4linux2"));
+  CHECK_FALSE(inputMayBlock("dshow"));
+  CHECK(inputMayBlock("avfoundation"));
+  CHECK(inputMayBlock("decklink"));
+  CHECK(inputMayBlock("mjpeg"));
+}
+
+namespace
+{
+std::string option(AVDictionary* d, const char* key)
+{
+  auto* e = av_dict_get(d, key, nullptr, 0);
+  return e ? e->value : "";
+}
+}
+
+TEST_CASE("a camera mode becomes libavdevice options", "[video][camera]")
+{
+  SECTION("no codec asked for sets no input_format")
+  {
+    AVDictionary* d = cameraOpenOptions(AV_CODEC_ID_NONE, AV_PIX_FMT_NONE, 30., 1280, 720);
+    CHECK(av_dict_get(d, "input_format", nullptr, 0) == nullptr);
+    CHECK(av_dict_get(d, "pixel_format", nullptr, 0) == nullptr);
+    CHECK(option(d, "video_size") == "1280x720");
+    CHECK(option(d, "framerate").starts_with("30"));
+    av_dict_free(&d);
+  }
+  SECTION("a compressed mode names its codec")
+  {
+    AVDictionary* d = cameraOpenOptions(AV_CODEC_ID_MJPEG, AV_PIX_FMT_NONE, 0., 0, 0);
+    CHECK(option(d, "input_format") == "mjpeg");
+    CHECK(av_dict_get(d, "framerate", nullptr, 0) == nullptr);
+    CHECK(av_dict_get(d, "video_size", nullptr, 0) == nullptr);
+    av_dict_free(&d);
+  }
+  SECTION("a raw mode names its pixel format")
+  {
+    AVDictionary* d = cameraOpenOptions(AV_CODEC_ID_RAWVIDEO, AV_PIX_FMT_YUYV422, 0., 0, 0);
+    CHECK(option(d, "pixel_format") == "yuyv422");
+    av_dict_free(&d);
+  }
 }

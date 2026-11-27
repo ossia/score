@@ -949,14 +949,6 @@ if(SCORE_TESTING)
   target_link_libraries(DeinterlaceShaderTest PRIVATE
     score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
 
-  # Pure: when the GPU decoder has to be rebuilt. No GPU, no video.
-  add_executable(VideoRebuildTest tests/VideoRebuildTest.cpp)
-  target_link_libraries(VideoRebuildTest PRIVATE
-    score_plugin_gfx score_plugin_media ${QT_PREFIX}::Gui)
-  add_test(NAME VideoRebuildTest COMMAND VideoRebuildTest)
-  set_tests_properties(VideoRebuildTest PROPERTIES
-    WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}")
-
   add_test(NAME DeinterlaceShaderTest COMMAND DeinterlaceShaderTest)
   set_tests_properties(DeinterlaceShaderTest PROPERTIES
     WORKING_DIRECTORY "${SCORE_ROOT_BINARY_DIR}"

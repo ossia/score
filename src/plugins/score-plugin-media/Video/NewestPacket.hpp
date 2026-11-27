@@ -8,6 +8,7 @@ extern "C" {
 }
 
 #include <chrono>
+#include <string_view>
 
 namespace Video
 {
@@ -17,9 +18,23 @@ namespace Video
  *
  * @p read is av_read_frame's contract on @p scratch. A device that answers
  * EAGAIN when empty ends the backlog that way; one that blocks instead ends
- * it with a read longer than @p blocked. @p wait is called on EAGAIN while
+ * it with a read longer than @p blocked. Pass duration::max() as @p blocked
+ * for a device that never blocks, so a slow read of a buffered packet does not
+ * end the backlog. @p wait is called on EAGAIN while
  * nothing was read yet and returns false to give up.
  */
+/**
+ * @brief Whether av_read_frame on this libavdevice input can wait for the next
+ * frame although AVFMT_FLAG_NONBLOCK is set.
+ *
+ * v4l2 and dshow answer EAGAIN. decklink always waits, and avfoundation waits
+ * from FFmpeg 9.1 on. Inputs not listed here are assumed to wait.
+ */
+inline bool inputMayBlock(std::string_view kind) noexcept
+{
+  return kind != "v4l2" && kind != "video4linux2" && kind != "dshow";
+}
+
 template <typename Read, typename Wait>
 bool readNewestPacket(
     Read&& read, Wait&& wait, AVPacket& newest, AVPacket& scratch, int stream,
