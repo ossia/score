@@ -66,7 +66,7 @@ private:
   static const constexpr auto blocked_read = std::chrono::milliseconds(2);
 
   //! Opening a device that never answers must not wedge the caller
-  static const constexpr auto open_timeout = std::chrono::milliseconds(2000);
+  static const constexpr auto open_timeout = std::chrono::milliseconds(5000);
   //! A camera that stopped delivering must not wedge the buffer thread
   static const constexpr auto read_timeout = std::chrono::milliseconds(5000);
 
