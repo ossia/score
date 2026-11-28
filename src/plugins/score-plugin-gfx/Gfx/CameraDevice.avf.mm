@@ -30,9 +30,9 @@ static constexpr avf_to_ffmpeg avf_pixelformat_to_ffmpeg(uint32_t fourcc)
   switch(fourcc)
   {
     case kCMPixelFormat_32ARGB:
-        return {AV_PIX_FMT_ARGB, AVCOL_RANGE_JPEG};
+        return {AV_PIX_FMT_0RGB, AVCOL_RANGE_JPEG};
     case kCMPixelFormat_32BGRA:
-        return {AV_PIX_FMT_BGRA, AVCOL_RANGE_JPEG};
+        return {AV_PIX_FMT_BGR0, AVCOL_RANGE_JPEG};
     case kCMPixelFormat_24RGB:
         return {AV_PIX_FMT_RGB24, AVCOL_RANGE_JPEG};
     case kCMPixelFormat_16BE555:
@@ -85,9 +85,9 @@ static constexpr avf_to_ffmpeg avf_pixelformat_to_ffmpeg(uint32_t fourcc)
     // case kCVPixelFormatType_32ARGB:                   /* 32 bit ARGB */
     // case kCVPixelFormatType_32BGRA:                   /* 32 bit BGRA */
     case kCVPixelFormatType_32ABGR: /* 32 bit ABGR */
-        return {AV_PIX_FMT_ABGR, AVCOL_RANGE_JPEG};
+        return {AV_PIX_FMT_0BGR, AVCOL_RANGE_JPEG};
     case kCVPixelFormatType_32RGBA: /* 32 bit RGBA */
-        return {AV_PIX_FMT_RGBA, AVCOL_RANGE_JPEG};
+        return {AV_PIX_FMT_RGB0, AVCOL_RANGE_JPEG};
     case kCVPixelFormatType_64ARGB: /* 64 bit ARGB, 16-bit big-endian samples */
         return {};
     case kCVPixelFormatType_64RGBALE: /* 64 bit RGBA, 16-bit little-endian full-range (0-65535) samples */
