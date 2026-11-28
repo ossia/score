@@ -7,6 +7,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <Gfx/CameraControls.hpp>
 #include <Gfx/CameraDeviceEnumerator.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <Media/LibavIntrospection.hpp>
@@ -19,6 +20,7 @@
 #include <ossia-qt/name_utils.hpp>
 
 #include <QComboBox>
+#include <QDebug>
 #include <QFormLayout>
 #include <QMenu>
 #include <QMimeData>
@@ -33,6 +35,30 @@ extern "C" {
 
 namespace Gfx
 {
+class camera_input_protocol final : public video_texture_input_protocol
+{
+public:
+  using video_texture_input_protocol::video_texture_input_protocol;
+
+  bool push(const ossia::net::parameter_base& p, const ossia::value& v) override
+  {
+    return controls && controls->push(p, v);
+  }
+
+  void start_execution() override
+  {
+    if(!camera->start())
+    {
+      qWarning() << "Gfx: could not start the camera input";
+      return;
+    }
+    if(controls)
+      controls->streamStarted();
+  }
+
+  std::shared_ptr<CameraControls> controls;
+};
+
 class CameraDevice final : public GfxInputDevice
 {
   W_OBJECT(CameraDevice)
@@ -43,6 +69,7 @@ public:
 private:
   void disconnect() override
   {
+    stopControls();
     Gfx::GfxInputDevice::disconnect();
     auto prev = std::move(m_dev);
     m_dev = {};
@@ -51,8 +78,16 @@ private:
   bool reconnect() override;
   ossia::net::device_base* getDevice() const override { return m_dev.get(); }
 
+  void stopControls()
+  {
+    if(m_controls)
+      m_controls->stop();
+    m_controls.reset();
+  }
+
   Gfx::video_texture_input_protocol* m_protocol{};
   mutable std::unique_ptr<Gfx::video_texture_input_device> m_dev;
+  std::shared_ptr<CameraControls> m_controls;
 };
 }
 
@@ -180,7 +215,10 @@ CameraSettings findBestCameraMode()
   return findBestCameraMode(candidates);
 }
 
-CameraDevice::~CameraDevice() { }
+CameraDevice::~CameraDevice()
+{
+  stopControls();
+}
 
 bool CameraDevice::reconnect()
 {
@@ -216,10 +254,16 @@ bool CameraDevice::reconnect()
           set.size.height(), set.fps, set.codec, set.pixelformat);
 #endif
 
-      m_protocol = new video_texture_input_protocol{std::move(cam), plug->exec};
+      auto protocol = new camera_input_protocol{std::move(cam), plug->exec};
+      m_protocol = protocol;
       m_dev = std::make_unique<video_texture_input_device>(
           std::unique_ptr<ossia::net::protocol_base>(m_protocol),
           this->settings().name.toStdString());
+      if((m_controls = make_camera_controls(set)))
+      {
+        m_controls->setup(m_dev->get_root_node());
+        protocol->controls = m_controls;
+      }
       deviceChanged(nullptr, m_dev.get());
     }
     // TODOengine->reload(&proto);

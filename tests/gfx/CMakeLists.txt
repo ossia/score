@@ -1032,6 +1032,12 @@ score_add_test(test_gfx_window_layout
 score_add_gfx_test(screen_output      ScreenOutput.cpp)
 score_add_gfx_test(multi_window       MultiWindowOutput.cpp)
 
+# Camera hardware controls over a fake backend: the parameter tree, merged
+# writes, the poll and the re-apply after the capture starts.
+score_add_test(test_gfx_camera_controls
+  SOURCES GfxCameraControls.cpp
+  PLUGINS score_plugin_gfx)
+
 # Randomised sequences of the window disruptions a user can inflict -- hide,
 # re-show, resize, render-size override, full screen -- across all three output
 # modes and both clocks. The paths that set m_running / m_hasSwapChain /
