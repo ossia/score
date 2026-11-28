@@ -215,7 +215,8 @@ void CableItem::setPen(QPainter& painter, const Process::Style& style)
       break;
     }
     case Partial_P1:
-    case Partial_P2: {
+    case Partial_P2:
+    case Stubs: {
       painter.setPen(brush.pen1_dotted);
       break;
     }
@@ -282,6 +283,19 @@ void CableItem::resize()
       m_path.moveTo(p2.x(), p2.y());
       m_path.lineTo(p2 + 50. * dir);
     }
+    else if(m_mode == Stubs)
+    {
+      const double len = QLineF(p1, p2).length();
+      const double stub = std::min(30., len / 3.);
+      if(len > 0.)
+      {
+        const auto dir = (p2 - p1) / len;
+        m_path.moveTo(p1);
+        m_path.lineTo(p1 + stub * dir);
+        m_path.moveTo(p2);
+        m_path.lineTo(p2 - stub * dir);
+      }
+    }
   }
 
   update();
@@ -343,6 +357,11 @@ static CableDisplayMode cableMustBeShown(CableItem& self, PortItem* p1, PortItem
        && ancestor->type()
               == (QGraphicsItem::UserType + 5555)) // we're in the same NodalContainer
       return Full;
+
+    // Two slots of a box in the timeline: across them it would go over what
+    // the slots show
+    if(isPortActuallyVisible(p1) && isPortActuallyVisible(p2))
+      return Stubs;
   }
 
   {

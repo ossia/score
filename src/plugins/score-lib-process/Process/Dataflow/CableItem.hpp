@@ -27,7 +27,10 @@ enum CableDisplayMode : uint8_t
   None,
   Partial_P1,
   Partial_P2,
-  Full
+  Full,
+  //! Both ends shown, in two slots of a box in the timeline: a stub at each
+  //! end points at the other, the cable does not cross what is in between
+  Stubs
 };
 
 class PortItem;
