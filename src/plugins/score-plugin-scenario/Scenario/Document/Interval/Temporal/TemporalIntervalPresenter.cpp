@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TemporalIntervalPresenter.hpp"
 
+#include <Process/Dataflow/NodeItemGeometry.hpp>
+
 #include "TemporalIntervalHeader.hpp"
 #include "TemporalIntervalView.hpp"
 
@@ -531,7 +533,7 @@ void TemporalIntervalPresenter::fitNewNodalSlot(const Slot& slt)
     }
     if(sz.isEmpty())
       return;
-    static constexpr double titleHeight = 20.; // NodeItem's title bar
+    constexpr double titleHeight = Process::NodeItemGeometry::TitleHeight;
     static constexpr double margin = 12.;
     const double h = sz.height() + titleHeight + 2. * margin;
     const_cast<IntervalModel&>(m_model).setSlotHeight(

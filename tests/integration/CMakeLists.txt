@@ -915,6 +915,14 @@ score_add_test(test_integration_nodal_placement
   PLUGINS score_plugin_scenario score_plugin_automation score_plugin_library
           score_lib_process)
 
+# The nodal view's auto-layout: cables left to right, one undoable command
+# replayed from its saved form, selections, folded nodes and the JS calls.
+score_add_test(test_integration_node_auto_layout
+  SOURCES NodeAutoLayoutTest.cpp
+  GUI
+  PLUGINS score_plugin_scenario score_plugin_mapping score_plugin_js score_lib_process
+  LIBS ${QT_PREFIX}::Qml)
+
 # A take dropped in the nodal view is drawn by its loop, not by its box.
 score_add_test(test_integration_nodal_looped_clip
   SOURCES NodalLoopedClipTest.cpp

@@ -55,4 +55,50 @@ void MoveNodes::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_models >> m_delta;
 }
+
+SetNodePositions::SetNodePositions(
+    const std::vector<std::pair<const ProcessModel*, QPointF>>& positions)
+{
+  for(const auto& [proc, pos] : positions)
+  {
+    if(proc->position() == pos)
+      continue;
+    m_before.emplace_back(Path{*proc}, proc->position());
+    m_after.push_back(pos);
+  }
+}
+
+bool SetNodePositions::movesAnything() const noexcept
+{
+  return !m_after.empty();
+}
+
+void SetNodePositions::undo(const score::DocumentContext& ctx) const
+{
+  for(const auto& [path, pos] : m_before)
+    if(auto* proc = path.try_find(ctx))
+      proc->setPosition(pos);
+}
+
+void SetNodePositions::redo(const score::DocumentContext& ctx) const
+{
+  for(std::size_t i = 0; i < m_before.size(); i++)
+    if(auto* proc = m_before[i].first.try_find(ctx))
+      proc->setPosition(m_after[i]);
+}
+
+void SetNodePositions::serializeImpl(DataStreamInput& s) const
+{
+  s << m_before << m_after;
+}
+
+void SetNodePositions::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_before >> m_after;
+  if(m_after.size() != m_before.size())
+  {
+    m_before.clear();
+    m_after.clear();
+  }
+}
 }
