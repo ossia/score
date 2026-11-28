@@ -48,6 +48,7 @@ class SCORE_PLUGIN_GFX_EXPORT Model : public score::SettingsDelegateModel
   int m_Samples{1};
   bool m_VSync{};
   int m_Buffers{3};
+  QString m_Gpu;
 
 public:
   Model(
@@ -60,6 +61,8 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Samples)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, bool, VSync)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, int, Buffers)
+  //! A key of score::gfx::availableGpus(), empty for the default.
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_GFX_EXPORT, QString, Gpu)
 
 public:
   score::gfx::GraphicsApi graphicsApiEnum() const noexcept;
@@ -82,6 +85,7 @@ SCORE_SETTINGS_PARAMETER(Model, Rate)
 SCORE_SETTINGS_PARAMETER(Model, Samples)
 SCORE_SETTINGS_PARAMETER(Model, VSync)
 SCORE_SETTINGS_PARAMETER(Model, Buffers)
+SCORE_SETTINGS_PARAMETER(Model, Gpu)
 
 SCORE_PLUGIN_GFX_EXPORT
 QShaderVersion shaderVersionForAPI(score::gfx::GraphicsApi) noexcept;

@@ -1,4 +1,5 @@
 #include <Gfx/Graph/RhiIndirectCompat.hpp>
+#include <Gfx/Graph/GpuSelection.hpp>
 #include <Gfx/Graph/Graph.hpp>
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/OutputNode.hpp>
@@ -523,9 +524,8 @@ std::shared_ptr<RenderState> createRenderState(
       return st;
     state.version = Gfx::Settings::shaderVersionForAPI(Vulkan);
 
-    // Create shared VkDevice with video decode queues BEFORE QRhi.
-    // Use the first physical device from QVulkanInstance — this matches
-    // what QRhi would pick by default.
+    // Create shared VkDevice with video decode queues BEFORE QRhi, on the
+    // GPU resolveSharedVulkanPhysicalDevice picks; the fallback imports it too.
 #if defined(VK_KHR_video_decode_queue) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     if(!qEnvironmentVariableIsSet("SCORE_GFX_NO_SHARED_VKDEVICE"))
     {
@@ -576,7 +576,14 @@ std::shared_ptr<RenderState> createRenderState(
 
     // Fallback: let QRhi create its own VkDevice (no video decode queues)
     if(!state.rhi)
-      state.rhi = QRhi::create(QRhi::Vulkan, &params, flags);
+    {
+      QRhiVulkanNativeHandles physDevOnly;
+#if defined(VK_KHR_video_decode_queue) && QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+      physDevOnly.physDev = resolveSharedVulkanPhysicalDevice(params.inst);
+#endif
+      state.rhi = QRhi::create(
+          QRhi::Vulkan, &params, flags, physDevOnly.physDev ? &physDevOnly : nullptr);
+    }
 
     if(state.rhi)
     {
@@ -618,8 +625,8 @@ std::shared_ptr<RenderState> createRenderState(
     // also goes 8 -> 64 (qrhid3d11.cpp:769) as a side benefit.
     //
     // featureLevel is honoured even with dev/context null: qrhid3d11.cpp:174
-    // reads it outside the imported-device branch. adapterLuid stays zero,
-    // which :256 explicitly ignores, so adapter selection is unchanged.
+    // reads it outside the imported-device branch. A zero adapterLuid, which
+    // :256 ignores, keeps QRhi's own adapter selection.
     //
     // A vertex-stage SSBO is still not usable: MaxVertexStorageBuffers is
     // hardcoded 0 at every feature level (qrhid3d11.cpp:766), so Qt's SRB
@@ -631,13 +638,21 @@ std::shared_ptr<RenderState> createRenderState(
     // 11_1 is unavailable, so fall back to QRhi's own probe. That matters for
     // pre-11_1 hardware: NVIDIA Fermi/Kepler/Maxwell-1, AMD TeraScale, Intel
     // Ivy Bridge, which keep the unrequested-level behaviour.
-    QRhiD3D11NativeHandles d3d11Handles{};
+    QRhiD3D11NativeHandles adapterHandles{};
+    const auto luid = score::gfx::selectedD3DAdapterLuid();
+    if(luid)
+    {
+      adapterHandles.adapterLuidLow = luid->low;
+      adapterHandles.adapterLuidHigh = luid->high;
+    }
+    QRhiD3D11NativeHandles d3d11Handles = adapterHandles;
     d3d11Handles.featureLevel = 0xb100; // D3D_FEATURE_LEVEL_11_1
     state.rhi = QRhi::create(QRhi::D3D11, &params, flags, &d3d11Handles);
     if(!state.rhi)
     {
       qDebug() << "score: no D3D11 feature level 11_1 device, falling back";
-      state.rhi = QRhi::create(QRhi::D3D11, &params, flags);
+      state.rhi
+          = QRhi::create(QRhi::D3D11, &params, flags, luid ? &adapterHandles : nullptr);
     }
     if(state.rhi)
     {
@@ -658,7 +673,15 @@ std::shared_ptr<RenderState> createRenderState(
     //   params.repeatDeviceKill = true;
     // }
     state.version = Gfx::Settings::shaderVersionForAPI(D3D12);
-    state.rhi = QRhi::create(QRhi::D3D12, &params, flags);
+    QRhiD3D12NativeHandles adapterHandles{};
+    const auto luid = score::gfx::selectedD3DAdapterLuid();
+    if(luid)
+    {
+      adapterHandles.adapterLuidLow = luid->low;
+      adapterHandles.adapterLuidHigh = luid->high;
+    }
+    state.rhi
+        = QRhi::create(QRhi::D3D12, &params, flags, luid ? &adapterHandles : nullptr);
     if(state.rhi)
     {
       state.renderSize = sz;
