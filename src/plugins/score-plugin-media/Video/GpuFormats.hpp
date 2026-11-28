@@ -110,6 +110,22 @@ inline constexpr bool formatIsHardwareDecoded(AVPixelFormat fmt) noexcept
 #endif
 }
 
+//! The YUVJ formats: full-range (JPEG) YUV by definition.
+inline constexpr bool formatIsJpegRange(AVPixelFormat fmt) noexcept
+{
+  switch(fmt)
+  {
+    case AV_PIX_FMT_YUVJ420P:
+    case AV_PIX_FMT_YUVJ422P:
+    case AV_PIX_FMT_YUVJ444P:
+    case AV_PIX_FMT_YUVJ440P:
+    case AV_PIX_FMT_YUVJ411P:
+      return true;
+    default:
+      return false;
+  }
+}
+
 inline constexpr bool formatNeedsDecoding(AVPixelFormat fmt) noexcept
 {
   // They all get translated to some NV12 or something like that

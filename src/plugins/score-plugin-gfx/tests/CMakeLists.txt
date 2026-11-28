@@ -1,4 +1,10 @@
 # App-free unit tests for score-plugin-gfx (Catch2, driven by score_add_test).
+# When the GPU video decoder has to be rebuilt, and the colour it is built for.
+score_add_test(test_gfx_video_rebuild
+  SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/VideoRebuildTest.cpp"
+  PLUGINS score_plugin_gfx score_plugin_media
+  LIBS ${QT_PREFIX}::Gui)
+
 score_add_test(test_gfx_capture_sync
   SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/CaptureSyncGroupTest.cpp"
   PLUGINS score_plugin_gfx)

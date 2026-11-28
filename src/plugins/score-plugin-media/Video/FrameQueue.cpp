@@ -130,10 +130,27 @@ void FrameQueue::enqueue(AVFrame* f)
   available.enqueue(f);
 }
 
+void FrameQueue::enqueue_latest(AVFrame* f, std::size_t max) noexcept
+{
+  AVFrame* old{};
+  while(available.size_approx() >= max && available.try_dequeue(old))
+    release(old);
+  enqueue(f);
+}
+
+void FrameQueue::discard_queued() noexcept
+{
+  AVFrame* old{};
+  while(available.try_dequeue(old))
+    release(old);
+}
+
 AVFrame* FrameQueue::dequeue() noexcept
 {
   AVFrame* f{};
   AVFrame* prev_f{};
+
+  m_polls.fetch_add(1, std::memory_order_relaxed);
 
   // We only want the latest frame
   while(available.try_dequeue(f))
@@ -142,12 +159,13 @@ AVFrame* FrameQueue::dequeue() noexcept
     prev_f = f;
   }
 
-  return f;
+  return prev_f;
 }
 
 AVFrame* FrameQueue::dequeue_one() noexcept
 {
   AVFrame* f{};
+  m_polls.fetch_add(1, std::memory_order_relaxed);
   available.try_dequeue(f);
   return f;
 }
@@ -198,6 +216,7 @@ AVFrame* FrameQueue::dequeueDiscarding(const Dequeue& dequeue) noexcept
     return dequeue();
 
   AVFrame* f{};
+  m_polls.fetch_add(1, std::memory_order_relaxed);
   while(available.try_dequeue(f))
   {
     if(before(*f, d))

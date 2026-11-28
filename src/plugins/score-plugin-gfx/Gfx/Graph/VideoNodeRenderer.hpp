@@ -2,11 +2,86 @@
 #include <Gfx/Graph/NodeRenderer.hpp>
 #include <Gfx/Graph/VideoNode.hpp>
 #include <Gfx/Graph/decoders/GPUVideoDecoder.hpp>
+#include <Video/GpuFormats.hpp>
 #include <Video/VideoInterface.hpp>
 
 namespace score::gfx
 {
 class GPUVideoDecoder;
+
+//! How a frame's samples are encoded, as libav describes it.
+struct FrameColor
+{
+  AVColorRange range = AVCOL_RANGE_UNSPECIFIED;
+  AVColorSpace space = AVCOL_SPC_UNSPECIFIED;
+  AVColorTransferCharacteristic trc = AVCOL_TRC_UNSPECIFIED;
+  AVColorPrimaries primaries = AVCOL_PRI_UNSPECIFIED;
+
+  static FrameColor of(const AVFrame& f) noexcept
+  {
+    return {f.color_range, f.colorspace, f.color_trc, f.color_primaries};
+  }
+};
+
+//! The colour range frames of @p fmt are decoded with: what the source
+//! declares, else the frame's own range, else full range for the YUVJ formats.
+inline AVColorRange effectiveColorRange(
+    AVPixelFormat fmt, AVColorRange declared, AVColorRange frame) noexcept
+{
+  if(declared != AVCOL_RANGE_UNSPECIFIED)
+    return declared;
+  if(frame != AVCOL_RANGE_UNSPECIFIED)
+    return frame;
+  return Video::formatIsJpegRange(fmt) ? AVCOL_RANGE_JPEG : declared;
+}
+
+//! The YCbCr matrix, resolved like the range. JFIF is BT.601 at every size.
+inline AVColorSpace effectiveColorSpace(
+    AVPixelFormat fmt, AVColorSpace declared, AVColorSpace frame) noexcept
+{
+  if(declared != AVCOL_SPC_UNSPECIFIED)
+    return declared;
+  if(frame != AVCOL_SPC_UNSPECIFIED && frame != AVCOL_SPC_RESERVED)
+    return frame;
+  return Video::formatIsJpegRange(fmt) ? AVCOL_SPC_BT470BG : declared;
+}
+
+//! What a frame of @p fmt asks the GPU decoder for: the input's format @p src
+//! with the node's output settings, and the colour description completed from
+//! the frame where the input declares none.
+inline Video::ImageFormat requestedVideoFormat(
+    Video::ImageFormat src, AVPixelFormat fmt, const FrameColor& frame,
+    Video::OutputFormat output, Video::Tonemap tonemap) noexcept
+{
+  src.color_range = effectiveColorRange(fmt, src.color_range, frame.range);
+  src.color_space = effectiveColorSpace(fmt, src.color_space, frame.space);
+  if(src.color_trc == AVCOL_TRC_UNSPECIFIED)
+    src.color_trc = frame.trc;
+  if(src.color_primaries == AVCOL_PRI_UNSPECIFIED)
+    src.color_primaries = frame.primaries;
+  src.output_format = output;
+  src.tonemap = tonemap;
+  return src;
+}
+
+//! The format a GPU decoder is built with, from @p built, for frames of @p fmt
+//! sized @p w x @p h requesting @p src.
+inline Video::ImageFormat builtVideoFormat(
+    Video::ImageFormat built, const Video::ImageFormat& src, AVPixelFormat fmt, int w,
+    int h) noexcept
+{
+  built.pixel_format = fmt;
+  built.width = w;
+  built.height = (src.interlacing == Video::Interlacing::Fields) ? h * 2 : h;
+  built.output_format = src.output_format;
+  built.tonemap = src.tonemap;
+  built.color_space = src.color_space;
+  built.color_range = src.color_range;
+  built.color_trc = src.color_trc;
+  built.color_primaries = src.color_primaries;
+  built.interlacing = src.interlacing;
+  return built;
+}
 
 /**
  * @brief Whether the GPU decoder has to be rebuilt for this frame.
@@ -34,10 +109,9 @@ inline bool videoDecoderNeedsRebuild(
 
   return fmt != built.pixel_format || w != built.width || pictureH != built.height
          || src.output_format != built.output_format || src.tonemap != built.tonemap
-         // The colour description comes from the decoder, not the frame, and a
-         // live input may revise it while running -- a sender that starts
-         // declaring HDR. The matrix is baked into the shader, so that
-         // rebuilds.
+         // A live input may revise its colour description while running -- a
+         // sender that starts declaring HDR. The matrix is baked into the
+         // shader, so that rebuilds.
          || src.color_space != built.color_space || src.color_range != built.color_range
          || src.color_trc != built.color_trc
          || src.color_primaries != built.color_primaries
@@ -101,7 +175,8 @@ public:
 
   void createGpuDecoder();
   void setupGpuDecoder(RenderList& r);
-  void checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h);
+  void checkFormat(
+      RenderList& r, AVPixelFormat fmt, int w, int h, const FrameColor& frameColor);
 
   void init(RenderList& renderer, QRhiResourceUpdateBatch& res) override;
   void runRenderPass(RenderList&, QRhiCommandBuffer& commands, Edge& edge) override;

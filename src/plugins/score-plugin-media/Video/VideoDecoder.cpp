@@ -1082,7 +1082,11 @@ bool VideoDecoder::open_stream() noexcept
             color_space = AVCOL_SPC_BT709;
         }
         if(color_range == AVCOL_RANGE_UNSPECIFIED)
-          color_range = AVCOL_RANGE_MPEG;
+          color_range
+              = codecPar->codec_id == AV_CODEC_ID_MJPEG
+                        || formatIsJpegRange(static_cast<AVPixelFormat>(codecPar->format))
+                    ? AVCOL_RANGE_JPEG
+                    : AVCOL_RANGE_MPEG;
 
         // HDR handling
 #if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(61, 3, 100)

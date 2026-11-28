@@ -64,6 +64,12 @@ public:
 
   void enqueue_decoding_error(AVFrame* f);
   void enqueue(AVFrame* f);
+  //! Enqueues `f` for a live source: when `max` frames are already queued,
+  //! the oldest go back to the pool, so the consumer always gets the newest.
+  void enqueue_latest(AVFrame* f, std::size_t max) noexcept;
+  //! The queued frames go back to the pool. For the enqueuing thread, when
+  //! what it queued has gone stale.
+  void discard_queued() noexcept;
   AVFrame* dequeue() noexcept;
   AVFrame* dequeue_one() noexcept;
   AVFrame* discard_and_dequeue() noexcept;
@@ -85,6 +91,10 @@ public:
   void drain();
 
   std::size_t size() const noexcept { return available.size_approx(); }
+
+  //! How many times the consumer has asked for a frame so far, whether or
+  //! not one was queued.
+  uint64_t polls() const noexcept { return m_polls.load(std::memory_order_relaxed); }
 
   //! Follows one frame given out by the decoding thread: watched() is null
   //! once newFrame() has handed that frame out again, the consumer having
@@ -120,6 +130,29 @@ private:
   std::atomic_int m_discardGeneration{};
   std::atomic<uint32_t> m_discardDone{};
   std::atomic_int m_generation{};
+  std::atomic<uint64_t> m_polls{};
+};
+
+//! Tells a live source's reading thread that nobody consumes its frames: the
+//! consumer has not asked for one over `limit` reads.
+struct IdleConsumer
+{
+  bool idle(uint64_t polls, int limit) noexcept
+  {
+    if(polls != m_polls)
+    {
+      m_polls = polls;
+      m_reads = 0;
+      return false;
+    }
+    if(m_reads <= limit)
+      m_reads++;
+    return m_reads > limit;
+  }
+
+private:
+  uint64_t m_polls{};
+  int m_reads{};
 };
 
 //! The seek generation a frame was enqueued in (FrameQueue::start_generation).

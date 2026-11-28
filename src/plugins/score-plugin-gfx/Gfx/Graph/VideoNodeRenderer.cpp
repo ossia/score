@@ -170,28 +170,17 @@ void VideoNodeRenderer::createPipelines(RenderList& r)
   }
 }
 
-void VideoNodeRenderer::checkFormat(RenderList& r, AVPixelFormat fmt, int w, int h)
+void VideoNodeRenderer::checkFormat(
+    RenderList& r, AVPixelFormat fmt, int w, int h, const FrameColor& frameColor)
 {
   // TODO won't work if VK is threaded and there are multiple windows
   const auto& n = this->node();
-  auto src = decoder();
-  src.output_format = n.m_outputFormat;
-  src.tonemap = n.m_tonemap;
+  const auto src
+      = requestedVideoFormat(decoder(), fmt, frameColor, n.m_outputFormat, n.m_tonemap);
 
   if(videoDecoderNeedsRebuild(bool(m_gpu), m_frameFormat, src, fmt, w, h))
   {
-    m_frameFormat.pixel_format = fmt;
-    m_frameFormat.width = w;
-    m_frameFormat.height
-        = (src.interlacing == Video::Interlacing::Fields) ? h * 2 : h;
-    m_frameFormat.output_format = n.m_outputFormat;
-    m_frameFormat.tonemap = n.m_tonemap;
-    m_frameFormat.color_space = src.color_space;
-    m_frameFormat.color_range = src.color_range;
-    m_frameFormat.color_trc = src.color_trc;
-    m_frameFormat.color_primaries = src.color_primaries;
-    m_frameFormat.interlacing = src.interlacing;
-
+    m_frameFormat = builtVideoFormat(m_frameFormat, src, fmt, w, h);
     setupGpuDecoder(r);
   }
 
@@ -450,7 +439,8 @@ void VideoNodeRenderer::displayFrame(
   }
 
   checkFormat(
-      renderer, static_cast<AVPixelFormat>(frame.format), frame.width, frame.height);
+      renderer, static_cast<AVPixelFormat>(frame.format), frame.width, frame.height,
+      FrameColor::of(frame));
 
   if(m_gpu)
   {

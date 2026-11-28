@@ -7,6 +7,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 #include <Video/GpuFormats.hpp>
+#include <Video/CameraOpenOptions.hpp>
+#include <Video/NewestPacket.hpp>
 
 #include <score/tools/Debug.hpp>
 
@@ -99,34 +101,14 @@ bool CameraInput::start() noexcept
   if(!alloc_format_context())
     return false;
 
-  AVDictionary* options = nullptr;
-
-  if(auto codec_name = avcodec_get_name(this->m_requestedCodec))
-    av_dict_set(&options, "input_format", codec_name, 0);
+  AVDictionary* options = cameraOpenOptions(
+      m_requestedCodec, m_requestedPixfmt, fps, this->width, this->height);
 
   // "input_format" is v4l2's own option name. dshow has no codec option at all --
   // it reads the forced codec off the format context -- so a compressed mode
   // selected on Windows was dropped and the demuxer took whichever format matched
   // the size and framerate first, usually raw YUY2.
   m_formatContext->video_codec_id = this->m_requestedCodec;
-
-  if(m_requestedPixfmt != -1)
-  {
-    if(auto name = av_get_pix_fmt_name(m_requestedPixfmt))
-      av_dict_set(&options, "pixel_format", name, 0);
-  }
-
-  if(fps > 0.)
-    av_dict_set(&options, "framerate", std::to_string(fps).c_str(), 0);
-
-  if(this->width > 0 && this->height > 0)
-  {
-    av_dict_set(
-        &options, "video_size", fmt::format("{}x{}", this->width, this->height).c_str(),
-        0);
-  }
-
-  // FIXME color_range 0,1,2
 
   int ret{};
   {
@@ -225,10 +207,17 @@ void CameraInput::buffer_thread() noexcept
 {
   while(m_running.load(std::memory_order_acquire))
   {
-    if(m_frames.size() < 4)
+    Read read;
     {
       LibavTimeout timeout{m_interrupt, read_timeout};
-      if(auto f = read_frame_impl())
+      const int idleReads = std::max(20, int(2. * fps));
+      const bool idle = m_intraOnly && m_idle.idle(m_frames.polls(), idleReads);
+      if(idle && !m_wasIdle)
+        m_frames.discard_queued();
+      m_wasIdle = idle;
+
+      read = read_frame_impl(!idle);
+      if(auto f = read.frame)
       {
         if(f->format != (int)pixel_format || f->width != width
            || f->height != height)
@@ -236,13 +225,15 @@ void CameraInput::buffer_thread() noexcept
           notifyFormatChange(
               f->width, f->height, static_cast<AVPixelFormat>(f->format));
         }
-        m_frames.enqueue(f);
+        m_frames.enqueue_latest(f, frames_to_queue);
       }
     }
 
-    // Wait either a fraction of the expected framerate or 4 ms
-    int wait_ms = std::clamp((this->fps > 0.) ? (1000. / fps) / 4. : 4, 1., 100.);
-    std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
+    if(!read.consumed)
+    {
+      int wait_ms = std::clamp((this->fps > 0.) ? (1000. / fps) / 4. : 4, 1., 100.);
+      std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
+    }
   }
 }
 
@@ -274,30 +265,56 @@ void CameraInput::close_file() noexcept
   m_rescale.close();
 }
 
-AVFrame* CameraInput::read_frame_impl() noexcept
+bool CameraInput::read_newest_packet() noexcept
 {
-  ReadFrame res;
+  return readNewestPacket(
+      [this](AVPacket* pkt) { return av_read_frame(m_formatContext, pkt); },
+      [this] {
+        if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
+          return false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        return true;
+      },
+      *m_newest, *m_scratch, m_avstream->index, max_backlog,
+      inputMayBlock(m_inputKind) ? std::chrono::steady_clock::duration(blocked_read)
+                                 : std::chrono::steady_clock::duration::max());
+}
 
-  if(m_avstream)
+CameraInput::Read CameraInput::read_frame_impl(bool decode) noexcept
+{
+  if(!m_avstream)
+    return {};
+
+  if(m_intraOnly && m_newest && m_scratch)
   {
-    AVPacket packet;
-    memset(&packet, 0, sizeof(AVPacket));
+    if(!read_newest_packet())
+      return {};
 
-    // AVFMT_FLAG_NONBLOCK: a device with no signal (v4l2 DQBUF on a capture
-    // card with nothing plugged in) answers EAGAIN forever, and libav never
-    // polls the interrupt callback on that path. Without checking m_running
-    // here, close_file() joins this thread forever.
-    for(;;)
-    {
-      res = read_one_frame_avcodec(packet);
-      if(res.error != AVERROR(EAGAIN))
-        break;
-      if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
-        break;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    Read ret{nullptr, true};
+    if(decode)
+      ret.frame = enqueue_frame(m_newest).frame;
+    av_packet_unref(m_newest);
+    return ret;
   }
-  return res.frame;
+
+  ReadFrame res;
+  AVPacket packet;
+  memset(&packet, 0, sizeof(AVPacket));
+
+  // AVFMT_FLAG_NONBLOCK: a device with no signal (v4l2 DQBUF on a capture
+  // card with nothing plugged in) answers EAGAIN forever, and libav never
+  // polls the interrupt callback on that path. Without checking m_running
+  // here, close_file() joins this thread forever.
+  for(;;)
+  {
+    res = read_one_frame_avcodec(packet);
+    if(res.error != AVERROR(EAGAIN))
+      break;
+    if(!m_running.load(std::memory_order_acquire) || m_interrupt.expired())
+      break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  return {res.frame, res.frame != nullptr};
 }
 
 bool CameraInput::open_stream() noexcept
@@ -329,6 +346,14 @@ bool CameraInput::open_stream() noexcept
       if((m_codec = avcodec_find_decoder(codecPar->codec_id)))
       {
         m_avstream = stream;
+        const auto* desc = avcodec_descriptor_get(codecPar->codec_id);
+        m_intraOnly = desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY);
+        if(!m_newest)
+          m_newest = av_packet_alloc();
+        if(!m_scratch)
+          m_scratch = av_packet_alloc();
+        m_idle = {};
+        m_wasIdle = false;
         pixel_format = static_cast<AVPixelFormat>(codecPar->format);
         width = codecPar->width;
         height = codecPar->height;
@@ -361,6 +386,8 @@ void CameraInput::close_stream() noexcept
   }
 
   m_rescale.close();
+  av_packet_free(&m_newest);
+  av_packet_free(&m_scratch);
 
   m_codecContext = nullptr;
   m_codec = nullptr;
