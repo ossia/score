@@ -209,6 +209,14 @@ bool stateAffectsPipeline(const isf::pipeline_state&) noexcept;
 // responsible for seeding sensible defaults (e.g. blendFor(ALPHA, COMPOSITE)) before
 // invoking this, so that shaders declaring partial pipeline_state don't
 // silently lose unrelated defaults.
+// Opts `pip` into a per-draw shading rate when `state` sets one and the
+// backend supports it. The caller records QRhiCommandBuffer::setShadingRate
+// before every draw with it: a pipeline with the flag and no rate set is
+// invalid use on Vulkan.
+SCORE_PLUGIN_GFX_EXPORT
+void applyShadingRate(
+    const QRhi& rhi, QRhiGraphicsPipeline& pip, const isf::pipeline_state& state) noexcept;
+
 SCORE_PLUGIN_GFX_EXPORT
 void applyPipelineState(
     const QRhi& rhi, QRhiGraphicsPipeline& pip,

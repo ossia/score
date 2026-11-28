@@ -4046,6 +4046,16 @@ static const ossia::string_map<root_fun>& root_parse{[] {
         d.execution_model.count_expression
             = std::to_string(tv.get_integer_value());
     }
+    if(auto faces_k
+       = v.find_object_key_insensitive(sajson::literal("FACES"));
+       faces_k != v.get_length())
+    {
+      auto tv = v.get_object_value(faces_k);
+      if(tv.get_type() == sajson::TYPE_STRING)
+        d.execution_model.faces_expression = tv.as_string();
+      else if(int n{}; get_int(tv, n))
+        d.execution_model.faces_expression = std::to_string(n);
+    }
   }});
 
   p.insert({"CLIP_DISTANCES", [](descriptor& d, const sajson::value& v) {

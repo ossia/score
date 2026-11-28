@@ -237,6 +237,12 @@ inline std::vector<const char*> sharedVulkanDeviceExtensions()
 #ifdef VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME
       VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
 #endif
+#ifdef VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME
+      VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME,
+#endif
+#ifdef VK_EXT_DEVICE_FAULT_EXTENSION_NAME
+      VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
+#endif
   });
   return exts;
 }
@@ -392,6 +398,25 @@ inline SharedVulkanDevice createSharedVulkanDevice(
   VkPhysicalDeviceFeatures2 features2{};
   features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
   features2.pNext = &vk11;
+
+#ifdef VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME
+  VkPhysicalDeviceFragmentShadingRateFeaturesKHR fsr{};
+  fsr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR;
+  if(hasExt(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME))
+  {
+    fsr.pNext = features2.pNext;
+    features2.pNext = &fsr;
+  }
+#endif
+#ifdef VK_EXT_DEVICE_FAULT_EXTENSION_NAME
+  VkPhysicalDeviceFaultFeaturesEXT fault{};
+  fault.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT;
+  if(hasExt(VK_EXT_DEVICE_FAULT_EXTENSION_NAME))
+  {
+    fault.pNext = features2.pNext;
+    features2.pNext = &fault;
+  }
+#endif
 
   // Query fills all fields with what the device supports
   vkGetPhysicalDeviceFeatures2Fn(result.physDev, &features2);

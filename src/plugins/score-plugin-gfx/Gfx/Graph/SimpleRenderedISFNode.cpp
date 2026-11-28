@@ -4,7 +4,10 @@
 #include <Gfx/Graph/SimpleRenderedISFNode.hpp>
 #include <Gfx/Graph/ISFVisitors.hpp>
 
+#include <QDebug>
+
 #include <set>
+#include <utility>
 
 #include <score/tools/Debug.hpp>
 
@@ -295,11 +298,19 @@ void SimpleRenderedISFNode::initMRTPass(RenderList& renderer, QRhiResourceUpdate
       maxLayers = out.layers;
   const int mvCount = n.descriptor().multiview_count;
   const bool wantMultiview
-      = mvCount >= 2 && renderer.state.caps.multiview
+      = mvCount >= 2
         && !viewIndexNeedsPassIndexFallback(
-            renderer.state.api, renderer.state.version, mvCount);
+            renderer.state.api, renderer.state.version, mvCount,
+            renderer.state.caps.multiview);
   if(wantMultiview && mvCount > maxLayers)
     maxLayers = mvCount;
+  if(mvCount >= 2 && !wantMultiview)
+  {
+    static bool warned = false;
+    if(!std::exchange(warned, true))
+      qWarning() << "ISF: MULTIVIEW is not supported by this backend; only view 0 "
+                    "is rendered (a RAW_RASTER renders every view in its own pass)";
+  }
 
   // Per-OUTPUT sample count: MSAA must be uniform across every colour attachment
   // of a render pass, so take the highest SAMPLES any OUTPUT requests, or the

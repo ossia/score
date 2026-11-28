@@ -164,6 +164,17 @@ struct MeshBuffers
   //! producer's dead slots are not drawn whatever they hold. Refreshed by the
   //! consumer every frame, null when the clamp did not run.
   QRhiBuffer* clampedIndirectBuffer{};
+  //! "indirect_draw_cmds_per_view": one copy of the command list per view,
+  //! view-major, each as long as the scene's own, culled commands zeroed in
+  //! place rather than compacted (the indirect count is not applied to it). A
+  //! raw raster drawing one view per pass (PER_CUBE_FACE, PER_LAYER) sets
+  //! activeView to the pass's view and draws that view's copy instead of the
+  //! shared list, so a per-view cull leaves each face its own draws; a
+  //! sub-mesh with an indirect buffer of its own keeps it.
+  QRhiBuffer* perViewIndirectBuffer{};
+  quint32 perViewIndirectOffset{0};
+  quint32 perViewIndirectBytes{0};
+  int activeView{-1};
   bool gpuIndirectCountSupported{false}; // caps.drawIndirectCount &&
                                          // drawIndirectCountUsable(), for
                                          // the pipeline that draws

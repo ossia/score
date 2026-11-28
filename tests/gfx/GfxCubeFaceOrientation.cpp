@@ -123,7 +123,8 @@ struct Outcome
 
 Outcome run(
     score::gfx::GraphicsApi api, const Capture& cap,
-    QSize sinkSize = {kColumns * kCellW, kColumns * kCellW})
+    QSize sinkSize = {kColumns * kCellW, kColumns * kCellW},
+    const std::vector<ossia::value>* thenInputs = nullptr)
 {
   Outcome out;
   run_in_gui_app([&](const score::GUIApplicationContext& app) {
@@ -177,6 +178,27 @@ Outcome run(
     }
     out.backend = p.backend();
     p.render(4);
+    if(thenInputs)
+    {
+      auto& node = *p.isf(prod);
+      score::gfx::Message m;
+      m.node_id = node.nodeId;
+      m.input.resize(node.input.size());
+      std::vector<std::size_t> ints;
+      for(std::size_t port = 0; port < node.input.size(); port++)
+        if(node.input[port]->type == score::gfx::Types::Int)
+          ints.push_back(port);
+      if(ints.size() < thenInputs->size())
+      {
+        out.error = "the raster has fewer int inputs than the mask needs";
+        return;
+      }
+      const std::size_t first = ints.size() - thenInputs->size();
+      for(std::size_t k = 0; k < thenInputs->size(); k++)
+        m.input[ints[first + k]] = (*thenInputs)[k];
+      node.process(std::move(m));
+      p.render(4);
+    }
     out.view = p.readback(sink);
     for(auto& [renderList, renderer] : p.isf(prod)->renderedNodes)
       if(renderList)
@@ -275,4 +297,73 @@ TEST_CASE(
   INFO(out.backend << ": direction error" << log.str());
   for(int f = 0; f < 6; ++f)
     CHECK(faceError[std::size_t(f)] < 0.02f);
+}
+
+TEST_CASE(
+    "a PER_CUBE_FACE FACES mask draws only the selected faces",
+    "[gfx][rawraster][cubemap][faces]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const Capture cap{
+      "ndc per-cube-face, +X +Y +Z only", "cube-dir-ndc-perface-mask.vs",
+      "cube-dir-ndc-perface-mask.fs", false, false};
+  const Outcome out = run(api, cap);
+  if(out.skipped)
+    SKIP(out.skip_reason);
+  REQUIRE(out.error.empty());
+
+  int wrong = 0;
+  std::ostringstream log;
+  for(int c = 0; c < kColumns; ++c)
+  {
+    const int face = c / 4;
+    const auto got = out.view.at(c * kCellW + kCellW / 2, out.view.height / 2);
+    const bool drawn = face % 2 == 0;
+    const bool ok = drawn ? near(got, expected(c), kTol)
+                          : (got[0] <= kTol && got[1] <= kTol && got[2] <= kTol);
+    if(!ok)
+    {
+      ++wrong;
+      log << " [" << c << " face " << face << "] got (" << int(got[0]) << ","
+          << int(got[1]) << "," << int(got[2]) << ")";
+    }
+  }
+  INFO(out.backend << ":" << log.str());
+  CHECK(wrong == 0);
+}
+
+TEST_CASE(
+    "a FACES mask that changes clears the faces it drops and draws the ones it adds",
+    "[gfx][rawraster][cubemap][faces]")
+{
+  const auto api = GENERATE(from_range(platform_backends()));
+  CAPTURE(backend_name(api));
+  const Capture cap{
+      "ndc per-cube-face, mask flipped", "cube-dir-ndc-perface-mask.vs",
+      "cube-dir-ndc-perface-mask.fs", false, false};
+  const std::vector<ossia::value> flipped{false, true, false, true, false, true};
+  const Outcome out = run(api, cap, {kColumns * kCellW, kColumns * kCellW}, &flipped);
+  if(out.skipped)
+    SKIP(out.skip_reason);
+  REQUIRE(out.error.empty());
+
+  int wrong = 0;
+  std::ostringstream log;
+  for(int c = 0; c < kColumns; ++c)
+  {
+    const int face = c / 4;
+    const auto got = out.view.at(c * kCellW + kCellW / 2, out.view.height / 2);
+    const bool drawn = face % 2 == 1;
+    const bool ok = drawn ? near(got, expected(c), kTol)
+                          : (got[0] <= kTol && got[1] <= kTol && got[2] <= kTol);
+    if(!ok)
+    {
+      ++wrong;
+      log << " [" << c << " face " << face << "] got (" << int(got[0]) << ","
+          << int(got[1]) << "," << int(got[2]) << ")";
+    }
+  }
+  INFO(out.backend << ":" << log.str());
+  CHECK(wrong == 0);
 }

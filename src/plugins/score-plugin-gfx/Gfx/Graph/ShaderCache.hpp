@@ -61,20 +61,25 @@ public:
   static const std::pair<QShader, QString>& get(
       const RenderState& v, const QByteArray& shader, QShader::Stage stage,
       int multiViewCount = 0);
+  //! `rhiHasMultiView` is QRhi::MultiView of the renderer the shader is for;
+  //! without a renderer, as when a shader is only validated, multiview is assumed.
   static const std::pair<QShader, QString>& get(
       GraphicsApi api, const QShaderVersion& v, const QByteArray& shader,
-      QShader::Stage stage, int multiViewCount = 0);
+      QShader::Stage stage, int multiViewCount = 0, bool rhiHasMultiView = true);
 
 private:
   ShaderCache();
 
   struct Baker
   {
-    explicit Baker(GraphicsApi api, const QShaderVersion& v, int multiViewCount);
+    Baker(
+        GraphicsApi api, const QShaderVersion& v, int multiViewCount,
+        bool rhiHasMultiView);
 
     GraphicsApi api;
     QShaderVersion version;
     int multiViewCount{};
+    bool rhiHasMultiView{};
     QShaderBaker baker;
 
     // Keyed by SOURCE, per STAGE. The stage has to be part of the key: the same
