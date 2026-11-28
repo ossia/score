@@ -336,7 +336,7 @@ static void parseEvent_format0(
         note.setVelocity(vel);
         if(note.pitch() < nv.min)
           nv.min = note.pitch();
-        else if(note.pitch() > nv.max)
+        if(note.pitch() > nv.max)
           nv.max = note.pitch();
 
         notes.insert({note.pitch(), note});
@@ -415,7 +415,7 @@ static void parseEvent(
         note.setVelocity(vel);
         if(note.pitch() < nv.min)
           nv.min = note.pitch();
-        else if(note.pitch() > nv.max)
+        if(note.pitch() > nv.max)
           nv.max = note.pitch();
 
         notes.insert({note.pitch(), note});

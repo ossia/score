@@ -61,6 +61,10 @@
 
 #include <libremidi/reader.hpp>
 
+#include <Process/Drop/ProcessDropHandler.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
+#include <QMimeData>
+#include <QUrl>
 #include <catch2/catch_test_macros.hpp>
 
 #include <dr_wav.h>
@@ -1278,6 +1282,86 @@ TEST_CASE("What is being recorded is shown in its box while it records", "[recor
     CHECK(session.warnings().isEmpty());
     QObject::disconnect(c1);
     QObject::disconnect(c2);
+  });
+}
+
+TEST_CASE("A MIDI file whose notes only go down shows them all", "[recording][midi][range]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    // 31 then 25: a take whose first note is its highest
+    QTemporaryDir dir;
+    const QString path = dir.filePath("down.mid");
+    {
+      const unsigned char smf[] = {
+          'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0x01, 0xe0,
+          'M', 'T', 'r', 'k', 0, 0, 0, 20,
+          0x00, 0x90, 31, 80, 0x83, 0x60, 0x80, 31, 0,
+          0x00, 0x90, 25, 80, 0x83, 0x60, 0x80, 25, 0,
+          0x00, 0xff, 0x2f, 0x00};
+      QFile f{path};
+      REQUIRE(f.open(QIODevice::WriteOnly));
+      f.write(reinterpret_cast<const char*>(smf), sizeof(smf));
+    }
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    QMimeData mime;
+    mime.setUrls({QUrl::fromLocalFile(path)});
+    const auto drops
+        = ctx.interfaces<Process::ProcessDropHandlerList>().getDrop(mime, doc->context());
+    REQUIRE(drops.size() == 1);
+    Midi::ProcessModel* roll{};
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(4000), 0.1});
+      roll = static_cast<Midi::ProcessModel*>(
+          m.createProcessInNewSlot(box, drops.front().creation));
+      REQUIRE(roll);
+      score::Dispatcher_T disp{m};
+      drops.front().setup(*roll, disp);
+      m.commit();
+    }
+    REQUIRE(roll->notes.size() == 2);
+    const auto [lo, hi] = roll->range();
+    INFO("range " << lo << " to " << hi);
+    CHECK(lo <= 25);
+    CHECK(hi >= 31);
+  });
+}
+
+TEST_CASE("A take placed after the start of its box keeps its place once saved and loaded", "[recording][session][save]")
+{
+  score::test::run_in_app([](const score::GUIApplicationContext& ctx) {
+    auto* doc = score::test::new_document(ctx);
+    REQUIRE(doc);
+    auto& scenar = score::test::base_scenario(*doc);
+    {
+      Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, doc->context()};
+      auto& from = m.createState(scenar, scenar.startEvent().id(), 0.1);
+      auto& box = m.createIntervalAfter(scenar, from.id(), {TimeVal::fromMsecs(40000), 0.1});
+      box.metadata().setName("box");
+      auto* p = m.createProcessInNewSlot(
+          box, Metadata<ConcreteKey_k, Midi::ProcessModel>::get(), {});
+      REQUIRE(p);
+      // As a take recorded 20 s into its box
+      m.submit(new Process::SetStartOffset{*p, TimeVal::fromMsecs(-20000)});
+      m.commit();
+    }
+    for(auto* reload : {&score::test::reload_via_json, &score::test::reload_via_bytes})
+    {
+      auto* loaded = (*reload)(ctx, *doc, QStringLiteral("negative-offset"));
+      REQUIRE(loaded);
+      auto& s2 = score::test::base_scenario(*loaded);
+      const Process::ProcessModel* roll{};
+      for(auto& itv : s2.intervals)
+        if(itv.metadata().getName() == "box")
+          for(auto& p : itv.processes)
+            roll = &p;
+      REQUIRE(roll);
+      CHECK(roll->startOffset() == TimeVal::fromMsecs(-20000));
+      ctx.docManager.forceCloseDocument(ctx, *loaded);
+    }
   });
 }
 
