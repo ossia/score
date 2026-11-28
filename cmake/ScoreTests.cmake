@@ -88,6 +88,7 @@ set(SCORE_TEST_ENVIRONMENT
   "SCORE_CUSTOM_APP_APPLICATION_NAME=set:score-test"
   "XDG_CONFIG_HOME=set:${SCORE_ROOT_BINARY_DIR}/test-home/config"
   "TMPDIR=set:${SCORE_ROOT_BINARY_DIR}/test-home/tmp"
+  "SCORE_NO_IDLE_INHIBIT=set:1"
   ${SCORE_TEST_LOCAL_PORTS_ENVIRONMENT}
   CACHE INTERNAL "hermetic identity for test processes")
 file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/config")
@@ -101,6 +102,7 @@ file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/config")
 # (tests/integration/common/control-ports.sh).
 set(SCORE_TEST_HARNESS_ENVIRONMENT
   "TMPDIR=set:${SCORE_ROOT_BINARY_DIR}/test-home/tmp"
+  "SCORE_NO_IDLE_INHIBIT=set:1"
   ${SCORE_TEST_LOCAL_PORTS_ENVIRONMENT}
   CACHE INTERNAL "temp isolation for harnesses that spawn score")
 file(MAKE_DIRECTORY "${SCORE_ROOT_BINARY_DIR}/test-home/tmp")

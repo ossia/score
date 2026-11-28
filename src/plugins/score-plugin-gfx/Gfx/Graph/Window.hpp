@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 
+#include <Gfx/Graph/IdleInhibitor.hpp>
 #include <Gfx/Graph/PointerState.hpp>
 #include <Gfx/Graph/RenderState.hpp>
 
@@ -80,6 +81,8 @@ public:
   std::function<void()> onDeviceLost;
 
   bool deviceLost() const noexcept { return m_deviceLost; }
+  //! Held while the window is a shown top-level window: an output, not a preview.
+  bool inhibitsIdle() const noexcept { return m_idleInhibitor.held(); }
 
   void tabletMove(QTabletEvent* ev) W_SIGNAL(tabletMove, ev);
 
@@ -102,6 +105,7 @@ private:
   double m_fps{0.};
 
   bool m_closed = false;
+  IdleInhibitor m_idleInhibitor;
   bool m_canRender = false;
   bool m_running = false;
   bool m_notExposed = false;

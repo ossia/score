@@ -14,6 +14,9 @@ endif()
 score_common_setup()
 
 find_package(${QT_VERSION} REQUIRED Gui)
+if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+  find_package(${QT_VERSION} OPTIONAL_COMPONENTS DBus)
+endif()
 
 add_subdirectory(3rdparty/nv-dvp-bridge)
 
@@ -265,6 +268,7 @@ set(HDRS
     Gfx/Graph/HWAccelSetup.hpp
     Gfx/Graph/DirectVideoNodeRenderer.hpp
     Gfx/Graph/Window.hpp
+    Gfx/Graph/IdleInhibitor.hpp
     
     Gfx/Graph/decoders/DXV.hpp
     Gfx/Graph/interop/DMABufImport.hpp
@@ -571,6 +575,7 @@ set(SRCS
     Gfx/Graph/HWAccelSetup.cpp
     Gfx/Graph/DirectVideoNodeRenderer.cpp
     Gfx/Graph/Window.cpp
+    Gfx/Graph/IdleInhibitor.cpp
 
     Gfx/AssetTable.cpp
     Gfx/FormatRegistry.cpp
@@ -664,6 +669,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 # nv-dvp-bridge: HostPinnedRing's DVP backend uses the bridge C API
 # directly; needs the include path and the static lib.
 target_link_libraries(${PROJECT_NAME} PRIVATE score_nv_dvp_bridge)
+set_source_files_properties(Gfx/Graph/IdleInhibitor.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+if(APPLE AND NOT IOS)
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework IOKit")
+endif()
+if(TARGET ${QT_PREFIX}::DBus AND UNIX AND NOT APPLE)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${QT_PREFIX}::DBus)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SCORE_GFX_HAS_DBUS)
+endif()
 if(TARGET ${QT_PREFIX}::Svg)
   target_link_libraries(${PROJECT_NAME} PUBLIC "${QT_PREFIX}::Svg")
 endif()
