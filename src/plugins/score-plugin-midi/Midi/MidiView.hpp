@@ -61,6 +61,9 @@ private:
   int m_min{0}, m_max{127};
 
   QPixmap m_textCache;
+  friend class NoteNames;
+  //! The note names, over the notes, at the left of what is shown
+  QGraphicsItem* m_names{};
   QPixmap m_bgCache;
 
   QPointer<BarGrid> m_barGrid;

@@ -15,6 +15,8 @@
 #include <QKeyEvent>
 #include <QPainter>
 
+#include <algorithm>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::View)
 namespace Midi
@@ -24,6 +26,44 @@ static const MidiStyle& style() noexcept
 {
   return MidiStyle::instance();
 }
+//! The names of the rows, drawn above the notes: a note at the very start
+//! does not hide them. They stay at the left edge of the slot the view is in,
+//! which is the start of the notes when the content is delayed and the edge
+//! of the slot when it starts into the content.
+class NoteNames final : public QGraphicsItem
+{
+public:
+  explicit NoteNames(View& v)
+      : QGraphicsItem{&v}
+      , m_view{v}
+  {
+    setZValue(1000.);
+    setAcceptedMouseButtons(Qt::NoButton);
+    setAcceptHoverEvents(false);
+  }
+
+  QRectF boundingRect() const override
+  {
+    return QRectF{0., 0., m_view.width(), m_view.height()};
+  }
+
+  void paint(QPainter* p, const QStyleOptionGraphicsItem*, QWidget*) override
+  {
+    if(m_view.m_textCache.isNull())
+      return;
+    const double x = std::clamp(-m_view.pos().x(), 0., std::max(0., m_view.width() - 30.));
+    // Readable over a note: the column darkens what is under it, as the edge
+    // of a keyboard
+    p->setOpacity(0.7);
+    p->fillRect(QRectF{x, 0., 22., m_view.height()}, style().blackKeyBrush);
+    p->setOpacity(1.);
+    p->drawPixmap(QPointF{x, 0.}, m_view.m_textCache);
+  }
+
+private:
+  View& m_view;
+};
+
 View::View(QGraphicsItem* parent)
     : Process::LayerView{parent}
 {
@@ -33,6 +73,7 @@ View::View(QGraphicsItem* parent)
   this->setFlag(QGraphicsItem::ItemClipsToShape, true);
 
   m_fragmentCache.reserve(20);
+  m_names = new NoteNames{*this};
 
   // The rows are rasterised once into m_bgCache. MidiStyle must have reloaded
   // before this runs: building it first puts its own connection ahead.
@@ -271,10 +312,7 @@ void View::paint_impl(QPainter* p) const
         draw(lines.bars, style().barPen);
       }
 
-      if(left < 30 && !m_textCache.isNull())
-      {
-        p->drawPixmap(QPointF{}, m_textCache);
-      }
+      // The names are drawn by m_names, above the notes
     }
   }
   if(!m_selectArea.isEmpty())
