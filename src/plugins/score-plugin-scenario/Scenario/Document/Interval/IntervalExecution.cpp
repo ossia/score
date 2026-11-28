@@ -544,7 +544,7 @@ void IntervalComponentBase::executionStarted()
   {
     proc.setExecuting(true);
     proc.startExecution();
-    proc.benchmark(-1.);
+    proc.benchmarkLabel(QString{});
   }
 }
 
@@ -558,7 +558,7 @@ void IntervalComponentBase::executionStopped()
     {
       proc.setExecuting(false);
       proc.stopExecution();
-      proc.benchmark(-1.);
+      proc.benchmarkLabel(QString{});
     }
   }
 }

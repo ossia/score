@@ -53,6 +53,13 @@ class AudioDevice;
 }
 namespace Execution
 {
+class Profiler;
+struct AudioBenchReport;
+class AudioBenchChannel;
+}
+
+namespace Execution
+{
 struct Queues
 {
 };
@@ -116,7 +123,17 @@ public:
   void cleared() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, cleared)
   void started() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, started)
 
-  void slot_bench(ossia::bench_map, int64_t ns);
+  void slot_bench(const AudioBenchReport& report);
+
+  Profiler& profiler() const noexcept { return *m_profiler; }
+  //! What the benchmark tick hands its reports over with.
+  const std::shared_ptr<AudioBenchChannel>& benchChannel() const noexcept
+  {
+    return m_benchChannel;
+  }
+  //! Hands the measures still queued by the audio thread and the render
+  //! outputs to the profiler.
+  void flushBenchmark();
 
 private:
   void on_deviceAdded(Device::DeviceInterface* device);
@@ -133,6 +150,8 @@ private:
   void recreateBase();
   void processEditCommands();
 
+  Profiler* m_profiler{};
+  std::shared_ptr<AudioBenchChannel> m_benchChannel;
   std::shared_ptr<ContextData> m_ctxData;
   std::shared_ptr<BaseScenarioElement> m_base;
   std::vector<ExecutionAction*> m_actions;

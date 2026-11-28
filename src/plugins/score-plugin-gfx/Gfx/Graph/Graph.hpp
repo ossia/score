@@ -164,6 +164,7 @@ struct SCORE_PLUGIN_GFX_EXPORT Graph
    */
   void setAssetTable(Gfx::AssetTable* a) noexcept { m_assetTable = a; }
   Gfx::AssetTable* assetTable() const noexcept { return m_assetTable; }
+  void setNodeProfiler(NodeProfiler* p) noexcept { m_nodeProfiler = p; }
 
 private:
   /// Re-run topological sort for a render list and rebuild renderer ordering.
@@ -186,6 +187,7 @@ private:
   // Session-wide decode cache. Non-owning; GfxContext owns the
   // actual AssetTable. May be null in tests or during teardown.
   Gfx::AssetTable* m_assetTable{};
+  NodeProfiler* m_nodeProfiler{};
 
   ossia::hash_set<std::string> m_warnedCycles;
 };
