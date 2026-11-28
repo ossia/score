@@ -637,16 +637,22 @@ void ensureStorageResources(
       const int edge = std::min(sz.width(), sz.height());
       sz = QSize(edge, edge);
     }
-    const int arrayLayers = e.layers > 0 ? e.layers : 4; // matches doc default
+    const int arrayLayers = std::clamp(
+        e.layers > 0 ? e.layers : 4, 1,
+        std::max(1, rhi.resourceLimit(QRhi::TextureArraySizeMax)));
+    const int depth = std::clamp(
+        e.depth > 0 ? e.depth : 16, 1, std::max(1, rhi.resourceLimit(QRhi::TextureSizeMax)));
+    if((e.is_array && e.layers > arrayLayers) || (e.is3D && e.depth > depth))
+      qWarning() << "Storage image" << e.name.c_str()
+                 << ": more layers than the device allows, clamped to"
+                 << (e.is3D ? depth : arrayLayers) << "(the shader sees the smaller image)";
 
     auto make_tex = [&](const char* suffix) -> QRhiTexture* {
       QRhiTexture* t = nullptr;
       if(e.cubemap)
         t = rhi.newTexture(fmt, sz, 1, flags);
       else if(e.is3D)
-        t = rhi.newTexture(
-            fmt, sz.width(), sz.height(),
-            e.depth > 0 ? e.depth : 16, 1, flags);
+        t = rhi.newTexture(fmt, sz.width(), sz.height(), depth, 1, flags);
       else if(e.is_array)
         t = rhi.newTextureArray(fmt, arrayLayers, sz, 1, flags);
       else

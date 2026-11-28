@@ -31,6 +31,7 @@
 #include <QApplication>
 #include <QDialog>
 #include <QDir>
+#include <QTemporaryDir>
 
 #include <clocale>
 #include <utility>
@@ -113,13 +114,21 @@ inline void prepare_test_environment(bool headless)
   if(!qEnvironmentVariableIsSet("SCORE_LOCAL_WS_PORT"))
     qputenv("SCORE_LOCAL_WS_PORT", "0");
 
-  // Hermetic settings: keep tests from reading or polluting the developer's
-  // real score configuration.
-  if(!qEnvironmentVariableIsSet("XDG_CONFIG_HOME"))
+  // Hermetic settings, per process: neither the developer's configuration nor
+  // that of a test running concurrently. ctest hands every test the same
+  // directory; a test that picked its own keeps it.
   {
-    const QString cfg = QDir::tempPath() + "/score-tests/config";
-    QDir{}.mkpath(cfg);
-    qputenv("XDG_CONFIG_HOME", cfg.toUtf8());
+    const QString current = QDir::cleanPath(qEnvironmentVariable("XDG_CONFIG_HOME"));
+    QString shared = QDir::tempPath() + "/score-tests/config";
+    if(current.endsWith(QStringLiteral("/test-home/config")))
+      shared = current;
+    if(qEnvironmentVariableIsEmpty("XDG_CONFIG_HOME") || current == shared)
+    {
+      QDir{}.mkpath(shared);
+      static const QTemporaryDir cfg{shared + "-XXXXXX"};
+      if(cfg.isValid())
+        qputenv("XDG_CONFIG_HOME", cfg.path().toUtf8());
+    }
   }
 
   // Run under a name of our own: it decides the QSettings file, the standard
