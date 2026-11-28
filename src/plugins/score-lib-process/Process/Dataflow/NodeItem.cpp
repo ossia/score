@@ -291,6 +291,8 @@ void NodeItem::resetItem()
     if(oldView)
       delete oldView;
     m_fx = nullptr;
+    delete m_fxFrame;
+    m_fxFrame = nullptr;
     QObject::disconnect(&m_model, &Process::ProcessModel::setSize, this, nullptr);
   }
   else
@@ -642,6 +644,11 @@ void NodeItem::createContentItem()
     }
     else if(auto fx = factory->makeLayerView(model, ctx, this))
     {
+      m_fxFrame = new QGraphicsRectItem{this};
+      m_fxFrame->setPen(Qt::NoPen);
+      m_fxFrame->setBrush(Qt::NoBrush);
+      m_fxFrame->setFlag(ItemClipsChildrenToShape, true);
+      fx->setParentItem(m_fxFrame);
       m_fx = fx;
       m_presenter = factory->makeLayerPresenter(model, fx, ctx, this);
       m_contentSize = m_model.size();
@@ -1061,7 +1068,16 @@ void NodeItem::updateZoomRatio() const noexcept
   const auto dur = m_model.loops() ? m_model.loopDuration() : m_parentDuration;
   if(m_presenter)
   {
-    m_presenter->on_zoomRatioChanged(dur.impl / m_contentSize.width());
+    const double ratio = dur.impl / m_contentSize.width();
+    // As in the timeline: the content starts where its start offset puts it
+    if(m_fxFrame && m_fx)
+    {
+      m_fxFrame->setRect(QRectF{QPointF{}, m_contentSize});
+      const bool shifted = !(m_model.flags() & Process::ProcessFlags::HandlesLooping);
+      m_fx->setX(
+          shifted && ratio > 0. ? -m_model.startOffset().toPixels(ratio) : 0.);
+    }
+    m_presenter->on_zoomRatioChanged(ratio);
     // TODO investigate why this is necessary for scenario:
     m_presenter->parentGeometryChanged();
   }

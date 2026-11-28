@@ -7,6 +7,7 @@
 #include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsItem>
+#include <QGraphicsRectItem>
 #include <QObject>
 #include <QPointer>
 
@@ -181,6 +182,9 @@ private:
 
   // Body
   QGraphicsItem* m_fx{};
+  //! The content area a layer view is drawn in: it is moved by the process's
+  //! start offset, as in the timeline, and cut to the area
+  QGraphicsRectItem* m_fxFrame{};
   score::QGraphicsPixmapToggle* m_fold{};
   Process::LayerPresenter* m_presenter{};
   QGraphicsItem* m_resizeCorner{};
