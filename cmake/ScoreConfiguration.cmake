@@ -603,8 +603,14 @@ endif()
 function(target_enable_utf8 tgt)
   if(NOT SCORE_MSSTORE_DEPLOYMENT) # c.f. ScoreDeploymentWindowsStore
     if(MSVC)
+      # score.exe.manifest carries its own trustInfo (asInvoker): /MANIFESTUAC:NO
+      # keeps the linker from merging in a second, default one. lld-link (clang-cl
+      # builds) writes that merged block with ms_asmv2:-prefixed attributes, which
+      # Windows rejects: the exe then fails to start with "The application has
+      # failed to start because its side-by-side configuration is incorrect".
       target_link_options(${tgt} PRIVATE
         /MANIFEST:EMBED
+        /MANIFESTUAC:NO
         "/MANIFESTINPUT:${CMAKE_BINARY_DIR}/score.exe.manifest")
     elseif(MINGW)
       # Compile the manifest resource in a dedicated, flag-free object library.
